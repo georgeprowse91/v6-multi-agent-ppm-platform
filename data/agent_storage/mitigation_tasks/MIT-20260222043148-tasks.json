@@ -1,0 +1,50 @@
+{
+  "plan_id": "MIT-20260222043148",
+  "risk_id": "RISK-20260222043148",
+  "tasks": [
+    {
+      "status": "pending",
+      "title": "Negotiate alternate suppliers",
+      "description": "Mitigation action for risk RISK-20260222043148: Negotiate alternate suppliers",
+      "priority": "Medium",
+      "owner": null,
+      "due_date": null,
+      "labels": [
+        "risk",
+        "resource"
+      ],
+      "risk_id": "RISK-20260222043148",
+      "project_id": null
+    },
+    {
+      "status": "pending",
+      "title": "Increase buffer inventory",
+      "description": "Mitigation action for risk RISK-20260222043148: Increase buffer inventory",
+      "priority": "Medium",
+      "owner": null,
+      "due_date": null,
+      "labels": [
+        "risk",
+        "resource"
+      ],
+      "risk_id": "RISK-20260222043148",
+      "project_id": null
+    },
+    {
+      "status": "pending",
+      "title": "Regular monitoring and reviews",
+      "description": "Mitigation action for risk RISK-20260222043148: Regular monitoring and reviews",
+      "priority": "Medium",
+      "owner": null,
+      "due_date": null,
+      "labels": [
+        "risk",
+        "resource"
+      ],
+      "risk_id": "RISK-20260222043148",
+      "project_id": null
+    }
+  ],
+  "_id": "MIT-20260222043148-tasks",
+  "_updated_at": "2026-02-22T04:31:48.543366+00:00"
+}

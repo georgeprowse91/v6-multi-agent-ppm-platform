@@ -8,7 +8,9 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 METHODOLOGY_DOCS_ROOT = REPO_ROOT / "docs" / "methodology"
-METHODOLOGY_STORAGE_PATH = Path(__file__).resolve().parents[1] / "storage" / "methodology_definitions.json"
+METHODOLOGY_STORAGE_PATH = (
+    Path(__file__).resolve().parents[1] / "storage" / "methodology_definitions.json"
+)
 
 
 DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
@@ -395,7 +397,9 @@ def _node_to_activity(
     }
 
 
-def _normalize_methodology_from_nodes(payload: dict[str, Any], methodology_id: str) -> dict[str, Any]:
+def _normalize_methodology_from_nodes(
+    payload: dict[str, Any], methodology_id: str
+) -> dict[str, Any]:
     seen: set[str] = set()
     nodes = payload.get("nodes", [])
     for node in nodes:
@@ -480,7 +484,9 @@ def _load_methodology_map(methodology_id: str) -> dict[str, Any]:
             "stages": payload.get("stages", []),
             "monitoring": payload.get("monitoring", []),
             "navigation_nodes": payload.get("stages", []),
-            "gates": _load_yaml(METHODOLOGY_DOCS_ROOT / methodology_id / "gates.yaml").get("gates", []),
+            "gates": _load_yaml(METHODOLOGY_DOCS_ROOT / methodology_id / "gates.yaml").get(
+                "gates", []
+            ),
         }
 
     raise ValueError(f"Methodology `{methodology_id}` map.yaml must contain `nodes` or `stages`.")

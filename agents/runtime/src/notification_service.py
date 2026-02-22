@@ -21,7 +21,7 @@ class NotificationServiceClient:
         base_url: str,
         auth_token: str | None = None,
         **kwargs: Any,
-    ) -> "NotificationServiceClient":
+    ) -> NotificationServiceClient:
         client = httpx.AsyncClient(base_url=base_url.rstrip("/"), timeout=5.0, **kwargs)
         return cls(base_url=base_url.rstrip("/"), client=client, auth_token=auth_token)
 

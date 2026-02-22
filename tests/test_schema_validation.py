@@ -8,8 +8,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "apps" / "analytics-service"))
 sys.path.insert(0, str(REPO_ROOT / "apps" / "connector-hub"))
 from job_registry import list_job_manifests, load_job_manifest  # noqa: E402
-from prompt_registry import PromptRegistry  # noqa: E402
 from sandbox_registry import list_sandbox_configs, load_sandbox_config  # noqa: E402
+
+from prompt_registry import PromptRegistry  # noqa: E402
 
 
 def test_job_manifests_validate() -> None:
@@ -101,4 +102,3 @@ def test_project_schema_new_optional_fields() -> None:
     # Optional fields should not be required
     assert "benefits_realisation_plan" not in schema["required"]
     assert "regulatory_category" not in schema["required"]
-

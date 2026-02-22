@@ -1,0 +1,26 @@
+{
+  "request_id": "PR-20260222052538",
+  "requester": "procurement-lead",
+  "project_id": null,
+  "program_id": null,
+  "description": "Enterprise licenses",
+  "quantity": 1,
+  "estimated_cost": 20000,
+  "currency": "AUD",
+  "required_date": null,
+  "justification": null,
+  "category": "software",
+  "suggested_vendors": [
+    "VND-20260222052538"
+  ],
+  "budget_available": false,
+  "approval_path": "Manager Approval Required",
+  "status": "Pending Approval",
+  "approval": {
+    "approval_id": "appr-1",
+    "status": "pending"
+  },
+  "created_at": "2026-02-22T05:25:38.957182+00:00",
+  "_id": "PR-20260222052538",
+  "_updated_at": "2026-02-22T05:25:38.957410+00:00"
+}

@@ -1,0 +1,12 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": "1e6fb10f-2f3a-4294-9eee-28ca98ac03fd",
+      "deployment_plan_id": "DEPLOY-20260222050933",
+      "captured_at": "2026-02-22T05:09:33.804703+00:00"
+    }
+  ],
+  "deployment_plan_id": "DEPLOY-20260222050933",
+  "_id": "DEPLOY-20260222050933",
+  "_updated_at": "2026-02-22T05:09:33.805044+00:00"
+}

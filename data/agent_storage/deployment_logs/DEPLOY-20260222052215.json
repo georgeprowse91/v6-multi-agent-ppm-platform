@@ -1,0 +1,14 @@
+{
+  "deployment_plan_id": "DEPLOY-20260222052215",
+  "timestamp": "2026-02-22T05:22:15.019957+00:00",
+  "payload": {
+    "pipelines": [],
+    "steps": [],
+    "orchestration": {
+      "orchestration_id": "338d7760-58a2-49c3-b20e-8680af9e459d",
+      "status": "completed"
+    }
+  },
+  "_id": "DEPLOY-20260222052215",
+  "_updated_at": "2026-02-22T05:22:15.020081+00:00"
+}

@@ -62,20 +62,30 @@ def _context_with_correlation_trace(correlation_id: str | None) -> Any | None:
     trace_flags_type = getattr(trace, "TraceFlags", None)
     trace_state_type = getattr(trace, "TraceState", None)
     set_span_in_context = getattr(trace, "set_span_in_context", None)
-    if not all([span_context_type, non_recording_span_type, trace_flags_type, trace_state_type, set_span_in_context]):
+    if not all(
+        [
+            span_context_type,
+            non_recording_span_type,
+            trace_flags_type,
+            trace_state_type,
+            set_span_in_context,
+        ]
+    ):
         return None
-    parent_span_context = span_context_type(
+    parent_span_context = span_context_type(  # type: ignore[misc]
         trace_id=trace_id,
         span_id=1,
         is_remote=True,
-        trace_flags=trace_flags_type(0x01),
-        trace_state=trace_state_type(),
+        trace_flags=trace_flags_type(0x01),  # type: ignore[misc]
+        trace_state=trace_state_type(),  # type: ignore[misc]
     )
-    parent_span = non_recording_span_type(parent_span_context)
-    return set_span_in_context(parent_span)
+    parent_span = non_recording_span_type(parent_span_context)  # type: ignore[misc]
+    return set_span_in_context(parent_span)  # type: ignore[misc]
 
 
-def inject_trace_headers(headers: dict[str, str], correlation_id: str | None = None) -> dict[str, str]:
+def inject_trace_headers(
+    headers: dict[str, str], correlation_id: str | None = None
+) -> dict[str, str]:
     carrier = dict(headers)
     if correlation_id:
         carrier["X-Correlation-ID"] = correlation_id

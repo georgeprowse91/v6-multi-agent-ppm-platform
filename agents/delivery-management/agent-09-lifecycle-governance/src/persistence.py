@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+
 class DocumentStore:
     def upsert(self, doc_id: str, data: dict[str, Any]) -> dict[str, Any]:
         raise NotImplementedError
@@ -62,7 +63,15 @@ class CosmosDocumentStore(DocumentStore):
     def read(self, doc_id: str) -> dict[str, Any] | None:
         try:
             return self._container.read_item(item=doc_id, partition_key=doc_id)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return None
 
     def query(self, record_type: str, tenant_id: str, project_id: str) -> list[dict[str, Any]]:
@@ -82,7 +91,15 @@ class CosmosDocumentStore(DocumentStore):
                 enable_cross_partition_query=True,
             )
             return list(items)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return []
 
     def close(self) -> None:
@@ -117,7 +134,7 @@ class LifecyclePersistence:
     summaries: list[dict[str, Any]] = field(default_factory=list)
 
     @classmethod
-    def from_config(cls, config: dict[str, Any] | None) -> "LifecyclePersistence":
+    def from_config(cls, config: dict[str, Any] | None) -> LifecyclePersistence:
         persistence_config = PersistenceConfig(
             cosmos_endpoint=(config or {}).get("cosmos_endpoint"),
             cosmos_key=(config or {}).get("cosmos_key"),
@@ -238,7 +255,15 @@ class LifecyclePersistence:
         try:
             records = self.store.query(record_type, tenant_id, project_id)
             return records or list(fallback)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return list(fallback)
 
     def _build_record(

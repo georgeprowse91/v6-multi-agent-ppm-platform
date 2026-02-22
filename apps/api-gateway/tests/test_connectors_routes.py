@@ -4,10 +4,10 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import pytest
+from api.routes import connectors
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from api.routes import connectors
 from integrations.connectors.mcp_client.errors import MCPAuthenticationError, MCPResponseError
 
 
@@ -25,7 +25,9 @@ async def test_list_mcp_server_tools_success_shape(monkeypatch):
     config = SimpleNamespace(mcp_server_url="https://mcp.example", mcp_server_id="")
 
     async def _list_tools(self):
-        return [SimpleNamespace(name="search", description="Search", input_schema={"type": "object"})]
+        return [
+            SimpleNamespace(name="search", description="Search", input_schema={"type": "object"})
+        ]
 
     monkeypatch.setattr(connectors, "_get_mcp_definition_by_system", lambda _system: definition)
     monkeypatch.setattr(connectors, "get_config_store", lambda _request: _DummyConfigStore(config))
@@ -140,11 +142,15 @@ async def test_test_connection_records_failure_on_timeout(monkeypatch):
     breaker = _Breaker()
     monkeypatch.setattr(connectors, "get_connector_definition", lambda _id: definition)
     monkeypatch.setattr(connectors, "get_config_store", lambda _request: _Store())
-    monkeypatch.setattr(connectors, "get_test_connection_handler", lambda *_args, **_kwargs: ("function", _handler))
+    monkeypatch.setattr(
+        connectors, "get_test_connection_handler", lambda *_args, **_kwargs: ("function", _handler)
+    )
     monkeypatch.setattr(connectors, "get_circuit_breaker", lambda _request: breaker)
     monkeypatch.setattr(connectors, "http_request", object(), raising=False)
 
-    request = connectors.TestConnectionRequest(instance_url="https://jira.example", project_key="PPM")
+    request = connectors.TestConnectionRequest(
+        instance_url="https://jira.example", project_key="PPM"
+    )
     with pytest.raises(HTTPException) as exc_info:
         await connectors.test_connection("jira", request)
 
@@ -190,11 +196,17 @@ async def test_test_connection_success_response_shape(monkeypatch):
     store = _Store()
     monkeypatch.setattr(connectors, "get_connector_definition", lambda _id: definition)
     monkeypatch.setattr(connectors, "get_config_store", lambda _request: store)
-    monkeypatch.setattr(connectors, "get_test_connection_handler", lambda *_args, **_kwargs: ("function", lambda _cfg: _Result()))
+    monkeypatch.setattr(
+        connectors,
+        "get_test_connection_handler",
+        lambda *_args, **_kwargs: ("function", lambda _cfg: _Result()),
+    )
     monkeypatch.setattr(connectors, "get_circuit_breaker", lambda _request: _Breaker())
     monkeypatch.setattr(connectors, "http_request", object(), raising=False)
 
-    request = connectors.TestConnectionRequest(instance_url="https://jira.example", project_key="PPM")
+    request = connectors.TestConnectionRequest(
+        instance_url="https://jira.example", project_key="PPM"
+    )
     response = await connectors.test_connection("jira", request)
 
     assert response.status == "connected"

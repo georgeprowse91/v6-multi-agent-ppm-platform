@@ -250,5 +250,7 @@ def test_workflow_engine_requires_auth(monkeypatch) -> None:
     response = client.post("/v1/workflows/start", json=payload, headers=_auth_headers_mismatch())
     assert response.status_code == 403
 
-    response = client.post("/v1/workflows/start", json=payload, headers=_auth_headers_missing_tenant())
+    response = client.post(
+        "/v1/workflows/start", json=payload, headers=_auth_headers_missing_tenant()
+    )
     assert response.status_code == 403

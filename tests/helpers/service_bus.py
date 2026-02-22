@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from event_bus import ServiceBusEventBus
 
@@ -15,7 +14,7 @@ class _MockSender:
     def __init__(self, sent: list[MockServiceBusMessage]) -> None:
         self._sent = sent
 
-    async def __aenter__(self) -> "_MockSender":
+    async def __aenter__(self) -> _MockSender:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> bool:
@@ -29,7 +28,7 @@ class MockServiceBusClient:
     def __init__(self) -> None:
         self.sent: list[MockServiceBusMessage] = []
 
-    async def __aenter__(self) -> "MockServiceBusClient":
+    async def __aenter__(self) -> MockServiceBusClient:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> bool:

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Awaitable, Callable
-
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 Notifier = Callable[[dict[str, Any]], Awaitable[None] | None]
 

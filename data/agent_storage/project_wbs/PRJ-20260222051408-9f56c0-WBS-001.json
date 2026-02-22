@@ -1,0 +1,18 @@
+{
+  "tenant_id": "tenant-a",
+  "wbs": {
+    "wbs_id": "PRJ-20260222051408-9f56c0-WBS-001",
+    "project_id": "PRJ-20260222051408-9f56c0",
+    "structure": {
+      "AI": {
+        "name": "generated executive summary.",
+        "children": {}
+      }
+    },
+    "created_at": "2026-02-22T05:14:08.556137+00:00",
+    "status": "Draft",
+    "version": "1.0"
+  },
+  "_id": "PRJ-20260222051408-9f56c0-WBS-001",
+  "_updated_at": "2026-02-22T05:14:08.568337+00:00"
+}

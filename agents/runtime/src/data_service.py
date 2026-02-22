@@ -60,7 +60,10 @@ class DataServiceClient:
                 response = await self.client.request(
                     method, url, json=json, headers=self._headers(tenant_id)
                 )
-                if response.status_code not in _RETRYABLE_STATUS_CODES or attempt == self.retry_config.max_retries:
+                if (
+                    response.status_code not in _RETRYABLE_STATUS_CODES
+                    or attempt == self.retry_config.max_retries
+                ):
                     response.raise_for_status()
                     return response
                 # Retryable server error – fall through to backoff
@@ -69,7 +72,12 @@ class DataServiceClient:
                     request=response.request,
                     response=response,
                 )
-            except (httpx.ConnectError, httpx.ReadTimeout, httpx.WriteTimeout, httpx.PoolTimeout) as exc:
+            except (
+                httpx.ConnectError,
+                httpx.ReadTimeout,
+                httpx.WriteTimeout,
+                httpx.PoolTimeout,
+            ) as exc:
                 last_exc = exc
             except httpx.HTTPStatusError as exc:
                 if exc.response.status_code not in _RETRYABLE_STATUS_CODES:
@@ -78,12 +86,17 @@ class DataServiceClient:
 
             if attempt < self.retry_config.max_retries:
                 backoff = min(
-                    self.retry_config.backoff_base * (2 ** attempt),
+                    self.retry_config.backoff_base * (2**attempt),
                     self.retry_config.backoff_max,
                 )
                 logger.warning(
                     "data_service_retry",
-                    extra={"method": method, "url": url, "attempt": attempt + 1, "backoff": backoff},
+                    extra={
+                        "method": method,
+                        "url": url,
+                        "attempt": attempt + 1,
+                        "backoff": backoff,
+                    },
                 )
                 await asyncio.sleep(backoff)
 

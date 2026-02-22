@@ -1,0 +1,22 @@
+{
+  "program_id": "PROG-20260222050932",
+  "dependencies": [
+    {
+      "predecessor": "A",
+      "successor": "B",
+      "type": "schedule_overlap",
+      "overlap_days": 365,
+      "overlap_window": {
+        "start": "2026-01-01",
+        "end": "2026-12-31"
+      }
+    },
+    {
+      "predecessor": "A",
+      "successor": "B",
+      "type": "finish_to_start"
+    }
+  ],
+  "_id": "PROG-20260222050932",
+  "_updated_at": "2026-02-22T05:09:32.871447+00:00"
+}

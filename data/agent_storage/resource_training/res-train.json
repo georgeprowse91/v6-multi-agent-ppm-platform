@@ -1,0 +1,16 @@
+{
+  "resource_id": "res-train",
+  "completed": [
+    "kubernetes-fundamentals"
+  ],
+  "in_progress": [],
+  "scheduled": [],
+  "certifications": [],
+  "skills": [
+    "kubernetes"
+  ],
+  "training_load": 0.1,
+  "updated_at": "2026-02-22T06:02:11.948379+00:00",
+  "_id": "res-train",
+  "_updated_at": "2026-02-22T06:02:11.948683+00:00"
+}

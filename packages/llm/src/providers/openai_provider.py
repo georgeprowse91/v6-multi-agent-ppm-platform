@@ -3,14 +3,15 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-
 from llm.types import LLMProviderError, LLMResponse
 
 
 class OpenAIProvider:
     provider = "openai"
 
-    def __init__(self, *, api_key: str, base_url: str = "https://api.openai.com/v1", timeout: float = 10.0) -> None:
+    def __init__(
+        self, *, api_key: str, base_url: str = "https://api.openai.com/v1", timeout: float = 10.0
+    ) -> None:
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
@@ -45,7 +46,9 @@ class OpenAIProvider:
                     json=payload,
                 )
         except httpx.TimeoutException as exc:
-            raise LLMProviderError("OpenAI request timed out", retryable=True, provider=self.provider) from exc
+            raise LLMProviderError(
+                "OpenAI request timed out", retryable=True, provider=self.provider
+            ) from exc
         if response.status_code >= 400:
             raise LLMProviderError(
                 f"OpenAI request failed status={response.status_code}",

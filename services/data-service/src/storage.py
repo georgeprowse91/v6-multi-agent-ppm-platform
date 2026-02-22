@@ -6,8 +6,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy.exc import IntegrityError
-
 from sqlalchemy import (
     JSON,
     Column,
@@ -20,6 +18,7 @@ from sqlalchemy import (
     func,
     select,
 )
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.sql import text
 
@@ -140,7 +139,9 @@ class DataServiceStore:
                 if stored_payload != payload:
                     raise RuntimeError("readiness probe payload mismatch")
                 await session.execute(
-                    delete(CANONICAL_ENTITIES_TABLE).where(CANONICAL_ENTITIES_TABLE.c.id == probe_id)
+                    delete(CANONICAL_ENTITIES_TABLE).where(
+                        CANONICAL_ENTITIES_TABLE.c.id == probe_id
+                    )
                 )
 
     async def register_schema(

@@ -1,5 +1,4 @@
 import pytest
-
 from approval_workflow_agent import ApprovalWorkflowAgent
 
 

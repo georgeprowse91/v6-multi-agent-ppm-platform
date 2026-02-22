@@ -17,15 +17,13 @@ def test_resolve_secret_file(tmp_path: Path):
 
 def test_rbac_mapping(tmp_path: Path, monkeypatch):
     mapping = tmp_path / "role-mapping.yaml"
-    mapping.write_text(
-        """
+    mapping.write_text("""
 groups:
   group-1:
     - portfolio_admin
     - compliance_viewer
 roles: []
-"""
-    )
+""")
     monkeypatch.setenv("IAM_ROLE_MAPPING_PATH", str(mapping))
     roles = map_groups_to_roles({"groups": ["group-1"]})
     assert "portfolio_admin" in roles

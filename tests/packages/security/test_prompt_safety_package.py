@@ -25,7 +25,9 @@ from security import prompt_safety
         ),
     ],
 )
-def test_prompt_injection_detection(prompt: str, expected_decision: str, expected_reason: str) -> None:
+def test_prompt_injection_detection(
+    prompt: str, expected_decision: str, expected_reason: str
+) -> None:
     result = prompt_safety.evaluate_prompt(prompt)
     assert result.decision == expected_decision
     assert expected_reason in result.reasons

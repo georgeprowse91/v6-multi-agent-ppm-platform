@@ -29,21 +29,25 @@ if _original_event_bus is not None:
 EventHandler = _event_bus_module.EventHandler
 EventRecord = _event_bus_module.EventRecord
 ServiceBusEventBus = _event_bus_module.ServiceBusEventBus
+NullEventBus = _event_bus_module.NullEventBus
 get_event_bus = _event_bus_module.get_event_bus
 
 
-class EventBus(Protocol):
-    def subscribe(self, topic: str, handler: EventHandler) -> None:
-        ...
+class _EventBusProtocol(Protocol):
+    """Structural protocol for event bus implementations (used for type hints)."""
 
-    async def publish(self, topic: str, payload: dict[str, Any]) -> None:
-        ...
+    def subscribe(self, topic: str, handler: EventHandler) -> None: ...
 
-    def get_metrics(self) -> dict[str, int]:
-        ...
+    async def publish(self, topic: str, payload: dict[str, Any]) -> None: ...
 
-    def get_recent_events(self, topic: str | None = None) -> list[EventRecord]:
-        ...
+    def get_metrics(self) -> dict[str, int]: ...
+
+    def get_recent_events(self, topic: str | None = None) -> list[EventRecord]: ...
+
+
+# Concrete default implementation – can be instantiated directly in tests and
+# local environments where no Azure Service Bus is available.
+EventBus = NullEventBus
 
 
 INSIGHT_TOPIC = "orchestrator.insights.shared"

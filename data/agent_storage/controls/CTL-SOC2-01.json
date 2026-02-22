@@ -1,0 +1,20 @@
+{
+  "control_id": "CTL-SOC2-01",
+  "description": "Monitor system availability and incident response.",
+  "regulation": "REG-SOC-2",
+  "control_type": "detective",
+  "owner": "operations",
+  "requirements": [
+    "implemented",
+    "quality_tests",
+    "evidence"
+  ],
+  "test_frequency": "quarterly",
+  "evidence_requirements": [],
+  "status": "Active",
+  "last_test_date": null,
+  "last_test_result": null,
+  "created_at": "2026-02-22T06:02:07.150388+00:00",
+  "_id": "CTL-SOC2-01",
+  "_updated_at": "2026-02-22T06:02:07.150640+00:00"
+}

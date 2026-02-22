@@ -1,0 +1,21 @@
+{
+  "label_tokens": {
+    "integration_failure": [
+      "defect",
+      "1",
+      "api",
+      "integrationfailure"
+    ]
+  },
+  "severity_tokens": {
+    "medium": [
+      "defect",
+      "1",
+      "api",
+      "integrationfailure"
+    ]
+  },
+  "trained_at": "2026-02-22T05:27:29.293744+00:00",
+  "_id": "classifier-9db79c",
+  "_updated_at": "2026-02-22T05:27:29.294006+00:00"
+}

@@ -1,0 +1,87 @@
+{
+  "plan_id": "MIT-20260222050323",
+  "risk_id": "RISK-20260222050323",
+  "strategy": "mitigate",
+  "tasks": [
+    {
+      "title": "Negotiate alternate suppliers",
+      "description": "Mitigation action for risk RISK-20260222050323: Negotiate alternate suppliers",
+      "priority": "Medium",
+      "due_date": null,
+      "owner": null
+    },
+    {
+      "title": "Increase buffer inventory",
+      "description": "Mitigation action for risk RISK-20260222050323: Increase buffer inventory",
+      "priority": "Medium",
+      "due_date": null,
+      "owner": null
+    },
+    {
+      "title": "Regular monitoring and reviews",
+      "description": "Mitigation action for risk RISK-20260222050323: Regular monitoring and reviews",
+      "priority": "Medium",
+      "due_date": null,
+      "owner": null
+    }
+  ],
+  "created_tasks": [
+    {
+      "status": "pending",
+      "title": "Negotiate alternate suppliers",
+      "description": "Mitigation action for risk RISK-20260222050323: Negotiate alternate suppliers",
+      "priority": "Medium",
+      "owner": null,
+      "due_date": null,
+      "labels": [
+        "risk",
+        "resource"
+      ],
+      "risk_id": "RISK-20260222050323",
+      "project_id": null
+    },
+    {
+      "status": "pending",
+      "title": "Increase buffer inventory",
+      "description": "Mitigation action for risk RISK-20260222050323: Increase buffer inventory",
+      "priority": "Medium",
+      "owner": null,
+      "due_date": null,
+      "labels": [
+        "risk",
+        "resource"
+      ],
+      "risk_id": "RISK-20260222050323",
+      "project_id": null
+    },
+    {
+      "status": "pending",
+      "title": "Regular monitoring and reviews",
+      "description": "Mitigation action for risk RISK-20260222050323: Regular monitoring and reviews",
+      "priority": "Medium",
+      "owner": null,
+      "due_date": null,
+      "labels": [
+        "risk",
+        "resource"
+      ],
+      "risk_id": "RISK-20260222050323",
+      "project_id": null
+    }
+  ],
+  "budget": null,
+  "responsible_person": null,
+  "due_date": null,
+  "status": "Planned",
+  "recommended_strategies": [
+    "Negotiate alternate suppliers",
+    "Increase buffer inventory",
+    "Regular monitoring and reviews",
+    "Allocate contingency reserves",
+    "Implement early warning system"
+  ],
+  "effectiveness": 0.5,
+  "created_at": "2026-02-22T05:03:23.969947+00:00",
+  "_id": "MIT-20260222050323",
+  "_updated_at": "2026-02-22T05:03:23.970085+00:00"
+}

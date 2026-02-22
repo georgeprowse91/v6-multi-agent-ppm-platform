@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 from typing import Any
 
 import httpx
-
 from conflict_store import get_conflict_store
 from jira_client import JiraIssue, get_jira_client
 from lineage_client import get_lineage_client

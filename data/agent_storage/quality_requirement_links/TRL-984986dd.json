@@ -1,0 +1,22 @@
+{
+  "link_id": "TRL-984986dd",
+  "project_id": "project-1",
+  "test_case_id": "TC-20260222054107",
+  "requirements": [
+    {
+      "requirement_id": "REQ-1",
+      "title": "Login",
+      "status": "validated"
+    },
+    {
+      "requirement_id": "REQ-2",
+      "title": null,
+      "status": "unverified"
+    }
+  ],
+  "created_at": "2026-02-22T05:41:07.464572+00:00",
+  "updated_at": "2026-02-22T05:41:07.464583+00:00",
+  "status": "linked",
+  "_id": "TRL-984986dd",
+  "_updated_at": "2026-02-22T05:41:07.465651+00:00"
+}

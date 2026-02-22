@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import importlib.util
 import inspect
 import json
-import asyncio
 import os
 import sys
 import time
@@ -63,8 +63,6 @@ from agents.runtime.src.agent_catalog import get_catalog_entry  # noqa: E402
 from runtime_flags import demo_mode_enabled  # noqa: E402
 
 
-
-
 @dataclass(frozen=True)
 class _LocalEventRecord:
     topic: str
@@ -81,7 +79,11 @@ class _LocalEventBus:
         self._handlers.setdefault(topic, []).append(handler)
 
     async def publish(self, topic: str, payload: dict[str, Any]) -> None:
-        record = _LocalEventRecord(topic=topic, payload=payload, published_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        record = _LocalEventRecord(
+            topic=topic,
+            payload=payload,
+            published_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        )
         self._events.append(record)
         for handler in self._handlers.get(topic, []):
             await handler(payload)
@@ -93,6 +95,7 @@ class _LocalEventBus:
         if topic is None:
             return list(self._events)
         return [event for event in self._events if event.topic == topic]
+
 
 @dataclass(frozen=True)
 class ConnectorInfo:
@@ -237,14 +240,9 @@ class ConnectorActionClient:
         }
         signature = inspect.signature(handler)
         accepts_kwargs = any(
-            param.kind == inspect.Parameter.VAR_KEYWORD
-            for param in signature.parameters.values()
+            param.kind == inspect.Parameter.VAR_KEYWORD for param in signature.parameters.values()
         )
-        accepted = {
-            k: v
-            for k, v in kwargs.items()
-            if accepts_kwargs or k in signature.parameters
-        }
+        accepted = {k: v for k, v in kwargs.items() if accepts_kwargs or k in signature.parameters}
         if accepted:
             return handler(**accepted)
         return handler(payload)
@@ -330,7 +328,9 @@ class ConnectorActionClient:
                     http_status=422,
                 )
 
-    def _map_exception(self, connector_id: str, action: str, exc: Exception) -> "ConnectorActionRuntimeError":
+    def _map_exception(
+        self, connector_id: str, action: str, exc: Exception
+    ) -> ConnectorActionRuntimeError:
         lowered = str(exc).lower()
         if isinstance(exc, ConnectorActionRuntimeError):
             return exc
@@ -369,7 +369,9 @@ class ConnectorActionClient:
                 http_status=504,
                 retriable=True,
             )
-        if isinstance(exc, (CircuitOpenError, CircuitBreakerOpenError, ConnectorCallFailedError, RuntimeError)):
+        if isinstance(
+            exc, (CircuitOpenError, CircuitBreakerOpenError, ConnectorCallFailedError, RuntimeError)
+        ):
             return ConnectorActionRuntimeError(
                 code="upstream_unavailable",
                 connector_id=connector_id,
@@ -547,7 +549,9 @@ class AgentRuntime:
         self._data_dir.mkdir(parents=True, exist_ok=True)
         self._event_bus = event_bus or self._build_event_bus()
         self._connector_registry = ConnectorRegistry()
-        self._connector_client = ConnectorActionClient(self._connector_registry, event_bus=self._event_bus)
+        self._connector_client = ConnectorActionClient(
+            self._connector_registry, event_bus=self._event_bus
+        )
         self._agent_registry: dict[str, BaseAgent] = {}
         self._demo_mode = demo_mode_enabled()
         self._demo_fixtures: dict[str, dict[str, Any]] = {}
@@ -626,7 +630,11 @@ class AgentRuntime:
                         payload=action.get("payload", {}),
                         tenant_id=payload.get("tenant_id"),
                         correlation_id=payload.get("correlation_id"),
-                        context=payload.get("context") if isinstance(payload.get("context"), dict) else None,
+                        context=(
+                            payload.get("context")
+                            if isinstance(payload.get("context"), dict)
+                            else None
+                        ),
                     )
                 )
             payload["connector_results"] = connector_results
@@ -1087,7 +1095,11 @@ class AgentRuntime:
         fixture_file = next(
             (
                 candidate
-                for candidate in ["sample-response.json", "sample-response.yaml", "sample-response.yml"]
+                for candidate in [
+                    "sample-response.json",
+                    "sample-response.yaml",
+                    "sample-response.yml",
+                ]
                 if (fixture_dir / candidate).exists()
             ),
             None,

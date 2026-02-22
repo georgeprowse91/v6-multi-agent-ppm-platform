@@ -1,0 +1,26 @@
+{
+  "snapshot_id": "ES-project-2-20260222051855",
+  "project_id": "project-2",
+  "collected_at": "2026-02-22T05:18:55.691258+00:00",
+  "sources": [
+    "audit_logs",
+    "security_scans"
+  ],
+  "metadata": {
+    "agent_id": "agent_016"
+  },
+  "payload": {
+    "risk_mitigations": [],
+    "quality_results": [],
+    "audit_logs": [
+      "security-log"
+    ],
+    "deployment_evidence": [],
+    "privacy_impact_assessed": false,
+    "security_scans": [
+      "scan1"
+    ]
+  },
+  "_id": "ES-project-2-20260222051855",
+  "_updated_at": "2026-02-22T05:18:55.691453+00:00"
+}

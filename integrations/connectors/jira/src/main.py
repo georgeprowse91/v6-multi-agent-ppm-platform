@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 from integrations.connectors.sdk.src.http_client import HttpClient
 from integrations.connectors.sdk.src.runtime import ConnectorRuntime
-from integrations.connectors.sdk.src.secrets import resolve_secret
+from connector_secrets import resolve_secret
 from integrations.connectors.jira.src.jira_connector import JiraConnector
 from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig, SyncDirection, SyncFrequency
 

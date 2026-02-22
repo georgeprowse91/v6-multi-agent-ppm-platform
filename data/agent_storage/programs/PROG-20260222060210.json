@@ -1,0 +1,25 @@
+{
+  "program_id": "PROG-20260222060210",
+  "name": "Synergy Program",
+  "description": "Synergy optimization",
+  "strategic_objectives": [
+    "CRM",
+    "Data Platform"
+  ],
+  "constituent_projects": [
+    "P1",
+    "P2"
+  ],
+  "methodology": "hybrid",
+  "created_at": "2026-02-22T06:02:10.767153+00:00",
+  "created_by": "unknown",
+  "status": "Planning",
+  "portfolio_id": "unknown",
+  "metadata": {
+    "project_count": 2,
+    "dependencies_identified": 0,
+    "synergies_found": 0
+  },
+  "_id": "PROG-20260222060210",
+  "_updated_at": "2026-02-22T06:02:10.767882+00:00"
+}

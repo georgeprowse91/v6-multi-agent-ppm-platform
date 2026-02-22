@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
-import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +16,10 @@ from integrations.connectors.integration.framework import (
     IntegrationAuthType,
     IntegrationConfig,
 )
-from integrations.connectors.integration.mcp_connectors import PlanviewMcpConnector, SlackMcpConnector
+from integrations.connectors.integration.mcp_connectors import (
+    PlanviewMcpConnector,
+    SlackMcpConnector,
+)
 from integrations.connectors.mcp_client.errors import MCPToolNotFoundError
 
 

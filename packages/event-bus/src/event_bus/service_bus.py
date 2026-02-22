@@ -10,8 +10,7 @@ from uuid import uuid4
 from event_bus.models import EventHandler, EventRecord
 
 if TYPE_CHECKING:
-    from azure.servicebus import ServiceBusMessage
-    from azure.servicebus.aio import ServiceBusClient
+    pass
 
 
 class ServiceBusEventBus:
@@ -56,7 +55,9 @@ class ServiceBusEventBus:
     async def publish(self, topic: str, payload: dict[str, Any]) -> None:
         self._metrics[topic] += 1
         self._event_log.append(
-            EventRecord(topic=topic, payload=payload, published_at=datetime.now(timezone.utc).isoformat())
+            EventRecord(
+                topic=topic, payload=payload, published_at=datetime.now(timezone.utc).isoformat()
+            )
         )
         message = self._message_cls(json.dumps({"topic": topic, "payload": payload}))
         async with self._client:
@@ -136,7 +137,7 @@ class ServiceBusEventBus:
             raw = body
         else:
             raw = b"".join(body)
-        return json.loads(raw.decode("utf-8"))
+        return dict(json.loads(raw.decode("utf-8")))
 
     async def _dispatch(self, handlers: list[EventHandler], payload: dict[str, Any]) -> None:
         async def _invoke(handler: EventHandler) -> None:

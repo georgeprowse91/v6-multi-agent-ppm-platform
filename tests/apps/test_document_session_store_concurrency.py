@@ -3,11 +3,10 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from types import SimpleNamespace
 
-from fastapi import FastAPI, Request
-from fastapi.testclient import TestClient
-
 from api.document_session_store import DocumentSessionStore
 from api.routes.documents import router
+from fastapi import FastAPI, Request
+from fastapi.testclient import TestClient
 
 
 def _build_app(tmp_path) -> FastAPI:

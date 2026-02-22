@@ -7,7 +7,6 @@ if str(SRC_DIR) not in sys.path:
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from routes import documents
 
 
@@ -22,6 +21,8 @@ def test_documents_router_contract() -> None:
     app.dependency_overrides[documents.get_document_service] = lambda: _StubDocumentService()
     client = TestClient(app)
 
-    response = client.get("/v1/api/document-canvas/documents", params={"tenant_id": "t1", "limit": 5})
+    response = client.get(
+        "/v1/api/document-canvas/documents", params={"tenant_id": "t1", "limit": 5}
+    )
     assert response.status_code == 200
     assert response.json()["items"][0]["tenant_id"] == "t1"

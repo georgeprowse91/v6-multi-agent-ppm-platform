@@ -31,13 +31,21 @@ def test_methodology_activities_have_relationship_mappings() -> None:
         assert methodology_map["stages"], f"Expected stages in {methodology_id}"
 
         for stage in methodology_map["stages"]:
-            assert stage["activities"], f"Expected activities for {methodology_id} stage {stage['id']}"
+            assert stage[
+                "activities"
+            ], f"Expected activities for {methodology_id} stage {stage['id']}"
             for activity in stage["activities"]:
                 metadata = activity.get("metadata", {})
-                assert metadata.get("template_id"), f"{activity['id']} missing template relationship"
+                assert metadata.get(
+                    "template_id"
+                ), f"{activity['id']} missing template relationship"
                 assert metadata.get("agent_id"), f"{activity['id']} missing agent relationship"
-                assert metadata.get("connector_id"), f"{activity['id']} missing connector relationship"
-                assert activity.get("assistant_prompts"), f"{activity['id']} missing assistant suggested actions"
-                assert activity.get("recommended_canvas_tab") in VALID_CANVAS_TABS, (
-                    f"{activity['id']} has unsupported canvas tab"
-                )
+                assert metadata.get(
+                    "connector_id"
+                ), f"{activity['id']} missing connector relationship"
+                assert activity.get(
+                    "assistant_prompts"
+                ), f"{activity['id']} missing assistant suggested actions"
+                assert (
+                    activity.get("recommended_canvas_tab") in VALID_CANVAS_TABS
+                ), f"{activity['id']} has unsupported canvas tab"

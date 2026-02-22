@@ -1,0 +1,62 @@
+{
+  "execution_id": "EX-20260222032632",
+  "suite_id": "TS-20260222032632",
+  "project_id": "project-1",
+  "execution_mode": "ci",
+  "executed_by": "system",
+  "test_results": [
+    {
+      "test_case_id": "TC-1",
+      "name": "Unit",
+      "result": "pass",
+      "project_id": "project-1"
+    }
+  ],
+  "total_tests": 1,
+  "passed": 1,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "code_coverage": 92.5,
+  "coverage_snapshot": {
+    "project_id": "project-1",
+    "coverage_pct": 92.5,
+    "captured_at": "2026-02-22T03:26:32.285240+00:00",
+    "_id": "2026-02-22T03:26:32.285240+00:00",
+    "_updated_at": "2026-02-22T03:26:32.285908+00:00"
+  },
+  "artifact_blob": {
+    "container": "quality-tests",
+    "blob_name": "TS-20260222032632/EX-20260222032632/results.json",
+    "uri": "https://blob.local/quality-tests/TS-20260222032632/EX-20260222032632/results.json",
+    "stored_at": "2026-02-22T03:26:32.286889+00:00"
+  },
+  "sync_status": {
+    "summary": {
+      "execution_id": "EX-20260222032632",
+      "results": 1,
+      "project_id": "project-1"
+    },
+    "targets": {
+      "azure_devops": "submitted",
+      "jira_xray": "submitted",
+      "testrail": "submitted"
+    },
+    "external_refs": {
+      "azure_devops": {
+        "run_id": "ado-run-EX-20260222032632",
+        "plan_id": "plan-99",
+        "suite_id": "suite-99",
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "synced_at": "2026-02-22T03:26:32.286910+00:00",
+        "_id": "ado-run-EX-20260222032632",
+        "_updated_at": "2026-02-22T03:26:32.287132+00:00"
+      }
+    },
+    "synced_at": "2026-02-22T03:26:32.287366+00:00"
+  },
+  "executed_at": "2026-02-22T03:26:32.287740+00:00",
+  "_id": "EX-20260222032632",
+  "_updated_at": "2026-02-22T03:26:32.287944+00:00"
+}

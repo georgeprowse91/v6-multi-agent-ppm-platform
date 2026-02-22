@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from response_orchestration_agent import ResponseOrchestrationAgent
 
 

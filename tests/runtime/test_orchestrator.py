@@ -10,10 +10,10 @@ import pytest
 pytest.importorskip("redis")
 
 from agents.runtime.src.base_agent import BaseAgent
-from tests.helpers.service_bus import build_test_event_bus
+from agents.runtime.src.orchestrator import AgentTask, Orchestrator, RetryPolicy
 from packages.memory_client import MemoryClient
 from services.memory_service.memory_service import MemoryService
-from agents.runtime.src.orchestrator import AgentTask, Orchestrator, RetryPolicy
+from tests.helpers.service_bus import build_test_event_bus
 
 ORCHESTRATOR_SERVICE_PATH = (
     Path(__file__).resolve().parents[2]

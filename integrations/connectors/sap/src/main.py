@@ -9,7 +9,7 @@ from typing import Any
 
 from integrations.connectors.sdk.src.http_client import HttpClient, HttpClientError
 from integrations.connectors.sdk.src.runtime import ConnectorRuntime
-from integrations.connectors.sdk.src.secrets import resolve_secret
+from connector_secrets import resolve_secret
 
 from .mappers import map_to_sap
 

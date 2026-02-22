@@ -1,0 +1,25 @@
+{
+  "regulation_id": "REG-A6A48C",
+  "name": "Health Data Privacy Act",
+  "description": "New privacy rules for healthcare data.",
+  "jurisdiction": [
+    "US"
+  ],
+  "industry": [],
+  "effective_date": "2025-01-01",
+  "obligations": [],
+  "related_controls": [],
+  "applicability_rules": {
+    "applies_to_all": false,
+    "jurisdiction_filter": [
+      "US"
+    ],
+    "industry_filter": []
+  },
+  "metadata": {
+    "source_url": "https://example.com/regulation"
+  },
+  "created_at": "2026-02-22T04:31:43.223370+00:00",
+  "_id": "REG-A6A48C",
+  "_updated_at": "2026-02-22T04:31:43.223556+00:00"
+}

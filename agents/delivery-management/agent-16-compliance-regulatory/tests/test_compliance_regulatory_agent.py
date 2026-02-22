@@ -29,7 +29,7 @@ if "observability.tracing" not in sys.modules:
 
     def _start_agent_span(*_args: object, **_kwargs: object) -> object:
         class DummySpan:
-            def __enter__(self) -> "DummySpan":
+            def __enter__(self) -> DummySpan:
                 return self
 
             def __exit__(self, *_exc: object) -> None:

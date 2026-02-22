@@ -1,0 +1,35 @@
+{
+  "tenant_id": "unknown",
+  "requirements": {
+    "project_id": "PRJ-20260222033136-4478ad",
+    "requirements": [
+      {
+        "id": "REQ-1",
+        "text": "System shall support SSO.",
+        "source": "manual",
+        "category": null,
+        "priority": "medium"
+      },
+      {
+        "id": "REQ-2",
+        "text": "System must emit audit logs.",
+        "source": "manual",
+        "category": null,
+        "priority": "medium"
+      }
+    ],
+    "categories": {
+      "null": 2
+    },
+    "conflicts": [],
+    "validation": {
+      "complete": true,
+      "missing_fields": [],
+      "validation_score": 0.95
+    },
+    "total_count": 2,
+    "updated_at": "2026-02-22T03:31:36.319166+00:00"
+  },
+  "_id": "PRJ-20260222033136-4478ad",
+  "_updated_at": "2026-02-22T03:31:36.319376+00:00"
+}

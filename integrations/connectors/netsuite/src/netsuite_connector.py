@@ -20,7 +20,7 @@ if str(SDK_PATH) not in sys.path:
 from base_connector import ConnectorCategory, ConnectorConfig
 from http_client import HttpClient
 from rest_connector import OAuth2RestConnector
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 
 DEFAULT_TOKEN_URL = "https://accounts.netsuite.com/services/oauth2/v1/token"
 

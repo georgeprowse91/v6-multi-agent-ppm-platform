@@ -13,8 +13,7 @@ from workflow_definitions import load_definition  # noqa: E402
 
 def test_load_definition_accepts_valid_yaml(tmp_path: Path) -> None:
     schema = tmp_path / "schema.yaml"
-    schema.write_text(
-        """
+    schema.write_text("""
 $schema: "https://json-schema.org/draft/2020-12/schema"
 type: object
 required: [steps]
@@ -22,11 +21,9 @@ properties:
   steps:
     type: array
     minItems: 1
-""".strip()
-    )
+""".strip())
     definition = tmp_path / "valid.workflow.yaml"
-    definition.write_text(
-        """
+    definition.write_text("""
 metadata:
   name: Valid
 steps:
@@ -35,8 +32,7 @@ steps:
     config:
       agent: router
       action: run
-""".strip()
-    )
+""".strip())
 
     loaded = load_definition(definition, schema)
 
@@ -45,8 +41,7 @@ steps:
 
 def test_load_definition_rejects_schema_and_custom_validation_errors(tmp_path: Path) -> None:
     schema = tmp_path / "schema.yaml"
-    schema.write_text(
-        """
+    schema.write_text("""
 $schema: "https://json-schema.org/draft/2020-12/schema"
 type: object
 required: [metadata, steps]
@@ -56,8 +51,7 @@ properties:
   steps:
     type: array
     minItems: 1
-""".strip()
-    )
+""".strip())
 
     schema_invalid = tmp_path / "schema-invalid.workflow.yaml"
     schema_invalid.write_text("steps: []")
@@ -65,8 +59,7 @@ properties:
         load_definition(schema_invalid, schema)
 
     custom_invalid = tmp_path / "custom-invalid.workflow.yaml"
-    custom_invalid.write_text(
-        """
+    custom_invalid.write_text("""
 metadata:
   name: Broken
 steps:
@@ -79,8 +72,7 @@ steps:
   - id: b
     type: task
     config: {}
-""".strip()
-    )
+""".strip())
 
     with pytest.raises(ValueError, match="requires agent/action"):
         load_definition(custom_invalid, schema)

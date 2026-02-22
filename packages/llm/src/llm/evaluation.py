@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from statistics import mean
-from typing import Any, Callable
+from typing import Any
 
 from llm.prompts import PromptRegistry
 
@@ -58,7 +59,11 @@ class PromptEvaluationHarness:
     @staticmethod
     def _default_scorer(sample: EvaluationSample) -> float:
         if sample.expected_output is not None:
-            return 1.0 if sample.output.strip().lower() == sample.expected_output.strip().lower() else 0.0
+            return (
+                1.0
+                if sample.output.strip().lower() == sample.expected_output.strip().lower()
+                else 0.0
+            )
         if sample.rubric_keywords:
             output = sample.output.lower()
             hits = [kw for kw in sample.rubric_keywords if kw.lower() in output]

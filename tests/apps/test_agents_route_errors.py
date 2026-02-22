@@ -2,10 +2,9 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from fastapi import HTTPException
-
-from api.routes.agents import process_query, QueryRequest
+from api.routes.agents import QueryRequest, process_query
 from common.exceptions import ResourceNotFoundError
+from fastapi import HTTPException
 
 
 @pytest.mark.asyncio

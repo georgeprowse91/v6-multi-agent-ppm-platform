@@ -3,14 +3,15 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-
 from llm.types import LLMProviderError, LLMResponse
 
 
 class AnthropicProvider:
     provider = "anthropic"
 
-    def __init__(self, *, api_key: str, base_url: str = "https://api.anthropic.com/v1", timeout: float = 10.0) -> None:
+    def __init__(
+        self, *, api_key: str, base_url: str = "https://api.anthropic.com/v1", timeout: float = 10.0
+    ) -> None:
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
@@ -45,7 +46,9 @@ class AnthropicProvider:
                     json=payload,
                 )
         except httpx.TimeoutException as exc:
-            raise LLMProviderError("Anthropic request timed out", retryable=True, provider=self.provider) from exc
+            raise LLMProviderError(
+                "Anthropic request timed out", retryable=True, provider=self.provider
+            ) from exc
         if response.status_code >= 400:
             raise LLMProviderError(
                 f"Anthropic request failed status={response.status_code}",

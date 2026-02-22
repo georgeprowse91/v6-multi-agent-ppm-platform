@@ -277,7 +277,9 @@ async def test_project_definition_openai_charter_and_wbs(tmp_path):
             "requester": "pm-1",
         }
     )
-    assert any("Delivery Phase" in node.get("name", "") for node in wbs_response["structure"].values())
+    assert any(
+        "Delivery Phase" in node.get("name", "") for node in wbs_response["structure"].values()
+    )
 
 
 @pytest.mark.asyncio

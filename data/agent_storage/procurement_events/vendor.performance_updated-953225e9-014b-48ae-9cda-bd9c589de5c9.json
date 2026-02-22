@@ -1,0 +1,45 @@
+{
+  "event_id": "vendor.performance_updated-953225e9-014b-48ae-9cda-bd9c589de5c9",
+  "event_type": "vendor.performance_updated",
+  "entity_id": "VND-20260222033638",
+  "payload": {
+    "vendor_id": "VND-20260222033638",
+    "metrics": {
+      "delivery_timeliness": 95.0,
+      "quality_rating": 4.5,
+      "compliance_score": 100.0,
+      "sla_adherence": 97.0,
+      "dispute_count": 0,
+      "total_spend": 0,
+      "contract_count": 0,
+      "on_time_delivery_rate": 95.0,
+      "compliance_rating": 100.0,
+      "risk_adjusted_score": 50.0
+    },
+    "ml_analysis": {
+      "trend": "Stable",
+      "adjusted_metrics": {
+        "delivery_timeliness": 95.0,
+        "quality_rating": 4.5,
+        "compliance_score": 100.0,
+        "sla_adherence": 97.0,
+        "dispute_count": 0,
+        "total_spend": 0,
+        "contract_count": 0,
+        "on_time_delivery_rate": 95.0,
+        "compliance_rating": 100.0,
+        "risk_adjusted_score": 50.0
+      },
+      "insights": [
+        "ML model evaluated delivery and quality trends.",
+        "Risk-adjusted score updated for analytics dashboards."
+      ]
+    }
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "332adbfb-ba9b-4144-b8c9-f1ccead2f947",
+  "actor_id": "system",
+  "timestamp": "2026-02-22T03:36:38.832557+00:00",
+  "_id": "vendor.performance_updated-953225e9-014b-48ae-9cda-bd9c589de5c9",
+  "_updated_at": "2026-02-22T03:36:38.833358+00:00"
+}

@@ -21,7 +21,9 @@ class LLMStreamChunk:
 
 
 class LLMProviderError(RuntimeError):
-    def __init__(self, message: str, *, retryable: bool = False, provider: str | None = None) -> None:
+    def __init__(
+        self, message: str, *, retryable: bool = False, provider: str | None = None
+    ) -> None:
         super().__init__(message)
         self.retryable = retryable
         self.provider = provider

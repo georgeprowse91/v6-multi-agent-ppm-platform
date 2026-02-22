@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 from pathlib import Path
 from typing import Any
-import sys
 
 import httpx
 
@@ -22,7 +22,7 @@ class DummyAsyncClient:
         self._responses = responses
         self._requests = requests
 
-    async def __aenter__(self) -> "DummyAsyncClient":
+    async def __aenter__(self) -> DummyAsyncClient:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:  # noqa: ANN001
@@ -46,7 +46,7 @@ def test_mcp_client_invokes_tool_map(monkeypatch) -> None:
             "jsonrpc": "2.0",
             "id": "2",
             "result": {"records": [{"id": "p-1"}]},
-        }
+        },
     ]
 
     def fake_async_client(*_args, **_kwargs) -> DummyAsyncClient:
@@ -88,7 +88,7 @@ def test_mcp_client_lists_tools(monkeypatch) -> None:
                     }
                 ]
             },
-        }
+        },
     ]
 
     def fake_async_client(*_args, **_kwargs) -> DummyAsyncClient:

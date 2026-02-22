@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from pathlib import Path
 import logging
+from pathlib import Path
 from typing import Any, cast
 
 from workflow_storage import WorkflowStore
-from security.config import load_yaml
 
 from jsonschema import Draft202012Validator, FormatChecker
+from security.config import load_yaml
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,9 @@ def validate_definition(definition: dict[str, Any]) -> list[str]:
         if step_type == "parallel":
             branches = step.get("branches") or []
             if not branches:
-                errors.append(f"steps[{index}].branches: parallel step '{step_id}' requires branches")
+                errors.append(
+                    f"steps[{index}].branches: parallel step '{step_id}' requires branches"
+                )
             join = step.get("join")
             if not join:
                 errors.append(f"steps[{index}].join: parallel step '{step_id}' requires join")

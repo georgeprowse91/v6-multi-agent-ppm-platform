@@ -316,9 +316,7 @@ async def test_analytics_scenario_analysis_uses_predictions(tmp_path):
             "event_bus": event_bus,
         }
     )
-    agent._run_prediction = AsyncMock(
-        return_value={"prediction": 0.3, "confidence": 0.8}
-    )
+    agent._run_prediction = AsyncMock(return_value={"prediction": 0.3, "confidence": 0.8})
     await agent.initialize()
 
     response = await agent.process(
@@ -395,9 +393,7 @@ async def test_analytics_ingest_sources_triggers_pipelines(tmp_path, monkeypatch
     )
     await agent.initialize()
 
-    response = await agent.process(
-        {"action": "ingest_sources", "tenant_id": "tenant-analytics"}
-    )
+    response = await agent.process({"action": "ingest_sources", "tenant_id": "tenant-analytics"})
 
     assert set(response["sources"]) == {"planview", "jira", "workday", "sap"}
     assert "planview" in response["pipelines"]

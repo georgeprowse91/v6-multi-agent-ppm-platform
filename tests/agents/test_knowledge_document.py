@@ -1,7 +1,7 @@
-import numpy as np
 import pytest
-
 from knowledge_management_agent import KnowledgeManagementAgent
+
+import numpy as np
 
 
 class FakeSentenceEncoder:

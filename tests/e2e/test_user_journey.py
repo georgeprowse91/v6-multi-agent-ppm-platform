@@ -84,7 +84,6 @@ def test_end_to_end_workflow(monkeypatch) -> None:
     assert workflow_response.json()["status"] == "running"
 
 
-
 def test_workflow_resume_after_mid_workflow_failure(monkeypatch, tmp_path) -> None:
     """Simulate a failed run and verify resume continues from the same run id."""
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
@@ -118,7 +117,9 @@ def test_workflow_resume_after_mid_workflow_failure(monkeypatch, tmp_path) -> No
     assert start.status_code == 200
     run_id = start.json()["run_id"]
 
-    fail = workflow.post(f"/v1/workflows/{run_id}/status", json={"status": "failed"}, headers=headers)
+    fail = workflow.post(
+        f"/v1/workflows/{run_id}/status", json={"status": "failed"}, headers=headers
+    )
     assert fail.status_code == 200
     assert fail.json()["status"] == "failed"
 

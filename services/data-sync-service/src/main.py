@@ -33,6 +33,7 @@ from security.api_governance import (  # noqa: E402
 )
 from security.auth import AuthTenantMiddleware  # noqa: E402
 from security.lineage import mask_lineage_payload  # noqa: E402
+from security.secrets import resolve_secret  # noqa: E402
 from sync_log_store import get_sync_log_store  # noqa: E402
 from sync_registry import (  # noqa: E402
     build_default_registry,

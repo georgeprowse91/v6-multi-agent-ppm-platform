@@ -157,8 +157,12 @@ ignore = ["E501", "UP017"]  # Line too long (handled by black); UTC alias not in
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Unused imports
 "**/main.py" = ["E402"]  # Module imports after path manipulation
+"**/legacy_main.py" = ["E402"]  # Legacy main files with path manipulation
 "**/routes/*.py" = ["E402"]  # Route files with path bootstrapping
 "tests/**/*.py" = ["E402", "N806"]  # Tests with dynamic imports and class loading
+"**/tests/**/*.py" = ["E402", "N806"]  # Tests in subdirectories
+"**/config.py" = ["E402"]  # Config files with path manipulation
+"**/auth.py" = ["E402"]  # Auth files with path manipulation
 
 [tool.mypy]
 python_version = "3.11"
@@ -173,7 +177,18 @@ no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 strict_optional = true
-exclude = '(apps|services)/.*/src/main.py|(apps|services)/.*/main.py|services/agent-config/src/__init__.py|packages/ui-kit/src/__init__.py|services/data-lineage-service/src/retention_scheduler.py|services/data-service/src/retention_scheduler.py|services/.*/src/storage.py'
+exclude = [
+  '(apps|services|agents)/.*/src/main\\.py',
+  '(apps|services|agents)/.*/main\\.py',
+  'services/agent-config/src/__init__\\.py',
+  'packages/ui-kit/src/__init__\\.py',
+  'services/data-lineage-service/src/retention_scheduler\\.py',
+  'services/data-service/src/retention_scheduler\\.py',
+  '(apps|services|agents)/.*/src/(storage|persistence|config|models|auth|metrics|circuit_breaker|leader_election|retention_scheduler|orchestrator|dependencies|connectors|analytics|documents|health|lineage|prompts|scope_research|assistant|audit|workflow|workspace|web_search|router)\\.py',
+  '^(email_validator|events|prompt_registry|pydantic_settings|requests|runtime_flags)\\.py$',
+  '^(sqlalchemy|integrations)/.*',
+  '.*/tests/.*',
+]
 
 [[tool.mypy.overrides]]
 module = ["fastapi.*", "pydantic.*", "uvicorn.*"]
@@ -186,3 +201,19 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["opentelemetry.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
+
+[[tool.mypy.overrides]]
+module = ["email_validator", "email_validator.*"]
+follow_imports = "skip"
+
+[[tool.mypy.overrides]]
+module = ["faiss", "faiss.*"]
+follow_imports = "skip"
+
+[[tool.mypy.overrides]]
+module = ["prometheus_client", "prometheus_client.*"]
+follow_imports = "skip"

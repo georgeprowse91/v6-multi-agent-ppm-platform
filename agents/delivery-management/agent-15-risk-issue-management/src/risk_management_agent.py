@@ -28,6 +28,7 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
+from analytics_insights_agent import DataLakeManager, SynapseManager  # noqa: E402
 from llm.client import LLMGateway, LLMProviderError  # noqa: E402
 
 from agents.common.connector_integration import (  # noqa: E402
@@ -40,7 +41,6 @@ from agents.common.connector_integration import (  # noqa: E402
     MLPredictionService,
     ProjectManagementService,
 )
-from analytics_insights_agent import DataLakeManager, SynapseManager  # noqa: E402
 from agents.common.web_search import (  # noqa: E402
     build_search_query,
     search_web,
@@ -70,7 +70,9 @@ class CognitiveSearchService:
     def is_configured(self) -> bool:
         return bool(self.endpoint and self.api_key and self.index_name)
 
-    def search(self, query: str, *, top: int = 5, filter_expression: str | None = None) -> list[dict[str, Any]]:
+    def search(
+        self, query: str, *, top: int = 5, filter_expression: str | None = None
+    ) -> list[dict[str, Any]]:
         if not self.is_configured():
             return []
         url = (
@@ -102,7 +104,12 @@ class CognitiveSearchService:
             for document in documents:
                 if isinstance(document, dict):
                     queries.append(
-                        str(document.get("title") or document.get("query") or document.get("content") or "")
+                        str(
+                            document.get("title")
+                            or document.get("query")
+                            or document.get("content")
+                            or ""
+                        )
                     )
                 else:
                     queries.append(str(document))
@@ -122,11 +129,7 @@ class CognitiveSearchService:
             if extracted:
                 return extracted
         for document in documents:
-            text = (
-                document.get("content")
-                if isinstance(document, dict)
-                else str(document)
-            )
+            text = document.get("content") if isinstance(document, dict) else str(document)
             for line in str(text).splitlines():
                 if "risk" in line.lower():
                     extracted.append(
@@ -171,7 +174,15 @@ class KnowledgeBaseQueryService:
                             "source": "confluence",
                         }
                     )
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 results = results
 
         sharepoint_connector = self.document_service._get_connector()
@@ -190,7 +201,15 @@ class KnowledgeBaseQueryService:
                             "source": "sharepoint",
                         }
                     )
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 results = results
 
         return [item for item in results if item.get("strategy")]
@@ -265,7 +284,15 @@ class RiskNLPExtractor:
             self._sklearn_model = model
             self._trained = True
             return True
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             self._sklearn_model = None
             self._vectorizer = None
             self._trained = False
@@ -289,7 +316,15 @@ class RiskNLPExtractor:
 
         try:
             self._pipeline = pipeline(self.pipeline_task, model=self.model_name)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             self._pipeline = None
 
     def _collect_sentences(self, documents: list[dict[str, Any] | str]) -> list[str]:
@@ -328,7 +363,15 @@ class RiskNLPExtractor:
         try:
             features = self._vectorizer.transform(sentences)
             probabilities = self._sklearn_model.predict_proba(features)[:, 1]
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return self._heuristic_risks(sentences)
         for sentence, probability in zip(sentences, probabilities):
             if probability >= self.threshold:
@@ -472,7 +515,9 @@ class RiskManagementAgent(BaseAgent):
         self.project_management_services: dict[str, ProjectManagementService] = {}
         self.cognitive_search_service: CognitiveSearchService | None = None
         self.knowledge_base_service: KnowledgeBaseQueryService | None = None
-        self.resource_management_service = config.get("resource_management_service") if config else None
+        self.resource_management_service = (
+            config.get("resource_management_service") if config else None
+        )
         self.data_lake_manager: DataLakeManager | None = None
         self.synapse_manager: SynapseManager | None = None
         self.event_bus = None
@@ -495,15 +540,13 @@ class RiskManagementAgent(BaseAgent):
                 "resource_utilization": 0.9,
             }
         )
-        self.risk_nlp_extractor = (
-            config.get("risk_nlp_extractor")
-            if config
-            else None
-        )
+        self.risk_nlp_extractor = config.get("risk_nlp_extractor") if config else None
         if not self.risk_nlp_extractor:
             self.risk_nlp_extractor = RiskNLPExtractor(
                 model_name=(config.get("risk_nlp_model_name") if config else "bert-base-uncased"),
-                pipeline_task=(config.get("risk_nlp_pipeline_task") if config else "zero-shot-classification"),
+                pipeline_task=(
+                    config.get("risk_nlp_pipeline_task") if config else "zero-shot-classification"
+                ),
                 labels=(config.get("risk_nlp_labels") if config else None),
                 threshold=float(config.get("risk_nlp_threshold", 0.6)) if config else 0.6,
                 max_sentences=int(config.get("risk_nlp_max_sentences", 80)) if config else 80,
@@ -519,7 +562,9 @@ class RiskManagementAgent(BaseAgent):
         self.financial_agent_endpoint = (
             config.get("financial_agent_endpoint") if config else None
         ) or (config.get("related_agent_endpoints", {}).get("financial") if config else None)
-        self.schedule_baseline_fixture = config.get("schedule_baseline_fixture", {}) if config else {}
+        self.schedule_baseline_fixture = (
+            config.get("schedule_baseline_fixture", {}) if config else {}
+        )
         self.financial_distribution_fixture = (
             config.get("financial_distribution_fixture", {}) if config else {}
         )
@@ -539,7 +584,9 @@ class RiskManagementAgent(BaseAgent):
         self.document_service = DocumentManagementService(self.config)
         self.documentation_service = DocumentationPublishingService(self.config)
         self.ml_service = self.config.get("ml_service") or MLPredictionService(self.config)
-        self.cognitive_search_service = self.config.get("cognitive_search_service") or CognitiveSearchService(
+        self.cognitive_search_service = self.config.get(
+            "cognitive_search_service"
+        ) or CognitiveSearchService(
             endpoint=self.config.get("cognitive_search_endpoint")
             or os.getenv("AZURE_COG_SEARCH_ENDPOINT"),
             api_key=self.config.get("cognitive_search_key")
@@ -547,7 +594,9 @@ class RiskManagementAgent(BaseAgent):
             index_name=self.config.get("cognitive_search_index")
             or os.getenv("AZURE_COG_SEARCH_INDEX"),
         )
-        self.knowledge_base_service = self.config.get("knowledge_base_service") or KnowledgeBaseQueryService(
+        self.knowledge_base_service = self.config.get(
+            "knowledge_base_service"
+        ) or KnowledgeBaseQueryService(
             self.document_service,
             self.documentation_service,
         )
@@ -558,8 +607,10 @@ class RiskManagementAgent(BaseAgent):
             service_client=self.config.get("data_lake_client"),
         )
         self.synapse_manager = self.config.get("synapse_manager") or SynapseManager(
-            workspace_name=self.config.get("synapse_workspace") or os.getenv("AZURE_SYNAPSE_WORKSPACE"),
-            sql_pool_name=self.config.get("synapse_sql_pool") or os.getenv("AZURE_SYNAPSE_SQL_POOL"),
+            workspace_name=self.config.get("synapse_workspace")
+            or os.getenv("AZURE_SYNAPSE_WORKSPACE"),
+            sql_pool_name=self.config.get("synapse_sql_pool")
+            or os.getenv("AZURE_SYNAPSE_SQL_POOL"),
             spark_pool_name=self.config.get("synapse_spark_pool")
             or os.getenv("AZURE_SYNAPSE_SPARK_POOL"),
             synapse_client=self.config.get("synapse_client"),
@@ -568,16 +619,32 @@ class RiskManagementAgent(BaseAgent):
         if not self.event_bus:
             try:
                 self.event_bus = get_event_bus()
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 self.event_bus = None
         if self.event_bus and hasattr(self.event_bus, "subscribe"):
-            self.event_bus.subscribe("schedule.baseline.locked", self._handle_schedule_baseline_event)
+            self.event_bus.subscribe(
+                "schedule.baseline.locked", self._handle_schedule_baseline_event
+            )
             self.event_bus.subscribe("schedule.delay", self._handle_schedule_delay_event)
-            self.event_bus.subscribe("financial.budget.updated", self._handle_financial_update_event)
+            self.event_bus.subscribe(
+                "financial.budget.updated", self._handle_financial_update_event
+            )
             self.event_bus.subscribe("financial.cost_overrun", self._handle_cost_overrun_event)
-            self.event_bus.subscribe("schedule.milestone.missed", self._handle_milestone_missed_event)
+            self.event_bus.subscribe(
+                "schedule.milestone.missed", self._handle_milestone_missed_event
+            )
             self.event_bus.subscribe("quality.defect_rate", self._handle_quality_event)
-            self.event_bus.subscribe("resource.utilization", self._handle_resource_utilization_event)
+            self.event_bus.subscribe(
+                "resource.utilization", self._handle_resource_utilization_event
+            )
 
         if self.synapse_manager:
             self.synapse_manager.ensure_pools()
@@ -611,7 +678,7 @@ class RiskManagementAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "identify_risk":
@@ -619,7 +686,7 @@ class RiskManagementAgent(BaseAgent):
             required_fields = ["title", "description", "category"]
             for field in required_fields:
                 if field not in risk_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
         elif action == "research_risks":
             if not input_data.get("domain"):
@@ -806,7 +873,7 @@ class RiskManagementAgent(BaseAgent):
 
         Returns risk ID and initial assessment.
         """
-        self.logger.info(f"Identifying risk: {risk_data.get('title')}")
+        self.logger.info("Identifying risk: %s", risk_data.get("title"))
 
         # Generate risk ID
         risk_id = await self._generate_risk_id()
@@ -827,6 +894,7 @@ class RiskManagementAgent(BaseAgent):
             "project_id": risk_data.get("project_id"),
             "program_id": risk_data.get("program_id"),
             "portfolio_id": risk_data.get("portfolio_id"),
+            "task_id": risk_data.get("task_id"),
             "title": risk_data.get("title"),
             "description": risk_data.get("description"),
             "category": risk_data.get("category"),
@@ -934,7 +1002,7 @@ class RiskManagementAgent(BaseAgent):
 
         Returns risk score and classification.
         """
-        self.logger.info(f"Assessing risk: {risk_id}")
+        self.logger.info("Assessing risk: %s", risk_id)
 
         risk = self.risk_register.get(risk_id)
         if not risk:
@@ -1005,7 +1073,9 @@ class RiskManagementAgent(BaseAgent):
 
         Returns ranked risk list.
         """
-        self.logger.info(f"Prioritizing risks for project={project_id}, portfolio={portfolio_id}")
+        self.logger.info(
+            "Prioritizing risks for project=%s, portfolio=%s", project_id, portfolio_id
+        )
 
         # Filter risks
         risks_to_prioritize = []
@@ -1058,7 +1128,7 @@ class RiskManagementAgent(BaseAgent):
 
         Returns mitigation plan ID and tasks.
         """
-        self.logger.info(f"Creating mitigation plan for risk: {risk_id}")
+        self.logger.info("Creating mitigation plan for risk: %s", risk_id)
 
         risk = self.risk_register.get(risk_id)
         if not risk:
@@ -1076,7 +1146,9 @@ class RiskManagementAgent(BaseAgent):
                 {
                     "title": strategy,
                     "description": f"Mitigation action for risk {risk_id}: {strategy}",
-                    "priority": "High" if risk.get("score", 0) >= self.high_risk_threshold else "Medium",
+                    "priority": (
+                        "High" if risk.get("score", 0) >= self.high_risk_threshold else "Medium"
+                    ),
                     "due_date": mitigation_data.get("due_date"),
                     "owner": mitigation_owner,
                 }
@@ -1093,7 +1165,7 @@ class RiskManagementAgent(BaseAgent):
             "plan_id": plan_id,
             "risk_id": risk_id,
             "strategy": mitigation_data.get(
-            "strategy", "mitigate"
+                "strategy", "mitigate"
             ),  # avoid, mitigate, transfer, accept
             "tasks": tasks,
             "created_tasks": created_tasks,
@@ -1156,7 +1228,7 @@ class RiskManagementAgent(BaseAgent):
 
         Returns trigger alerts and risk updates.
         """
-        self.logger.info(f"Monitoring triggers for risk: {risk_id}")
+        self.logger.info("Monitoring triggers for risk: %s", risk_id)
 
         # Get risks to monitor
         risks_to_monitor = []
@@ -1214,7 +1286,7 @@ class RiskManagementAgent(BaseAgent):
 
         Returns updated risk status.
         """
-        self.logger.info(f"Updating risk status: {risk_id}")
+        self.logger.info("Updating risk status: %s", risk_id)
 
         risk = self.risk_register.get(risk_id)
         if not risk:
@@ -1270,7 +1342,7 @@ class RiskManagementAgent(BaseAgent):
 
         Returns probabilistic analysis results.
         """
-        self.logger.info(f"Running Monte Carlo simulation for project: {project_id}")
+        self.logger.info("Running Monte Carlo simulation for project: %s", project_id)
 
         # Get project risks
         project_risks = [
@@ -1324,7 +1396,9 @@ class RiskManagementAgent(BaseAgent):
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
         if self.db_service:
-            record_id = f"{project_id}-simulation-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+            record_id = (
+                f"{project_id}-simulation-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+            )
             await self.db_service.store("risk_simulations", record_id, simulation_record)
         await self._publish_risk_event(
             "risk.simulation_completed",
@@ -1367,7 +1441,7 @@ class RiskManagementAgent(BaseAgent):
         Returns risk matrix visualization data.
         """
         self.logger.info(
-            f"Generating risk matrix for project={project_id}, portfolio={portfolio_id}"
+            "Generating risk matrix for project=%s, portfolio=%s", project_id, portfolio_id
         )
 
         # Filter risks
@@ -1418,7 +1492,7 @@ class RiskManagementAgent(BaseAgent):
         Returns dashboard data and visualizations.
         """
         self.logger.info(
-            f"Getting risk dashboard for project={project_id}, portfolio={portfolio_id}"
+            "Getting risk dashboard for project=%s, portfolio=%s", project_id, portfolio_id
         )
 
         external_risk_research: dict[str, Any] | None = None
@@ -1437,7 +1511,15 @@ class RiskManagementAgent(BaseAgent):
                     tenant_id=tenant_id,
                     correlation_id=external_context.get("correlation_id", "n/a"),
                 )
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - defensive
                 self.logger.warning(
                     "External risk research failed",
                     extra={"error": str(exc), "project_id": project_id},
@@ -1477,9 +1559,7 @@ class RiskManagementAgent(BaseAgent):
                 "project_risk_level": (
                     "high"
                     if prioritization.get("high_risks", 0)
-                    else "medium"
-                    if prioritization.get("medium_risks", 0)
-                    else "low"
+                    else "medium" if prioritization.get("medium_risks", 0) else "low"
                 ),
                 "task_risks": [
                     {
@@ -1503,7 +1583,7 @@ class RiskManagementAgent(BaseAgent):
 
         Returns risk report data.
         """
-        self.logger.info(f"Generating {report_type} risk report")
+        self.logger.info("Generating %s risk report", report_type)
 
         if report_type == "summary":
             return await self._generate_summary_report(filters)
@@ -1520,7 +1600,7 @@ class RiskManagementAgent(BaseAgent):
 
         Returns sensitivity analysis results.
         """
-        self.logger.info(f"Performing sensitivity analysis for project: {project_id}")
+        self.logger.info("Performing sensitivity analysis for project: %s", project_id)
 
         # Get project risks
         project_risks = [
@@ -1635,7 +1715,15 @@ class RiskManagementAgent(BaseAgent):
 
         try:
             external_risks = await self.research_risks(domain, region, categories)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning(
                 "Risk research failed",
                 extra={
@@ -1773,7 +1861,15 @@ class RiskManagementAgent(BaseAgent):
                 )
                 added.append(created)
                 existing_signatures.add(signature)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 self.logger.warning(
                     "Failed to merge external risk",
                     extra={"error": str(exc), "project_id": project_id},
@@ -1870,7 +1966,15 @@ class RiskManagementAgent(BaseAgent):
                         documents.extend(json.loads(path.read_text()))
                     else:
                         documents.append(path.read_text())
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 documents = documents
 
         if documents:
@@ -1880,7 +1984,15 @@ class RiskManagementAgent(BaseAgent):
         if self.risk_nlp_extractor and hasattr(self.risk_nlp_extractor, "train"):
             try:
                 self.risk_nlp_extractor.train(documents)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 return
 
     async def _build_risk_features(self, risk: dict[str, Any]) -> dict[str, Any]:
@@ -1892,9 +2004,9 @@ class RiskManagementAgent(BaseAgent):
         baseline_cost = financial_distribution.get("baseline_cost", 1_000_000) or 1_000_000
 
         quality_score = risk.get("quality_score") or risk.get("quality_metrics", {}).get("score")
-        resource_utilization = risk.get("resource_utilization") or risk.get("resource_metrics", {}).get(
-            "utilization"
-        )
+        resource_utilization = risk.get("resource_utilization") or risk.get(
+            "resource_metrics", {}
+        ).get("utilization")
         schedule_pressure = float(schedule_delay) / max(1.0, float(baseline_duration))
         cost_pressure = float(cost_overrun) / max(1.0, float(baseline_cost))
         quality_pressure = 1 - (float(quality_score) if quality_score is not None else 0.8)
@@ -1944,7 +2056,15 @@ class RiskManagementAgent(BaseAgent):
             self._local_probability_model.fit(samples, probability_targets)
             self._local_impact_model = GradientBoostingRegressor(random_state=42)
             self._local_impact_model.fit(samples, impact_targets)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             self._local_probability_model = None
             self._local_impact_model = None
 
@@ -1960,7 +2080,15 @@ class RiskManagementAgent(BaseAgent):
                         owner = await getattr(self.resource_management_service, method)(risk)
                         if owner:
                             return owner
-                    except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+                    except (
+                        ConnectionError,
+                        TimeoutError,
+                        ValueError,
+                        KeyError,
+                        TypeError,
+                        RuntimeError,
+                        OSError,
+                    ):
                         continue
         return risk.get("owner")
 
@@ -1993,7 +2121,15 @@ class RiskManagementAgent(BaseAgent):
                     task["status"] = response.get("status", "created")
                     task["external_id"] = response.get("task_id") or response.get("id")
                     task["system"] = connector_type
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 continue
 
         return created
@@ -2027,7 +2163,9 @@ class RiskManagementAgent(BaseAgent):
                 impact = result.get("impact")
                 if probability or impact:
                     return {
-                        "probability": self._coerce_rating(probability, fallback=risk.get("probability", 3)),
+                        "probability": self._coerce_rating(
+                            probability, fallback=risk.get("probability", 3)
+                        ),
                         "impact": self._coerce_rating(impact, fallback=risk.get("impact", 3)),
                         "severity_score": result.get("severity_score"),
                     }
@@ -2035,7 +2173,9 @@ class RiskManagementAgent(BaseAgent):
                 mock_probability = features.get("risk_indicator", risk.get("probability", 3))
                 mock_impact = features.get("impact_indicator", risk.get("impact", 3))
                 return {
-                    "probability": self._coerce_rating(mock_probability, fallback=risk.get("probability", 3)),
+                    "probability": self._coerce_rating(
+                        mock_probability, fallback=risk.get("probability", 3)
+                    ),
                     "impact": self._coerce_rating(mock_impact, fallback=risk.get("impact", 3)),
                 }
 
@@ -2051,10 +2191,22 @@ class RiskManagementAgent(BaseAgent):
                 probability_pred = float(self._local_probability_model.predict([model_features])[0])
                 impact_pred = float(self._local_impact_model.predict([model_features])[0])
                 return {
-                    "probability": self._coerce_rating(round(probability_pred), fallback=risk.get("probability", 3)),
-                    "impact": self._coerce_rating(round(impact_pred), fallback=risk.get("impact", 3)),
+                    "probability": self._coerce_rating(
+                        round(probability_pred), fallback=risk.get("probability", 3)
+                    ),
+                    "impact": self._coerce_rating(
+                        round(impact_pred), fallback=risk.get("impact", 3)
+                    ),
                 }
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 pass
 
         history = self.risk_histories.get(risk.get("risk_id"), [])
@@ -2082,7 +2234,9 @@ class RiskManagementAgent(BaseAgent):
             ]
             if category_risks:
                 probability_values = [
-                    r.get("probability", 3) for r in category_risks if r.get("probability") is not None
+                    r.get("probability", 3)
+                    for r in category_risks
+                    if r.get("probability") is not None
                 ]
                 impact_values = [
                     r.get("impact", 3) for r in category_risks if r.get("impact") is not None
@@ -2201,7 +2355,8 @@ class RiskManagementAgent(BaseAgent):
             import numpy as np
 
             probabilities = np.array(
-                [min(1.0, max(0.0, (risk.get("probability", 3) / 5))) for risk in risks], dtype=float
+                [min(1.0, max(0.0, (risk.get("probability", 3) / 5))) for risk in risks],
+                dtype=float,
             )
             impact_levels = np.array([risk.get("impact", 3) for risk in risks], dtype=float)
 
@@ -2254,7 +2409,15 @@ class RiskManagementAgent(BaseAgent):
         if self.db_service:
             try:
                 plans = await self.db_service.query("mitigation_plans", limit=500)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 plans = plans
         if project_id:
             valid_risks = {
@@ -2292,7 +2455,11 @@ class RiskManagementAgent(BaseAgent):
 
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate summary risk report."""
-        return {"report_type": "summary", "data": {}, "generated_at": datetime.now(timezone.utc).isoformat()}
+        return {
+            "report_type": "summary",
+            "data": {},
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     async def _generate_detailed_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate detailed risk report."""
@@ -2344,13 +2511,13 @@ class RiskManagementAgent(BaseAgent):
         errors = validate_against_schema(self.risk_schema_path, record)
         if errors:
             for error in errors:
-                self.logger.warning(f"Risk schema error {error.path}: {error.message}")
+                self.logger.warning("Risk schema error %s: %s", error.path, error.message)
         report = evaluate_quality_rules("risk", record)
         issues = [issue.__dict__ for issue in report.issues]
         if issues:
             for issue in issues:
                 self.logger.warning(
-                    f"Risk data quality issue {issue['rule_id']}: {issue['message']}"
+                    "Risk data quality issue %s: %s", issue["rule_id"], issue["message"]
                 )
         return {"is_valid": len(errors) == 0 and report.is_valid, "issues": issues}
 
@@ -2403,11 +2570,11 @@ class RiskManagementAgent(BaseAgent):
                 "jira": "JIRA_INSTANCE_URL",
                 "azure_devops": "AZURE_DEVOPS_ORG_URL",
             }
-            if not (self.config.get("enable_all_pm_connectors") or os.getenv(env_map[connector_type])):
+            if not (
+                self.config.get("enable_all_pm_connectors") or os.getenv(env_map[connector_type])
+            ):
                 continue
-            services[connector_type] = ProjectManagementService(
-                {"connector_type": connector_type}
-            )
+            services[connector_type] = ProjectManagementService({"connector_type": connector_type})
         return services
 
     async def _register_triggers(self, risk_id: str, triggers: list[dict[str, Any]]) -> None:
@@ -2428,7 +2595,9 @@ class RiskManagementAgent(BaseAgent):
             if self.db_service:
                 await self.db_service.store("risk_trigger_definitions", trigger_id, trigger_record)
         if normalized:
-            await self._store_risk_dataset("risk_trigger_definitions", normalized, domain="triggers")
+            await self._store_risk_dataset(
+                "risk_trigger_definitions", normalized, domain="triggers"
+            )
 
     async def _store_risk_dataset(
         self, dataset_type: str, payload: list[dict[str, Any]], *, domain: str
@@ -2437,7 +2606,9 @@ class RiskManagementAgent(BaseAgent):
         if not payload:
             return details
         if self.data_lake_manager:
-            details["data_lake"] = self.data_lake_manager.store_dataset(dataset_type, domain, payload)
+            details["data_lake"] = self.data_lake_manager.store_dataset(
+                dataset_type, domain, payload
+            )
         if self.synapse_manager:
             details["synapse"] = {
                 "workspace": self.synapse_manager.workspace_name,
@@ -2532,7 +2703,10 @@ class RiskManagementAgent(BaseAgent):
     async def _fetch_financial_distribution(self, project_id: str | None) -> dict[str, Any]:
         if project_id and project_id in self.latest_financial_signals:
             return self.latest_financial_signals[project_id]
-        if isinstance(self.financial_distribution_fixture, dict) and self.financial_distribution_fixture:
+        if (
+            isinstance(self.financial_distribution_fixture, dict)
+            and self.financial_distribution_fixture
+        ):
             return self.financial_distribution_fixture
         if not project_id or not self.financial_agent_endpoint:
             return {"baseline_cost": 1_000_000.0}
@@ -2553,7 +2727,15 @@ class RiskManagementAgent(BaseAgent):
             with url_request.urlopen(req, timeout=5) as response:
                 body = response.read().decode("utf-8")
                 return json.loads(body)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return None
 
     async def _handle_schedule_baseline_event(self, payload: dict[str, Any]) -> None:
@@ -2604,7 +2786,8 @@ class RiskManagementAgent(BaseAgent):
             or payload.get("slip_days")
             or payload.get("delay"),
             "quality_defect_rate": payload.get("defect_rate") or payload.get("quality_defect_rate"),
-            "resource_utilization": payload.get("utilization") or payload.get("resource_utilization"),
+            "resource_utilization": payload.get("utilization")
+            or payload.get("resource_utilization"),
         }
         threshold = threshold_map.get(trigger_type)
         current_value = value_map.get(trigger_type)
@@ -2649,7 +2832,15 @@ class RiskManagementAgent(BaseAgent):
         for connector_type, service in self.project_management_services.items():
             try:
                 tasks = await service.get_tasks(project_id, filters={"labels": ["risk"]}, limit=25)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 tasks = []
             for task in tasks:
                 signals.append(

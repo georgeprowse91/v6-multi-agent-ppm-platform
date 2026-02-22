@@ -13,10 +13,19 @@ SRC_DIR = TESTS_DIR.parent / "src"
 OBSERVABILITY_SRC = REPO_ROOT / "packages" / "observability" / "src"
 SECURITY_SRC = REPO_ROOT / "packages" / "security" / "src"
 FEATURE_FLAGS_SRC = REPO_ROOT / "packages" / "feature-flags" / "src"
-sys.path.extend([str(REPO_ROOT), str(SRC_DIR), str(OBSERVABILITY_SRC), str(SECURITY_SRC), str(FEATURE_FLAGS_SRC)])
+sys.path.extend(
+    [
+        str(REPO_ROOT),
+        str(SRC_DIR),
+        str(OBSERVABILITY_SRC),
+        str(SECURITY_SRC),
+        str(FEATURE_FLAGS_SRC),
+    ]
+)
 
 import types
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 _event_bus_stub = types.ModuleType("event_bus")
 _event_bus_stub.EventHandler = Callable[[dict[str, Any]], None]
@@ -44,7 +53,9 @@ class FakeConnector:
     def __init__(self, records: list[dict[str, object]]) -> None:
         self.records = records
 
-    def read(self, _entity_type: str, filters: dict[str, object] | None = None) -> list[dict[str, object]]:
+    def read(
+        self, _entity_type: str, filters: dict[str, object] | None = None
+    ) -> list[dict[str, object]]:
         return self.records
 
 
@@ -108,9 +119,7 @@ async def test_full_sync_updates_state() -> None:
     agent.schema_registry, agent.schema_versions = agent._load_schema_registry()
     agent.transformation_rules = []
     agent.connectors = {
-        "planview": FakeConnector(
-            [{"id": "P-100", "name": "Apollo", "status": "Active"}]
-        )
+        "planview": FakeConnector([{"id": "P-100", "name": "Apollo", "status": "Active"}])
     }
 
     result = await agent._run_sync(
@@ -144,7 +153,9 @@ class _FakeSecretClient:
 
 
 @pytest.mark.anyio
-async def test_keyvault_initialization_is_task_local_and_does_not_mutate_process_env(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_keyvault_initialization_is_task_local_and_does_not_mutate_process_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     secret_names = [
         "PLANVIEW_CLIENT_ID",
         "PLANVIEW_CLIENT_SECRET",
@@ -181,8 +192,12 @@ async def test_keyvault_initialization_is_task_local_and_does_not_mutate_process
 
 
 @pytest.mark.anyio
-async def test_get_setting_prefers_secret_context_over_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_get_setting_prefers_secret_context_over_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("AZURE_SERVICE_BUS_CONNECTION_STRING", "from-env")
-    agent = DataSyncAgent(config={"secrets": {"AZURE_SERVICE_BUS_CONNECTION_STRING": "from-context"}})
+    agent = DataSyncAgent(
+        config={"secrets": {"AZURE_SERVICE_BUS_CONNECTION_STRING": "from-context"}}
+    )
 
     assert agent._get_setting("AZURE_SERVICE_BUS_CONNECTION_STRING") == "from-context"

@@ -19,7 +19,7 @@ if str(SDK_PATH) not in sys.path:
 
 from base_connector import ConnectorCategory, ConnectorConfig
 from rest_connector import OAuth2RestConnector
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 
 DEFAULT_CALENDAR_URL = "https://www.googleapis.com/calendar/v3"
 DEFAULT_TOKEN_URL = "https://oauth2.googleapis.com/token"

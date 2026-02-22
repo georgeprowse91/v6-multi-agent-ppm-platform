@@ -10,7 +10,7 @@ from typing import TypeVar
 try:
     from prometheus_client import Counter
 except Exception:  # pragma: no cover
-    Counter = None  # type: ignore[assignment]
+    Counter = None
 
 from feature_flags.manager import clear_dependency_degraded, set_dependency_degraded
 
@@ -88,7 +88,9 @@ class ResilienceMiddleware:
 
     def _prune_failures(self, now: float) -> None:
         window_start = now - self.config.circuit_breaker.failure_window_s
-        self._failure_timestamps = [item for item in self._failure_timestamps if item >= window_start]
+        self._failure_timestamps = [
+            item for item in self._failure_timestamps if item >= window_start
+        ]
 
     def _before_call(self) -> None:
         now = time.monotonic()
@@ -96,7 +98,10 @@ class ResilienceMiddleware:
             self._prune_failures(now)
             if self._state != "open":
                 return
-            if self._opened_at and (now - self._opened_at) >= self.config.circuit_breaker.recovery_timeout_s:
+            if (
+                self._opened_at
+                and (now - self._opened_at) >= self.config.circuit_breaker.recovery_timeout_s
+            ):
                 old_state = self._state
                 self._state = "half_open"
                 self._record_transition(old_state, self._state)
@@ -118,7 +123,9 @@ class ResilienceMiddleware:
         with self._lock:
             self._failure_timestamps.append(now)
             self._prune_failures(now)
-            should_open = len(self._failure_timestamps) >= self.config.circuit_breaker.failure_threshold
+            should_open = (
+                len(self._failure_timestamps) >= self.config.circuit_breaker.failure_threshold
+            )
             if should_open:
                 old_state = self._state
                 self._state = "open"
@@ -141,7 +148,7 @@ class ResilienceMiddleware:
                 if attempt + 1 >= self.config.retry.max_attempts:
                     break
                 delay = self.config.retry.initial_backoff_s * (
-                    self.config.retry.backoff_multiplier ** attempt
+                    self.config.retry.backoff_multiplier**attempt
                 )
                 if delay > 0:
                     await asyncio.sleep(delay)
@@ -163,7 +170,7 @@ class ResilienceMiddleware:
                 if attempt + 1 >= self.config.retry.max_attempts:
                     break
                 delay = self.config.retry.initial_backoff_s * (
-                    self.config.retry.backoff_multiplier ** attempt
+                    self.config.retry.backoff_multiplier**attempt
                 )
                 if delay > 0:
                     time.sleep(delay)
@@ -182,5 +189,7 @@ def dependency_config_from_env(
     return DependencyResilienceConfig(
         dependency=dependency,
         timeout=TimeoutPolicy(timeout_s=timeout_s),
-        retry=RetryPolicy(max_attempts=max(1, max_attempts), initial_backoff_s=max(0.0, initial_backoff_s)),
+        retry=RetryPolicy(
+            max_attempts=max(1, max_attempts), initial_backoff_s=max(0.0, initial_backoff_s)
+        ),
     )

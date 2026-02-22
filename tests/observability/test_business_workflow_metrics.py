@@ -11,7 +11,11 @@ def _read(path: str) -> str:
 
 def test_orchestrator_emits_standard_business_metrics() -> None:
     source = _read("apps/orchestration-service/src/orchestrator.py")
-    assert 'build_business_workflow_metrics' in source and 'orchestration-service' in source and 'orchestrator' in source
+    assert (
+        "build_business_workflow_metrics" in source
+        and "orchestration-service" in source
+        and "orchestrator" in source
+    )
     assert "self._orchestrator_business_metrics.executions_total.add" in source
     assert "self._orchestrator_business_metrics.execution_duration_seconds.record" in source
     assert '"tenant.id"' in source
@@ -20,7 +24,11 @@ def test_orchestrator_emits_standard_business_metrics() -> None:
 
 def test_workflow_engine_emits_standard_business_metrics() -> None:
     source = _read("apps/workflow-engine/src/workflow_runtime.py")
-    assert 'build_business_workflow_metrics' in source and 'workflow-engine' in source and '"workflow"' in source
+    assert (
+        "build_business_workflow_metrics" in source
+        and "workflow-engine" in source
+        and '"workflow"' in source
+    )
     assert "self._workflow_business_metrics.executions_total.add" in source
     assert "self._workflow_business_metrics.execution_duration_seconds.record" in source
     assert '"tenant.id"' in source
@@ -31,7 +39,11 @@ def test_connector_sync_emits_standard_business_metrics() -> None:
     source = _read(
         "agents/operations-management/agent-23-data-synchronisation-quality/src/data_sync_agent.py"
     )
-    assert 'build_business_workflow_metrics' in source and 'data-sync-agent' in source and 'connector_sync' in source
+    assert (
+        "build_business_workflow_metrics" in source
+        and "data-sync-agent" in source
+        and "connector_sync" in source
+    )
     assert "self._sync_business_metrics.executions_total.add" in source
     assert "self._sync_business_metrics.execution_duration_seconds.record" in source
     assert '"tenant.id"' in source

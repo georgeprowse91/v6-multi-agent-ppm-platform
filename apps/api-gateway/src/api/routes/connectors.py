@@ -25,13 +25,12 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 from fastapi import APIRouter, HTTPException, Query, Request, Response
+from feature_flags import is_mcp_feature_enabled
 from pydantic import AnyHttpUrl, BaseModel, Field, TypeAdapter, field_validator, model_validator
 
 from api.circuit_breaker import CircuitBreaker
 from api.connector_loader import get_connector_class
-from feature_flags import is_mcp_feature_enabled
 
 # Add connector SDK to path
 REPO_ROOT = Path(__file__).resolve().parents[5]
@@ -44,6 +43,17 @@ for path in [CONNECTOR_SDK_PATH, *connector_src_paths]:
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
+from regulatory_compliance_connector import RegulatoryComplianceConnector
+from security.audit_log import build_event, get_audit_log_store
+
+from api.webhook_storage import WebhookEvent, WebhookEventStore
+from integrations.connectors.mcp_client.client import MCPClient
+from integrations.connectors.mcp_client.errors import (
+    MCPAuthenticationError,
+    MCPResponseError,
+    MCPServerError,
+    MCPTransportError,
+)
 from integrations.connectors.sdk.src.base_connector import (
     ConnectionStatus,
     ConnectorCategory,
@@ -52,31 +62,21 @@ from integrations.connectors.sdk.src.base_connector import (
     SyncDirection,
     SyncFrequency,
 )
-from integrations.connectors.sdk.src.project_connector_store import (
-    ProjectConnectorConfig,
-    ProjectConnectorConfigStore,
-)
 from integrations.connectors.sdk.src.connector_registry import (
     ConnectorStatus,
     get_all_connectors,
     get_connector_definition,
     get_connectors_by_category,
 )
-from integrations.connectors.mcp_client.client import MCPClient
-from integrations.connectors.mcp_client.errors import (
-    MCPAuthenticationError,
-    MCPResponseError,
-    MCPServerError,
-    MCPTransportError,
+from integrations.connectors.sdk.src.project_connector_store import (
+    ProjectConnectorConfig,
+    ProjectConnectorConfigStore,
 )
-from regulatory_compliance_connector import RegulatoryComplianceConnector
-from security.audit_log import build_event, get_audit_log_store
-
-from api.webhook_storage import WebhookEvent, WebhookEventStore
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 _URL_ADAPTER = TypeAdapter(AnyHttpUrl)
+
 
 # Resource constructors and dependency accessors
 def build_config_store() -> ConnectorConfigStore:
@@ -333,7 +333,7 @@ class McpConfig(BaseModel):
         return _normalize_tool_map(value, "prompt_map")
 
     @model_validator(mode="after")
-    def _normalize_tools(self) -> "McpConfig":
+    def _normalize_tools(self) -> McpConfig:
         if self.tool_map is None and self.tools:
             object.__setattr__(self, "tool_map", {tool: tool for tool in self.tools})
         return self
@@ -418,7 +418,7 @@ class ConnectorConfigRequest(BaseModel):
         return _normalize_mcp_scopes(value)
 
     @model_validator(mode="after")
-    def _merge_mcp_config(self) -> "ConnectorConfigRequest":
+    def _merge_mcp_config(self) -> ConnectorConfigRequest:
         if not self.mcp_config:
             if not self.mcp_tool_map and self.tool_map:
                 self.mcp_tool_map = self.tool_map
@@ -524,7 +524,7 @@ class ConnectorConfigResponse(BaseModel):
         return _normalize_tool_map(value, "tool_map")
 
     @model_validator(mode="after")
-    def _populate_mcp_config(self) -> "ConnectorConfigResponse":
+    def _populate_mcp_config(self) -> ConnectorConfigResponse:
         if self.mcp_config is None:
             tool_map = self.mcp_tool_map or self.tool_map or None
             if any(
@@ -620,7 +620,7 @@ class ProjectConnectorConfigResponse(BaseModel):
         return _normalize_tool_map(value, "tool_map")
 
     @model_validator(mode="after")
-    def _populate_mcp_config(self) -> "ProjectConnectorConfigResponse":
+    def _populate_mcp_config(self) -> ProjectConnectorConfigResponse:
         if self.mcp_config is None:
             tool_map = (
                 self.mcp_tool_map
@@ -802,7 +802,7 @@ class ProjectMcpConfigRequest(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def _normalize_tools(self) -> "ProjectMcpConfigRequest":
+    def _normalize_tools(self) -> ProjectMcpConfigRequest:
         if not self.mcp_tool_map and self.mcp_tools:
             self.mcp_tool_map = {tool: tool for tool in self.mcp_tools}
         return self
@@ -851,6 +851,7 @@ def _build_project_mcp_response(
 
 @router.get("/connectors/categories", response_model=list[CategoryInfo])
 async def list_categories(
+    http_request: Request,
     response: Response,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
@@ -933,7 +934,7 @@ async def list_categories(
 
 
 @router.get("/mcp/servers/{system}/tools", response_model=McpServerToolsResponse)
-async def list_mcp_server_tools(system: str) -> McpServerToolsResponse:
+async def list_mcp_server_tools(system: str, http_request: Request) -> McpServerToolsResponse:
     """
     List available MCP tools for a specific server/system.
     """
@@ -976,6 +977,7 @@ async def list_mcp_server_tools(system: str) -> McpServerToolsResponse:
 
 @router.get("/connectors", response_model=list[ConnectorListItemResponse])
 async def list_connectors(
+    http_request: Request,
     response: Response,
     category: str | None = None,
     limit: int = Query(100, ge=1, le=1000),
@@ -1065,9 +1067,12 @@ async def list_connectors(
     return sliced
 
 
-@router.get("/projects/{project_id}/connectors", response_model=list[ProjectConnectorListItemResponse])
+@router.get(
+    "/projects/{project_id}/connectors", response_model=list[ProjectConnectorListItemResponse]
+)
 async def list_project_connectors(
     project_id: str,
+    http_request: Request,
     response: Response,
     category: str | None = None,
     limit: int = Query(100, ge=1, le=1000),
@@ -1145,11 +1150,7 @@ async def list_project_connectors(
                 mcp_scopes=(
                     project_config.mcp_scopes
                     if project_config and project_config.mcp_scopes
-                    else (
-                        _split_mcp_scopes(project_config.mcp_scope)
-                        if project_config
-                        else []
-                    )
+                    else (_split_mcp_scopes(project_config.mcp_scope) if project_config else [])
                 ),
                 mcp_api_key=project_config.mcp_api_key if project_config else "",
                 mcp_api_key_header=project_config.mcp_api_key_header if project_config else "",
@@ -1187,7 +1188,7 @@ async def list_project_connectors(
 
 
 @router.get("/connectors/{connector_id}", response_model=ConnectorListItemResponse)
-async def get_connector(connector_id: str) -> ConnectorListItemResponse:
+async def get_connector(connector_id: str, http_request: Request) -> ConnectorListItemResponse:
     """
     Get a specific connector with its configuration.
     """
@@ -1372,6 +1373,7 @@ async def update_project_connector_config(
     project_id: str,
     connector_id: str,
     request: ConnectorConfigRequest,
+    http_request: Request,
 ) -> ProjectConnectorConfigResponse:
     """
     Update project-scoped connector configuration.
@@ -1782,7 +1784,7 @@ async def disable_connector(connector_id: str, http_request: Request) -> Connect
     response_model=ProjectMcpConfigResponse,
 )
 async def enable_project_mcp_config(
-    project_id: str, system: str, request: ProjectMcpConfigRequest
+    project_id: str, system: str, request: ProjectMcpConfigRequest, http_request: Request
 ) -> ProjectMcpConfigResponse:
     """
     Enable MCP configuration for a project-scoped connector.
@@ -1828,7 +1830,7 @@ async def enable_project_mcp_config(
     response_model=ProjectMcpConfigResponse,
 )
 async def update_project_mcp_config(
-    project_id: str, system: str, request: ProjectMcpConfigRequest
+    project_id: str, system: str, request: ProjectMcpConfigRequest, http_request: Request
 ) -> ProjectMcpConfigResponse:
     """
     Update MCP configuration for a project-scoped connector.
@@ -1874,7 +1876,7 @@ async def update_project_mcp_config(
     response_model=ProjectConnectorConfigResponse,
 )
 async def enable_project_connector(
-    project_id: str, connector_id: str
+    project_id: str, connector_id: str, http_request: Request
 ) -> ProjectConnectorConfigResponse:
     """
     Enable a project-scoped connector.
@@ -1946,7 +1948,7 @@ async def enable_project_connector(
     response_model=ProjectConnectorConfigResponse,
 )
 async def disable_project_connector(
-    project_id: str, connector_id: str
+    project_id: str, connector_id: str, http_request: Request
 ) -> ProjectConnectorConfigResponse:
     """
     Disable a project-scoped connector.
@@ -2010,7 +2012,7 @@ async def disable_project_connector(
 
 @router.post("/connectors/{connector_id}/test", response_model=TestConnectionResponse)
 async def test_connection(
-    connector_id: str, request: TestConnectionRequest
+    connector_id: str, request: TestConnectionRequest, http_request: Request
 ) -> TestConnectionResponse:
     """
     Test connection to the external system.
@@ -2105,6 +2107,7 @@ async def test_connection(
 @router.post("/connectors/regulatory_compliance/test", response_model=TestConnectionResponse)
 async def test_regulatory_compliance_connection(
     request: RegulatoryComplianceConfigRequest,
+    http_request: Request,
 ) -> TestConnectionResponse:
     connector_id = "regulatory_compliance"
     definition = get_connector_definition(connector_id)
@@ -2149,6 +2152,7 @@ async def test_regulatory_compliance_connection(
 
 @router.get("/connectors/regulatory_compliance/audit-logs")
 async def get_regulatory_audit_logs(
+    http_request: Request,
     regulation: str | None = None,
     limit: int = 100,
     offset: int = 0,
@@ -2284,17 +2288,25 @@ async def connector_health_dashboard(request: Request) -> dict[str, Any]:
         sync_lag_seconds = None
         if latest and latest.get("received_at"):
             try:
-                received_at = datetime.fromisoformat(str(latest["received_at"]).replace("Z", "+00:00"))
-                sync_lag_seconds = max((datetime.now(timezone.utc) - received_at).total_seconds(), 0)
+                received_at = datetime.fromisoformat(
+                    str(latest["received_at"]).replace("Z", "+00:00")
+                )
+                sync_lag_seconds = max(
+                    (datetime.now(timezone.utc) - received_at).total_seconds(), 0
+                )
             except ValueError:
                 sync_lag_seconds = None
 
         error_events = [
-            event for event in events if isinstance(event.get("result"), dict) and event["result"].get("status") == "error"
+            event
+            for event in events
+            if isinstance(event.get("result"), dict) and event["result"].get("status") == "error"
         ]
         mapping_entries = manifest.get("mappings", [])
         existing_mapping_files = [
-            m for m in mapping_entries if (manifest_path.parent / str(m.get("mapping_file", ""))).exists()
+            m
+            for m in mapping_entries
+            if (manifest_path.parent / str(m.get("mapping_file", ""))).exists()
         ]
         mapping_coverage = (
             len(existing_mapping_files) / len(mapping_entries) if mapping_entries else 0.0
@@ -2320,9 +2332,12 @@ async def connector_health_dashboard(request: Request) -> dict[str, Any]:
         "connectors": connector_rows,
         "metrics": {
             "avg_mapping_coverage": round(
-                sum(row["mapping_coverage"] for row in connector_rows) / max(len(connector_rows), 1),
+                sum(row["mapping_coverage"] for row in connector_rows)
+                / max(len(connector_rows), 1),
                 2,
             ),
-            "connectors_with_webhook": sum(1 for row in connector_rows if row["capabilities"]["webhook"]),
+            "connectors_with_webhook": sum(
+                1 for row in connector_rows if row["capabilities"]["webhook"]
+            ),
         },
     }

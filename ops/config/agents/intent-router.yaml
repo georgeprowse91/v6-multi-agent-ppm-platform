@@ -8,8 +8,8 @@ prompt_fields:
 classifier_model_name: ${INTENT_ROUTER_CLASSIFIER_MODEL_NAME}
 classifier_model_path: ${INTENT_ROUTER_CLASSIFIER_MODEL_PATH}
 spacy_model_name: ${INTENT_ROUTER_SPACY_MODEL_NAME}
-top_k_intents: 2
+top_k_intents: 5
 confidence_thresholds:
-  financial_query: 0.85
+  financial_query: 0.7
   risk_query: 0.7
   schedule_query: 0.65

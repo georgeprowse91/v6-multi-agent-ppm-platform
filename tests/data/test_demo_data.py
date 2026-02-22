@@ -84,11 +84,7 @@ def test_demo_relationship_integrity() -> None:
     assert all(program["portfolio_id"] in portfolio_ids for program in programs)
     assert all(project["program_id"] in program_ids for project in projects)
     assert all(task["project_id"] in project_ids for task in tasks)
-    assert all(
-        task["assigned_to"] in resource_ids
-        for task in tasks
-        if task.get("assigned_to")
-    )
+    assert all(task["assigned_to"] in resource_ids for task in tasks if task.get("assigned_to"))
     assert all(budget["portfolio_id"] in portfolio_ids for budget in budgets)
     assert all(risk["project_id"] in project_ids for risk in risks)
     assert all(issue["project_id"] in project_ids for issue in issues)
@@ -97,12 +93,13 @@ def test_demo_relationship_integrity() -> None:
     assert all(contract["vendor_id"] in vendor_ids for contract in contracts)
     assert all(contract["project_id"] in project_ids for contract in contracts)
 
-    approval_targets = {
-        ("budget", budget_id) for budget_id in budget_ids
-    } | {
+    approval_targets = {("budget", budget_id) for budget_id in budget_ids} | {
         ("contract", contract_id) for contract_id in contract_ids
     }
-    assert all((approval["entity_type"], approval["entity_id"]) in approval_targets for approval in approvals)
+    assert all(
+        (approval["entity_type"], approval["entity_id"]) in approval_targets
+        for approval in approvals
+    )
 
 
 def test_demo_minimum_record_counts() -> None:

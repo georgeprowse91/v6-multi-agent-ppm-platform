@@ -1,5 +1,4 @@
 import pytest
-
 from stakeholder_communications_agent import StakeholderCommunicationsAgent
 
 
@@ -44,8 +43,12 @@ async def test_register_stakeholder_syncs_crm_and_triggers_events(tmp_path, monk
 
     monkeypatch.setattr("stakeholder_communications_agent.requests.get", mock_get)
     monkeypatch.setattr("stakeholder_communications_agent.requests.post", mock_post)
-    monkeypatch.setattr(agent, "_publish_event", lambda event_type, payload: events.append(event_type))
-    monkeypatch.setattr(agent, "_trigger_workflow", lambda event_type, payload: workflows.append(event_type))
+    monkeypatch.setattr(
+        agent, "_publish_event", lambda event_type, payload: events.append(event_type)
+    )
+    monkeypatch.setattr(
+        agent, "_trigger_workflow", lambda event_type, payload: workflows.append(event_type)
+    )
 
     registration = await agent.process(
         {
@@ -159,7 +162,11 @@ async def test_schedule_event_uses_graph_suggestions(tmp_path, monkeypatch):
         return [suggestion_time]
 
     async def mock_graph_event(event, _attachments):
-        return {"event_id": "graph-1", "online_meeting_url": "https://meet", "scheduled_time": suggestion_time}
+        return {
+            "event_id": "graph-1",
+            "online_meeting_url": "https://meet",
+            "scheduled_time": suggestion_time,
+        }
 
     monkeypatch.setattr(agent, "_suggest_meeting_times", mock_suggestions)
     monkeypatch.setattr(agent, "_create_graph_event", mock_graph_event)

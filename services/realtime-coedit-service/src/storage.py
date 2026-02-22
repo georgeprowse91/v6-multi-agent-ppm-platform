@@ -3,9 +3,10 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+from collections.abc import Awaitable, Callable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Awaitable, Callable, Protocol
+from typing import Any, Protocol
 
 try:
     from redis import asyncio as aioredis
@@ -73,17 +74,23 @@ class SessionStore(Protocol):
         self, session_id: str, incoming_content: str, base_version: int, updated_by: str
     ) -> tuple[SessionRecord | None, dict[str, Any] | None]: ...
 
-    async def add_conflict(self, session_id: str, conflict: dict[str, Any]) -> SessionRecord | None: ...
+    async def add_conflict(
+        self, session_id: str, conflict: dict[str, Any]
+    ) -> SessionRecord | None: ...
 
     async def healthy(self) -> bool: ...
 
 
 class PresenceStore(Protocol):
-    async def add_participant(self, session_id: str, participant: ParticipantRecord) -> SessionRecord | None: ...
+    async def add_participant(
+        self, session_id: str, participant: ParticipantRecord
+    ) -> SessionRecord | None: ...
 
     async def remove_participant(self, session_id: str, user_id: str) -> SessionRecord | None: ...
 
-    async def update_cursor(self, session_id: str, user_id: str, cursor: dict[str, Any]) -> SessionRecord | None: ...
+    async def update_cursor(
+        self, session_id: str, user_id: str, cursor: dict[str, Any]
+    ) -> SessionRecord | None: ...
 
     async def clear_cursor(self, session_id: str, user_id: str) -> SessionRecord | None: ...
 
@@ -171,7 +178,9 @@ class InMemoryBackend(SessionStore, PresenceStore, HistoryStore, PubSubBroker):
             session.conflicts.append(conflict)
             return session
 
-    async def add_participant(self, session_id: str, participant: ParticipantRecord) -> SessionRecord | None:
+    async def add_participant(
+        self, session_id: str, participant: ParticipantRecord
+    ) -> SessionRecord | None:
         async with self.state.lock:
             session = self.state.sessions.get(session_id)
             if not session:
@@ -187,7 +196,9 @@ class InMemoryBackend(SessionStore, PresenceStore, HistoryStore, PubSubBroker):
             session.participants.pop(user_id, None)
             return session
 
-    async def update_cursor(self, session_id: str, user_id: str, cursor: dict[str, Any]) -> SessionRecord | None:
+    async def update_cursor(
+        self, session_id: str, user_id: str, cursor: dict[str, Any]
+    ) -> SessionRecord | None:
         async with self.state.lock:
             session = self.state.sessions.get(session_id)
             if not session:
@@ -337,7 +348,9 @@ class RedisBackend(SessionStore, PresenceStore, HistoryStore, PubSubBroker):
         await self._save_session(session)
         return session
 
-    async def add_participant(self, session_id: str, participant: ParticipantRecord) -> SessionRecord | None:
+    async def add_participant(
+        self, session_id: str, participant: ParticipantRecord
+    ) -> SessionRecord | None:
         session = await self._load_session(session_id)
         if not session:
             return None
@@ -353,7 +366,9 @@ class RedisBackend(SessionStore, PresenceStore, HistoryStore, PubSubBroker):
         await self._save_session(session)
         return session
 
-    async def update_cursor(self, session_id: str, user_id: str, cursor: dict[str, Any]) -> SessionRecord | None:
+    async def update_cursor(
+        self, session_id: str, user_id: str, cursor: dict[str, Any]
+    ) -> SessionRecord | None:
         session = await self._load_session(session_id)
         if not session:
             return None

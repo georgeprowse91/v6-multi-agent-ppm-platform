@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 
 import pytest
-
 from llm.client import LLMGateway, LLMProviderError, LLMResponse, LLMStreamChunk, ProviderAdapter
 
 
@@ -29,7 +28,9 @@ class StubAdapter(ProviderAdapter):
 @pytest.mark.anyio
 async def test_failover_uses_ordered_fallbacks(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LLM_API_KEY", "test-key")
-    gateway = LLMGateway(config={"provider_chain": ["mock", "openai"], "retry_policy": {"max_attempts": 1}})
+    gateway = LLMGateway(
+        config={"provider_chain": ["mock", "openai"], "retry_policy": {"max_attempts": 1}}
+    )
     primary = StubAdapter("mock", [LLMProviderError("retry", retryable=True, provider="mock")])
     fallback = StubAdapter("openai", ["fallback-ok"])
     gateway.adapters = {"mock": primary, "openai": fallback}

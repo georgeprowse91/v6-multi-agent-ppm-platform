@@ -9,9 +9,7 @@ import pytest
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parents[3]
 SRC_DIR = TESTS_DIR.parent / "src"
-APPROVAL_SRC = (
-    REPO_ROOT / "agents" / "core-orchestration" / "agent-03-approval-workflow" / "src"
-)
+APPROVAL_SRC = REPO_ROOT / "agents" / "core-orchestration" / "agent-03-approval-workflow" / "src"
 CONTRACTS_SRC = REPO_ROOT / "packages" / "contracts" / "src"
 OBSERVABILITY_SRC = REPO_ROOT / "packages" / "observability" / "src"
 sys.path.extend(
@@ -25,11 +23,12 @@ sys.path.extend(
     ]
 )
 
+from monitoring import AzureMonitorClient
 from notifications import NotificationService
+from project_lifecycle_agent import ProjectLifecycleAgent
 from readiness_model import ReadinessScoringModel
 from sync_clients import ExternalSyncService
-from project_lifecycle_agent import ProjectLifecycleAgent
-from monitoring import AzureMonitorClient
+
 from integrations.services.integration.ai_models import AIModelService
 
 

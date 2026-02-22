@@ -6,12 +6,12 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from sqlite3 import Error as SqliteError
 from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
-from sqlite3 import Error as SqliteError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
@@ -21,21 +21,22 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, DATA_QUALITY_ROOT):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
-from packages.version import API_VERSION  # noqa: E402
 from data_quality.remediation import RemediationResult, remediate_payload  # noqa: E402
 from data_quality.rules import evaluate_quality_rules  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from quality import QualityResult, compute_quality  # noqa: E402
 from retention_scheduler import RetentionScheduler  # noqa: E402
-from security.auth import AuthContext, AuthTenantMiddleware  # noqa: E402
-from security.config import load_yaml  # noqa: E402
 from security.api_governance import (  # noqa: E402
     apply_api_governance,
     version_response_payload,
 )
+from security.auth import AuthContext, AuthTenantMiddleware  # noqa: E402
 from security.lineage import mask_lineage_payload  # noqa: E402
 from storage import LineageRecord, LineageStore  # noqa: E402
+
+from packages.version import API_VERSION  # noqa: E402
+from security.config import load_yaml  # noqa: E402
 
 logger = logging.getLogger("data-lineage-service")
 logging.basicConfig(level=logging.INFO)
@@ -360,9 +361,9 @@ async def ingest_event(
 @api_router.get("/lineage/events", response_model=list[LineageEventOut])
 async def list_events(
     request: Request,
+    response: Response,
     connector_id: str | None = None,
     work_item_id: str | None = None,
-    response: Response | None = None,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     store: LineageStore = Depends(get_store),
@@ -377,10 +378,9 @@ async def list_events(
             continue
         visible.append(_record_to_response(record))
     sliced, total = _paginate(visible, offset=offset, limit=limit)
-    if response is not None:
-        response.headers["X-Total-Count"] = str(total)
-        response.headers["X-Limit"] = str(limit)
-        response.headers["X-Offset"] = str(offset)
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
     return sliced
 
 

@@ -18,6 +18,7 @@ from typing import Any
 
 import httpx
 import yaml
+
 from agents.common.connector_integration import NotificationService
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
@@ -215,19 +216,28 @@ class NotificationTemplateEngine:
         escaped = rendered.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         paragraph = escaped.replace("\n", "<br>")
         return (
-            "<html><body style=\"background-color:#ffffff;color:#111111;font-size:18px;"
-            "line-height:1.6;font-family:Arial,sans-serif;\">"
+            '<html><body style="background-color:#ffffff;color:#111111;font-size:18px;'
+            'line-height:1.6;font-family:Arial,sans-serif;">'
             f"<p>{paragraph}</p>"
             "</body></html>"
         )
 
 
 class NotificationSubscriptionStore:
-    def __init__(self, path: Path) -> None:
-        self.store = TenantStateStore(path)
+    def __init__(self, path: Path | None = None) -> None:
+        if path is not None:
+            self.store: TenantStateStore | None = TenantStateStore(path)
+        else:
+            # No explicit path configured: use ephemeral in-memory storage so
+            # tests (and processes without a configured path) start with a clean
+            # state and don't pollute shared files.
+            self.store = None
+        self._memory: dict[str, dict[str, dict[str, Any]]] = {}
 
     def get_preferences(self, tenant_id: str, recipient_id: str) -> dict[str, Any] | None:
-        return self.store.get(tenant_id, recipient_id)
+        if self.store is not None:
+            return self.store.get(tenant_id, recipient_id)
+        return self._memory.get(tenant_id, {}).get(recipient_id)
 
     def upsert_preferences(
         self, tenant_id: str, recipient_id: str, preferences: dict[str, Any]
@@ -240,10 +250,16 @@ class NotificationSubscriptionStore:
         normalized["accessible_format"] = accessible
         notify_delegate_directly = normalized.get("notify_delegate_directly", True)
         normalized["notify_delegate_directly"] = bool(notify_delegate_directly)
-        self.store.upsert(tenant_id, recipient_id, normalized)
+        if self.store is not None:
+            self.store.upsert(tenant_id, recipient_id, normalized)
+        else:
+            self._memory.setdefault(tenant_id, {})[recipient_id] = normalized
 
     def delete_preferences(self, tenant_id: str, recipient_id: str) -> None:
-        self.store.delete(tenant_id, recipient_id)
+        if self.store is not None:
+            self.store.delete(tenant_id, recipient_id)
+        else:
+            self._memory.get(tenant_id, {}).pop(recipient_id, None)
 
 
 class ApprovalWorkflowAgent(BaseAgent):
@@ -296,12 +312,9 @@ class ApprovalWorkflowAgent(BaseAgent):
         self.template_engine = NotificationTemplateEngine(templates, default_locale, template_root)
         if not self.template_engine.templates:
             self.template_engine.templates = self._default_templates()
+        _notification_store_path = (config or {}).get("notification_store_path")
         self.notification_store = NotificationSubscriptionStore(
-            Path(
-                config.get("notification_store_path", "data/approval_notification_store.json")
-                if config
-                else "data/approval_notification_store.json"
-            )
+            Path(_notification_store_path) if _notification_store_path else None
         )
         self.workflow_config = self._load_workflow_config()
         delegation_settings = self.workflow_config.get("delegation", {})
@@ -384,11 +397,27 @@ class ApprovalWorkflowAgent(BaseAgent):
             return
         try:
             self.service_bus_admin.get_topic(topic)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             self.service_bus_admin.create_topic(topic)
         try:
             self.service_bus_admin.get_subscription(topic, subscription)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             self.service_bus_admin.create_subscription(topic, subscription)
 
     async def _initialize_graph_client(self) -> None:
@@ -446,14 +475,12 @@ class ApprovalWorkflowAgent(BaseAgent):
             len(approval_tasks),
         )
 
-    async def _fetch_graph_messages(
-        self, user_id: str, limit: int
-    ) -> list[dict[str, Any]]:
+    async def _fetch_graph_messages(self, user_id: str, limit: int) -> list[dict[str, Any]]:
         if not self.graph_client:
             return []
         response = await self.graph_client.get(
             f"/users/{user_id}/messages",
-            params={"$top": limit, "$search": "\"approval\""},
+            params={"$top": limit, "$search": '"approval"'},
             headers={"ConsistencyLevel": "eventual"},
         )
         response.raise_for_status()
@@ -474,7 +501,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             return []
         response = await self.graph_client.get(
             f"/users/{user_id}/todo/lists/{task_list_id}/tasks",
-            params={"$top": limit, "$search": "\"approval\""},
+            params={"$top": limit, "$search": '"approval"'},
             headers={"ConsistencyLevel": "eventual"},
         )
         response.raise_for_status()
@@ -525,7 +552,7 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         for field in required_fields:
             if field not in input_data:
-                self.logger.error(f"Missing required field: {field}")
+                self.logger.error("Missing required field: %s", field)
                 return False
 
         valid_types = [
@@ -537,7 +564,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             "resource_optimization",
         ]
         if input_data["request_type"] not in valid_types:
-            self.logger.error(f"Invalid request_type: {input_data['request_type']}")
+            self.logger.error("Invalid request_type: %s", input_data["request_type"])
             return False
 
         return True
@@ -606,7 +633,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             criticality_level=criticality_level,
         )
 
-        self.logger.info(f"Processing {request_type} approval request: {request_id}")
+        self.logger.info("Processing %s approval request: %s", request_type, request_id)
 
         # Determine approvers based on routing rules
         approvers, delegation_records, user_roles = await self._determine_approvers(
@@ -952,7 +979,7 @@ class ApprovalWorkflowAgent(BaseAgent):
             self.logger.warning(
                 "Notification service not initialized; falling back to log-only notification."
             )
-            self.logger.info(f"Notification to {recipient}: {subject}")
+            self.logger.info("Notification to %s: %s", recipient, subject)
             return False
         result = await self.notification_service.send_email(recipient, subject, body, metadata)
         status = result.get("status")
@@ -1020,7 +1047,9 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         email_channel = channels.get("email")
         if email_channel:
-            email_address = email_channel.get("address") if isinstance(email_channel, dict) else email_channel
+            email_address = (
+                email_channel.get("address") if isinstance(email_channel, dict) else email_channel
+            )
             results.append(
                 await self._send_notification(
                     recipient=email_address,
@@ -1099,9 +1128,9 @@ class ApprovalWorkflowAgent(BaseAgent):
         }
         self.notification_queue.setdefault(key, []).append(entry)
         if key not in self.digest_tasks or self.digest_tasks[key].done():
-            interval_minutes = preferences.get("digest_interval_minutes") or self.approval_policies.get(
-                "digest_interval_minutes", 60
-            )
+            interval_minutes = preferences.get(
+                "digest_interval_minutes"
+            ) or self.approval_policies.get("digest_interval_minutes", 60)
             self.digest_tasks[key] = asyncio.create_task(
                 self._send_digest_notifications_after_delay(
                     tenant_id=tenant_id,
@@ -1184,7 +1213,10 @@ class ApprovalWorkflowAgent(BaseAgent):
             "tenant_id": tenant_id,
             "approval_id": approval_chain["id"],
             "request_id": approval_chain["request_id"],
-            "request_type": approval_chain.get("request_type") or details.get("request_type") or details.get("type") or "",
+            "request_type": approval_chain.get("request_type")
+            or details.get("request_type")
+            or details.get("type")
+            or "",
             "description": details.get("description", "Approval required"),
             "justification": details.get("justification", ""),
             "amount": details.get("amount", ""),
@@ -1208,10 +1240,14 @@ class ApprovalWorkflowAgent(BaseAgent):
         user_prefs = routing.get("users", {}).get(approver, {})
         group_prefs: dict[str, Any] = {}
         for role in approval_chain.get("user_roles", {}).get(approver, []):
-            group_prefs = self._merge_preferences(group_prefs, routing.get("groups", {}).get(role, {}))
+            group_prefs = self._merge_preferences(
+                group_prefs, routing.get("groups", {}).get(role, {})
+            )
         stored = self.notification_store.get_preferences(tenant_id, approver) or {}
         preferences = self._merge_preferences(
-            self._merge_preferences(self._merge_preferences(default_prefs, group_prefs), user_prefs),
+            self._merge_preferences(
+                self._merge_preferences(default_prefs, group_prefs), user_prefs
+            ),
             stored,
         )
 
@@ -1341,8 +1377,16 @@ class ApprovalWorkflowAgent(BaseAgent):
         async with httpx.AsyncClient() as client:
             try:
                 await client.post(url, json=payload)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
-                self.logger.error(f"Failed to send notification to {url}: {exc}")
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
+                self.logger.error("Failed to send notification to %s: %s", url, exc)
 
     async def _schedule_escalations(
         self,
@@ -1382,9 +1426,9 @@ class ApprovalWorkflowAgent(BaseAgent):
                 criticality_level=criticality_level,
                 escalation_timeout_hours=escalation_timeout_hours,
             )
-            self.escalation_timers[approval_chain["id"]]["last_escalated_at"] = (
-                datetime.now(timezone.utc).isoformat()
-            )
+            self.escalation_timers[approval_chain["id"]]["last_escalated_at"] = datetime.now(
+                timezone.utc
+            ).isoformat()
             self._emit_audit_event(
                 tenant_id=tenant_id,
                 correlation_id=str(uuid.uuid4()),
@@ -1400,7 +1444,7 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         task = asyncio.create_task(escalation_task())
         self.escalation_timers[approval_chain["id"]]["task"] = task
-        self.logger.info(f"Escalation scheduled for approval {approval_chain['id']}")
+        self.logger.info("Escalation scheduled for approval %s", approval_chain["id"])
 
     async def _load_approval_policies(self) -> dict[str, Any]:
         """Load approval policies and routing rules from configuration."""
@@ -1600,9 +1644,9 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "approver_id": approver_id,
                 "comments": comments,
                 "risk_score": existing.get("details", {}).get("risk_score") if existing else None,
-                "criticality_level": existing.get("details", {}).get("criticality_level")
-                if existing
-                else None,
+                "criticality_level": (
+                    existing.get("details", {}).get("criticality_level") if existing else None
+                ),
             },
         )
         if response_time_seconds is not None:
@@ -1661,9 +1705,9 @@ class ApprovalWorkflowAgent(BaseAgent):
             "status": decision,
             "metadata": {
                 "risk_score": existing.get("details", {}).get("risk_score") if existing else None,
-                "criticality_level": existing.get("details", {}).get("criticality_level")
-                if existing
-                else None,
+                "criticality_level": (
+                    existing.get("details", {}).get("criticality_level") if existing else None
+                ),
             },
         }
 
@@ -1735,7 +1779,15 @@ class ApprovalWorkflowAgent(BaseAgent):
         )
         try:
             self.event_bus_client.publish_event(envelope)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Failed to publish approval event: %s", exc)
 
     def _subscribe_to_approval_responses(self) -> None:
@@ -1784,7 +1836,15 @@ class ApprovalWorkflowAgent(BaseAgent):
 
         try:
             self.event_bus_client.subscribe(handler)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Failed to subscribe to approval responses: %s", exc)
 
     def _default_templates(self) -> dict[str, dict[str, str]]:
@@ -1823,9 +1883,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "approval_request_push": "Approval required: ${description} (deadline ${deadline})",
                 "approval_digest_subject": "You have ${count} pending approvals",
                 "approval_digest_body": (
-                    "Here is your approval digest:\n"
-                    "${items}\n"
-                    "Generated at ${generated_at}."
+                    "Here is your approval digest:\n" "${items}\n" "Generated at ${generated_at}."
                 ),
                 "approval_decision_subject": "Approval ${decision} for ${request_id}",
                 "approval_decision_body": (
@@ -1867,9 +1925,7 @@ class ApprovalWorkflowAgent(BaseAgent):
                 "approval_request_push": "Aprobación requerida: ${description} (fecha límite ${deadline})",
                 "approval_digest_subject": "Tienes ${count} aprobaciones pendientes",
                 "approval_digest_body": (
-                    "Resumen de aprobaciones:\n"
-                    "${items}\n"
-                    "Generado a las ${generated_at}."
+                    "Resumen de aprobaciones:\n" "${items}\n" "Generado a las ${generated_at}."
                 ),
                 "approval_decision_subject": "Aprobación ${decision} para ${request_id}",
                 "approval_decision_body": (

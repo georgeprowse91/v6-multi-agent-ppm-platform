@@ -1,0 +1,69 @@
+{
+  "change_id": "CHG-20260222051855",
+  "title": "Update firewall rules",
+  "description": "Apply approved network changes",
+  "type": "standard",
+  "classification": {
+    "category": "routine",
+    "priority": "medium",
+    "risk_category": "medium",
+    "impacted_ci_count": 0
+  },
+  "priority": "medium",
+  "requester": "secops",
+  "project_id": null,
+  "tenant_id": "tenant-chg",
+  "correlation_id": "084ceb54-1a1c-4abf-bdfe-38958c8cc90f",
+  "actor_id": "system",
+  "impacted_cis": [],
+  "impact_assessment": null,
+  "risk_assessment": null,
+  "approval_status": "Approved",
+  "approval": null,
+  "status": "Submitted",
+  "version": 1,
+  "created_at": "2026-02-22T05:18:55.588231+00:00",
+  "repository_context": {
+    "status": "unavailable"
+  },
+  "iac_changes": {
+    "resources": [],
+    "status": "no_iac"
+  },
+  "knowledge_context": {
+    "documents": [],
+    "status": "ok"
+  },
+  "workflow": {
+    "change_id": "CHG-20260222051855",
+    "tenant_id": "tenant-chg",
+    "orchestrator": "durable_functions",
+    "tasks": [
+      {
+        "name": "peer_review",
+        "status": "pending"
+      },
+      {
+        "name": "automated_checks",
+        "status": "pending"
+      },
+      {
+        "name": "final_approval",
+        "status": "pending"
+      }
+    ],
+    "created_at": "2026-02-22T05:18:55.587614+00:00",
+    "orchestrator_status": {
+      "status": "unconfigured"
+    },
+    "_id": "CHG-20260222051855",
+    "_updated_at": "2026-02-22T05:18:55.587813+00:00"
+  },
+  "itsm_record": {
+    "status": "created_mock",
+    "change_id": "CHG-20260222051855",
+    "created_at": "2026-02-22T05:18:55.588936+00:00"
+  },
+  "_id": "CHG-20260222051855",
+  "_updated_at": "2026-02-22T05:18:55.589173+00:00"
+}

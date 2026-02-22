@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from difflib import SequenceMatcher
-from typing import Any, Iterable
+from typing import Any
 
 from knowledge_store import KnowledgeStore
 from spreadsheet_models import SheetDetail
@@ -29,7 +30,9 @@ class SearchResultItem:
 
 
 class SearchService:
-    def __init__(self, knowledge_store: KnowledgeStore, spreadsheet_store: SpreadsheetStore) -> None:
+    def __init__(
+        self, knowledge_store: KnowledgeStore, spreadsheet_store: SpreadsheetStore
+    ) -> None:
         self._knowledge_store = knowledge_store
         self._spreadsheet_store = spreadsheet_store
 
@@ -58,17 +61,19 @@ class SearchService:
         if tenant_id and {"work_item", "risk"}.intersection(type_set):
             sheet_details = self._spreadsheet_store.list_tenant_sheet_details(tenant_id)
             if "work_item" in type_set:
-                results.extend(self._search_sheet_items(query, project_ids, sheet_details, "action log"))
+                results.extend(
+                    self._search_sheet_items(query, project_ids, sheet_details, "action log")
+                )
             if "risk" in type_set:
-                results.extend(self._search_sheet_items(query, project_ids, sheet_details, "risk register"))
+                results.extend(
+                    self._search_sheet_items(query, project_ids, sheet_details, "risk register")
+                )
 
         results.sort(key=lambda item: (item.score, item.updated_at or datetime.min), reverse=True)
         total = len(results)
         return results[offset : offset + limit], total
 
-    def _search_documents(
-        self, query: str, project_ids: set[str] | None
-    ) -> list[SearchResultItem]:
+    def _search_documents(self, query: str, project_ids: set[str] | None) -> list[SearchResultItem]:
         documents = self._knowledge_store.search_documents(
             query=None, project_ids=sorted(project_ids) if project_ids else None
         )

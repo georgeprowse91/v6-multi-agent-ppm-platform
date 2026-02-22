@@ -20,7 +20,7 @@ from base_connector import (
     ConnectionTestResult,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
-from secrets import fetch_keyvault_secret, resolve_secret
+from connector_secrets import fetch_keyvault_secret, resolve_secret
 from sync_controls import WriteControlPolicy, dedupe_by_idempotency
 
 

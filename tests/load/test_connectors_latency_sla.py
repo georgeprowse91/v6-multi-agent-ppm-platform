@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tests.load.multi_agent_scenarios import build_multi_agent_flow_scenario
 from ops.tools.load_testing.runner import LoadSla, assert_sla, load_profile, run_load_scenario
+from tests.load.multi_agent_scenarios import build_multi_agent_flow_scenario
 
 
 def test_connectors_latency_sla(monkeypatch) -> None:

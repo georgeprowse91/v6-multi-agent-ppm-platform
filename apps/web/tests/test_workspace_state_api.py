@@ -9,8 +9,9 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 import main  # noqa: E402
-from agents.runtime.src.orchestrator import OrchestrationResult  # noqa: E402
 from workspace_state_store import WorkspaceStateStore  # noqa: E402
+
+from agents.runtime.src.orchestrator import OrchestrationResult  # noqa: E402
 
 
 @pytest.fixture
@@ -129,16 +130,16 @@ def test_validation_rejects_bad_tab(client, monkeypatch):
 
 def test_get_workspace_supports_methodology_query(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
-    response = client.get('/api/workspace/demo-1?methodology=predictive')
+    response = client.get("/api/workspace/demo-1?methodology=predictive")
     assert response.status_code == 200
     payload = response.json()
-    assert payload['methodology'] == 'predictive'
-    assert payload['methodology_map_summary']['id'] == 'predictive'
+    assert payload["methodology"] == "predictive"
+    assert payload["methodology_map_summary"]["id"] == "predictive"
 
 
 def test_get_workspace_rejects_unknown_methodology_query(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
-    response = client.get('/api/workspace/demo-1?methodology=unknown')
+    response = client.get("/api/workspace/demo-1?methodology=unknown")
     assert response.status_code == 422
 
 
@@ -189,12 +190,20 @@ def test_runtime_action_endpoint_executes_orchestrator(client, monkeypatch):
     async def fake_run_methodology_node_action(self, **kwargs):
         captured.update(kwargs)
         return OrchestrationResult(
-            results={"task-1": {"agent_id": "agent-10", "metadata": {"template_id": "adaptive-software-dev"}, "input": {}}},
+            results={
+                "task-1": {
+                    "agent_id": "agent-10",
+                    "metadata": {"template_id": "adaptive-software-dev"},
+                    "input": {},
+                }
+            },
             context={"correlation_id": "corr-test"},
             metrics={"templates_executed": 1},
         )
 
-    monkeypatch.setattr(main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action)
+    monkeypatch.setattr(
+        main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action
+    )
 
     response = client.post(
         "/api/methodology/runtime/action",
@@ -222,12 +231,20 @@ def test_runtime_action_known_template_mappings(client, monkeypatch):
         template_ids = kwargs.get("template_ids", [])
         template_id = template_ids[0] if template_ids else "unknown"
         return OrchestrationResult(
-            results={"task-1": {"agent_id": "agent-10", "metadata": {"template_id": template_id}, "input": {}}},
+            results={
+                "task-1": {
+                    "agent_id": "agent-10",
+                    "metadata": {"template_id": template_id},
+                    "input": {},
+                }
+            },
             context={"correlation_id": "corr-test"},
             metrics={"templates_executed": 1},
         )
 
-    monkeypatch.setattr(main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action)
+    monkeypatch.setattr(
+        main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action
+    )
 
     adaptive = client.post(
         "/api/methodology/runtime/action",
@@ -281,7 +298,9 @@ def test_runtime_action_publish_requires_human_review(client, monkeypatch):
     assert payload["human_review"]["status"] == "pending"
 
 
-def test_runtime_action_demo_mode_captures_external_side_effects_locally(client, monkeypatch, tmp_path):
+def test_runtime_action_demo_mode_captures_external_side_effects_locally(
+    client, monkeypatch, tmp_path
+):
     _set_tenant(monkeypatch, "demo-tenant")
     monkeypatch.setenv("DEMO_MODE", "true")
     from demo_integrations import DemoOutbox  # noqa: E402
@@ -304,7 +323,9 @@ def test_runtime_action_demo_mode_captures_external_side_effects_locally(client,
             metrics={"templates_executed": 1},
         )
 
-    monkeypatch.setattr(main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action)
+    monkeypatch.setattr(
+        main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action
+    )
 
     response = client.post(
         "/api/methodology/runtime/action",
@@ -334,7 +355,12 @@ def test_connector_configure_and_connection_health_in_demo_mode(client, monkeypa
 
     create_response = client.post(
         "/api/connector-gallery/instances",
-        json={"connector_type_id": "jira", "version": "1.0.0", "enabled": True, "metadata": {"scope": "project"}},
+        json={
+            "connector_type_id": "jira",
+            "version": "1.0.0",
+            "enabled": True,
+            "metadata": {"scope": "project"},
+        },
     )
     assert create_response.status_code == 201
     connector_id = create_response.json()["connector_id"]
@@ -383,12 +409,17 @@ def test_sor_publish_endpoint_writes_outbox_and_audit_event(client, monkeypatch,
     assert any(event["action"] == "demo.sor.publish.stubbed" for event in audit_events)
 
 
-@pytest.mark.parametrize("project_id,methodology_id", [
-    ("demo-predictive", "predictive"),
-    ("demo-adaptive", "adaptive"),
-    ("demo-hybrid", "hybrid"),
-])
-def test_workspace_methodology_payloads_are_fully_populated(client, monkeypatch, project_id, methodology_id):
+@pytest.mark.parametrize(
+    "project_id,methodology_id",
+    [
+        ("demo-predictive", "predictive"),
+        ("demo-adaptive", "adaptive"),
+        ("demo-hybrid", "hybrid"),
+    ],
+)
+def test_workspace_methodology_payloads_are_fully_populated(
+    client, monkeypatch, project_id, methodology_id
+):
     _set_tenant(monkeypatch, "tenant-a")
     response = client.get(f"/api/workspace/{project_id}?methodology={methodology_id}")
     assert response.status_code == 200
@@ -413,17 +444,26 @@ def test_workspace_methodology_payloads_are_fully_populated(client, monkeypatch,
     nested_present = any(_has_nested(stage["activities"]) for stage in summary["stages"])
     assert nested_present, f"Expected nested activities for {methodology_id}"
 
+
 def test_runtime_review_queue_and_decision_flow(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
 
     async def fake_run_methodology_node_action(self, **kwargs):
         return OrchestrationResult(
-            results={"task-1": {"agent_id": "agent-10", "metadata": {"template_id": "adaptive-software-dev"}, "input": {}}},
+            results={
+                "task-1": {
+                    "agent_id": "agent-10",
+                    "metadata": {"template_id": "adaptive-software-dev"},
+                    "input": {},
+                }
+            },
             context={"correlation_id": "corr-test"},
             metrics={"templates_executed": 1},
         )
 
-    monkeypatch.setattr(main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action)
+    monkeypatch.setattr(
+        main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action
+    )
 
     review = client.post(
         "/api/methodology/runtime/action",
@@ -440,7 +480,9 @@ def test_runtime_review_queue_and_decision_flow(client, monkeypatch):
     assert payload["status"] == "review_required"
     approval_id = payload["human_review"]["approval_id"]
 
-    queue = client.get("/api/methodology/runtime/approvals", params={"workspace_id": "demo-1", "status": "pending"})
+    queue = client.get(
+        "/api/methodology/runtime/approvals", params={"workspace_id": "demo-1", "status": "pending"}
+    )
     assert queue.status_code == 200
     assert any(item["approval_id"] == approval_id for item in queue.json()["items"])
 
@@ -457,12 +499,20 @@ def test_runtime_action_persists_artifact_metadata(client, monkeypatch):
 
     async def fake_run_methodology_node_action(self, **kwargs):
         return OrchestrationResult(
-            results={"task-1": {"agent_id": "agent-10", "metadata": {"template_id": "adaptive-software-dev"}, "input": {}}},
+            results={
+                "task-1": {
+                    "agent_id": "agent-10",
+                    "metadata": {"template_id": "adaptive-software-dev"},
+                    "input": {},
+                }
+            },
             context={"correlation_id": "corr-test"},
             metrics={"templates_executed": 1},
         )
 
-    monkeypatch.setattr(main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action)
+    monkeypatch.setattr(
+        main.Orchestrator, "run_methodology_node_action", fake_run_methodology_node_action
+    )
 
     response = client.post(
         "/api/methodology/runtime/action",
@@ -482,15 +532,24 @@ def test_runtime_action_persists_artifact_metadata(client, monkeypatch):
 
 def test_workspace_select_accepts_new_canvas_tabs(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
-    for tab in ["board", "backlog", "gantt", "grid", "financial", "dependency_map", "roadmap", "approval"]:
-      response = client.post(
-          "/api/workspace/demo-1/select",
-          json={
-              "current_stage_id": None,
-              "current_activity_id": None,
-              "current_canvas_tab": tab,
-              "methodology": "adaptive",
-          },
-      )
-      assert response.status_code == 200
-      assert response.json()["current_canvas_tab"] == tab
+    for tab in [
+        "board",
+        "backlog",
+        "gantt",
+        "grid",
+        "financial",
+        "dependency_map",
+        "roadmap",
+        "approval",
+    ]:
+        response = client.post(
+            "/api/workspace/demo-1/select",
+            json={
+                "current_stage_id": None,
+                "current_activity_id": None,
+                "current_canvas_tab": tab,
+                "methodology": "adaptive",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["current_canvas_tab"] == tab

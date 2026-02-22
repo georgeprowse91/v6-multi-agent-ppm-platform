@@ -35,7 +35,9 @@ def _validate_entry(entry: dict[str, Any], idx: int) -> ModelRecord:
     if missing:
         raise ModelRegistryError(f"Model index={idx} missing fields: {', '.join(missing)}")
     capabilities = entry.get("capabilities")
-    if not isinstance(capabilities, list) or not all(isinstance(item, str) for item in capabilities):
+    if not isinstance(capabilities, list) or not all(
+        isinstance(item, str) for item in capabilities
+    ):
         raise ModelRegistryError(f"Model index={idx} capabilities must be a list[str]")
     return ModelRecord(
         provider=str(entry["provider"]).lower(),
@@ -58,7 +60,9 @@ def load_model_registry() -> list[ModelRecord]:
     return [_validate_entry(item, idx) for idx, item in enumerate(data) if isinstance(item, dict)]
 
 
-def get_enabled_models(*, demo_mode: bool = False, environment: str | None = None) -> list[ModelRecord]:
+def get_enabled_models(
+    *, demo_mode: bool = False, environment: str | None = None
+) -> list[ModelRecord]:
     models = [item for item in load_model_registry() if item.enabled]
     if demo_mode:
         models = [item for item in models if item.allow_in_demo]
@@ -68,7 +72,9 @@ def get_enabled_models(*, demo_mode: bool = False, environment: str | None = Non
         models = [item for item in models if f"{item.provider}:{item.model_id}" in allowed]
     provider_allowlist = os.getenv("LLM_PROVIDER_ALLOWLIST", "").strip()
     if provider_allowlist:
-        allowed_providers = {item.strip().lower() for item in provider_allowlist.split(",") if item.strip()}
+        allowed_providers = {
+            item.strip().lower() for item in provider_allowlist.split(",") if item.strip()
+        }
         models = [item for item in models if item.provider in allowed_providers]
     return models
 

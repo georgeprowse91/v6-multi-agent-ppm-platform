@@ -65,7 +65,9 @@ def test_scim_user_group_role_mapping_and_tenant_isolation(scim_client: TestClie
     )
     assert patch_response.status_code == 200
 
-    role_response = scim_client.get(f"/v1/scim/internal/roles/{user_id}", headers=_headers(tenant_a))
+    role_response = scim_client.get(
+        f"/v1/scim/internal/roles/{user_id}", headers=_headers(tenant_a)
+    )
     assert role_response.status_code == 200
     assert role_response.json()["roles"] == ["PMO_ADMIN"]
 

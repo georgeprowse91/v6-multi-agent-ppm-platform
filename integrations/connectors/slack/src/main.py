@@ -10,7 +10,7 @@ from typing import Any, Iterable
 from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig, SyncDirection, SyncFrequency
 from integrations.connectors.sdk.src.http_client import HttpClient
 from integrations.connectors.sdk.src.runtime import ConnectorRuntime
-from integrations.connectors.sdk.src.secrets import resolve_secret
+from connector_secrets import resolve_secret
 
 from .slack_connector import SlackConnector
 

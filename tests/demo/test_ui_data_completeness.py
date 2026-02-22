@@ -39,9 +39,9 @@ def test_demo_ui_minimum_visible_counts() -> None:
         assert entity_name in demo_data, f"Missing demo dataset: {entity_name}.json"
         records = demo_data[entity_name]
         assert isinstance(records, list), f"{entity_name}.json must contain a list of records"
-        assert len(records) >= minimum, (
-            f"{entity_name}.json only has {len(records)} records; expected at least {minimum}"
-        )
+        assert (
+            len(records) >= minimum
+        ), f"{entity_name}.json only has {len(records)} records; expected at least {minimum}"
 
 
 def test_web_demo_seed_has_required_ui_data() -> None:
@@ -55,18 +55,18 @@ def test_web_demo_seed_has_required_ui_data() -> None:
 
     if "conversations" in seed:
         conversations = seed.get("conversations")
-        assert isinstance(conversations, list) and conversations, (
-            "apps/web/data/demo_seed.json includes conversations, but it is empty"
-        )
+        assert (
+            isinstance(conversations, list) and conversations
+        ), "apps/web/data/demo_seed.json includes conversations, but it is empty"
 
     for section, data_key in NAVIGATION_SECTION_BACKING_DATA.items():
-        assert data_key in seed, (
-            f"apps/web/data/demo_seed.json missing backing data for '{section}' navigation section"
-        )
+        assert (
+            data_key in seed
+        ), f"apps/web/data/demo_seed.json missing backing data for '{section}' navigation section"
         section_data = seed[data_key]
-        assert section_data, (
-            f"apps/web/data/demo_seed.json has empty backing data for '{section}' navigation section"
-        )
+        assert (
+            section_data
+        ), f"apps/web/data/demo_seed.json has empty backing data for '{section}' navigation section"
 
 
 def test_demo_run_log_fixture_exists_and_has_agents() -> None:

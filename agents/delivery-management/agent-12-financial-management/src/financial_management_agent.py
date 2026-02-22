@@ -24,7 +24,7 @@ from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, ServiceBusEventBus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.state_store import TenantStateStore
-from integrations.connectors.sdk.src.secrets import fetch_keyvault_secret
+from connector_secrets import fetch_keyvault_secret
 
 
 class FinancialManagementAgent(BaseAgent):
@@ -92,9 +92,7 @@ class FinancialManagementAgent(BaseAgent):
         self.variances = {}  # type: ignore
         self.approval_agent = config.get("approval_agent") if config else None
         self.approval_agent_config = config.get("approval_agent_config", {}) if config else {}
-        self.approval_agent_enabled = (
-            config.get("approval_agent_enabled", True) if config else True
-        )
+        self.approval_agent_enabled = config.get("approval_agent_enabled", True) if config else True
         self.key_vault_config = config.get("key_vault", {}) if config else {}
         self.key_vault_secrets = config.get("key_vault_secrets", {}) if config else {}
         self.exchange_rate_provider = ExchangeRateProvider(
@@ -193,7 +191,7 @@ class FinancialManagementAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "create_budget":
@@ -201,7 +199,7 @@ class FinancialManagementAgent(BaseAgent):
             required_fields = ["project_id", "total_amount", "cost_breakdown"]
             for field in required_fields:
                 if field not in budget_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
         elif action == "generate_financial_variants":
             if not input_data.get("project_id"):
@@ -347,7 +345,7 @@ class FinancialManagementAgent(BaseAgent):
 
         Returns budget ID and baseline confirmation.
         """
-        self.logger.info(f"Creating budget for project: {budget_data.get('project_id')}")
+        self.logger.info("Creating budget for project: %s", budget_data.get("project_id"))
 
         # Generate budget ID
         budget_id = await self._generate_budget_id()
@@ -359,7 +357,9 @@ class FinancialManagementAgent(BaseAgent):
 
         if abs(total_from_breakdown - total_amount) > 0.01:
             self.logger.warning(
-                f"Cost breakdown sum ({total_from_breakdown}) doesn't match total ({total_amount})"
+                "Cost breakdown sum (%s) doesn't match total (%s)",
+                total_from_breakdown,
+                total_amount,
             )
 
         # Create budget structure aligned to WBS
@@ -438,7 +438,7 @@ class FinancialManagementAgent(BaseAgent):
 
         Returns cost tracking confirmation.
         """
-        self.logger.info(f"Tracking costs for project: {cost_data.get('project_id')}")
+        self.logger.info("Tracking costs for project: %s", cost_data.get("project_id"))
 
         # Import cost transactions from ERP
         transactions = await self._import_cost_transactions(cost_data.get("project_id"))  # type: ignore
@@ -513,7 +513,7 @@ class FinancialManagementAgent(BaseAgent):
 
         Returns forecast data and projections.
         """
-        self.logger.info(f"Generating forecast for project: {project_id}")
+        self.logger.info("Generating forecast for project: %s", project_id)
 
         # Get historical spending data
         historical_data = await self._get_historical_spending(project_id)
@@ -621,9 +621,7 @@ class FinancialManagementAgent(BaseAgent):
             )
             return scenario
 
-        async def _compare(
-            baseline: dict[str, Any], scenario: dict[str, Any]
-        ) -> dict[str, Any]:
+        async def _compare(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[str, Any]:
             return {
                 "budget_variance": scenario.get("budget_baseline", 0)
                 - baseline.get("budget_baseline", 0),
@@ -660,9 +658,7 @@ class FinancialManagementAgent(BaseAgent):
                 }
             )
 
-        forecast_values = [
-            result["metrics"].get("forecast_eac", 0) for result in results
-        ]
+        forecast_values = [result["metrics"].get("forecast_eac", 0) for result in results]
         summary = {
             "baseline_forecast": baseline_metrics.get("forecast_eac", 0),
             "best_case": min(forecast_values) if forecast_values else 0,
@@ -685,7 +681,7 @@ class FinancialManagementAgent(BaseAgent):
 
         Returns variance analysis with trends and alerts.
         """
-        self.logger.info(f"Analyzing variance for project: {project_id}")
+        self.logger.info("Analyzing variance for project: %s", project_id)
 
         # Get budget baseline
         budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
@@ -776,7 +772,7 @@ class FinancialManagementAgent(BaseAgent):
 
         Returns EV, PV, AC, CPI, SPI, and other EVM metrics.
         """
-        self.logger.info(f"Calculating EVM metrics for project: {project_id}")
+        self.logger.info("Calculating EVM metrics for project: %s", project_id)
 
         # Get budget and actuals
         budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
@@ -860,7 +856,7 @@ class FinancialManagementAgent(BaseAgent):
         Returns comprehensive financial overview.
         """
         self.logger.info(
-            f"Getting financial summary for project={project_id}, portfolio={portfolio_id}"
+            "Getting financial summary for project=%s, portfolio=%s", project_id, portfolio_id
         )
 
         if project_id:
@@ -878,7 +874,7 @@ class FinancialManagementAgent(BaseAgent):
 
         Returns report data for visualization.
         """
-        self.logger.info(f"Generating {report_type} report")
+        self.logger.info("Generating %s report", report_type)
 
         if report_type == "summary":
             return await self._generate_summary_report(filters, tenant_id=tenant_id)
@@ -903,7 +899,7 @@ class FinancialManagementAgent(BaseAgent):
         actor_id: str,
     ) -> dict[str, Any]:
         """Update an existing budget (requires approval for baseline changes)."""
-        self.logger.info(f"Updating budget: {budget_id}")
+        self.logger.info("Updating budget: %s", budget_id)
 
         budget = self.budgets.get(budget_id) or self.budget_store.get(tenant_id, budget_id)
         if not budget:
@@ -913,7 +909,7 @@ class FinancialManagementAgent(BaseAgent):
         is_baseline_change = "total_amount" in updates or "cost_breakdown" in updates
         approval = None
         if is_baseline_change:
-            self.logger.info(f"Budget change requires approval for budget: {budget_id}")
+            self.logger.info("Budget change requires approval for budget: %s", budget_id)
             approval = await self._request_budget_approval(
                 budget_id=budget_id,
                 budget={**budget, **updates},
@@ -973,7 +969,7 @@ class FinancialManagementAgent(BaseAgent):
         actor_id: str,
     ) -> dict[str, Any]:
         """Approve a budget and lock it as baseline."""
-        self.logger.info(f"Approving budget: {budget_id}")
+        self.logger.info("Approving budget: %s", budget_id)
 
         budget = self.budgets.get(budget_id) or self.budget_store.get(tenant_id, budget_id)
         if not budget:
@@ -1011,7 +1007,7 @@ class FinancialManagementAgent(BaseAgent):
         self, amount: float, from_currency: str, to_currency: str
     ) -> dict[str, Any]:
         """Convert amount between currencies."""
-        self.logger.info(f"Converting {amount} {from_currency} to {to_currency}")
+        self.logger.info("Converting %s %s to %s", amount, from_currency, to_currency)
 
         exchange_rates = await self.exchange_rate_provider.get_rates()
 
@@ -1038,7 +1034,7 @@ class FinancialManagementAgent(BaseAgent):
 
     async def _calculate_profitability(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         """Calculate profitability metrics including ROI, NPV, and IRR."""
-        self.logger.info(f"Calculating profitability for project: {project_id}")
+        self.logger.info("Calculating profitability for project: %s", project_id)
 
         # Get budget and actuals
         budget = await self._get_budget_for_project(project_id, tenant_id=tenant_id)
@@ -1681,7 +1677,9 @@ class FinancialManagementAgent(BaseAgent):
             )
             if response:
                 return {
-                    "cash_flows": response.get("cash_flows", response.get("benefit_cash_flows", [])),
+                    "cash_flows": response.get(
+                        "cash_flows", response.get("benefit_cash_flows", [])
+                    ),
                     "total_benefits": response.get("total_benefits", 0),
                 }
         return await self._query_related_agent(

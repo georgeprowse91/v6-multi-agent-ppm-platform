@@ -5,11 +5,11 @@ Agent API Routes
 import logging
 from typing import Any
 
+from common.exceptions import PPMPlatformError, exception_to_http_status
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, ValidationError
 
 from agents.runtime import AgentResponse
-from common.exceptions import PPMPlatformError, exception_to_http_status
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -90,7 +90,9 @@ async def process_query(request: QueryRequest, http_request: Request) -> AgentRe
         return AgentResponse.model_validate(result)
 
     except ValidationError as exc:
-        logger.exception("Agent query response validation failed (correlation_id=%s)", correlation_id)
+        logger.exception(
+            "Agent query response validation failed (correlation_id=%s)", correlation_id
+        )
         raise HTTPException(status_code=500, detail="Invalid agent response") from exc
     except PPMPlatformError as exc:
         status_code = exception_to_http_status(exc)

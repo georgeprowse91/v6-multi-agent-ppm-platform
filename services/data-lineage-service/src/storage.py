@@ -41,8 +41,7 @@ class LineageStore:
 
     def _initialize(self) -> None:
         with self._connect() as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS lineage_events (
                     lineage_id TEXT PRIMARY KEY,
                     tenant_id TEXT NOT NULL,
@@ -59,8 +58,7 @@ class LineageStore:
                     timestamp TEXT NOT NULL,
                     retention_until TEXT NOT NULL
                 )
-                """
-            )
+                """)
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_lineage_events_tenant_id ON lineage_events(tenant_id)"
             )

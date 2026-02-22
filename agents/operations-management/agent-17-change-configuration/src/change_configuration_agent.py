@@ -13,12 +13,14 @@ import importlib.util
 import json
 import os
 import uuid
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Iterable, Sequence
-
+from typing import Any
 from urllib import parse, request
+
+from event_bus.service_bus import ServiceBusEventBus
 
 from agents.common.connector_integration import (
     DatabaseStorageService,
@@ -28,8 +30,6 @@ from agents.common.connector_integration import (
 from agents.common.integration_services import NaiveBayesTextClassifier
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
-
-from event_bus.service_bus import ServiceBusEventBus
 
 
 @dataclass
@@ -117,9 +117,7 @@ class RepositoryIntegrationService:
             return {"status": "missing_pr"}
         provider = reference.provider.lower()
         if provider == "github":
-            url = (
-                f"https://api.github.com/repos/{reference.repo}/pulls/{reference.pull_request_id}"
-            )
+            url = f"https://api.github.com/repos/{reference.repo}/pulls/{reference.pull_request_id}"
         elif provider == "gitlab":
             project_id = parse.quote(reference.repo, safe="")
             url = (
@@ -133,7 +131,9 @@ class RepositoryIntegrationService:
             )
         return self._request("GET", url, provider)
 
-    def list_pull_requests(self, reference: RepositoryReference, state: str = "open") -> PullRequestSummary:
+    def list_pull_requests(
+        self, reference: RepositoryReference, state: str = "open"
+    ) -> PullRequestSummary:
         provider = reference.provider.lower()
         if provider == "github":
             url = f"https://api.github.com/repos/{reference.repo}/pulls?state={state}"
@@ -149,7 +149,9 @@ class RepositoryIntegrationService:
         data = response.get("data") if response.get("status") == "ok" else []
         if provider in {"azure", "azure_repos", "azure_devops"} and isinstance(data, dict):
             data = data.get("value", [])
-        return PullRequestSummary(provider=provider, repo=reference.repo, status=response["status"], data=data)
+        return PullRequestSummary(
+            provider=provider, repo=reference.repo, status=response["status"], data=data
+        )
 
     def fetch_pull_request_diff(self, reference: RepositoryReference) -> dict[str, Any]:
         if not reference.pull_request_id:
@@ -182,9 +184,7 @@ class RepositoryIntegrationService:
             return {"status": "missing_commit"}
         provider = reference.provider.lower()
         if provider == "github":
-            url = (
-                f"https://api.github.com/repos/{reference.repo}/commits/{reference.commit_id}"
-            )
+            url = f"https://api.github.com/repos/{reference.repo}/commits/{reference.commit_id}"
         elif provider == "gitlab":
             project_id = parse.quote(reference.repo, safe="")
             url = (
@@ -340,9 +340,7 @@ class ChangeImpactModel:
                 if j == i:
                     continue
                 factor = augmented[j][i]
-                augmented[j] = [
-                    augmented[j][k] - factor * augmented[i][k] for k in range(size * 2)
-                ]
+                augmented[j] = [augmented[j][k] - factor * augmented[i][k] for k in range(size * 2)]
         return [row[size:] for row in augmented]
 
     def _fit_linear(self, samples: Sequence[ImpactTrainingSample]) -> None:
@@ -427,9 +425,7 @@ class ChangeWorkflowOrchestrator:
 
     def _orchestrator_endpoint(self) -> str | None:
         if self.orchestrator == "durable_functions":
-            return self.config.get("durable_functions_url") or os.getenv(
-                "DURABLE_FUNCTIONS_URL"
-            )
+            return self.config.get("durable_functions_url") or os.getenv("DURABLE_FUNCTIONS_URL")
         if self.orchestrator == "logic_apps":
             return self.config.get("logic_apps_url") or os.getenv("LOGIC_APPS_URL")
         return None
@@ -691,18 +687,15 @@ class ChangeConfigurationAgent(BaseAgent):
         self.impact_model = None
         self.text_classifier = None
         self.cicd_subscriptions: list[dict[str, Any]] = []
-        self.release_deployment_endpoint = (
-            (config or {}).get("release_deployment_endpoint")
-            or os.getenv("RELEASE_DEPLOYMENT_ENDPOINT")
-        )
-        self.lifecycle_governance_endpoint = (
-            (config or {}).get("lifecycle_governance_endpoint")
-            or os.getenv("LIFECYCLE_GOVERNANCE_ENDPOINT")
-        )
-        self.stakeholder_comms_endpoint = (
-            (config or {}).get("stakeholder_comms_endpoint")
-            or os.getenv("STAKEHOLDER_COMMS_ENDPOINT")
-        )
+        self.release_deployment_endpoint = (config or {}).get(
+            "release_deployment_endpoint"
+        ) or os.getenv("RELEASE_DEPLOYMENT_ENDPOINT")
+        self.lifecycle_governance_endpoint = (config or {}).get(
+            "lifecycle_governance_endpoint"
+        ) or os.getenv("LIFECYCLE_GOVERNANCE_ENDPOINT")
+        self.stakeholder_comms_endpoint = (config or {}).get(
+            "stakeholder_comms_endpoint"
+        ) or os.getenv("STAKEHOLDER_COMMS_ENDPOINT")
         self.require_staging_tests = bool(
             (config or {}).get("require_staging_tests")
             or os.getenv("REQUIRE_STAGING_TESTS", "false").lower() == "true"
@@ -711,19 +704,17 @@ class ChangeConfigurationAgent(BaseAgent):
             (config or {}).get("require_automated_tests")
             or os.getenv("REQUIRE_AUTOMATED_TESTS", "false").lower() == "true"
         )
-        self.staging_validation_endpoint = (
-            (config or {}).get("staging_validation_endpoint")
-            or os.getenv("STAGING_VALIDATION_ENDPOINT")
+        self.staging_validation_endpoint = (config or {}).get(
+            "staging_validation_endpoint"
+        ) or os.getenv("STAGING_VALIDATION_ENDPOINT")
+        self.automated_test_endpoint = (config or {}).get("automated_test_endpoint") or os.getenv(
+            "CHANGE_TEST_ENDPOINT"
         )
-        self.automated_test_endpoint = (
-            (config or {}).get("automated_test_endpoint")
-            or os.getenv("CHANGE_TEST_ENDPOINT")
+        self.monitoring_endpoint = (config or {}).get("monitoring_endpoint") or os.getenv(
+            "CHANGE_MONITORING_ENDPOINT"
         )
-        self.monitoring_endpoint = (
-            (config or {}).get("monitoring_endpoint") or os.getenv("CHANGE_MONITORING_ENDPOINT")
-        )
-        self.metrics_endpoint = (
-            (config or {}).get("metrics_endpoint") or os.getenv("CHANGE_METRICS_ENDPOINT")
+        self.metrics_endpoint = (config or {}).get("metrics_endpoint") or os.getenv(
+            "CHANGE_METRICS_ENDPOINT"
         )
 
     async def initialize(self) -> None:
@@ -744,9 +735,7 @@ class ChangeConfigurationAgent(BaseAgent):
         # Initialize change classification model
         self.text_classifier = ChangeRequestClassifier(labels=self.change_types)
         training_samples = (
-            self.config.get("change_classification_samples", [])
-            if self.config
-            else []
+            self.config.get("change_classification_samples", []) if self.config else []
         )
         if not training_samples:
             training_samples = [
@@ -844,7 +833,7 @@ class ChangeConfigurationAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "submit_change_request":
@@ -852,7 +841,7 @@ class ChangeConfigurationAgent(BaseAgent):
             required_fields = ["title", "description", "requester"]
             for field in required_fields:
                 if field not in change_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         return True
@@ -986,7 +975,7 @@ class ChangeConfigurationAgent(BaseAgent):
         actor_id: str,
     ) -> dict[str, Any]:
         """Submit change request."""
-        self.logger.info(f"Submitting change request: {change_data.get('title')}")
+        self.logger.info("Submitting change request: %s", change_data.get("title"))
 
         # Generate change ID
         change_id = await self._generate_change_id()
@@ -1097,7 +1086,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _classify_change(self, change_id: str) -> dict[str, Any]:
         """Classify change request using AI."""
-        self.logger.info(f"Classifying change: {change_id}")
+        self.logger.info("Classifying change: %s", change_id)
 
         change = self.change_requests.get(change_id)
         if not change:
@@ -1121,7 +1110,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _assess_impact(self, change_id: str) -> dict[str, Any]:
         """Assess change impact."""
-        self.logger.info(f"Assessing impact for change: {change_id}")
+        self.logger.info("Assessing impact for change: %s", change_id)
 
         change = self.change_requests.get(change_id)
         if not change:
@@ -1157,8 +1146,8 @@ class ChangeConfigurationAgent(BaseAgent):
         # Update change
         change["impact_assessment"] = impact_assessment
         change["impact_assessment"]["trend_tags"] = await self._build_change_trend_tags(change)
-        impact_assessment["risk_adjusted_recommendation"] = await self._generate_risk_adjusted_recommendation(
-            impact_assessment
+        impact_assessment["risk_adjusted_recommendation"] = (
+            await self._generate_risk_adjusted_recommendation(impact_assessment)
         )
 
         await self.db_service.store("change_requests", change_id, change)
@@ -1173,7 +1162,7 @@ class ChangeConfigurationAgent(BaseAgent):
         self, change_id: str, approval_data: dict[str, Any]
     ) -> dict[str, Any]:
         """Approve or reject change."""
-        self.logger.info(f"Processing approval for change: {change_id}")
+        self.logger.info("Processing approval for change: %s", change_id)
 
         change = self.change_requests.get(change_id)
         if not change:
@@ -1295,9 +1284,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
         validation = await self._run_staging_validation(change, implementation)
         if validation.get("status") == "failed":
-            rollback = await self._rollback_change(
-                change_id, reason="staging_validation_failed"
-            )
+            rollback = await self._rollback_change(change_id, reason="staging_validation_failed")
             return {
                 "change_id": change_id,
                 "status": "rolled_back",
@@ -1322,7 +1309,9 @@ class ChangeConfigurationAgent(BaseAgent):
             details={"validation": validation, "automated_tests": automated_tests},
         )
 
-        coordination = await self._coordinate_release_and_governance(change, tenant_id, correlation_id)
+        coordination = await self._coordinate_release_and_governance(
+            change, tenant_id, correlation_id
+        )
         if coordination.get("deployment_status") == "scheduled":
             change["status"] = "Scheduled"
         await self.db_service.store("change_requests", change_id, change)
@@ -1374,7 +1363,7 @@ class ChangeConfigurationAgent(BaseAgent):
         tenant_id: str,
     ) -> dict[str, Any]:
         """Register configuration item in CMDB."""
-        self.logger.info(f"Registering CI: {ci_data.get('name')}")
+        self.logger.info("Registering CI: %s", ci_data.get("name"))
 
         # Generate CI ID
         ci_id = await self._generate_ci_id()
@@ -1406,7 +1395,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _create_baseline(self, baseline_data: dict[str, Any]) -> dict[str, Any]:
         """Create configuration baseline."""
-        self.logger.info(f"Creating baseline: {baseline_data.get('description')}")
+        self.logger.info("Creating baseline: %s", baseline_data.get("description"))
 
         # Generate baseline ID
         baseline_id = await self._generate_baseline_id()
@@ -1448,7 +1437,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _track_change_implementation(self, change_id: str) -> dict[str, Any]:
         """Track change implementation progress."""
-        self.logger.info(f"Tracking implementation for change: {change_id}")
+        self.logger.info("Tracking implementation for change: %s", change_id)
 
         change = self.change_requests.get(change_id)
         if not change:
@@ -1504,7 +1493,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _visualize_dependencies(self, ci_id: str | None) -> dict[str, Any]:
         """Visualize CI dependencies."""
-        self.logger.info(f"Visualizing dependencies for CI: {ci_id}")
+        self.logger.info("Visualizing dependencies for CI: %s", ci_id)
 
         # Get CI and its dependencies
         if ci_id:
@@ -1554,7 +1543,7 @@ class ChangeConfigurationAgent(BaseAgent):
         self, report_type: str, filters: dict[str, Any]
     ) -> dict[str, Any]:
         """Generate change management report."""
-        self.logger.info(f"Generating {report_type} change report")
+        self.logger.info("Generating %s change report", report_type)
 
         if report_type == "summary":
             return await self._generate_summary_report(filters)
@@ -1569,7 +1558,11 @@ class ChangeConfigurationAgent(BaseAgent):
             raise RuntimeError("Impact model is not initialized")
         prediction = self.impact_model.predict(change_data)
         mitigation = await self._recommend_mitigation(prediction)
-        return {"prediction": prediction, "mitigation": mitigation, "model_trained": prediction["model_trained"]}
+        return {
+            "prediction": prediction,
+            "mitigation": mitigation,
+            "model_trained": prediction["model_trained"],
+        }
 
     async def _rollback_change(self, change_id: str, reason: str) -> dict[str, Any]:
         """Rollback change and publish event."""
@@ -1639,7 +1632,9 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _get_change_metrics(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Calculate trending metrics for change management."""
-        changes = [c for c in self.change_requests.values() if await self._matches_filters(c, filters)]
+        changes = [
+            c for c in self.change_requests.values() if await self._matches_filters(c, filters)
+        ]
         type_counts: dict[str, int] = {}
         category_counts: dict[str, int] = {}
         monthly_trends: dict[str, int] = {}
@@ -1708,9 +1703,8 @@ class ChangeConfigurationAgent(BaseAgent):
             resource_type = attributes.get("resource_type")
             resource_name = attributes.get("resource_name")
             for resource in impacted_resources:
-                if (
-                    resource_type == resource.get("resource_type")
-                    and resource_name == resource.get("resource_name")
+                if resource_type == resource.get("resource_type") and resource_name == resource.get(
+                    "resource_name"
                 ):
                     ci_ids.add(ci_id)
         if self.dependency_graph:
@@ -1931,11 +1925,7 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _analyze_iac_changes(self, change_data: dict[str, Any]) -> dict[str, Any]:
         file_paths = [Path(path) for path in change_data.get("iac_files", [])]
-        repo_root = (
-            Path(change_data["iac_repo_path"])
-            if change_data.get("iac_repo_path")
-            else None
-        )
+        repo_root = Path(change_data["iac_repo_path"]) if change_data.get("iac_repo_path") else None
         if not self.iac_parser or (not file_paths and not repo_root):
             return {"resources": [], "status": "no_iac"}
         resources = self.iac_parser.parse_files(file_paths)
@@ -2053,7 +2043,10 @@ class ChangeConfigurationAgent(BaseAgent):
                 self.logger.warning("Stakeholder comms notify failed: %s", exc)
                 await self._publish_event(
                     "stakeholder.comms.failed",
-                    {"event_id": f"stakeholder.comms.failed:{change.get('change_id')}", "error": str(exc)},
+                    {
+                        "event_id": f"stakeholder.comms.failed:{change.get('change_id')}",
+                        "error": str(exc),
+                    },
                 )
         else:
             await self._publish_event(
@@ -2078,7 +2071,9 @@ class ChangeConfigurationAgent(BaseAgent):
                 req = request.Request(self.release_deployment_endpoint, data=body, method="POST")
                 req.add_header("Content-Type", "application/json")
                 with request.urlopen(req, timeout=10) as response:
-                    coordination["deployment_status"] = response.read().decode("utf-8") or "scheduled"
+                    coordination["deployment_status"] = (
+                        response.read().decode("utf-8") or "scheduled"
+                    )
             except OSError as exc:
                 coordination["deployment_status"] = f"error:{exc}"
         else:
@@ -2265,7 +2260,9 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _calculate_change_statistics(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Calculate change statistics."""
-        changes = [c for c in self.change_requests.values() if await self._matches_filters(c, filters)]
+        changes = [
+            c for c in self.change_requests.values() if await self._matches_filters(c, filters)
+        ]
         total = len(changes)
         approved = len([c for c in changes if c.get("approval_status") == "Approved"])
         lead_times: list[float] = []
@@ -2299,7 +2296,11 @@ class ChangeConfigurationAgent(BaseAgent):
 
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate summary change report."""
-        return {"report_type": "summary", "data": {}, "generated_at": datetime.now(timezone.utc).isoformat()}
+        return {
+            "report_type": "summary",
+            "data": {},
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     async def cleanup(self) -> None:
         """Cleanup resources."""

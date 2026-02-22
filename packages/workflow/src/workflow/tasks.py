@@ -6,7 +6,7 @@ from typing import Any
 
 from workflow.celery_app import celery_app
 from workflow.dispatcher import WorkflowDispatcher
-from workflow.executor import StepExecutionOutcome, WorkflowTaskContext, WorkflowStepExecutor
+from workflow.executor import StepExecutionOutcome, WorkflowStepExecutor, WorkflowTaskContext
 
 AGENT_CLIENT_OVERRIDE = None
 APPROVAL_AGENT_OVERRIDE = None

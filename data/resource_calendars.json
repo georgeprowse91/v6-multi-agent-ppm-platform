@@ -1,0 +1,121 @@
+{
+  "tenant-a": {
+    "hr-1": {
+      "resource_id": "hr-1",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    },
+    "res-1": {
+      "resource_id": "res-1",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    },
+    "res-2": {
+      "resource_id": "res-2",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    },
+    "res-train": {
+      "resource_id": "res-train",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    },
+    "res-forecast": {
+      "resource_id": "res-forecast",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    },
+    "res-ml": {
+      "resource_id": "res-ml",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    },
+    "res-conflict": {
+      "resource_id": "res-conflict",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    },
+    "res-constraint": {
+      "resource_id": "res-constraint",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    },
+    "res-update": {
+      "resource_id": "res-update",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    }
+  }
+}

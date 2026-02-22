@@ -3,11 +3,10 @@ from __future__ import annotations
 import importlib.util
 
 import pytest
+from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_origins
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
-
-from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_origins
 
 
 def test_wildcard_cors_blocked_when_credentials_enabled(monkeypatch) -> None:
@@ -77,7 +76,10 @@ def test_cors_preflight_blocks_disallowed_header(monkeypatch) -> None:
 
 
 def test_rate_limit_exceeded_returns_429(monkeypatch, auth_headers) -> None:
-    if importlib.util.find_spec("slowapi") is None or importlib.util.find_spec("cryptography") is None:
+    if (
+        importlib.util.find_spec("slowapi") is None
+        or importlib.util.find_spec("cryptography") is None
+    ):
         pytest.skip("slowapi/cryptography dependencies are unavailable in this environment")
 
     monkeypatch.setenv("ENVIRONMENT", "development")

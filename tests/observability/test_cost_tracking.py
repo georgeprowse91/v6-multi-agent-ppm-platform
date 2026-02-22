@@ -52,7 +52,9 @@ class CostAwareAgent(BaseAgent):
 
 @pytest.mark.asyncio
 async def test_base_agent_records_cost_metrics(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("agents.runtime.src.base_agent.build_cost_metrics", lambda _name: _CostMetrics())
+    monkeypatch.setattr(
+        "agents.runtime.src.base_agent.build_cost_metrics", lambda _name: _CostMetrics()
+    )
     agent = CostAwareAgent(agent_id="cost-agent")
 
     result = await agent.execute({"context": {"correlation_id": "cost-1"}})
@@ -65,7 +67,9 @@ async def test_base_agent_records_cost_metrics(monkeypatch: pytest.MonkeyPatch) 
 
 @pytest.mark.asyncio
 async def test_orchestrator_aggregates_cost_summary(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("agents.runtime.src.base_agent.build_cost_metrics", lambda _name: _CostMetrics())
+    monkeypatch.setattr(
+        "agents.runtime.src.base_agent.build_cost_metrics", lambda _name: _CostMetrics()
+    )
     orchestrator = Orchestrator(event_bus=build_test_event_bus())
 
     tasks = [AgentTask(task_id="cost-task", agent=CostAwareAgent("agent-1"))]
@@ -73,9 +77,9 @@ async def test_orchestrator_aggregates_cost_summary(monkeypatch: pytest.MonkeyPa
 
     assert result.metrics["cost_summary"]["total_api_cost_usd"] == pytest.approx(0.47)
     assert result.metrics["cost_summary"]["total_llm_tokens"] == 165
-    assert result.context["cost_summary"]["per_agent"]["cost-task"]["api_cost_total_usd"] == pytest.approx(
-        0.47
-    )
+    assert result.context["cost_summary"]["per_agent"]["cost-task"][
+        "api_cost_total_usd"
+    ] == pytest.approx(0.47)
 
 
 class DummyConnector(BaseConnector):
@@ -90,7 +94,9 @@ class DummyConnector(BaseConnector):
     def read(self, resource_type: str, filters=None, limit: int = 100, offset: int = 0):
         return []
 
-    def _execute_call(self, endpoint: str, payload: dict[str, Any], *, timeout: float) -> dict[str, Any]:
+    def _execute_call(
+        self, endpoint: str, payload: dict[str, Any], *, timeout: float
+    ) -> dict[str, Any]:
         return {"usage": {"model": "gpt-4o-mini", "prompt_tokens": 1000, "completion_tokens": 500}}
 
 

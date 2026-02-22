@@ -66,7 +66,9 @@ def load_allowlist(path: Path) -> list[AllowRule]:
 
 
 def list_tracked_files(root: Path) -> list[str]:
-    result = subprocess.run(["git", "ls-files"], cwd=root, check=True, capture_output=True, text=True)
+    result = subprocess.run(
+        ["git", "ls-files"], cwd=root, check=True, capture_output=True, text=True
+    )
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 

@@ -25,8 +25,7 @@ class FeedbackService:
 
     def _initialize_schema(self) -> None:
         with self._connect() as connection:
-            connection.execute(
-                """
+            connection.execute("""
                 CREATE TABLE IF NOT EXISTS feedback (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     correlation_id TEXT NOT NULL,
@@ -38,11 +37,9 @@ class FeedbackService:
                     prompt_version INTEGER,
                     created_at TEXT NOT NULL
                 )
-                """
-            )
+                """)
             existing_columns = {
-                row[1]
-                for row in connection.execute("PRAGMA table_info(feedback)").fetchall()
+                row[1] for row in connection.execute("PRAGMA table_info(feedback)").fetchall()
             }
             if "prompt_name" not in existing_columns:
                 connection.execute("ALTER TABLE feedback ADD COLUMN prompt_name TEXT")

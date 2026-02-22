@@ -1,4 +1,8 @@
-from integrations.services.integration.analytics import AnalyticsClient, AnalyticsSettings, InMemoryAnalyticsProvider
+from integrations.services.integration.analytics import (
+    AnalyticsClient,
+    AnalyticsSettings,
+    InMemoryAnalyticsProvider,
+)
 
 
 def test_record_event_and_metric():

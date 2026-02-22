@@ -15,7 +15,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from events import PortfolioPrioritizedEvent
 from observability.tracing import get_trace_id
 
 from agents.common.connector_integration import DatabaseStorageService
@@ -25,6 +24,7 @@ from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
 from agents.runtime.src.state_store import TenantStateStore
+from events import PortfolioPrioritizedEvent
 
 
 class PortfolioStrategyAgent(BaseAgent):
@@ -105,9 +105,7 @@ class PortfolioStrategyAgent(BaseAgent):
         self.financial_agent = config.get("financial_agent") if config else None
         self.approval_agent = config.get("approval_agent") if config else None
         self.approval_agent_config = config.get("approval_agent_config", {}) if config else {}
-        self.approval_agent_enabled = (
-            config.get("approval_agent_enabled", True) if config else True
-        )
+        self.approval_agent_enabled = config.get("approval_agent_enabled", True) if config else True
 
     async def initialize(self) -> None:
         """Initialize optimization models, database connections, and external integrations."""
@@ -146,7 +144,7 @@ class PortfolioStrategyAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "optimize_portfolio":
@@ -285,7 +283,7 @@ class PortfolioStrategyAgent(BaseAgent):
 
         Returns ranked portfolio with scores and justification.
         """
-        self.logger.info(f"Prioritizing portfolio with {len(projects)} projects")
+        self.logger.info("Prioritizing portfolio with %s projects", len(projects))
 
         ranked_projects = []
         portfolio_id = portfolio_id or await self._generate_portfolio_id()
@@ -383,7 +381,7 @@ class PortfolioStrategyAgent(BaseAgent):
 
         Returns alignment scores for each strategic objective.
         """
-        self.logger.info(f"Calculating alignment score for project: {project.get('project_id')}")
+        self.logger.info("Calculating alignment score for project: %s", project.get("project_id"))
 
         alignment_details = []
 
@@ -426,7 +424,7 @@ class PortfolioStrategyAgent(BaseAgent):
 
         Uses multi-objective optimization to balance value, risk, and resource constraints.
         """
-        self.logger.info(f"Optimizing portfolio with {len(projects)} projects")
+        self.logger.info("Optimizing portfolio with %s projects", len(projects))
 
         # Extract constraints
         budget_ceiling = constraints.get("budget_ceiling", float("inf"))
@@ -437,9 +435,7 @@ class PortfolioStrategyAgent(BaseAgent):
         optimization_method = constraints.get("optimization_method", "integer_programming")
         risk_aversion = constraints.get("risk_aversion", 0.5)
         objective_weights = constraints.get("objective_weights", {})
-        discount_rate = constraints.get(
-            "discount_rate", self.get_config("discount_rate", 0.08)
-        )
+        discount_rate = constraints.get("discount_rate", self.get_config("discount_rate", 0.08))
 
         enriched_projects = await self._enrich_projects_with_financials(
             projects, tenant_id=tenant_id, correlation_id=correlation_id
@@ -458,11 +454,7 @@ class PortfolioStrategyAgent(BaseAgent):
         scored_projects = []
         for project_data in ranked_projects:
             project = next(
-                (
-                    p
-                    for p in enriched_projects
-                    if p.get("project_id") == project_data["project_id"]
-                ),
+                (p for p in enriched_projects if p.get("project_id") == project_data["project_id"]),
                 None,
             )
             if not project:
@@ -512,9 +504,7 @@ class PortfolioStrategyAgent(BaseAgent):
             risk_aversion=risk_aversion,
             objective_weights=objective_weights,
         )
-        selected_projects = self._apply_alignment_constraint(
-            selected_projects, min_alignment_score
-        )
+        selected_projects = self._apply_alignment_constraint(selected_projects, min_alignment_score)
         selected_projects = self._apply_risk_appetite(selected_projects, risk_appetite)
         total_cost = sum(item["cost"] for item in selected_projects)
         total_value = sum(item["expected_value"] for item in selected_projects)
@@ -578,7 +568,7 @@ class PortfolioStrategyAgent(BaseAgent):
 
         Returns scenario analysis with trade-off visualizations.
         """
-        self.logger.info(f"Running scenario analysis for {len(scenarios)} scenarios")
+        self.logger.info("Running scenario analysis for %s scenarios", len(scenarios))
 
         async def _run_single_scenario(scenario: dict[str, Any]) -> dict[str, Any]:
             scenario_index = len(self.optimization_scenarios)
@@ -683,13 +673,15 @@ class PortfolioStrategyAgent(BaseAgent):
             "recommendation": await self._recommend_best_scenario(scenario_results),
         }
 
-    async def _rebalance_portfolio(self, portfolio_id: str | None = None) -> dict[str, Any]:
+    async def _rebalance_portfolio(
+        self, portfolio_id: str | None = None, tenant_id: str = "", correlation_id: str = ""
+    ) -> dict[str, Any]:
         """
         Analyze current portfolio and recommend rebalancing actions.
 
         Returns recommendations to align with target investment mix.
         """
-        self.logger.info(f"Rebalancing portfolio: {portfolio_id}")
+        self.logger.info("Rebalancing portfolio: %s", portfolio_id)
 
         # Get current portfolio composition
         current_portfolio = await self._get_current_portfolio(portfolio_id)
@@ -749,7 +741,7 @@ class PortfolioStrategyAgent(BaseAgent):
         self, portfolio_id: str | None = None, *, tenant_id: str
     ) -> dict[str, Any]:
         """Get current portfolio status and performance metrics."""
-        self.logger.info(f"Getting portfolio status: {portfolio_id}")
+        self.logger.info("Getting portfolio status: %s", portfolio_id)
 
         if portfolio_id:
             record = self.portfolio_store.get(tenant_id, portfolio_id)
@@ -791,9 +783,7 @@ class PortfolioStrategyAgent(BaseAgent):
         }
         self.scenario_definitions[scenario_id] = definition
         if self.db_service:
-            await self.db_service.store(
-                "portfolio_scenario_definitions", scenario_id, definition
-            )
+            await self.db_service.store("portfolio_scenario_definitions", scenario_id, definition)
         await self.event_bus.publish(
             "portfolio.scenario.updated",
             {
@@ -823,7 +813,7 @@ class PortfolioStrategyAgent(BaseAgent):
 
     async def _compare_scenarios(self, scenario_ids: list[str]) -> dict[str, Any]:
         """Compare multiple scenarios side-by-side."""
-        self.logger.info(f"Comparing {len(scenario_ids)} scenarios")
+        self.logger.info("Comparing %s scenarios", len(scenario_ids))
 
         scenarios = []
         for scenario_id in scenario_ids:
@@ -1428,7 +1418,9 @@ class PortfolioStrategyAgent(BaseAgent):
             self.strategic_objectives = objectives
             for objective in objectives:
                 if isinstance(objective, dict):
-                    objective_text = f"{objective.get('name', '')} {objective.get('description', '')}"
+                    objective_text = (
+                        f"{objective.get('name', '')} {objective.get('description', '')}"
+                    )
                     self.vector_index.add(
                         str(objective.get("id", objective.get("name", uuid.uuid4().hex))),
                         objective_text,

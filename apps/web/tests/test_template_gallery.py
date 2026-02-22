@@ -153,7 +153,10 @@ def test_instantiate_template_reports_unresolved_placeholders(client, monkeypatc
 
     assert payload["document_id"] == "doc-99"
     assert payload["advisories"][0] == "upstream-ok"
-    assert payload["advisories"][1] == "Unresolved placeholders left unchanged: missing.meta, missing.owner"
+    assert (
+        payload["advisories"][1]
+        == "Unresolved placeholders left unchanged: missing.meta, missing.owner"
+    )
 
 
 def test_instantiate_spreadsheet_creates_sheet_and_seed_rows(client, monkeypatch):
@@ -227,9 +230,7 @@ def test_apply_template_returns_yaml_methodology_map(
     assert methodology["navigation_nodes"]
 
     stage_activities = [
-        activity
-        for stage in methodology["stages"]
-        for activity in stage.get("activities", [])
+        activity for stage in methodology["stages"] for activity in stage.get("activities", [])
     ]
     assert stage_activities
 

@@ -48,7 +48,9 @@ def bootstrap_connector_imports() -> None:
     sys.modules.setdefault("security.secrets", secrets_module)
     sys.modules.setdefault("security.keyvault", keyvault_module)
 
-    src_paths = [SDK_PATH] + [path / "src" for path in CONNECTORS_ROOT.iterdir() if (path / "src").is_dir()]
+    src_paths = [SDK_PATH] + [
+        path / "src" for path in CONNECTORS_ROOT.iterdir() if (path / "src").is_dir()
+    ]
     for path in src_paths:
         path_str = str(path.resolve())
         if path_str not in sys.path:
@@ -57,7 +59,6 @@ def bootstrap_connector_imports() -> None:
     import contextlib
     import importlib
     import types as _types
-    import http_client as http_client_module
 
     class _DummySpan:
         def set_attribute(self, *_args: object, **_kwargs: object) -> None:
@@ -101,7 +102,9 @@ class ConnectorHarnessCase:
 class SequenceTransport:
     """Mock transport with deterministic per-route response sequences."""
 
-    def __init__(self, routes: dict[tuple[str, str], list[httpx.Response] | httpx.Response]) -> None:
+    def __init__(
+        self, routes: dict[tuple[str, str], list[httpx.Response] | httpx.Response]
+    ) -> None:
         self.calls: dict[tuple[str, str], int] = {}
         self.requests: list[httpx.Request] = []
 
@@ -122,7 +125,9 @@ class SequenceTransport:
         return queue[idx]
 
 
-def build_items_payload(items_path: str | None, items: list[dict[str, Any]]) -> dict[str, Any] | list[dict[str, Any]]:
+def build_items_payload(
+    items_path: str | None, items: list[dict[str, Any]]
+) -> dict[str, Any] | list[dict[str, Any]]:
     if not items_path:
         return items
     payload: dict[str, Any] = {}

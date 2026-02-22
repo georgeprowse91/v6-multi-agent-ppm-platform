@@ -31,8 +31,8 @@ def test_entrypoints_apply_governance_and_version_contract(module_path: str) -> 
     source = (REPO_ROOT / module_path).read_text()
     assert "apply_api_governance(app, service_name=" in source, module_path
     assert "version_response_payload(" in source, module_path
-    assert "@app.get(\"/version\")" in source, module_path
-    assert "\"/healthz\"" in source or "\"/health\"" in source, module_path
+    assert '@app.get("/version")' in source, module_path
+    assert '"/healthz"' in source or '"/health"' in source, module_path
 
 
 @pytest.mark.parametrize("module_path", SERVICE_ENTRYPOINTS)
@@ -43,6 +43,9 @@ def test_entrypoints_import_shared_governance_module(module_path: str) -> None:
 
 def test_shared_error_envelope_contract_shape() -> None:
     source = (REPO_ROOT / "packages/security/src/security/errors.py").read_text()
-    assert 'payload: dict[str, dict[str, Any]] = {"error": {"message": message, "code": code}}' in source
+    assert (
+        'payload: dict[str, dict[str, Any]] = {"error": {"message": message, "code": code}}'
+        in source
+    )
     assert 'payload["error"]["correlation_id"] = correlation_id' in source
     assert 'headers.setdefault("X-Correlation-ID", correlation_id)' in source

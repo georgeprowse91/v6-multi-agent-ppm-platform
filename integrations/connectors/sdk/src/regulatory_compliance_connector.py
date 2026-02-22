@@ -18,9 +18,9 @@ from base_connector import (
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
 try:
-    from integrations.connectors.sdk.src.secrets import resolve_secret
+    from connector_secrets import resolve_secret
 except ImportError:  # pragma: no cover
-    from secrets import resolve_secret
+    from connector_secrets import resolve_secret
 
 
 class RegulatoryComplianceConnector(BaseConnector):

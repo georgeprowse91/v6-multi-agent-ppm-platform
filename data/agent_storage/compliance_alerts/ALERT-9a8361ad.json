@@ -1,0 +1,42 @@
+{
+  "alert_id": "ALERT-9a8361ad",
+  "project_id": "project-3",
+  "gaps": [
+    {
+      "control_id": "CTL-ISO-01",
+      "description": "Maintain an information security policy approved by management.",
+      "gap_type": "Not Implemented",
+      "remediation": "Implement control and document procedures",
+      "evaluation_gaps": [
+        "implemented",
+        "evidence"
+      ]
+    },
+    {
+      "control_id": "CTL-ISO-02",
+      "description": "Perform regular risk assessments and document mitigations.",
+      "gap_type": "Missing Risk Mitigation",
+      "remediation": "Document risk mitigations and link to controls",
+      "evaluation_gaps": [
+        "implemented",
+        "risk_mitigation",
+        "evidence"
+      ]
+    }
+  ],
+  "compliance_score": 0.0,
+  "created_at": "2026-02-22T03:35:02.781169+00:00",
+  "trigger": "deployment.completed",
+  "recommendations": [
+    {
+      "control_id": "CTL-ISO-01",
+      "recommendation": "Implement control and document procedures"
+    },
+    {
+      "control_id": "CTL-ISO-02",
+      "recommendation": "Document risk mitigations and link to controls"
+    }
+  ],
+  "_id": "ALERT-9a8361ad",
+  "_updated_at": "2026-02-22T03:35:02.781354+00:00"
+}

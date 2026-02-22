@@ -21,9 +21,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-import requests
 from observability.tracing import get_trace_id
 
+import requests
 from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
@@ -43,7 +43,7 @@ from agents.common.web_search import (  # noqa: E402
     search_web,
     summarize_snippets,
 )
-from agents.runtime import BaseAgent, get_event_bus, ServiceBusEventBus  # noqa: E402
+from agents.runtime import BaseAgent, ServiceBusEventBus, get_event_bus  # noqa: E402
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 from agents.runtime.src.policy import (  # noqa: E402
     evaluate_compliance_controls,
@@ -146,7 +146,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         # Configuration parameters
         self.regulations = (
-            config.get("regulations", ["Privacy Act 1988", "APRA CPS 234", "ISO 27001", "ASD ISM", "PSPF"])
+            config.get(
+                "regulations", ["Privacy Act 1988", "APRA CPS 234", "ISO 27001", "ASD ISM", "PSPF"]
+            )
             if config
             else ["Privacy Act 1988", "APRA CPS 234", "ISO 27001", "ASD ISM", "PSPF"]
         )
@@ -200,9 +202,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             )
             if service_bus_connection:
                 try:
-                    self.event_bus = ServiceBusEventBus(
-                        connection_string=service_bus_connection
-                    )
+                    self.event_bus = ServiceBusEventBus(connection_string=service_bus_connection)
                 except RuntimeError as exc:
                     self.logger.warning(
                         "Service bus event bus unavailable, falling back to in-memory",
@@ -311,7 +311,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "define_control":
@@ -319,7 +319,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             required_fields = ["description", "regulation", "owner"]
             for field in required_fields:
                 if field not in control_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         return True
@@ -506,7 +506,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns regulation ID and applicability.
         """
-        self.logger.info(f"Adding regulation: {regulation_data.get('name')}")
+        self.logger.info("Adding regulation: %s", regulation_data.get("name"))
 
         # Generate regulation ID
         regulation_id = await self._generate_regulation_id()
@@ -557,7 +557,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns control ID and requirements.
         """
-        self.logger.info(f"Defining control: {control_data.get('description')}")
+        self.logger.info("Defining control: %s", control_data.get("description"))
 
         # Generate control ID
         control_id = await self._generate_control_id()
@@ -626,7 +626,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns mapping ID and control checklist.
         """
-        self.logger.info(f"Mapping controls to project: {project_id}")
+        self.logger.info("Mapping controls to project: %s", project_id)
 
         project_profile = self._build_project_profile(project_id, mapping_data)
 
@@ -705,7 +705,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns assessment results and gap analysis.
         """
-        self.logger.info(f"Assessing compliance for project: {project_id}")
+        self.logger.info("Assessing compliance for project: %s", project_id)
 
         tenant_id = assessment_data.get("tenant_id", "unknown")
         correlation_id = assessment_data.get("correlation_id", str(uuid.uuid4()))
@@ -798,7 +798,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns test results and status.
         """
-        self.logger.info(f"Testing control: {control_id}")
+        self.logger.info("Testing control: %s", control_id)
 
         control = self.control_registry.get(control_id)
         if not control:
@@ -847,7 +847,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns policy ID and version.
         """
-        self.logger.info(f"Managing policy: {policy_data.get('title')}")
+        self.logger.info("Managing policy: %s", policy_data.get("title"))
 
         # Generate policy ID
         policy_id = policy_data.get("policy_id") or await self._generate_policy_id()
@@ -935,7 +935,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns audit package and documentation.
         """
-        self.logger.info(f"Preparing audit: {audit_data.get('title')}")
+        self.logger.info("Preparing audit: %s", audit_data.get("title"))
 
         # Generate audit ID
         audit_id = await self._generate_audit_id()
@@ -992,7 +992,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns audit findings and scores.
         """
-        self.logger.info(f"Conducting audit: {audit_id}")
+        self.logger.info("Conducting audit: %s", audit_id)
 
         audit = self.audits.get(audit_id)
         if not audit:
@@ -1083,7 +1083,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns evidence ID and confirmation.
         """
-        self.logger.info(f"Uploading evidence for control: {control_id}")
+        self.logger.info("Uploading evidence for control: %s", control_id)
 
         control = self.control_registry.get(control_id)
         if not control:
@@ -1232,7 +1232,15 @@ class ComplianceRegulatoryAgent(BaseAgent):
         if self.enable_regulatory_monitoring and domain:
             try:
                 external_monitoring = await self.monitor_regulations(domain, region)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 self.logger.warning(
                     "External regulatory monitoring failed",
                     extra={"error": str(exc), "correlation_id": correlation_id},
@@ -1308,7 +1316,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
                     "related_controls": [],
                     "applicability_rules": {
                         "applies_to_all": False,
-                        "jurisdiction_filter": [update.get("region")] if update.get("region") else [],
+                        "jurisdiction_filter": (
+                            [update.get("region")] if update.get("region") else []
+                        ),
                         "industry_filter": [],
                     },
                     "metadata": {"source_url": update.get("source_url")},
@@ -1402,14 +1412,22 @@ class ComplianceRegulatoryAgent(BaseAgent):
         Returns dashboard data.
         """
         self.logger.info(
-            f"Getting compliance dashboard for project={project_id}, portfolio={portfolio_id}"
+            "Getting compliance dashboard for project=%s, portfolio=%s", project_id, portfolio_id
         )
 
         external_monitoring = None
         if self.enable_regulatory_monitoring and domain:
             try:
                 external_monitoring = await self.monitor_regulations(domain, region)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - defensive
                 self.logger.warning(
                     "External compliance monitoring failed", extra={"error": str(exc)}
                 )
@@ -1454,7 +1472,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         Returns report data.
         """
-        self.logger.info(f"Generating {report_type} compliance report")
+        self.logger.info("Generating %s compliance report", report_type)
 
         if report_type == "summary":
             return await self._generate_summary_report(filters)
@@ -1632,7 +1650,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 self.regulation_library[regulation_id]["related_controls"].append(control_id)
             await self.db_service.store("controls", control_id, control_payload)
 
-    def _build_project_profile(self, project_id: str, mapping_data: dict[str, Any]) -> dict[str, Any]:
+    def _build_project_profile(
+        self, project_id: str, mapping_data: dict[str, Any]
+    ) -> dict[str, Any]:
         return {
             "project_id": project_id,
             "industry": mapping_data.get("industry", ""),
@@ -1696,7 +1716,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
             return list(self.regulation_library.keys())[:3]
         return applicable
 
-    def _matches_regulation(self, project_profile: dict[str, Any], regulation: dict[str, Any]) -> bool:
+    def _matches_regulation(
+        self, project_profile: dict[str, Any], regulation: dict[str, Any]
+    ) -> bool:
         rules = regulation.get("applicability_rules", {})
         if rules.get("applies_to_all"):
             return True
@@ -1757,9 +1779,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 quality_agent,
                 {"action": "get_quality_summary", "project_id": project_id},
             )
-            evidence_summary["quality_results"] = response.get(
-                "test_results", []
-            ) or response.get("quality_results", [])
+            evidence_summary["quality_results"] = response.get("test_results", []) or response.get(
+                "quality_results", []
+            )
 
         if release_agent:
             response = await self._call_agent(
@@ -1776,24 +1798,30 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 security_agent,
                 {"action": "get_security_summary", "project_id": project_id},
             )
-            evidence_summary["security_scans"] = response.get(
-                "security_scans", []
-            ) or response.get("vulnerability_scans", [])
+            evidence_summary["security_scans"] = response.get("security_scans", []) or response.get(
+                "vulnerability_scans", []
+            )
             evidence_summary["audit_logs"] = [
                 *evidence_summary["audit_logs"],
                 *response.get("audit_logs", []),
             ]
 
-        evidence_summary["privacy_impact_assessed"] = bool(
-            evidence_summary["risk_mitigations"]
-        )
+        evidence_summary["privacy_impact_assessed"] = bool(evidence_summary["risk_mitigations"])
 
         return evidence_summary
 
     async def _call_agent(self, agent: Any, payload: dict[str, Any]) -> dict[str, Any]:
         try:
             response = await agent.process(payload)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - defensive
             self.logger.warning(
                 "Agent evidence collection failed",
                 extra={"error": str(exc), "payload": payload},
@@ -1878,12 +1906,14 @@ class ComplianceRegulatoryAgent(BaseAgent):
             limit=50,
         )
         for policy in policies:
-            documentation.append({
-                "type": "policy",
-                "title": policy.get("title", policy.get("Title", "")),
-                "url": policy.get("url", policy.get("ServerRelativeUrl", "")),
-                "document_id": policy.get("document_id", policy.get("Id", "")),
-            })
+            documentation.append(
+                {
+                    "type": "policy",
+                    "title": policy.get("title", policy.get("Title", "")),
+                    "url": policy.get("url", policy.get("ServerRelativeUrl", "")),
+                    "document_id": policy.get("document_id", policy.get("Id", "")),
+                }
+            )
 
         # Gather evidence documents for controls in scope
         for control_id in scope:
@@ -1892,13 +1922,15 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 limit=20,
             )
             for doc in evidence_docs:
-                documentation.append({
-                    "type": "evidence",
-                    "control_id": control_id,
-                    "title": doc.get("title", doc.get("Title", "")),
-                    "url": doc.get("url", doc.get("ServerRelativeUrl", "")),
-                    "document_id": doc.get("document_id", doc.get("Id", "")),
-                })
+                documentation.append(
+                    {
+                        "type": "evidence",
+                        "control_id": control_id,
+                        "title": doc.get("title", doc.get("Title", "")),
+                        "url": doc.get("url", doc.get("ServerRelativeUrl", "")),
+                        "document_id": doc.get("document_id", doc.get("Id", "")),
+                    }
+                )
 
         return documentation
 
@@ -2067,7 +2099,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
                 "mapping": release_data.get("mapping", {}),
             },
         )
-        threshold = float(self.config.get("release_compliance_threshold", 85)) if self.config else 85
+        threshold = (
+            float(self.config.get("release_compliance_threshold", 85)) if self.config else 85
+        )
         return {
             "release_id": release_id,
             "project_id": project_id,
@@ -2154,7 +2188,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
         ]
         report_data = {
             "audits": audits,
-            "control_summary": await self._generate_control_summary(project_id) if project_id else [],
+            "control_summary": (
+                await self._generate_control_summary(project_id) if project_id else []
+            ),
             "findings": [finding for audit in audits for finding in audit.get("findings", [])],
         }
         return await self._store_report("audit", report_data)
@@ -2165,9 +2201,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         normalized_type = report_type.replace("-", "").lower()
         project_id = filters.get("project_id")
         assessment = (
-            await self._assess_compliance(project_id, {"mapping": filters})
-            if project_id
-            else None
+            await self._assess_compliance(project_id, {"mapping": filters}) if project_id else None
         )
         statement = "Compliance statement"
         framework = "SOC 2" if "soc2" in normalized_type else "ISO 27001"
@@ -2205,7 +2239,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
         return report
 
     async def _store_report(self, report_type: str, data: dict[str, Any]) -> dict[str, Any]:
-        report_id = f"REP-{report_type.upper()}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        report_id = (
+            f"REP-{report_type.upper()}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        )
         report = {
             "report_id": report_id,
             "report_type": report_type,
@@ -2236,9 +2272,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
         record = await self.db_service.retrieve("compliance_reports", report_id)
         return {"report": record}
 
-    async def _extract_regulation_metadata(
-        self, regulation_data: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _extract_regulation_metadata(self, regulation_data: dict[str, Any]) -> dict[str, Any]:
         text = regulation_data.get("text") or ""
         document_url = regulation_data.get("document_url")
         document_content = regulation_data.get("document_content")
@@ -2260,9 +2294,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
             extracted_text,
             text_analytics_result.get("key_phrases", []),
         )
-        effective_date = self._extract_effective_date(
-            text_analytics_result.get("entities", [])
-        )
+        effective_date = self._extract_effective_date(text_analytics_result.get("entities", []))
 
         return {
             "obligations": obligations,
@@ -2338,7 +2370,9 @@ class ComplianceRegulatoryAgent(BaseAgent):
             return {"content": ""}
 
         headers = {"Ocp-Apim-Subscription-Key": api_key}
-        analyze_url = f"{endpoint.rstrip('/')}/formrecognizer/documentModels/prebuilt-layout:analyze"
+        analyze_url = (
+            f"{endpoint.rstrip('/')}/formrecognizer/documentModels/prebuilt-layout:analyze"
+        )
         params = {"api-version": "2023-07-31"}
 
         if document_url:

@@ -26,13 +26,10 @@ except Exception:
         ProjectHealthUpdatedEvent,
         ProjectTransitionedEvent,
     )
-from observability.tracing import get_trace_id
-
-from agents.common.health_recommendations import generate_recommendations, identify_health_concerns
-from agents.common.metrics_catalog import get_metric_value, normalize_metric_value
-from agents.runtime import BaseAgent, get_event_bus
-from agents.runtime.src.state_store import TenantStateStore
+from lifecycle_persistence import LifecyclePersistence
+from monitoring import AzureMonitorClient
 from notifications import NotificationService
+from observability.tracing import get_trace_id
 from orchestration import (
     DurableTask,
     DurableWorkflow,
@@ -40,12 +37,15 @@ from orchestration import (
     OrchestrationContext,
     RetryPolicy,
 )
-from monitoring import AzureMonitorClient
-from lifecycle_persistence import LifecyclePersistence
 from readiness_model import ReadinessScoringModel
-from integrations.services.integration.ai_models import AIModelService
 from summarization import CognitiveSummarizer, GateSummarizer
 from sync_clients import ExternalSyncService
+
+from agents.common.health_recommendations import generate_recommendations, identify_health_concerns
+from agents.common.metrics_catalog import get_metric_value, normalize_metric_value
+from agents.runtime import BaseAgent, get_event_bus
+from agents.runtime.src.state_store import TenantStateStore
+from integrations.services.integration.ai_models import AIModelService
 
 
 class ProjectLifecycleAgent(BaseAgent):
@@ -184,7 +184,7 @@ class ProjectLifecycleAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "initiate_project":
@@ -192,7 +192,7 @@ class ProjectLifecycleAgent(BaseAgent):
             required_fields = ["project_id", "name", "methodology"]
             for field in required_fields:
                 if field not in project_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         elif action in [
@@ -340,9 +340,7 @@ class ProjectLifecycleAgent(BaseAgent):
             )
 
         elif action == "get_health_history":
-            return await self._get_health_history(
-                input_data.get("project_id"), tenant_id=tenant_id
-            )
+            return await self._get_health_history(input_data.get("project_id"), tenant_id=tenant_id)
 
         elif action == "update_methodology_config":
             return await self._update_methodology_config(
@@ -401,7 +399,7 @@ class ProjectLifecycleAgent(BaseAgent):
         context = await self.workflow_engine.run(workflow, context)
         init_payload = context.results["create_records"]
 
-        self.logger.info(f"Initiated project: {project_id}")
+        self.logger.info("Initiated project: %s", project_id)
 
         return {
             "project_id": project_id,
@@ -425,7 +423,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
         Returns transition status and gate evaluation results.
         """
-        self.logger.info(f"Attempting phase transition for project: {project_id}")
+        self.logger.info("Attempting phase transition for project: %s", project_id)
 
         lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
         if not lifecycle_state:
@@ -496,7 +494,7 @@ class ProjectLifecycleAgent(BaseAgent):
         transition_record = context.results["apply_transition"]
 
         self.logger.info(
-            f"Transitioned project {project_id} from {current_phase} to {target_phase}"
+            "Transitioned project %s from %s to %s", project_id, current_phase, target_phase
         )
 
         return {
@@ -516,7 +514,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
         Returns gate evaluation results and readiness score.
         """
-        self.logger.info(f"Evaluating gate '{gate_name}' for project: {project_id}")
+        self.logger.info("Evaluating gate '%s' for project: %s", gate_name, project_id)
 
         lifecycle_state = await self._get_lifecycle_state(tenant_id, project_id)
         if not lifecycle_state:
@@ -556,7 +554,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
         Returns composite health score and metrics from domain agents.
         """
-        self.logger.info(f"Monitoring health for project: {project_id}")
+        self.logger.info("Monitoring health for project: %s", project_id)
 
         project = self.projects.get(project_id)
         if not project:
@@ -716,7 +714,9 @@ class ProjectLifecycleAgent(BaseAgent):
         Generate a standardized health report and publish it as an event.
         """
         health_data = await self._monitor_health(project_id, tenant_id=tenant_id)
-        report_id = f"health-report-{project_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        report_id = (
+            f"health-report-{project_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        )
         summary = (
             f"Project health is {health_data.get('health_status')} with "
             f"composite score {health_data.get('composite_score', 0):.2f}."
@@ -780,7 +780,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
         Returns updated methodology configuration.
         """
-        self.logger.info(f"Adjusting methodology for project: {project_id}")
+        self.logger.info("Adjusting methodology for project: %s", project_id)
 
         lifecycle_state = self.lifecycle_states.get(project_id)
         if not lifecycle_state:
@@ -908,7 +908,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
         Returns override confirmation and audit record.
         """
-        self.logger.info(f"Overriding gate '{gate_name}' for project: {project_id}")
+        self.logger.info("Overriding gate '%s' for project: %s", gate_name, project_id)
 
         # Evaluate gate first to document what's being overridden
         gate_evaluation = await self._evaluate_gate(project_id, gate_name, tenant_id=tenant_id)
@@ -949,7 +949,7 @@ class ProjectLifecycleAgent(BaseAgent):
             {"project_id": project_id, "gate_name": gate_name, "event": "gate.overridden"}
         )
 
-        self.logger.warning(f"Gate override recorded for {project_id}: {gate_name}")
+        self.logger.warning("Gate override recorded for %s: %s", project_id, gate_name)
 
         return {
             "success": approval_response.get("status") == "approved",
@@ -960,7 +960,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
     # Helper methods
 
-    async def _load_methodology_map(self, methodology: str, *, tenant_id: str) -> dict[str, Any]:
+    async def _load_methodology_map(self, methodology: str, *, tenant_id: str = "default") -> dict[str, Any]:
         """Load methodology map with phases and gates."""
         stored_map = self.persistence.load_methodology_map(tenant_id, methodology)
         if stored_map:
@@ -1355,9 +1355,7 @@ class ProjectLifecycleAgent(BaseAgent):
             updates["gate_criteria"] = record
         return {"status": "updated", "updates": updates}
 
-    async def _train_readiness_model(
-        self, project_id: str, *, tenant_id: str
-    ) -> dict[str, Any]:
+    async def _train_readiness_model(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         history = self.persistence.list_gate_outcomes(tenant_id, project_id)
         if not history:
             return {"status": "skipped", "reason": "no_gate_history"}
@@ -1370,7 +1368,9 @@ class ProjectLifecycleAgent(BaseAgent):
             features = self.readiness_model.build_features(criteria_status, health_snapshot)
             label = 1.0 if payload.get("criteria_met") else 0.0
             samples.append({"features": features, "label": label})
-            readiness_features = payload.get("readiness_features") or self.readiness_model.build_readiness_features(
+            readiness_features = payload.get(
+                "readiness_features"
+            ) or self.readiness_model.build_readiness_features(
                 self.projects.get(project_id), health_snapshot, criteria_status
             )
             ai_samples.append({"features": readiness_features, "label": label})
@@ -1419,17 +1419,29 @@ class ProjectLifecycleAgent(BaseAgent):
         }
 
     def _register_event_handlers(self) -> None:
+        if not self.event_bus or not hasattr(self.event_bus, "subscribe"):
+            return
         try:
             self.event_bus.subscribe("risk.updated", self._handle_risk_event)
             self.event_bus.subscribe("resource.updated", self._handle_resource_event)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Event bus subscription failed", extra={"error": str(exc)})
 
     async def _handle_risk_event(self, payload: dict[str, Any]) -> None:
         severity = payload.get("severity")
         project_id = payload.get("project_id")
         if severity in {"high", "critical"} and project_id:
-            self.logger.info("Risk event triggered health monitor", extra={"project_id": project_id})
+            self.logger.info(
+                "Risk event triggered health monitor", extra={"project_id": project_id}
+            )
             await self._monitor_health(project_id, tenant_id=payload.get("tenant_id", "unknown"))
 
     async def _handle_resource_event(self, payload: dict[str, Any]) -> None:

@@ -194,13 +194,17 @@ def test_lineage_event_creation_and_lookup(monkeypatch, tmp_path: Path) -> None:
     }
 
     with TestClient(module.app) as client:
-        response = client.post("/v1/lineage/events", json=payload, headers=_auth_headers(monkeypatch))
+        response = client.post(
+            "/v1/lineage/events", json=payload, headers=_auth_headers(monkeypatch)
+        )
         assert response.status_code == 200
         event = response.json()
         assert event["connector"] == "jira"
         lineage_id = event["lineage_id"]
 
-        response = client.get(f"/v1/lineage/events/{lineage_id}", headers=_auth_headers(monkeypatch))
+        response = client.get(
+            f"/v1/lineage/events/{lineage_id}", headers=_auth_headers(monkeypatch)
+        )
         assert response.status_code == 200
         fetched = response.json()
         assert fetched["lineage_id"] == lineage_id

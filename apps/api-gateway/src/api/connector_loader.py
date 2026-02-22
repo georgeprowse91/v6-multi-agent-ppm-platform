@@ -3,12 +3,13 @@ from __future__ import annotations
 import importlib
 from typing import Any
 
+from feature_flags import is_mcp_feature_enabled
+
 from integrations.connectors.sdk.src.base_connector import ConnectorConfig
 from integrations.connectors.sdk.src.connector_registry import (
     get_all_connectors,
     get_connector_definition,
 )
-from feature_flags import is_mcp_feature_enabled
 from integrations.connectors.sdk.src.project_connector_store import ProjectConnectorConfig
 
 _CONNECTOR_CLASS_MAP: dict[str, tuple[str, str]] = {

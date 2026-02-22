@@ -21,7 +21,7 @@ from workflow_runtime import WorkflowRuntime  # noqa: E402
 from workflow_storage import WorkflowStore  # noqa: E402
 
 
-def _run_async(coro):
+def _run_async(coro: Any) -> Any:
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -74,9 +74,8 @@ class WorkflowStepExecutor:
             join_step_id=result.join_step_id,
         )
 
-
     def compensation_journal(self, run_id: str) -> list[dict[str, Any]]:
-        return _run_async(self.runtime.inspect_compensation(run_id))
+        return list(_run_async(self.runtime.inspect_compensation(run_id)))
 
     def retry_compensation(
         self, run_id: str, actor: dict[str, Any], step_id: str | None = None
@@ -99,9 +98,11 @@ class WorkflowStepExecutor:
 
     def _load_definition(self, workflow_id: str) -> dict[str, Any]:
         workflow_root = REPO_ROOT / "apps" / "workflow-engine"
-        definition_path = workflow_root / "workflows" / "definitions" / f"{workflow_id}.workflow.yaml"
+        definition_path = (
+            workflow_root / "workflows" / "definitions" / f"{workflow_id}.workflow.yaml"
+        )
         schema_path = workflow_root / "workflows" / "schema" / "workflow.schema.json"
-        return load_definition(definition_path, schema_path)
+        return dict(load_definition(definition_path, schema_path))
 
 
 class WorkflowTaskContext:

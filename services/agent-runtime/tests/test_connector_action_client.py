@@ -22,7 +22,9 @@ def _build_registry(tmp_path: Path) -> ConnectorRegistry:
     connector_root = tmp_path / "demo"
     (connector_root / "src").mkdir(parents=True)
     (connector_root / "manifest.yaml").write_text("id: demo\n")
-    (connector_root / "src" / "main.py").write_text("def execute_action(action, payload, context):\n    return {'status': 'completed', 'data': payload, 'errors': []}\n")
+    (connector_root / "src" / "main.py").write_text(
+        "def execute_action(action, payload, context):\n    return {'status': 'completed', 'data': payload, 'errors': []}\n"
+    )
     registry_path = tmp_path / "connectors.json"
     registry_path.write_text(
         json.dumps(
@@ -93,7 +95,9 @@ async def test_retry_exhausted_behavior(tmp_path: Path, monkeypatch: pytest.Monk
         attempts["count"] += 1
         raise RuntimeError("upstream down")
 
-    client = ConnectorActionClient(_build_registry(tmp_path), max_retries=1, retry_initial_delay_seconds=0)
+    client = ConnectorActionClient(
+        _build_registry(tmp_path), max_retries=1, retry_initial_delay_seconds=0
+    )
     monkeypatch.setattr(client, "_load_entrypoint_module", lambda _connector: _Module(always_fail))
     with pytest.raises(ConnectorActionRuntimeError) as exc:
         await client.execute(connector_id="demo", action="unstable", payload={})
@@ -107,7 +111,9 @@ async def test_output_contract_validation(tmp_path: Path, monkeypatch: pytest.Mo
         return {"status": "completed", "data": {}, "errors": "bad"}
 
     client = ConnectorActionClient(_build_registry(tmp_path), max_retries=0)
-    monkeypatch.setattr(client, "_load_entrypoint_module", lambda _connector: _Module(invalid_output))
+    monkeypatch.setattr(
+        client, "_load_entrypoint_module", lambda _connector: _Module(invalid_output)
+    )
     with pytest.raises(ConnectorActionRuntimeError) as exc:
         await client.execute(connector_id="demo", action="bad_output", payload={})
     assert exc.value.code == "validation_failed"

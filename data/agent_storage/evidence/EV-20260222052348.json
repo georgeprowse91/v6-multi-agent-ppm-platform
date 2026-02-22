@@ -1,0 +1,13 @@
+{
+  "evidence_id": "EV-20260222052348",
+  "control_id": "CTL-20260222052348",
+  "file_name": "access_log.csv",
+  "file_type": null,
+  "file_url": "https://example.com/access_log.csv",
+  "description": null,
+  "uploaded_by": "unknown",
+  "uploaded_at": "2026-02-22T05:23:48.794032+00:00",
+  "classification": "confidential",
+  "_id": "EV-20260222052348",
+  "_updated_at": "2026-02-22T05:23:48.795216+00:00"
+}

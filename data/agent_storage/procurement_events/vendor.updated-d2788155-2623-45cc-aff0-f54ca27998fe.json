@@ -1,0 +1,18 @@
+{
+  "event_id": "vendor.updated-d2788155-2623-45cc-aff0-f54ca27998fe",
+  "event_type": "vendor.updated",
+  "entity_id": "VND-20260222054112",
+  "payload": {
+    "vendor_id": "VND-20260222054112",
+    "updates": {
+      "status": "Approved",
+      "risk_score": 20
+    }
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "45234a7b-781f-407f-ba3c-ff41465890b6",
+  "actor_id": "system",
+  "timestamp": "2026-02-22T05:41:12.661852+00:00",
+  "_id": "vendor.updated-d2788155-2623-45cc-aff0-f54ca27998fe",
+  "_updated_at": "2026-02-22T05:41:12.664478+00:00"
+}

@@ -29,6 +29,7 @@ from tools.runtime_paths import bootstrap_runtime_paths
 bootstrap_runtime_paths()
 
 from llm.client import LLMGateway, LLMProviderError  # noqa: E402
+from workflow_task_queue import build_task_message, build_task_queue  # noqa: E402
 
 from agents.common.connector_integration import (  # noqa: E402
     DatabaseStorageService,
@@ -42,10 +43,9 @@ from agents.common.web_search import (  # noqa: E402
 )
 from agents.runtime import BaseAgent  # noqa: E402
 from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
-from workflow_task_queue import build_task_message, build_task_queue  # noqa: E402
 
 if TYPE_CHECKING:
-    from approval_workflow_agent import ApprovalWorkflowAgent
+    pass
 
 
 @dataclass
@@ -134,7 +134,15 @@ class ProcurementConnectorService:
 
         try:
             return connector_class(connector_config)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - connector constructors can fail
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # noqa: BLE001 - connector constructors can fail
             self.logger.warning("Connector %s failed to initialize: %s", name, exc)
             return None
 
@@ -153,8 +161,18 @@ class ProcurementConnectorService:
                 continue
             try:
                 result = getattr(connector, method)(payload)
-                results.append({"connector": name, "status": "ok", "method": method, "result": result})
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external connectors may raise
+                results.append(
+                    {"connector": name, "status": "ok", "method": method, "result": result}
+                )
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # noqa: BLE001 - external connectors may raise
                 results.append(
                     {
                         "connector": name,
@@ -346,9 +364,7 @@ class VendorMLService:
 
     async def train_models(self, vendors: list[dict[str, Any]]) -> dict[str, Any]:
         run_id = f"ml-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
-        avg_risk = (
-            sum(v.get("risk_score", 50) for v in vendors) / len(vendors) if vendors else 50
-        )
+        avg_risk = sum(v.get("risk_score", 50) for v in vendors) / len(vendors) if vendors else 50
         self._train_recommendation_model(vendors)
         self.model_metadata = {
             "run_id": run_id,
@@ -379,7 +395,8 @@ class VendorMLService:
         candidates = [
             v
             for v in vendors
-            if v.get("category") == category and v.get("status") in {"Approved", "pending", "active"}
+            if v.get("category") == category
+            and v.get("status") in {"Approved", "pending", "active"}
         ]
         scored = []
         for vendor in candidates:
@@ -443,9 +460,17 @@ class VendorMLService:
         }
         weights = criteria_weights or self.scoring_weights or {}
         if not weights:
-            weights = {"cost": 0.4, "quality": 0.25, "delivery": 0.15, "risk": 0.15, "compliance": 0.05}
+            weights = {
+                "cost": 0.4,
+                "quality": 0.25,
+                "delivery": 0.15,
+                "risk": 0.15,
+                "compliance": 0.05,
+            }
         normalized_weights = self._normalize_weights(weights, features.keys())
-        return {key: float(features.get(key, 0)) * normalized_weights.get(key, 0) for key in features}
+        return {
+            key: float(features.get(key, 0)) * normalized_weights.get(key, 0) for key in features
+        }
 
     def _prepare_features(self, vendor: dict[str, Any]) -> dict[str, float]:
         metrics = vendor.get("performance_metrics", {})
@@ -505,9 +530,7 @@ class VendorMLService:
         score = sum(features.get(name, 0.0) * normalized.get(name, 0.0) for name in features)
         return max(0, min(100, score))
 
-    def _normalize_weights(
-        self, weights: dict[str, float], keys: Any
-    ) -> dict[str, float]:
+    def _normalize_weights(self, weights: dict[str, float], keys: Any) -> dict[str, float]:
         total = sum(abs(weights.get(key, 0.0)) for key in keys) or 1.0
         return {key: weights.get(key, 0.0) / total for key in keys}
 
@@ -584,7 +607,15 @@ class RiskDatabaseClient:
                     "hits": content.get("hits", []),
                     "response_id": content.get("response_id"),
                 }
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external calls best-effort
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # noqa: BLE001 - external calls best-effort
             self.logger.warning("Risk source %s failed: %s", source.get("name"), exc)
             return {}
 
@@ -617,7 +648,15 @@ class EventBusClient:
                 with request.urlopen(req, timeout=self.timeout) as response:
                     response.read()
                 transport_status = "sent"
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external call best-effort
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # noqa: BLE001 - external call best-effort
                 self.logger.warning("Event bus publish failed: %s", exc)
                 transport_status = "error"
 
@@ -738,7 +777,15 @@ class FinancialManagementClient:
         try:
             with request.urlopen(req, timeout=self.timeout) as response:
                 return json.loads(response.read().decode("utf-8"))
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external calls best-effort
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # noqa: BLE001 - external calls best-effort
             self.logger.warning("Budget API call failed: %s", exc)
             return {}
 
@@ -783,7 +830,15 @@ class PerformanceAnalyticsClient:
         try:
             with request.urlopen(req, timeout=self.timeout) as response:
                 return json.loads(response.read().decode("utf-8"))
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - external calls best-effort
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # noqa: BLE001 - external calls best-effort
             self.logger.warning("Analytics API call failed: %s", exc)
             return {}
 
@@ -815,7 +870,15 @@ class FormRecognizerClient:
             with request.urlopen(req, timeout=10) as response:
                 content = response.read().decode("utf-8")
                 return json.loads(content)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001 - remote call best-effort
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # noqa: BLE001 - remote call best-effort
             self.logger.warning("Form Recognizer call failed: %s", exc)
             return None
 
@@ -955,12 +1018,8 @@ class VendorProcurementAgent(BaseAgent):
         self.analytics_client = PerformanceAnalyticsClient(
             config.get("analytics_config") if config else None
         )
-        self.enable_openai_rfp = (
-            config.get("enable_openai_rfp", False) if config else False
-        )
-        self.enable_ai_scoring = (
-            config.get("enable_ai_scoring", False) if config else False
-        )
+        self.enable_openai_rfp = config.get("enable_openai_rfp", False) if config else False
+        self.enable_ai_scoring = config.get("enable_ai_scoring", False) if config else False
         self.enable_ai_vendor_ranking = (
             config.get("enable_ai_vendor_ranking", False) if config else False
         )
@@ -1071,7 +1130,6 @@ class VendorProcurementAgent(BaseAgent):
         else:
             self.logger.info("Form Recognizer not configured; falling back to regex extraction.")
 
-
         self.logger.info("Vendor & Procurement Management Agent initialized")
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
@@ -1105,7 +1163,7 @@ class VendorProcurementAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "onboard_vendor":
@@ -1113,7 +1171,7 @@ class VendorProcurementAgent(BaseAgent):
             required_fields = ["legal_name", "contact_email", "category"]
             for field in required_fields:
                 if field not in vendor_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         elif action == "create_procurement_request":
@@ -1121,7 +1179,7 @@ class VendorProcurementAgent(BaseAgent):
             required_fields = ["requester", "description", "estimated_cost"]
             for field in required_fields:
                 if field not in request_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
         elif action == "research_vendor":
             if not input_data.get("vendor_id") and not input_data.get("vendor_name"):
@@ -1345,7 +1403,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns vendor ID and onboarding status.
         """
-        self.logger.info(f"Onboarding vendor: {vendor_data.get('legal_name')}")
+        self.logger.info("Onboarding vendor: %s", vendor_data.get("legal_name"))
 
         # Generate vendor ID
         vendor_id = await self._generate_vendor_id()
@@ -1451,7 +1509,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns request ID and workflow status.
         """
-        self.logger.info(f"Creating procurement request: {request_data.get('description')}")
+        self.logger.info("Creating procurement request: %s", request_data.get("description"))
 
         # Generate request ID
         request_id = await self._generate_request_id()
@@ -1544,7 +1602,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns RFP ID and invitation details.
         """
-        self.logger.info(f"Generating RFP for request: {request_id}")
+        self.logger.info("Generating RFP for request: %s", request_id)
 
         request = self.procurement_requests.get(request_id)
         if not request:
@@ -1642,7 +1700,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns proposal ID and submission confirmation.
         """
-        self.logger.info(f"Submitting proposal from vendor {vendor_id} for RFP {rfp_id}")
+        self.logger.info("Submitting proposal from vendor %s for RFP %s", vendor_id, rfp_id)
 
         rfp = self.rfps.get(rfp_id)
         if not rfp:
@@ -1704,7 +1762,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns evaluation results and vendor rankings.
         """
-        self.logger.info(f"Evaluating proposals for RFP: {rfp_id}")
+        self.logger.info("Evaluating proposals for RFP: %s", rfp_id)
 
         rfp = self.rfps.get(rfp_id)
         if not rfp:
@@ -1713,7 +1771,9 @@ class VendorProcurementAgent(BaseAgent):
         proposal_ids = rfp.get("proposals_received", [])
         if len(proposal_ids) < self.min_vendor_proposals:
             self.logger.warning(
-                f"Only {len(proposal_ids)} proposals received, minimum is {self.min_vendor_proposals}"
+                "Only %s proposals received, minimum is %s",
+                len(proposal_ids),
+                self.min_vendor_proposals,
             )
 
         # Get evaluation criteria with weights
@@ -1789,7 +1849,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns selection confirmation and next steps.
         """
-        self.logger.info(f"Selecting vendor {vendor_id} for RFP {rfp_id}")
+        self.logger.info("Selecting vendor %s for RFP %s", vendor_id, rfp_id)
 
         rfp = self.rfps.get(rfp_id)
         if not rfp:
@@ -1873,7 +1933,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns contract ID and terms summary.
         """
-        self.logger.info(f"Creating contract with vendor: {contract_data.get('vendor_id')}")
+        self.logger.info("Creating contract with vendor: %s", contract_data.get("vendor_id"))
 
         # Generate contract ID
         contract_id = await self._generate_contract_id()
@@ -1987,7 +2047,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns PO number and approval status.
         """
-        self.logger.info(f"Creating purchase order for vendor: {po_data.get('vendor_id')}")
+        self.logger.info("Creating purchase order for vendor: %s", po_data.get("vendor_id"))
 
         # Generate PO number
         po_number = await self._generate_po_number()
@@ -2075,7 +2135,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns invoice ID and receipt confirmation.
         """
-        self.logger.info(f"Submitting invoice: {invoice_data.get('invoice_number')}")
+        self.logger.info("Submitting invoice: %s", invoice_data.get("invoice_number"))
 
         # Generate internal invoice ID
         invoice_id = await self._generate_invoice_id()
@@ -2138,7 +2198,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns reconciliation status and payment details.
         """
-        self.logger.info(f"Reconciling invoice: {invoice_id}")
+        self.logger.info("Reconciling invoice: %s", invoice_id)
 
         invoice = self.invoices.get(invoice_id)
         if not invoice:
@@ -2210,7 +2270,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns performance data and trends.
         """
-        self.logger.info(f"Tracking performance for vendor: {vendor_id}")
+        self.logger.info("Tracking performance for vendor: %s", vendor_id)
 
         vendor = self.vendors.get(vendor_id)
         if not vendor:
@@ -2263,7 +2323,11 @@ class VendorProcurementAgent(BaseAgent):
         )
         await self._publish_event(
             "vendor.performance_updated",
-            payload={"vendor_id": vendor_id, "metrics": adjusted_metrics, "ml_analysis": ml_analysis},
+            payload={
+                "vendor_id": vendor_id,
+                "metrics": adjusted_metrics,
+                "ml_analysis": ml_analysis,
+            },
             tenant_id=tenant_id,
             correlation_id=correlation_id,
             actor_id=actor_id,
@@ -2333,7 +2397,15 @@ class VendorProcurementAgent(BaseAgent):
 
         try:
             research = await self.research_vendor(resolved_name, resolved_domain)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning(
                 "Vendor research failed",
                 extra={"error": str(exc), "vendor_id": vendor_id, "correlation_id": correlation_id},
@@ -2374,7 +2446,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns detailed scorecard with visualizations.
         """
-        self.logger.info(f"Generating scorecard for vendor: {vendor_id}")
+        self.logger.info("Generating scorecard for vendor: %s", vendor_id)
 
         vendor = self.vendors.get(vendor_id)
         if not vendor:
@@ -2473,7 +2545,7 @@ class VendorProcurementAgent(BaseAgent):
 
         Returns detailed status information.
         """
-        self.logger.info(f"Getting procurement status for request: {request_id}")
+        self.logger.info("Getting procurement status for request: %s", request_id)
 
         request = self.procurement_requests.get(request_id)
         if not request:
@@ -2867,7 +2939,9 @@ class VendorProcurementAgent(BaseAgent):
                 extracted[clause] = match.group("value").strip()
 
         if "term" not in extracted:
-            extracted["term"] = f"{contract_data.get('start_date')} to {contract_data.get('end_date')}"
+            extracted["term"] = (
+                f"{contract_data.get('start_date')} to {contract_data.get('end_date')}"
+            )
         if "value" not in extracted and contract_data.get("value") is not None:
             extracted["value"] = str(contract_data.get("value"))
         if "sla" not in extracted and contract_data.get("slas"):
@@ -2960,7 +3034,6 @@ class VendorProcurementAgent(BaseAgent):
                         "invoice_unit_cost": invoice_unit_cost,
                     }
                 )
-
 
         return {"matched": len(discrepancies) == 0, "discrepancies": discrepancies}
 
@@ -3177,7 +3250,9 @@ class VendorProcurementAgent(BaseAgent):
         self, criteria: dict[str, Any], *, tenant_id: str
     ) -> dict[str, Any]:
         vendors = [
-            vendor for vendor in self.vendors.values() if await self._matches_criteria(vendor, criteria)
+            vendor
+            for vendor in self.vendors.values()
+            if await self._matches_criteria(vendor, criteria)
         ]
         return {
             "total_results": len(vendors),
@@ -3358,7 +3433,7 @@ class VendorProcurementAgent(BaseAgent):
         errors = validate_against_schema(self.vendor_schema_path, record)
         if errors:
             for error in errors:
-                self.logger.warning(f"Vendor schema error {error.path}: {error.message}")
+                self.logger.warning("Vendor schema error %s: %s", error.path, error.message)
         return {"is_valid": len(errors) == 0, "issues": [error.message for error in errors]}
 
     async def cleanup(self) -> None:

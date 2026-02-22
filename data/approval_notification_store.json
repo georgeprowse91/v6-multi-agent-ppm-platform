@@ -1,0 +1,24 @@
+{
+  "tenant-sub": {
+    "user-9": {
+      "delivery": "digest",
+      "channels": {
+        "push": {
+          "destinations": [
+            "tok"
+          ]
+        }
+      },
+      "locale": "en",
+      "accessible_format": "text_only",
+      "notify_delegate_directly": true
+    }
+  },
+  "tenant-delegation": {
+    "delegate-1": {
+      "notify_delegate_directly": false,
+      "locale": "en",
+      "accessible_format": "text_only"
+    }
+  }
+}

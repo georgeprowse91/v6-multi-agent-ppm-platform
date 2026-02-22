@@ -18,7 +18,6 @@ from pathlib import Path
 from typing import Any
 
 from data_quality.helpers import apply_rule_set, validate_against_schema
-from events import DemandCreatedEvent
 from observability.tracing import get_trace_id
 
 from agents.common.integration_services import (
@@ -29,6 +28,7 @@ from agents.common.integration_services import (
 )
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
+from events import DemandCreatedEvent
 
 FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[4] / "packages" / "feature-flags" / "src"
 if str(FEATURE_FLAGS_ROOT) not in sys.path:
@@ -241,7 +241,7 @@ class DemandIntakeAgent(BaseAgent):
         }
         self.demand_store.upsert(tenant_id, demand_id, demand_item)
         self.vector_index.add(demand_id, self._combine_text(demand_item), demand_item)
-        self.logger.info(f"Created demand request: {demand_id}")
+        self.logger.info("Created demand request: %s", demand_id)
 
         await self.notification_service.send(
             {
@@ -280,18 +280,18 @@ class DemandIntakeAgent(BaseAgent):
         errors = validate_against_schema(self.demand_schema_path, payload)
         if errors:
             for error in errors:
-                self.logger.warning(f"Schema validation error {error.path}: {error.message}")
+                self.logger.warning("Schema validation error %s: %s", error.path, error.message)
             return False
 
         rule_result = apply_rule_set(self.demand_rule_set, {"demand": payload})
         if not rule_result.is_valid:
             for issue in rule_result.issues:
-                self.logger.warning(f"Data quality issue {issue.rule_id}: {issue.message}")
+                self.logger.warning("Data quality issue %s: %s", issue.rule_id, issue.message)
             return False
 
         for field in self.mandatory_fields:
             if field not in request_data or not request_data[field]:
-                self.logger.warning(f"Missing mandatory field: {field}")
+                self.logger.warning("Missing mandatory field: %s", field)
                 return False
 
         return True
@@ -440,8 +440,7 @@ class DemandIntakeAgent(BaseAgent):
 
     def _strip_duplicate_rationale(self, duplicates: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return [
-            {key: value for key, value in item.items() if key != "rationale"}
-            for item in duplicates
+            {key: value for key, value in item.items() if key != "rationale"} for item in duplicates
         ]
 
     def _semantic_similarity(self, query: str, corpus: list[str]) -> list[float]:

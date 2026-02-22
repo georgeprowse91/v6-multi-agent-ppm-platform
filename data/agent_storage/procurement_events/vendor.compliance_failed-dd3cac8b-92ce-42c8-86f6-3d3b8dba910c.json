@@ -1,0 +1,30 @@
+{
+  "event_id": "vendor.compliance_failed-dd3cac8b-92ce-42c8-86f6-3d3b8dba910c",
+  "event_type": "vendor.compliance_failed",
+  "entity_id": "VND-20260222052044",
+  "payload": {
+    "vendor_id": "VND-20260222052044",
+    "compliance_status": "blocked",
+    "checks": {
+      "sanctions_check": "Fail",
+      "anti_corruption_check": "Pass",
+      "credit_check": "Pass",
+      "watchlist_hits": [
+        "Sanctioned entity list"
+      ],
+      "sources": [
+        {
+          "name": "mock-sanctions",
+          "status": "Fail"
+        }
+      ]
+    },
+    "risk_score": 50.0
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "390cde86-c069-4190-a236-fcb87cf5731b",
+  "actor_id": "system",
+  "timestamp": "2026-02-22T05:20:44.095217+00:00",
+  "_id": "vendor.compliance_failed-dd3cac8b-92ce-42c8-86f6-3d3b8dba910c",
+  "_updated_at": "2026-02-22T05:20:44.096030+00:00"
+}

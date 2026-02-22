@@ -73,7 +73,10 @@ async def test_quantitative_impact_calculation() -> None:
     agent = RiskManagementAgent(
         config={
             "schedule_baseline_fixture": {"baseline_duration_days": 90.0, "mean_delay_days": 12.0},
-            "financial_distribution_fixture": {"baseline_cost": 500_000.0, "mean_cost_overrun": 50_000.0},
+            "financial_distribution_fixture": {
+                "baseline_cost": 500_000.0,
+                "mean_cost_overrun": 50_000.0,
+            },
         }
     )
     risk = {"risk_id": "R2", "project_id": "P2", "probability": 4, "impact": 5}
@@ -107,7 +110,9 @@ async def test_risk_simulation_event_published() -> None:
 
 class DummyPMService:
     async def create_tasks(self, project_id, tasks):
-        return [{"status": "created", "task_id": f"T-{idx}"} for idx, _task in enumerate(tasks, start=1)]
+        return [
+            {"status": "created", "task_id": f"T-{idx}"} for idx, _task in enumerate(tasks, start=1)
+        ]
 
 
 @pytest.mark.anyio

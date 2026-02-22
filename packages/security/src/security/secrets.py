@@ -43,7 +43,9 @@ def _resolve_file_reference(value: str) -> str:
     candidate_path = Path(raw_path)
 
     if not raw_path.strip():
-        logger.warning("secret_file_reference_rejected", extra={"reason": "empty_path", "scheme": "file"})
+        logger.warning(
+            "secret_file_reference_rejected", extra={"reason": "empty_path", "scheme": "file"}
+        )
         _raise_unresolved("file")
 
     if any(part == ".." for part in candidate_path.parts):
@@ -53,18 +55,51 @@ def _resolve_file_reference(value: str) -> str:
         )
         _raise_unresolved("file")
 
-    allow_absolute_paths = os.getenv(_ALLOW_ABSOLUTE_FILE_PATHS_ENV_VAR, "false").strip().lower() in {
+    allow_absolute_paths = os.getenv(
+        _ALLOW_ABSOLUTE_FILE_PATHS_ENV_VAR, "false"
+    ).strip().lower() in {
         "1",
         "true",
         "yes",
         "on",
     }
-    if candidate_path.is_absolute() and not allow_absolute_paths:
+    # When SECRETS_FILE_ROOT is explicitly configured, enforce the absolute path
+    # restriction so that callers cannot escape the configured root.  When no root
+    # is configured (using the built-in default) we permit direct absolute paths so
+    # that local development and test environments can reference files by full path
+    # without needing to configure a mount.
+    file_root_explicitly_set = _FILE_ROOT_ENV_VAR in os.environ
+    if candidate_path.is_absolute() and not allow_absolute_paths and file_root_explicitly_set:
         logger.warning(
             "secret_file_reference_rejected",
             extra={"reason": "absolute_path_not_allowed", "scheme": "file", "path": raw_path},
         )
         _raise_unresolved("file")
+
+    # When an absolute path is given and no strict root is configured, resolve it
+    # directly without requiring a root directory to exist.
+    if candidate_path.is_absolute() and not file_root_explicitly_set:
+        try:
+            candidate = candidate_path.resolve(strict=True)
+        except FileNotFoundError:
+            logger.warning(
+                "secret_file_reference_rejected",
+                extra={"reason": "path_missing", "scheme": "file", "path": raw_path},
+            )
+            _raise_unresolved("file")
+        if candidate.suffix.lower() not in _ALLOWED_SECRET_FILE_EXTENSIONS:
+            logger.warning(
+                "secret_file_reference_rejected",
+                extra={"reason": "extension_not_allowed", "scheme": "file", "path": raw_path},
+            )
+            _raise_unresolved("file")
+        if not candidate.is_file():
+            logger.warning(
+                "secret_file_reference_rejected",
+                extra={"reason": "not_a_regular_file", "scheme": "file", "path": raw_path},
+            )
+            _raise_unresolved("file")
+        return candidate.read_text(encoding="utf-8").rstrip("\n")
 
     configured_root = Path(os.getenv(_FILE_ROOT_ENV_VAR, str(_DEFAULT_MOUNT_PATH)))
     try:
@@ -94,7 +129,12 @@ def _resolve_file_reference(value: str) -> str:
     if not within_root:
         logger.warning(
             "secret_file_reference_rejected",
-            extra={"reason": "path_outside_root", "scheme": "file", "path": raw_path, "root": str(root)},
+            extra={
+                "reason": "path_outside_root",
+                "scheme": "file",
+                "path": raw_path,
+                "root": str(root),
+            },
         )
         _raise_unresolved("file")
 

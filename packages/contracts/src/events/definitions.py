@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -11,7 +11,7 @@ class EventEnvelope(BaseModel):
     event_id: str = Field(..., min_length=8)
     timestamp: datetime
     tenant_id: str
-    payload: dict
+    payload: Any
     correlation_id: str | None = None
     trace_id: str | None = None
 
@@ -114,6 +114,19 @@ class WbsCreatedPayload(BaseModel):
 class WbsCreatedEvent(EventEnvelope):
     event_name: Literal["wbs.created"]
     payload: WbsCreatedPayload
+
+
+class ScopeChangePayload(BaseModel):
+    wbs_id: str
+    project_id: str
+    change_type: str = "update"
+    updated_at: datetime | None = None
+    actor_id: str | None = None
+
+
+class ScopeChangeEvent(EventEnvelope):
+    event_name: str  # flexible - "wbs.updated", "scope.changed", etc.
+    payload: Any
 
 
 class ProjectTransitionedPayload(BaseModel):

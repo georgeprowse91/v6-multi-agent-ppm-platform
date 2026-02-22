@@ -9,20 +9,15 @@ import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from api.slowapi_compat import (
-    SlowAPIMiddleware,
-    RateLimitExceeded,
-    _rate_limit_exceeded_handler,
-)
 
-from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_origins
 from api.bootstrap import StartupFailure, build_default_bootstrap_registry
+from api.config import validate_startup_config
+from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_origins
 from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
 from api.routes import (
@@ -43,7 +38,11 @@ from api.routes import (
     vendor_research,
     workflows,
 )
-from api.config import validate_startup_config
+from api.slowapi_compat import (
+    RateLimitExceeded,
+    SlowAPIMiddleware,
+    _rate_limit_exceeded_handler,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
@@ -53,14 +52,15 @@ for path_root in (REPO_ROOT, COMMON_ROOT, OBSERVABILITY_ROOT, SECURITY_ROOT):
     if str(path_root) not in sys.path:
         sys.path.insert(0, str(path_root))
 
-from packages.version import API_VERSION  # noqa: E402
+from common.env_validation import environment_value  # noqa: E402
+from common.exceptions import PPMPlatformError, exception_to_http_status  # noqa: E402
 from observability.logging import configure_logging  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
-from common.env_validation import environment_value  # noqa: E402
-from common.exceptions import PPMPlatformError, exception_to_http_status  # noqa: E402
+
+from packages.version import API_VERSION  # noqa: E402
 
 # Configure logging
 logging.basicConfig(
@@ -114,6 +114,7 @@ configure_logging("api-gateway")
 app.add_middleware(TraceMiddleware, service_name="api-gateway")
 app.add_middleware(RequestMetricsMiddleware, service_name="api-gateway")
 register_error_handlers(app)
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
@@ -179,6 +180,7 @@ async def root() -> dict[str, str]:
         "documentation": "/v1/docs",
     }
 
+
 api_v1 = APIRouter(prefix="/v1")
 
 
@@ -235,7 +237,9 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     logger.error("Unhandled exception: %s", exc, exc_info=True)
     # Only include the exception message in development; production gets a generic message.
     message = (
-        str(exc) if environment in {"dev", "development", "local", "test"} else "Internal server error"
+        str(exc)
+        if environment in {"dev", "development", "local", "test"}
+        else "Internal server error"
     )
     return JSONResponse(
         status_code=500,

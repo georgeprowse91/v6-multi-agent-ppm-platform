@@ -6,10 +6,9 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, Field
-
 from agent_registry import load_agent_registry
 from methodologies import available_methodologies, get_methodology_map
+from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
@@ -169,7 +168,9 @@ def _load_connector_types() -> set[str]:
     with CONNECTOR_REGISTRY_PATH.open("r", encoding="utf-8") as handle:
         payload = json.load(handle)
     if isinstance(payload, list):
-        return {str(item.get("id")) for item in payload if isinstance(item, dict) and item.get("id")}
+        return {
+            str(item.get("id")) for item in payload if isinstance(item, dict) and item.get("id")
+        }
     return set()
 
 
@@ -241,7 +242,10 @@ def _validate_registry(registry: TemplateMappingRegistry) -> TemplateMappingRegi
                 f"Template `{mapping.template_id}` uses invalid connector category `{mapping.connector_binding.category}`"
             )
 
-        for endpoint in [*mapping.connector_binding.sources, *mapping.connector_binding.destinations]:
+        for endpoint in [
+            *mapping.connector_binding.sources,
+            *mapping.connector_binding.destinations,
+        ]:
             if endpoint.connector_type not in connector_types:
                 raise ValueError(
                     f"Template `{mapping.template_id}` references unknown connector type `{endpoint.connector_type}`"
@@ -258,7 +262,10 @@ def _validate_registry(registry: TemplateMappingRegistry) -> TemplateMappingRegi
         if contract.tone not in TONES:
             raise ValueError(f"Template `{mapping.template_id}` has invalid tone")
 
-        if any(effect not in SIDE_EFFECTS for effect in mapping.agent_bindings.orchestration.side_effects):
+        if any(
+            effect not in SIDE_EFFECTS
+            for effect in mapping.agent_bindings.orchestration.side_effects
+        ):
             raise ValueError(f"Template `{mapping.template_id}` has invalid side effect")
 
     return registry
@@ -310,4 +317,3 @@ def list_required_templates_for_gate(methodology_id: str, gate_ref: str) -> list
                 matches.append(mapping)
                 break
     return matches
-

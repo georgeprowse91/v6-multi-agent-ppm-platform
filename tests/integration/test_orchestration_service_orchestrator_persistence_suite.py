@@ -35,9 +35,13 @@ def _load_module(name: str, path: Path):
     return module
 
 
-persistence_module = _load_module("orchestration_service_persistence_suite", SERVICE_SRC / "persistence.py")
+persistence_module = _load_module(
+    "orchestration_service_persistence_suite", SERVICE_SRC / "persistence.py"
+)
 sys.modules["persistence"] = persistence_module
-orchestrator_module = _load_module("orchestration_service_orchestrator_suite", SERVICE_SRC / "orchestrator.py")
+orchestrator_module = _load_module(
+    "orchestration_service_orchestrator_suite", SERVICE_SRC / "orchestrator.py"
+)
 
 AgentOrchestrator = orchestrator_module.AgentOrchestrator
 WorkflowState = persistence_module.WorkflowState
@@ -84,7 +88,9 @@ class FakeHttpClient:
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_routes_query_and_dependency_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_orchestrator_routes_query_and_dependency_lifecycle(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     orchestrator = AgentOrchestrator()
     orchestrator.initialized = True
     orchestrator.agents = {"agent-b": SimpleNamespace(), "agent-a": SimpleNamespace()}
@@ -122,7 +128,9 @@ async def test_orchestrator_routes_query_and_dependency_lifecycle(monkeypatch: p
     orchestrator.intent_router = StubAgent("intent-router", intent_response)
     orchestrator.response_orchestrator = StubAgent("response-orchestrator", response_payload)
 
-    routed = await orchestrator.process_query("hello", context={"tenant_id": "t-1", "correlation_id": "corr-1"})
+    routed = await orchestrator.process_query(
+        "hello", context={"tenant_id": "t-1", "correlation_id": "corr-1"}
+    )
     assert routed["success"] is True
 
     monkeypatch.setenv("DEMO_MODE", "1")
@@ -157,7 +165,9 @@ async def test_policy_fallback_and_denial(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 @pytest.mark.asyncio
-async def test_persistence_roundtrip_and_restart_resume_semantics(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_persistence_roundtrip_and_restart_resume_semantics(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     state_file = tmp_path / "state.json"
     store = JsonOrchestrationStateStore(state_file)
 
@@ -177,14 +187,18 @@ async def test_persistence_roundtrip_and_restart_resume_semantics(tmp_path: Path
 
     monkeypatch.setenv("ORCHESTRATION_STATE_PATH", str(state_file))
     orch_a = AgentOrchestrator()
-    await orch_a.persist_workflow_state("tenant-1", "run-2", "paused", "step-2", {"tenant_id": "tenant-1"})
+    await orch_a.persist_workflow_state(
+        "tenant-1", "run-2", "paused", "step-2", {"tenant_id": "tenant-1"}
+    )
 
     orch_b = AgentOrchestrator()
     orch_b.workflow_states = await orch_b.state_store.load()
     assert "run-2" in orch_b.resume_workflows("tenant-1")
 
 
-def test_persistence_backend_selection_and_url_conversion(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_persistence_backend_selection_and_url_conversion(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setenv("ORCHESTRATION_STATE_BACKEND", "json")
     file_store = persistence_module.build_state_store(tmp_path / "state.json")
     assert isinstance(file_store, JsonOrchestrationStateStore)

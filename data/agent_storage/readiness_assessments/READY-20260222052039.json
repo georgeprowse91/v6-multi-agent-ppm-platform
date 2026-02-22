@@ -1,0 +1,37 @@
+{
+  "assessment_id": "READY-20260222052039",
+  "release_id": "REL-20260222052039",
+  "readiness_score": 1.0,
+  "recommendation": "GO",
+  "criteria": {
+    "quality_passed": true,
+    "approvals_complete": true,
+    "changes_approved": true,
+    "risk_acceptable": true,
+    "compliance_met": true
+  },
+  "quality_details": {
+    "passed": true,
+    "test_pass_rate": 100.0
+  },
+  "approval_details": {
+    "complete": true,
+    "approvals": []
+  },
+  "change_details": {
+    "approved": true,
+    "change_requests": []
+  },
+  "risk_details": {
+    "acceptable": true,
+    "risk_score": 0.2
+  },
+  "compliance_details": {
+    "met": true,
+    "requirements": []
+  },
+  "critical_blockers": [],
+  "assessed_at": "2026-02-22T05:20:39.913453+00:00",
+  "_id": "READY-20260222052039",
+  "_updated_at": "2026-02-22T05:20:39.913643+00:00"
+}

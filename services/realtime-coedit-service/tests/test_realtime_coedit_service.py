@@ -35,6 +35,7 @@ def _install_dependency_stubs() -> None:
     api_gov.version_response_payload = lambda service: {"service": service, "version": "test"}
 
     auth = types.ModuleType("security.auth")
+
     class _AuthTenantMiddleware:
         def __init__(self, app, exempt_paths=None):
             self.app = app
@@ -95,7 +96,9 @@ def test_session_create_and_history(monkeypatch) -> None:
         payload = response.json()
         assert payload["document_id"] == "doc-1"
 
-        history = client.get("/v1/v1/documents/doc-1/history?limit=10&offset=0", headers=_headers(secret, "tenant-a"))
+        history = client.get(
+            "/v1/v1/documents/doc-1/history?limit=10&offset=0", headers=_headers(secret, "tenant-a")
+        )
         assert history.status_code == 200
         assert history.headers["X-Total-Count"] == "1"
         entries = history.json()
@@ -115,13 +118,19 @@ def test_multi_instance_session_continuity(monkeypatch) -> None:
     with TestClient(module_a.app) as client_a, TestClient(module_b.app) as client_b:
         created = client_a.post(
             "/v1/v1/sessions",
-            json={"document_id": "doc-shared", "initial_content": "seed", "classification": "internal"},
+            json={
+                "document_id": "doc-shared",
+                "initial_content": "seed",
+                "classification": "internal",
+            },
             headers=_headers(secret, "tenant-a"),
         )
         assert created.status_code == 200
         session_id = created.json()["session_id"]
 
-        fetched = client_b.get(f"/v1/v1/sessions/{session_id}", headers=_headers(secret, "tenant-a"))
+        fetched = client_b.get(
+            f"/v1/v1/sessions/{session_id}", headers=_headers(secret, "tenant-a")
+        )
         assert fetched.status_code == 200
         assert fetched.json()["content"] == "seed"
 
@@ -139,20 +148,33 @@ def test_cross_node_pubsub_broadcast(monkeypatch) -> None:
     with TestClient(module_a.app) as client_a, TestClient(module_b.app) as client_b:
         created = client_a.post(
             "/v1/v1/sessions",
-            json={"document_id": "doc-ws", "initial_content": "initial", "classification": "internal"},
+            json={
+                "document_id": "doc-ws",
+                "initial_content": "initial",
+                "classification": "internal",
+            },
             headers=_headers(secret, "tenant-a"),
         )
         assert created.status_code == 200
         session_id = created.json()["session_id"]
 
-        ws_a_url = f"/v1/v1/ws/documents/doc-ws?session_id={session_id}&user_id=user-a&user_name=Alice"
-        ws_b_url = f"/v1/v1/ws/documents/doc-ws?session_id={session_id}&user_id=user-b&user_name=Bob"
+        ws_a_url = (
+            f"/v1/v1/ws/documents/doc-ws?session_id={session_id}&user_id=user-a&user_name=Alice"
+        )
+        ws_b_url = (
+            f"/v1/v1/ws/documents/doc-ws?session_id={session_id}&user_id=user-b&user_name=Bob"
+        )
 
-        with client_a.websocket_connect(ws_a_url) as ws_a, client_b.websocket_connect(ws_b_url) as ws_b:
+        with (
+            client_a.websocket_connect(ws_a_url) as ws_a,
+            client_b.websocket_connect(ws_b_url) as ws_b,
+        ):
             ws_a.receive_json()  # session_state
             ws_b.receive_json()  # session_state
 
-            ws_a.send_json({"type": "content_update", "content": "changed by node-a", "base_version": 1})
+            ws_a.send_json(
+                {"type": "content_update", "content": "changed by node-a", "base_version": 1}
+            )
 
             # drain until content update seen by node-b replica
             seen = False

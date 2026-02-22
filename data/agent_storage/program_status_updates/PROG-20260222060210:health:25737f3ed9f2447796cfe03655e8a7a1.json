@@ -1,0 +1,12 @@
+{
+  "program_id": "PROG-20260222060210",
+  "status_type": "health",
+  "payload": {
+    "health_score": 0.88,
+    "health_status": "Healthy",
+    "concerns": []
+  },
+  "updated_at": "2026-02-22T06:02:10.688609+00:00",
+  "_id": "PROG-20260222060210:health:25737f3ed9f2447796cfe03655e8a7a1",
+  "_updated_at": "2026-02-22T06:02:10.688800+00:00"
+}

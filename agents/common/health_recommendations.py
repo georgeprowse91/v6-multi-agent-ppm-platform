@@ -67,7 +67,9 @@ def identify_health_concerns(
     strings) for backwards compatibility.  Use :func:`identify_health_concerns_detailed`
     for richer output.
     """
-    return [concern.description for concern in identify_health_concerns_detailed(metrics, thresholds)]
+    return [
+        concern.description for concern in identify_health_concerns_detailed(metrics, thresholds)
+    ]
 
 
 def identify_health_concerns_detailed(
@@ -95,7 +97,9 @@ def identify_health_concerns_detailed(
                     dimension=dimension,
                     score=score,
                     severity="warning",
-                    description=_CONCERN_LABELS.get(dimension, f"{dimension} below warning threshold"),
+                    description=_CONCERN_LABELS.get(
+                        dimension, f"{dimension} below warning threshold"
+                    ),
                 )
             )
 

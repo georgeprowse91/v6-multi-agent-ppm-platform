@@ -1,7 +1,6 @@
 import random
 
 import pytest
-
 from business_case_investment_agent import BusinessCaseInvestmentAgent
 
 
@@ -11,17 +10,17 @@ class EventCollector:
 
 
 @pytest.mark.asyncio
-async def test_business_case_manual_financial_calculations_with_inflation_and_discount(tmp_path) -> None:
+async def test_business_case_manual_financial_calculations_with_inflation_and_discount(
+    tmp_path,
+) -> None:
     settings_file = tmp_path / "business-case-settings.yaml"
-    settings_file.write_text(
-        """
+    settings_file.write_text("""
 discount_rate: 0.08
 inflation_rate: 0.02
 currency_rates:
   AUD: 1.0
 simulation_iterations: 100
-""".strip()
-    )
+""".strip())
     agent = BusinessCaseInvestmentAgent(
         config={
             "event_bus": EventCollector(),
@@ -55,15 +54,13 @@ simulation_iterations: 100
 @pytest.mark.asyncio
 async def test_business_case_monte_carlo_is_stable_with_seed(tmp_path) -> None:
     settings_file = tmp_path / "business-case-settings.yaml"
-    settings_file.write_text(
-        """
+    settings_file.write_text("""
 discount_rate: 0.1
 inflation_rate: 0.0
 currency_rates:
   AUD: 1.0
 simulation_iterations: 200
-""".strip()
-    )
+""".strip())
     random.seed(7)
     agent = BusinessCaseInvestmentAgent(
         config={
@@ -83,16 +80,14 @@ simulation_iterations: 200
 @pytest.mark.asyncio
 async def test_business_case_currency_conversion_applies_rates(tmp_path) -> None:
     settings_file = tmp_path / "business-case-settings.yaml"
-    settings_file.write_text(
-        """
+    settings_file.write_text("""
 discount_rate: 0.1
 inflation_rate: 0.0
 currency_rates:
   AUD: 1.0
   EUR: 1.2
 simulation_iterations: 100
-""".strip()
-    )
+""".strip())
     agent = BusinessCaseInvestmentAgent(
         config={
             "event_bus": EventCollector(),

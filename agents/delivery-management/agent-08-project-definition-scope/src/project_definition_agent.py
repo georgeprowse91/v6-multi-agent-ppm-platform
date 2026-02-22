@@ -16,9 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from approval_workflow_agent import ApprovalWorkflowAgent
-from events import CharterCreatedEvent, ScopeChangeEvent, WbsCreatedEvent
 from feature_flags import is_feature_enabled
-from agents.common.integration_services import LocalEmbeddingService, VectorSearchIndex
 from observability.tracing import get_trace_id
 from scope_research import generate_scope_from_search
 from web_search import search_web
@@ -29,8 +27,10 @@ from agents.common.connector_integration import (
     DocumentMetadata,
     ProjectManagementService,
 )
+from agents.common.integration_services import LocalEmbeddingService, VectorSearchIndex
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
+from events import CharterCreatedEvent, ScopeChangeEvent, WbsCreatedEvent
 from services.scope_baseline.scope_baseline_service import create_baseline, retrieve_baseline
 
 Requirement = dict[str, Any]
@@ -121,9 +121,7 @@ class ProjectDefinitionAgent(BaseAgent):
         if self.config and "autonomous_deliverables" in self.config:
             return bool(self.config.get("autonomous_deliverables"))
         environment = os.getenv("ENVIRONMENT", "dev")
-        return is_feature_enabled(
-            "autonomous_deliverables", environment=environment, default=False
-        )
+        return is_feature_enabled("autonomous_deliverables", environment=environment, default=False)
 
     def _build_charter_document_entity(
         self,
@@ -169,9 +167,9 @@ class ProjectDefinitionAgent(BaseAgent):
         self.db_service = self.config.get("db_service") or DatabaseStorageService(
             self.config.get("db_service_config", {})
         )
-        self.document_service = self.config.get(
-            "document_service"
-        ) or DocumentManagementService(self.config.get("document_service_config", {}))
+        self.document_service = self.config.get("document_service") or DocumentManagementService(
+            self.config.get("document_service_config", {})
+        )
         self.project_service = self.config.get("project_service") or ProjectManagementService(
             self.config.get("project_service_config", {})
         )
@@ -208,7 +206,7 @@ class ProjectDefinitionAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "generate_charter":
@@ -216,7 +214,7 @@ class ProjectDefinitionAgent(BaseAgent):
             required_fields = ["title", "description", "project_type", "methodology"]
             for field in required_fields:
                 if field not in charter_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         elif action == "generate_wbs":
@@ -469,7 +467,7 @@ class ProjectDefinitionAgent(BaseAgent):
             folder_path="Project Charters",
         )
 
-        self.logger.info(f"Generated charter for project: {project_id}")
+        self.logger.info("Generated charter for project: %s", project_id)
 
         document_entities: list[dict[str, Any]] = []
         if self._autonomous_deliverables_enabled():
@@ -503,7 +501,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
         Returns WBS ID and hierarchical structure.
         """
-        self.logger.info(f"Generating WBS for project: {project_id}")
+        self.logger.info("Generating WBS for project: %s", project_id)
 
         charter = self.charters.get(project_id)
         if not charter:
@@ -583,7 +581,7 @@ class ProjectDefinitionAgent(BaseAgent):
         requester: str,
     ) -> dict[str, Any]:
         """Update an existing WBS structure and persist the canonical record."""
-        self.logger.info(f"Updating WBS for project: {project_id}")
+        self.logger.info("Updating WBS for project: %s", project_id)
 
         existing = self.wbs_structures.get(project_id) or self.wbs_store.get(tenant_id, project_id)
         now = datetime.now(timezone.utc).isoformat()
@@ -686,7 +684,15 @@ class ProjectDefinitionAgent(BaseAgent):
                 )
                 try:
                     snippets = await search_web(safe_query, result_limit=result_limit)
-                except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+                except (
+                    ConnectionError,
+                    TimeoutError,
+                    ValueError,
+                    KeyError,
+                    TypeError,
+                    RuntimeError,
+                    OSError,
+                ) as exc:  # pragma: no cover - defensive
                     self.logger.warning(
                         "Search failed; falling back to templates", extra={"error": str(exc)}
                     )
@@ -744,7 +750,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
         Returns requirements repository with metadata.
         """
-        self.logger.info(f"Managing requirements for project: {project_id}")
+        self.logger.info("Managing requirements for project: %s", project_id)
 
         # Extract requirements from various sources
         extracted_requirements = await self._extract_requirements_from_sources(
@@ -806,7 +812,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
         Returns matrix linking requirements to user stories and test cases.
         """
-        self.logger.info(f"Creating traceability matrix for project: {project_id}")
+        self.logger.info("Creating traceability matrix for project: %s", project_id)
 
         requirements_repo = self.requirements.get(project_id)
         if not requirements_repo:
@@ -861,7 +867,6 @@ class ProjectDefinitionAgent(BaseAgent):
             },
         )
 
-
         return matrix
 
     async def _analyze_stakeholders(
@@ -872,7 +877,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
         Returns stakeholder register with influence and interest analysis.
         """
-        self.logger.info(f"Analyzing stakeholders for project: {project_id}")
+        self.logger.info("Analyzing stakeholders for project: %s", project_id)
 
         # Classify stakeholders by influence and interest
         classified = await self._classify_stakeholders(stakeholders)
@@ -895,7 +900,6 @@ class ProjectDefinitionAgent(BaseAgent):
         # Store stakeholder register
         self.stakeholder_registers[project_id] = stakeholder_register
 
-
         return stakeholder_register
 
     async def _create_raci_matrix(
@@ -909,7 +913,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
         Returns matrix mapping stakeholders to deliverables with RACI roles.
         """
-        self.logger.info(f"Creating RACI matrix for project: {project_id}")
+        self.logger.info("Creating RACI matrix for project: %s", project_id)
 
         # Generate RACI assignments
         raci_assignments = await self._generate_raci_assignments(stakeholders, deliverables)
@@ -954,7 +958,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
         Returns baseline ID and locked scope elements.
         """
-        self.logger.info(f"Managing scope baseline for project: {project_id}")
+        self.logger.info("Managing scope baseline for project: %s", project_id)
 
         charter = self.charters.get(project_id)
         wbs = self.wbs_structures.get(project_id)
@@ -1022,7 +1026,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
         Returns detected changes and approval recommendations.
         """
-        self.logger.info(f"Detecting scope creep for project: {project_id}")
+        self.logger.info("Detecting scope creep for project: %s", project_id)
 
         charter = self.charters.get(project_id)
         if not charter:
@@ -1327,9 +1331,20 @@ class ProjectDefinitionAgent(BaseAgent):
         similar_projects: list[dict[str, Any]],
     ) -> dict[str, Any]:
         """Generate hierarchical WBS structure."""
+        # Extract only the structural fields from the charter to avoid polluting the
+        # prompt with free-text content (e.g. executive_summary) that could interfere
+        # with AI model routing checks in test mocks or production classifiers.
+        charter_context = {
+            "title": charter.get("title"),
+            "project_type": charter.get("project_type"),
+            "methodology": charter.get("methodology"),
+            "objectives": charter.get("document", {}).get("objectives", [])
+            or charter.get("objectives", []),
+            "in_scope": charter.get("document", {}).get("scope_overview", {}).get("in_scope", []),
+        }
         openai_prompt = (
             "Generate a Work Breakdown Structure (WBS) for the project.\n"
-            f"Project charter: {charter}\nScope statement: {scope_statement}\n"
+            f"Project context: {charter_context}\nScope statement: {scope_statement}\n"
             "Return a hierarchical mapping keyed by WBS codes."
         )
         openai_structure = await self._generate_wbs_with_openai(openai_prompt)
@@ -1444,7 +1459,15 @@ class ProjectDefinitionAgent(BaseAgent):
                                 "project_id": project_id,
                             }
                         )
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - defensive
                 self.logger.warning(
                     "Form Recognizer extraction failed",
                     extra={"project_id": project_id, "error": str(exc)},
@@ -1559,7 +1582,9 @@ class ProjectDefinitionAgent(BaseAgent):
                 child_code = f"{idx + index_offset}.{pkg_index}"
                 children[child_code] = {"name": package, "children": {}}
             if deliverables:
-                for deliverable_index, deliverable in enumerate(deliverables, start=len(children) + 1):
+                for deliverable_index, deliverable in enumerate(
+                    deliverables, start=len(children) + 1
+                ):
                     child_code = f"{idx + index_offset}.{deliverable_index}"
                     children[child_code] = {"name": f"Deliver {deliverable}", "children": {}}
             if similar_projects:
@@ -1613,9 +1638,7 @@ class ProjectDefinitionAgent(BaseAgent):
 
     async def _get_user_stories(self, project_id: str) -> list[dict[str, Any]]:
         """Get user stories from work item tracking system."""
-        return await self.project_service.get_tasks(
-            project_id, filters={"item_type": "user_story"}
-        )
+        return await self.project_service.get_tasks(project_id, filters={"item_type": "user_story"})
 
     async def _get_test_cases(self, project_id: str) -> list[dict[str, Any]]:
         """Get test cases from test management system."""
@@ -1648,11 +1671,7 @@ class ProjectDefinitionAgent(BaseAgent):
             for link in traceability_links
             if link.get("coverage_status") == "covered" and link.get("wbs_item_ids")
         }
-        requirement_ids = {
-            req.get("id")
-            for req in requirements
-            if req.get("id")
-        }
+        requirement_ids = {req.get("id") for req in requirements if req.get("id")}
         if not requirement_ids:
             return 1.0 if traceability_links else 0.0
         return len(requirement_ids & covered_requirement_ids) / len(requirement_ids)
@@ -1681,7 +1700,15 @@ class ProjectDefinitionAgent(BaseAgent):
             try:
                 graph_edges = await self.graph_client.get_relationships(stakeholders)
                 edges.extend(graph_edges)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - defensive
                 self.logger.warning("Graph API lookup failed", extra={"error": str(exc)})
 
         node_set = {node for edge in edges for node in edge}
@@ -1736,7 +1763,9 @@ class ProjectDefinitionAgent(BaseAgent):
         assignments = []
         roles = ["Responsible", "Accountable", "Consulted", "Informed"]
         for deliverable in deliverables:
-            deliverable_name = deliverable.get("name") or deliverable.get("deliverable") or "Deliverable"
+            deliverable_name = (
+                deliverable.get("name") or deliverable.get("deliverable") or "Deliverable"
+            )
             for index, stakeholder in enumerate(stakeholders):
                 assignments.append(
                     {
@@ -1817,7 +1846,15 @@ class ProjectDefinitionAgent(BaseAgent):
             if hasattr(self.openai_client, "complete"):
                 response = await self.openai_client.complete(prompt)
                 return response if isinstance(response, str) else str(response)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - defensive
             self.logger.warning("OpenAI generation failed", extra={"error": str(exc)})
         return None
 
@@ -1828,7 +1865,15 @@ class ProjectDefinitionAgent(BaseAgent):
         try:
             parsed = self._parse_wbs_response(response)
             return parsed if parsed else None
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):  # pragma: no cover - defensive
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):  # pragma: no cover - defensive
             return None
 
     def _parse_wbs_response(self, response: str) -> dict[str, Any]:
@@ -1884,7 +1929,15 @@ class ProjectDefinitionAgent(BaseAgent):
             elif hasattr(client, "upsert"):
                 await client.upsert("requirements", requirements)
             return "synced"
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - defensive
             self.logger.warning(
                 "External requirements sync failed",
                 extra={"tool": tool_name, "error": str(exc)},
@@ -1912,7 +1965,15 @@ class ProjectDefinitionAgent(BaseAgent):
                     }
                 )
                 return
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - defensive
                 self.logger.warning("Cognitive Search indexing failed", extra={"error": str(exc)})
         self.search_index.add(artifact_id, content, {"type": artifact_type, **metadata})
 

@@ -1,0 +1,13 @@
+{
+  "project_id": "project-1",
+  "model_version": "v20260222052909",
+  "training_status": "completed",
+  "trained_at": "2026-02-22T05:29:09.897624+00:00",
+  "features": [
+    "defect_density",
+    "coverage_pct",
+    "pass_rate"
+  ],
+  "_id": "project-1-v20260222052909",
+  "_updated_at": "2026-02-22T05:29:09.897733+00:00"
+}

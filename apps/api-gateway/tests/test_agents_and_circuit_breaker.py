@@ -3,15 +3,16 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from fastapi import HTTPException
-
 from api.circuit_breaker import CircuitBreaker
 from api.routes import agents
+from fastapi import HTTPException
 
 
 @pytest.mark.anyio
 async def test_list_agents_happy_path():
-    orchestrator = SimpleNamespace(get_agent_count=lambda: 2, list_agents=lambda: [{"id": "a"}, {"id": "b"}])
+    orchestrator = SimpleNamespace(
+        get_agent_count=lambda: 2, list_agents=lambda: [{"id": "a"}, {"id": "b"}]
+    )
     request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(orchestrator=orchestrator)))
 
     response = await agents.list_agents(request)

@@ -39,7 +39,9 @@ def _load_seed_fixture() -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
-def _seed_workspace_state(workspace_state_store: WorkspaceStateStore, project_id: str, methodology: str) -> None:
+def _seed_workspace_state(
+    workspace_state_store: WorkspaceStateStore, project_id: str, methodology: str
+) -> None:
     methodology_map = get_methodology_map(methodology)
     stages = methodology_map.get("stages", [])
     first_stage = stages[0] if stages else {}
@@ -125,7 +127,9 @@ def _seed_timeline(timeline_store: TimelineStore, project_id: str) -> str:
     return milestone.milestone_id
 
 
-def _seed_tree_artifacts(tree_store: TreeStore, project_id: str, sheet_id: str, milestone_id: str) -> None:
+def _seed_tree_artifacts(
+    tree_store: TreeStore, project_id: str, sheet_id: str, milestone_id: str
+) -> None:
     nodes = tree_store.list_nodes(DEMO_TENANT_ID, project_id)
     if nodes:
         return
@@ -191,7 +195,7 @@ def _seed_knowledge(knowledge_store: KnowledgeStore, project_id: str, methodolog
     )
 
 
-def _seed_demo_entities(demo_outbox: "DemoOutbox | None" = None) -> None:
+def _seed_demo_entities(demo_outbox: DemoOutbox | None = None) -> None:
     fixture = _load_seed_fixture()
     now = datetime.now(tz=timezone.utc).isoformat()
     projects_path = Path(__file__).resolve().parent.parent / "data" / "projects.json"
@@ -209,7 +213,11 @@ def _seed_demo_entities(demo_outbox: "DemoOutbox | None" = None) -> None:
         by_id[project_id] = {
             "id": project_id,
             "name": f"Demo {methodology.title()} Program",
-            "template_id": "predictive-infrastructure" if methodology == "predictive" else "adaptive-software-dev",
+            "template_id": (
+                "predictive-infrastructure"
+                if methodology == "predictive"
+                else "adaptive-software-dev"
+            ),
             "template_version": "1.0",
             "created_at": now,
             "methodology": {
@@ -229,14 +237,17 @@ def _seed_demo_entities(demo_outbox: "DemoOutbox | None" = None) -> None:
                 {"type": "financial", "title": "Budget Forecast", "activity_id": None},
                 {"type": "dependency_map", "title": "Dependency Map", "activity_id": None},
                 {"type": "roadmap", "title": "Transformation Roadmap", "activity_id": None},
-                {"type": "approval", "title": "Approvals Inbox", "activity_id": None}
+                {"type": "approval", "title": "Approvals Inbox", "activity_id": None},
             ],
-            "dashboards": [{"type": "dashboard", "title": "Portfolio Snapshot", "activity_id": None}],
+            "dashboards": [
+                {"type": "dashboard", "title": "Portfolio Snapshot", "activity_id": None}
+            ],
         }
 
     projects_path.parent.mkdir(parents=True, exist_ok=True)
-    projects_path.write_text(json.dumps({"projects": list(by_id.values())}, indent=2) + "\n", encoding="utf-8")
-
+    projects_path.write_text(
+        json.dumps({"projects": list(by_id.values())}, indent=2) + "\n", encoding="utf-8"
+    )
 
     if demo_outbox is not None:
         approvals = fixture.get("approvals", [])
@@ -289,52 +300,91 @@ def _seed_demo_entities(demo_outbox: "DemoOutbox | None" = None) -> None:
         )
 
 
-
-
 def _seed_enterprise_stores() -> None:
     storage_root = Path(__file__).resolve().parent.parent / "storage"
     demand_path = storage_root / "demand.json"
-    if not demand_path.exists() or not json.loads(demand_path.read_text(encoding="utf-8") or "{}").get("items"):
+    if not demand_path.exists() or not json.loads(
+        demand_path.read_text(encoding="utf-8") or "{}"
+    ).get("items"):
         demand_items = []
         for index in range(30):
-            demand_items.append({
-                "id": f"dem-{index+1:03d}",
-                "portfolio_id": DEMO_PORTFOLIO_ID,
-                "title": f"Demand {index+1}",
-                "status": ["intake", "analysis", "candidate", "approved"][index % 4],
-                "value": 4 + (index % 7),
-                "effort": 2 + (index % 5),
-                "risk": 1 + (index % 4),
-                "cost": 80 + index * 5,
-            })
-        demand_path.write_text(json.dumps({"items": demand_items}, indent=2) + "\n", encoding="utf-8")
+            demand_items.append(
+                {
+                    "id": f"dem-{index+1:03d}",
+                    "portfolio_id": DEMO_PORTFOLIO_ID,
+                    "title": f"Demand {index+1}",
+                    "status": ["intake", "analysis", "candidate", "approved"][index % 4],
+                    "value": 4 + (index % 7),
+                    "effort": 2 + (index % 5),
+                    "risk": 1 + (index % 4),
+                    "cost": 80 + index * 5,
+                }
+            )
+        demand_path.write_text(
+            json.dumps({"items": demand_items}, indent=2) + "\n", encoding="utf-8"
+        )
 
     capacity_path = storage_root / "capacity.json"
-    if not capacity_path.exists() or not json.loads(capacity_path.read_text(encoding="utf-8") or "{}").get("entries"):
+    if not capacity_path.exists() or not json.loads(
+        capacity_path.read_text(encoding="utf-8") or "{}"
+    ).get("entries"):
         roles = ["Engineering", "Product", "QA", "Architecture", "Data"]
         entries = []
         for team in range(1, 6):
             for week in range(1, 7):
                 for role in roles:
-                    entries.append({
-                        "id": f"cap-t{team}-w{week}-{role.lower()}",
-                        "portfolio_id": DEMO_PORTFOLIO_ID,
-                        "team": f"Team-{team}",
-                        "week": f"2026-W{week:02d}",
-                        "role": role,
-                        "capacity": 40,
-                        "allocated": 24 + ((team + week) % 14),
-                    })
-        capacity_path.write_text(json.dumps({"entries": entries}, indent=2) + "\n", encoding="utf-8")
+                    entries.append(
+                        {
+                            "id": f"cap-t{team}-w{week}-{role.lower()}",
+                            "portfolio_id": DEMO_PORTFOLIO_ID,
+                            "team": f"Team-{team}",
+                            "week": f"2026-W{week:02d}",
+                            "role": role,
+                            "capacity": 40,
+                            "allocated": 24 + ((team + week) % 14),
+                        }
+                    )
+        capacity_path.write_text(
+            json.dumps({"entries": entries}, indent=2) + "\n", encoding="utf-8"
+        )
 
     scenarios_path = storage_root / "scenarios.json"
-    if not scenarios_path.exists() or not json.loads(scenarios_path.read_text(encoding="utf-8") or "{}").get("scenarios"):
+    if not scenarios_path.exists() or not json.loads(
+        scenarios_path.read_text(encoding="utf-8") or "{}"
+    ).get("scenarios"):
         scenarios = [
-            {"id": "scn-balanced", "portfolio_id": DEMO_PORTFOLIO_ID, "name": "Balanced", "value_score": 78.2, "budget": 1820, "selected_ids": [f"dem-{i:03d}" for i in range(1, 11)], "published": False},
-            {"id": "scn-growth", "portfolio_id": DEMO_PORTFOLIO_ID, "name": "Growth", "value_score": 85.6, "budget": 2180, "selected_ids": [f"dem-{i:03d}" for i in range(8, 18)], "published": False},
-            {"id": "scn-efficiency", "portfolio_id": DEMO_PORTFOLIO_ID, "name": "Efficiency", "value_score": 74.9, "budget": 1500, "selected_ids": [f"dem-{i:03d}" for i in range(18, 28)], "published": False},
+            {
+                "id": "scn-balanced",
+                "portfolio_id": DEMO_PORTFOLIO_ID,
+                "name": "Balanced",
+                "value_score": 78.2,
+                "budget": 1820,
+                "selected_ids": [f"dem-{i:03d}" for i in range(1, 11)],
+                "published": False,
+            },
+            {
+                "id": "scn-growth",
+                "portfolio_id": DEMO_PORTFOLIO_ID,
+                "name": "Growth",
+                "value_score": 85.6,
+                "budget": 2180,
+                "selected_ids": [f"dem-{i:03d}" for i in range(8, 18)],
+                "published": False,
+            },
+            {
+                "id": "scn-efficiency",
+                "portfolio_id": DEMO_PORTFOLIO_ID,
+                "name": "Efficiency",
+                "value_score": 74.9,
+                "budget": 1500,
+                "selected_ids": [f"dem-{i:03d}" for i in range(18, 28)],
+                "published": False,
+            },
         ]
-        scenarios_path.write_text(json.dumps({"scenarios": scenarios, "published_decisions": []}, indent=2) + "\n", encoding="utf-8")
+        scenarios_path.write_text(
+            json.dumps({"scenarios": scenarios, "published_decisions": []}, indent=2) + "\n",
+            encoding="utf-8",
+        )
 
 
 def seed_demo_data(
@@ -344,7 +394,7 @@ def seed_demo_data(
     timeline_store: TimelineStore,
     tree_store: TreeStore,
     knowledge_db_path: Path,
-    demo_outbox: "DemoOutbox | None" = None,
+    demo_outbox: DemoOutbox | None = None,
 ) -> None:
     _seed_demo_entities(demo_outbox=demo_outbox)
     _seed_enterprise_stores()

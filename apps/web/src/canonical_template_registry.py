@@ -6,7 +6,6 @@ from functools import lru_cache
 from pathlib import Path
 
 import yaml
-
 from template_models import CanonicalTemplateDefinition, CanonicalTemplateSummary, TemplateType
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -88,7 +87,11 @@ def _entry_to_model(entry: dict[str, object]) -> CanonicalTemplateDefinition:
     path_value = str(entry.get("path", ""))
     title, purpose = _manifest_metadata(path_value)
     artefact_type = str(entry.get("artefact_type", ""))
-    template_type = TemplateType.spreadsheet if artefact_type in {"dashboard", "backlog"} else TemplateType.document
+    template_type = (
+        TemplateType.spreadsheet
+        if artefact_type in {"dashboard", "backlog"}
+        else TemplateType.document
+    )
 
     legacy_ids = sorted([k for k, v in _legacy_aliases().items() if v == canonical_id])
     return CanonicalTemplateDefinition(
@@ -100,15 +103,21 @@ def _entry_to_model(entry: dict[str, object]) -> CanonicalTemplateDefinition:
         tags=sorted({artefact_type, str(entry.get("methodology", ""))}),
         artefact_type=artefact_type,
         methodology=str(entry.get("methodology", "")),
-        compliance_tags=[str(item) for item in entry.get("compliance_tags", []) if isinstance(item, str)],
+        compliance_tags=[
+            str(item) for item in entry.get("compliance_tags", []) if isinstance(item, str)
+        ],
         version=str(entry.get("version", "")),
         status=str(entry.get("status", "")),
         supports_modular=bool(entry.get("supports_modular", False)),
         path=path_value,
-        required_fields=[str(item) for item in entry.get("required_fields", []) if isinstance(item, str)],
+        required_fields=[
+            str(item) for item in entry.get("required_fields", []) if isinstance(item, str)
+        ],
         replaces=str(entry.get("replaces")) if entry.get("replaces") else None,
         placeholder_schema_ref=(
-            str(entry.get("placeholder_schema_ref")) if entry.get("placeholder_schema_ref") else None
+            str(entry.get("placeholder_schema_ref"))
+            if entry.get("placeholder_schema_ref")
+            else None
         ),
         legacy_ids=legacy_ids,
     )
@@ -131,9 +140,7 @@ def list_catalog_templates(
     if compliance_tag:
         expected = compliance_tag.strip().lower()
         results = [
-            item
-            for item in results
-            if any(tag.lower() == expected for tag in item.compliance_tags)
+            item for item in results if any(tag.lower() == expected for tag in item.compliance_tags)
         ]
     if query:
         needle = query.strip().lower()

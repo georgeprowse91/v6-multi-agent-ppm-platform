@@ -51,7 +51,7 @@ try:
     from .mappers import map_from_mcp_response, map_to_mcp_params
 except ImportError:
     from mappers import map_from_mcp_response, map_to_mcp_params
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 from sync_controls import WriteControlPolicy, dedupe_by_idempotency
 
 logger = logging.getLogger(__name__)

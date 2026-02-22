@@ -3,8 +3,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from fastapi import HTTPException
-
 from api.bootstrap.components import build_default_bootstrap_registry
 from api.bootstrap.registry import BootstrapRegistry, StartupComponent, StartupFailure
 from api.bootstrap.secret_rotation_component import (
@@ -12,6 +10,7 @@ from api.bootstrap.secret_rotation_component import (
     load_secret_rotation_config,
 )
 from api.routes import health
+from fastapi import HTTPException
 
 
 @pytest.mark.anyio
@@ -52,7 +51,9 @@ async def test_startup_failure_reports_component_and_order():
         events.append("stop:b")
 
     registry.register(StartupComponent(name="a", startup=_start_a, shutdown=_stop_a))
-    registry.register(StartupComponent(name="b", startup=_start_b, shutdown=_stop_b, dependencies=("a",)))
+    registry.register(
+        StartupComponent(name="b", startup=_start_b, shutdown=_stop_b, dependencies=("a",))
+    )
 
     with pytest.raises(StartupFailure) as exc_info:
         await registry.startup(app)

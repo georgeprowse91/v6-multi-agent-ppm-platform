@@ -5,7 +5,6 @@ import pytest
 pytest.importorskip("cryptography")
 
 from cryptography.fernet import Fernet, InvalidToken
-
 from security.crypto import decrypt_text, encrypt_text
 
 FERNET_KEY = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="

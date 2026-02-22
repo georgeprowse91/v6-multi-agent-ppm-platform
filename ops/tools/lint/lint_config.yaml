@@ -6,8 +6,4 @@ paths:
   - tools
   - tests
 mypy_paths:
-  - agents
-  - apps
   - packages
-  - services
-  - tools

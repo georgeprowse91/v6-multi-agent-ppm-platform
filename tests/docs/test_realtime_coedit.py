@@ -22,6 +22,14 @@ sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 if SRC_PATH in sys.path:
     sys.path.remove(SRC_PATH)
+# Purge any modules loaded from the temporary SRC_PATH to avoid
+# polluting sys.modules for other test modules (e.g. data-lineage-service
+# has its own 'storage' module with a different API).
+for _mod_name in list(sys.modules):
+    _mod = sys.modules[_mod_name]
+    _mod_file = getattr(_mod, "__file__", None) or ""
+    if _mod_name != spec.name and _mod_file.startswith(SRC_PATH):
+        del sys.modules[_mod_name]
 
 
 def _configure_auth(monkeypatch, tenant_id: str = "tenant-test") -> str:

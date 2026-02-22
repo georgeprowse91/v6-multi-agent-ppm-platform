@@ -10,7 +10,6 @@ from document_proxy import DocumentServiceClient
 from orchestrator_proxy import OrchestratorProxyClient
 from workspace_state_store import WorkspaceStateStore
 
-
 DATA_SERVICE_BASE_URL = os.getenv("DATA_SERVICE_BASE_URL", "http://localhost:8601")
 ORCHESTRATOR_BASE_URL = os.getenv("ORCHESTRATOR_BASE_URL", "http://localhost:8702")
 DOCUMENT_SERVICE_BASE_URL = os.getenv("DOCUMENT_SERVICE_BASE_URL", "http://localhost:8701")

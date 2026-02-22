@@ -145,7 +145,9 @@ async def test_system_health_initializes_azure_monitor(monkeypatch, tmp_path):
 
     monkeypatch.setenv("APPINSIGHTS_INSTRUMENTATION_KEY", "appinsights-key")
     monkeypatch.setenv("MONITOR_WORKSPACE_ID", "workspace-id")
-    monkeypatch.setattr(system_health_module, "_configure_azure_monitor", fake_configure_azure_monitor)
+    monkeypatch.setattr(
+        system_health_module, "_configure_azure_monitor", fake_configure_azure_monitor
+    )
 
     agent = SystemHealthAgent(
         config={
@@ -176,14 +178,26 @@ async def test_system_health_anomaly_detection_flags_outliers(tmp_path):
             "value": 110,
             "timestamp": (start + timedelta(minutes=1)).isoformat(),
         },
-        {"metric": "latency_ms", "value": 95, "timestamp": (start + timedelta(minutes=2)).isoformat()},
+        {
+            "metric": "latency_ms",
+            "value": 95,
+            "timestamp": (start + timedelta(minutes=2)).isoformat(),
+        },
         {
             "metric": "latency_ms",
             "value": 105,
             "timestamp": (start + timedelta(minutes=3)).isoformat(),
         },
-        {"metric": "latency_ms", "value": 98, "timestamp": (start + timedelta(minutes=4)).isoformat()},
-        {"metric": "latency_ms", "value": 900, "timestamp": (start + timedelta(minutes=5)).isoformat()},
+        {
+            "metric": "latency_ms",
+            "value": 98,
+            "timestamp": (start + timedelta(minutes=4)).isoformat(),
+        },
+        {
+            "metric": "latency_ms",
+            "value": 900,
+            "timestamp": (start + timedelta(minutes=5)).isoformat(),
+        },
     ]
 
     anomalies = await agent._apply_anomaly_detection(metrics)

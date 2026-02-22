@@ -1,0 +1,49 @@
+{
+  "defect_id": "DEF-20260222051833",
+  "project_id": null,
+  "summary": "Login fails",
+  "description": null,
+  "severity": "high",
+  "priority": "high",
+  "category": "security_gap",
+  "component": "auth",
+  "test_case_id": null,
+  "steps_to_reproduce": [],
+  "expected_behavior": null,
+  "actual_behavior": null,
+  "environment": null,
+  "attachments": [],
+  "assigned_to": "unassigned",
+  "root_cause": "security_gap",
+  "status": "Open",
+  "resolution": null,
+  "logged_at": "2026-02-22T05:18:33.980992+00:00",
+  "logged_by": "unknown",
+  "status_history": [
+    {
+      "status": "Open",
+      "timestamp": "2026-02-22T05:18:33.981000+00:00"
+    }
+  ],
+  "external": {
+    "jira_key": "JIRA-DEF-20260222051833",
+    "azure_work_item": "ADO-DEF-20260222051833"
+  },
+  "external_sync": {
+    "defect_id": "DEF-20260222051833",
+    "action": "create",
+    "jira": {
+      "status": "queued",
+      "key": "JIRA-DEF-20260222051833"
+    },
+    "azure_devops": {
+      "status": "queued",
+      "work_item": "ADO-DEF-20260222051833"
+    },
+    "synced_at": "2026-02-22T05:18:33.982368+00:00",
+    "_id": "DEF-20260222051833",
+    "_updated_at": "2026-02-22T05:18:33.982576+00:00"
+  },
+  "_id": "DEF-20260222051833",
+  "_updated_at": "2026-02-22T05:18:33.983010+00:00"
+}

@@ -1,0 +1,15 @@
+# Data Factory pipelines and Azure Functions for data synchronisation (agent-23)
+
+pipelines:
+  - name: sync-projects
+    description: Sync project data from source systems
+  - name: sync-resources
+    description: Sync resource data from HR systems
+  - name: sync-financials
+    description: Sync financial data from ERP systems
+
+functions:
+  - name: normalize-projects
+    description: Normalize and transform project data
+  - name: normalize-resources
+    description: Normalize and transform resource data

@@ -1,0 +1,40 @@
+{
+  "vendor_id": "VND-20260222052914",
+  "legal_name": "Risky Vendor",
+  "tax_id": null,
+  "contact_email": "risk@example.com",
+  "contact_phone": null,
+  "address": {},
+  "category": "software",
+  "certifications": [],
+  "diversity_classification": null,
+  "classification": "internal",
+  "risk_score": 50.0,
+  "compliance_checks": {
+    "sanctions_check": "Fail",
+    "anti_corruption_check": "Pass",
+    "credit_check": "Pass",
+    "watchlist_hits": [
+      "Sanctioned entity list"
+    ],
+    "sources": [
+      {
+        "name": "mock-sanctions",
+        "status": "Fail"
+      }
+    ]
+  },
+  "compliance_status": "blocked",
+  "status": "blocked",
+  "created_at": "2026-02-22T05:29:14.880289+00:00",
+  "created_by": "system",
+  "performance_metrics": {
+    "total_contracts": 0,
+    "total_spend": 0,
+    "on_time_delivery_rate": 0,
+    "quality_rating": 0,
+    "compliance_rating": 0
+  },
+  "_id": "VND-20260222052914",
+  "_updated_at": "2026-02-22T05:29:14.881596+00:00"
+}

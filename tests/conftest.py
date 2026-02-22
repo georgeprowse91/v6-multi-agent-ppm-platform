@@ -14,7 +14,6 @@ from pathlib import Path
 import jwt
 import pytest
 
-
 CI_OPTIONAL_TEST_DEPENDENCIES = {
     "api_security": ["slowapi"],
     "workflow_execution": ["celery"],
@@ -89,11 +88,7 @@ def _bootstrap_paths() -> None:
 
 def _assert_api_import_bootstrapped() -> None:
     expected = (
-        Path(__file__).resolve().parents[1]
-        / "apps"
-        / "api-gateway"
-        / "src"
-        / "api"
+        Path(__file__).resolve().parents[1] / "apps" / "api-gateway" / "src" / "api"
     ).resolve()
     api_module = importlib.import_module("api")
     module_path = Path(getattr(api_module, "__file__", "")).resolve()
@@ -136,9 +131,9 @@ def pytest_ignore_collect(collection_path: Path, config):
         return True
     if path_str.endswith("tests/security/test_auth_rbac.py") and not _module_available("slowapi"):
         return True
-    if path_str.endswith(
-        "tests/security/test_agent_config_rbac.py"
-    ) and not _module_available("slowapi"):
+    if path_str.endswith("tests/security/test_agent_config_rbac.py") and not _module_available(
+        "slowapi"
+    ):
         return True
     if path_str.endswith("tests/security/test_field_level_masking.py") and not _module_available(
         "slowapi"

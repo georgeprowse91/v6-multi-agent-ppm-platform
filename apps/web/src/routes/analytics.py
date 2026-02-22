@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
-
 from dependencies import get_analytics_client
+from fastapi import APIRouter, Depends, Query
 from web_services.analytics import AnalyticsService
 
 router = APIRouter(prefix="/v1/api/analytics", tags=["analytics"])

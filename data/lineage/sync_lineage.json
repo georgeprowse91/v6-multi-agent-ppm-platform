@@ -1,0 +1,15 @@
+{
+  "tenant-sync": {
+    "LINEAGE-2": {
+      "lineage_id": "LINEAGE-2",
+      "entity_type": "project",
+      "master_id": "MASTER-PROJECT-20260222051831",
+      "source_system": "jira",
+      "payload": {
+        "id": "proj-9",
+        "name": "Retry Project"
+      },
+      "timestamp": "2026-02-22T05:18:31.393512+00:00"
+    }
+  }
+}

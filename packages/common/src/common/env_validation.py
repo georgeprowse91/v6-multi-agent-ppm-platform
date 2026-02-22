@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
 
 from pydantic import ValidationError
 
@@ -22,7 +22,7 @@ class ValidationDiagnostics:
         return bool(self.missing or self.invalid_format or self.invalid_enum_or_range)
 
 
-def _normalize_location(error: dict[str, object]) -> str:
+def _normalize_location(error: Mapping[str, object]) -> str:
     loc = error.get("loc", ())
     if not isinstance(loc, (tuple, list)):
         return str(loc)

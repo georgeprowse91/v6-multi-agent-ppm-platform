@@ -3,9 +3,8 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from fastapi import HTTPException
-
 from api.routes import workflows
+from fastapi import HTTPException
 
 
 @pytest.mark.anyio
@@ -17,7 +16,9 @@ async def test_create_definition_happy_path(monkeypatch):
         owner="platform",
         description="test",
     )
-    monkeypatch.setattr(workflows.store, "upsert_definition", lambda *_args, **_kwargs: record, raising=False)
+    monkeypatch.setattr(
+        workflows.store, "upsert_definition", lambda *_args, **_kwargs: record, raising=False
+    )
 
     response = await workflows.create_definition(
         workflows.WorkflowDefinitionCreateRequest(workflow_id="demo", definition={"name": "Demo"})
@@ -44,15 +45,19 @@ async def test_start_workflow_raises_when_runtime_fails(monkeypatch):
 
     runtime = SimpleNamespace(start=_boom)
     monkeypatch.setattr(workflows, "_get_definition", lambda _workflow_id: {"workflow_id": "demo"})
-    monkeypatch.setattr(workflows.store, "create", lambda *_args, **_kwargs: instance, raising=False)
+    monkeypatch.setattr(
+        workflows.store, "create", lambda *_args, **_kwargs: instance, raising=False
+    )
     monkeypatch.setattr(workflows, "_get_runtime", lambda _request: runtime)
-    
+
     async def _no_approval(**_kwargs):
         return None
 
     monkeypatch.setattr(workflows, "_route_change_approval", _no_approval)
 
-    http_request = SimpleNamespace(state=SimpleNamespace(auth=SimpleNamespace(tenant_id="tenant-a")))
+    http_request = SimpleNamespace(
+        state=SimpleNamespace(auth=SimpleNamespace(tenant_id="tenant-a"))
+    )
     request = workflows.WorkflowStartRequest(
         workflow_id="demo",
         payload={"x": 1},

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 from pydantic.config import ConfigDict
 
 
-class TemplateType(str, Enum):
+class TemplateType(StrEnum):
     document = "document"
     spreadsheet = "spreadsheet"
 
@@ -170,7 +170,9 @@ def _resolve_context_key(context: dict[str, Any], key: str) -> Any:
     return current
 
 
-def _substitute_placeholders_with_unresolved(value: str, context: dict[str, Any]) -> tuple[str, set[str]]:
+def _substitute_placeholders_with_unresolved(
+    value: str, context: dict[str, Any]
+) -> tuple[str, set[str]]:
     unresolved: set[str] = set()
 
     def _replace(match: re.Match[str]) -> str:
@@ -190,7 +192,9 @@ def render_template_value(value: Any, context: dict[str, Any]) -> Any:
     return rendered
 
 
-def render_template_value_with_unresolved(value: Any, context: dict[str, Any]) -> tuple[Any, set[str]]:
+def render_template_value_with_unresolved(
+    value: Any, context: dict[str, Any]
+) -> tuple[Any, set[str]]:
     if isinstance(value, str):
         return _substitute_placeholders_with_unresolved(value, context)
     if isinstance(value, list):

@@ -18,7 +18,9 @@ class LLMPreferencesStore:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
-    def get_preferences(self, *, tenant_id: str, project_id: str | None, user_id: str | None) -> dict[str, Any]:
+    def get_preferences(
+        self, *, tenant_id: str, project_id: str | None, user_id: str | None
+    ) -> dict[str, Any]:
         payload = self._load()
         resolved: dict[str, Any] = {}
         tenant_pref = payload.get("tenant", {}).get(tenant_id)

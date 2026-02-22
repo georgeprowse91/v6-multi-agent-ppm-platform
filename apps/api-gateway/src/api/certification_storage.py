@@ -82,8 +82,7 @@ class CertificationRecord:
             audit_reference=payload.get("audit_reference"),
             notes=payload.get("notes"),
             documents=[
-                CertificationDocument.from_dict(doc)
-                for doc in payload.get("documents", [])
+                CertificationDocument.from_dict(doc) for doc in payload.get("documents", [])
             ],
             updated_at=payload.get("updated_at", _now()),
             updated_by=payload.get("updated_by"),
@@ -126,7 +125,10 @@ class CertificationStore:
         records = self._load_all()
         updated = False
         for idx, item in enumerate(records):
-            if item.get("connector_id") == record.connector_id and item.get("tenant_id") == record.tenant_id:
+            if (
+                item.get("connector_id") == record.connector_id
+                and item.get("tenant_id") == record.tenant_id
+            ):
                 records[idx] = record.to_dict()
                 updated = True
                 break

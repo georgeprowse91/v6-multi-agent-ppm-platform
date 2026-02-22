@@ -50,7 +50,9 @@ def compare_schema_versions(old: dict[str, Any], new: dict[str, Any]) -> Compati
     if forward_breaks:
         notes.extend(forward_breaks)
 
-    forward_compatible = not removed_props and not type_changes and not removed_required and not added_optional
+    forward_compatible = (
+        not removed_props and not type_changes and not removed_required and not added_optional
+    )
 
     if not notes:
         notes.append("No compatibility-impacting structural changes detected")

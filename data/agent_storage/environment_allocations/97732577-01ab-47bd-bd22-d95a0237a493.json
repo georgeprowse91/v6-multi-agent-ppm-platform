@@ -1,0 +1,10 @@
+{
+  "allocation_id": "97732577-01ab-47bd-bd22-d95a0237a493",
+  "environment": "production",
+  "release_id": "REL-20260222032632",
+  "reserved_at": "2026-02-22T03:26:32.396592+00:00",
+  "reserved_until": "2024-06-07T04:00:00",
+  "status": "reserved",
+  "_id": "97732577-01ab-47bd-bd22-d95a0237a493",
+  "_updated_at": "2026-02-22T03:26:32.396802+00:00"
+}

@@ -1,0 +1,22 @@
+{
+  "resource_id": "res-update",
+  "name": "River",
+  "role": "Lead Engineer",
+  "skills": [
+    "python"
+  ],
+  "location": "Remote",
+  "cost_rate": 0.0,
+  "certifications": [],
+  "availability": 1.0,
+  "team_memberships": [],
+  "created_at": "2026-02-22T06:02:12.182565+00:00",
+  "status": "Active",
+  "training": {},
+  "training_load": 0.0,
+  "_id": "res-update",
+  "_updated_at": "2026-02-22T06:02:12.187130+00:00",
+  "updated_at": "2026-02-22T06:02:12.186372+00:00",
+  "employee_id": "res-update",
+  "source_system": "agent"
+}

@@ -96,7 +96,6 @@ def test_call_invalid_schema_raises_validation_error() -> None:
         connector.call("/test", {"bar": "missing required key"}, schema=request_schema)
 
 
-
 def test_call_invalid_response_schema_raises_validation_error() -> None:
     connector = DummyConnector(_config(), results=[{"ok": "yes"}])
     schema = {
@@ -111,6 +110,7 @@ def test_call_invalid_response_schema_raises_validation_error() -> None:
         connector.call("/test", {"foo": "bar"}, schema=schema)
 
     assert isinstance(exc.value.__cause__, ConnectorSchemaValidationError)
+
 
 def test_call_timeout_retries_and_fails() -> None:
     connector = DummyConnector(

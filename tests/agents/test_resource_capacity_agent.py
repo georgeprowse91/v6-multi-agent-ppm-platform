@@ -1,6 +1,7 @@
+from datetime import datetime, timedelta
+
 import pytest
 from resource_capacity_agent import ResourceCapacityAgent
-from datetime import datetime, timedelta
 
 
 class EventCollector:
@@ -112,9 +113,7 @@ async def test_resource_capacity_validation_rejects_missing_fields(tmp_path):
 
 @pytest.mark.asyncio
 async def test_resource_capacity_skill_matching(tmp_path):
-    agent = ResourceCapacityAgent(
-        config=build_agent_config(tmp_path, skill_matching_threshold=0.0)
-    )
+    agent = ResourceCapacityAgent(config=build_agent_config(tmp_path, skill_matching_threshold=0.0))
     await agent.initialize()
 
     await agent.process(
@@ -302,9 +301,7 @@ async def test_resource_capacity_approval_routing_project_role(tmp_path):
 
 @pytest.mark.asyncio
 async def test_resource_capacity_forecasting(tmp_path):
-    agent = ResourceCapacityAgent(
-        config=build_agent_config(tmp_path, forecast_horizon_months=3)
-    )
+    agent = ResourceCapacityAgent(config=build_agent_config(tmp_path, forecast_horizon_months=3))
     await agent.initialize()
 
     await agent.process(
@@ -334,7 +331,9 @@ async def test_resource_capacity_forecasting(tmp_path):
         }
     ]
 
-    forecast = await agent.process({"action": "forecast_capacity", "filters": {"history_months": 3}})
+    forecast = await agent.process(
+        {"action": "forecast_capacity", "filters": {"history_months": 3}}
+    )
 
     assert len(forecast["future_capacity"]) == 3
     assert len(forecast["future_demand"]) == 3
@@ -345,9 +344,7 @@ async def test_resource_capacity_forecasting(tmp_path):
 async def test_resource_capacity_forecasting_with_ml_client(tmp_path):
     ml_client = FakeMLForecastClient()
     agent = ResourceCapacityAgent(
-        config=build_agent_config(
-            tmp_path, forecast_horizon_months=2, ml_forecast_client=ml_client
-        )
+        config=build_agent_config(tmp_path, forecast_horizon_months=2, ml_forecast_client=ml_client)
     )
     await agent.initialize()
 
@@ -365,7 +362,9 @@ async def test_resource_capacity_forecasting_with_ml_client(tmp_path):
         }
     )
 
-    forecast = await agent.process({"action": "forecast_capacity", "filters": {"history_months": 2}})
+    forecast = await agent.process(
+        {"action": "forecast_capacity", "filters": {"history_months": 2}}
+    )
 
     assert "assumptions" in forecast
     assert forecast["assumptions"]["ml_metadata"]["capacity_model"]["trained"] is True

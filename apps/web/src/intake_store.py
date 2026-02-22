@@ -4,7 +4,13 @@ import json
 from pathlib import Path
 from typing import Any
 
-from intake_models import IntakeDecision, IntakeDecisionRecord, IntakeRequest, IntakeRequestCreate, utc_now
+from intake_models import (
+    IntakeDecision,
+    IntakeDecisionRecord,
+    IntakeRequest,
+    IntakeRequestCreate,
+    utc_now,
+)
 
 
 class IntakeStore:
@@ -34,7 +40,9 @@ class IntakeStore:
                 return IntakeRequest.model_validate(request_raw)
         return None
 
-    def update_decision(self, request_id: str, decision_payload: IntakeDecision) -> IntakeRequest | None:
+    def update_decision(
+        self, request_id: str, decision_payload: IntakeDecision
+    ) -> IntakeRequest | None:
         store = self._load()
         requests_raw = store.get("requests", [])
         for index, request_raw in enumerate(requests_raw):

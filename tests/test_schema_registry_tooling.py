@@ -52,11 +52,33 @@ def test_migration_scaffold_and_dry_run(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(ROOT)
     monkeypatch.setattr("schema_tool.REPO_ROOT", repo)
 
-    rc = main(["migration", "scaffold", "--schema", "project", "--from-version", "1.0.0", "--to-version", "2.0.0"])
+    rc = main(
+        [
+            "migration",
+            "scaffold",
+            "--schema",
+            "project",
+            "--from-version",
+            "1.0.0",
+            "--to-version",
+            "2.0.0",
+        ]
+    )
     assert rc == 0
 
     migration_file = repo / "data" / "schemas" / "migrations" / "project" / "1.0.0_to_2.0.0.py"
     assert migration_file.exists()
 
-    rc_dry = main(["migration", "dry-run", "--schema", "project", "--from-version", "1.0.0", "--to-version", "2.0.0"])
+    rc_dry = main(
+        [
+            "migration",
+            "dry-run",
+            "--schema",
+            "project",
+            "--from-version",
+            "1.0.0",
+            "--to-version",
+            "2.0.0",
+        ]
+    )
     assert rc_dry == 0

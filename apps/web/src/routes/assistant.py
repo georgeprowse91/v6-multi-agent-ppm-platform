@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends
-
 from dependencies import get_orchestrator_proxy_client
+from fastapi import APIRouter, Depends
 from web_services.assistant import AssistantService
 
 router = APIRouter(prefix="/v1/api/assistant", tags=["assistant"])

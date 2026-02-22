@@ -1,0 +1,28 @@
+{
+  "tenant_id": "unknown",
+  "requirements": {
+    "project_id": "PRJ-20260222052534-fc5219",
+    "requirements": [
+      {
+        "id": "REQ-e597d2",
+        "text": "The system shall log in.",
+        "source": "manual",
+        "category": null,
+        "priority": "medium"
+      }
+    ],
+    "categories": {
+      "null": 1
+    },
+    "conflicts": [],
+    "validation": {
+      "complete": true,
+      "missing_fields": [],
+      "validation_score": 0.95
+    },
+    "total_count": 1,
+    "updated_at": "2026-02-22T05:25:35.033934+00:00"
+  },
+  "_id": "PRJ-20260222052534-fc5219",
+  "_updated_at": "2026-02-22T05:25:35.034252+00:00"
+}

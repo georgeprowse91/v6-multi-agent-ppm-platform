@@ -42,7 +42,7 @@ if "slowapi" not in sys.modules:
 if "slowapi.errors" not in sys.modules:
     slowapi_errors = types.ModuleType("slowapi.errors")
 
-    class RateLimitExceeded(Exception):
+    class RateLimitExceeded(Exception):  # noqa: N818
         pass
 
     slowapi_errors.RateLimitExceeded = RateLimitExceeded
@@ -64,7 +64,6 @@ if "slowapi.util" not in sys.modules:
 
     slowapi_util.get_remote_address = get_remote_address
     sys.modules["slowapi.util"] = slowapi_util
-
 
 
 # Optional dependency shim

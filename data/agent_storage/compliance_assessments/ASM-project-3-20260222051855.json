@@ -1,0 +1,78 @@
+{
+  "project_id": "project-3",
+  "compliance_score": 0.0,
+  "total_controls": 2,
+  "compliant_controls": 0,
+  "gaps_identified": 2,
+  "gaps": [
+    {
+      "control_id": "CTL-ISO-01",
+      "description": "Maintain an information security policy approved by management.",
+      "gap_type": "Not Implemented",
+      "remediation": "Implement control and document procedures",
+      "evaluation_gaps": [
+        "implemented",
+        "evidence"
+      ]
+    },
+    {
+      "control_id": "CTL-ISO-02",
+      "description": "Perform regular risk assessments and document mitigations.",
+      "gap_type": "Missing Risk Mitigation",
+      "remediation": "Document risk mitigations and link to controls",
+      "evaluation_gaps": [
+        "implemented",
+        "risk_mitigation",
+        "evidence"
+      ]
+    }
+  ],
+  "control_assessments": [
+    {
+      "control_id": "CTL-ISO-01",
+      "description": "Maintain an information security policy approved by management.",
+      "implemented": false,
+      "evidence_provided": false,
+      "recently_tested": false,
+      "compliant": false,
+      "evaluation_score": 0.0,
+      "evaluation_gaps": [
+        "implemented",
+        "evidence"
+      ]
+    },
+    {
+      "control_id": "CTL-ISO-02",
+      "description": "Perform regular risk assessments and document mitigations.",
+      "implemented": false,
+      "evidence_provided": false,
+      "recently_tested": false,
+      "compliant": false,
+      "evaluation_score": 0.0,
+      "evaluation_gaps": [
+        "implemented",
+        "risk_mitigation",
+        "evidence"
+      ]
+    }
+  ],
+  "regulation_scores": {
+    "REG-ISO-27001": {
+      "total_controls": 2,
+      "compliant_controls": 0,
+      "score": 0.0,
+      "regulation_name": "ISO 27001"
+    }
+  },
+  "evidence_summary": {
+    "risk_mitigations": [],
+    "quality_results": [],
+    "audit_logs": [],
+    "deployment_evidence": [],
+    "privacy_impact_assessed": false,
+    "security_scans": []
+  },
+  "assessment_date": "2026-02-22T05:18:55.715493+00:00",
+  "_id": "ASM-project-3-20260222051855",
+  "_updated_at": "2026-02-22T05:18:55.715706+00:00"
+}

@@ -1,0 +1,21 @@
+{
+  "label_tokens": {
+    "security_gap": [
+      "login",
+      "fails",
+      "auth",
+      "securitygap"
+    ]
+  },
+  "severity_tokens": {
+    "high": [
+      "login",
+      "fails",
+      "auth",
+      "securitygap"
+    ]
+  },
+  "trained_at": "2026-02-22T03:24:52.592844+00:00",
+  "_id": "classifier-eaed07",
+  "_updated_at": "2026-02-22T03:24:52.593134+00:00"
+}

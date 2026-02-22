@@ -18,8 +18,8 @@ from typing import Any, cast
 
 import httpx
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from plan_schema import Plan, PlanTask
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from agents.common.web_search import (
     SearchPurpose,
@@ -115,6 +115,7 @@ class ResponseOrchestrationAgent(BaseAgent):
         self.cache_max_entries = config.get("cache_max_entries", 256) if config else 256
         self.agent_endpoints = config.get("agent_endpoints", {}) if config else {}
         self.max_retries = config.get("max_retries", 2) if config else 2
+        self.require_approval = config.get("require_approval", False) if config else False
         self.retry_backoff_base = config.get("retry_backoff_base", 0.5) if config else 0.5
         self.retry_backoff_max = config.get("retry_backoff_max", 5.0) if config else 5.0
         self.circuit_breaker_threshold = config.get("circuit_breaker_threshold", 3) if config else 3
@@ -130,11 +131,15 @@ class ResponseOrchestrationAgent(BaseAgent):
         )
         self._failure_counts: dict[str, int] = {}
         self._circuit_open_until: dict[str, float] = {}
-        self._circuit_half_open_window = config.get("circuit_half_open_window", 30.0) if config else 30.0
+        self._circuit_half_open_window = (
+            config.get("circuit_half_open_window", 30.0) if config else 30.0
+        )
         self._cache: dict[str, tuple[float, dict[str, Any]]] = {}
         self._last_validation_error: dict[str, Any] | None = None
         self.plans_dir = (
-            Path(config.get("plans_dir")) if config and config.get("plans_dir") else Path(__file__).resolve().parents[4] / "ops" / "config" / "plans"
+            Path(config.get("plans_dir"))
+            if config and config.get("plans_dir")
+            else Path(__file__).resolve().parents[4] / "ops" / "config" / "plans"
         )
         self._current_plan_context: dict[str, Any] = {}
         meter = configure_metrics("response-orchestration")
@@ -237,7 +242,15 @@ class ResponseOrchestrationAgent(BaseAgent):
         try:
             snippets = await search_web(query)
             summary = await summarize_snippets(snippets, purpose=purpose)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - defensive
             self.logger.warning("External research failed", extra={"error": str(exc)})
             return {
                 "purpose": purpose,
@@ -338,7 +351,7 @@ class ResponseOrchestrationAgent(BaseAgent):
                 plan=plan.model_dump(mode="json"),
             )
 
-        if request.approval_decision != "approve":
+        if self.require_approval and request.approval_decision != "approve":
             plan.status = "pending_approval"
             self._store_plan(plan)
             return OrchestrationResponse(
@@ -475,7 +488,15 @@ class ResponseOrchestrationAgent(BaseAgent):
         for file_path in self.plans_dir.glob("*.yaml"):
             try:
                 payload = yaml.safe_load(file_path.read_text())
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 continue
             if isinstance(payload, dict) and isinstance(payload.get("version"), int):
                 versions.append(payload["version"])
@@ -570,9 +591,11 @@ class ResponseOrchestrationAgent(BaseAgent):
                         "project_risk_level": (
                             "high"
                             if data.get("risk_summary", {}).get("high_risks", 0)
-                            else "medium"
-                            if data.get("risk_summary", {}).get("medium_risks", 0)
-                            else "low"
+                            else (
+                                "medium"
+                                if data.get("risk_summary", {}).get("medium_risks", 0)
+                                else "low"
+                            )
                         ),
                         "task_risks": [
                             {
@@ -731,7 +754,12 @@ class ResponseOrchestrationAgent(BaseAgent):
                     metadata={"agent_id": agent_id, "attempt": attempt + 1},
                 )
                 if endpoint:
-                    self.logger.info("Invoking agent via HTTP: %s -> %s", agent_id, endpoint, extra={"agent_id": agent_id, "endpoint": endpoint})
+                    self.logger.info(
+                        "Invoking agent via HTTP: %s -> %s",
+                        agent_id,
+                        endpoint,
+                        extra={"agent_id": agent_id, "endpoint": endpoint},
+                    )
                     headers = inject_trace_headers({})
                     headers["X-Correlation-ID"] = correlation_id
                     response = await self.http_client.post(endpoint, json=payload, headers=headers)
@@ -751,7 +779,9 @@ class ResponseOrchestrationAgent(BaseAgent):
                     if isinstance(data, dict) and data.get("success") is False:
                         raise RuntimeError(data.get("error") or "Local agent execution failed")
                 else:
-                    self.logger.info("Invoking agent via event bus: %s", agent_id, extra={"agent_id": agent_id})
+                    self.logger.info(
+                        "Invoking agent via event bus: %s", agent_id, extra={"agent_id": agent_id}
+                    )
                     data = {
                         "message": f"Event published for {agent_id}",
                         "parameters": parameters,
@@ -779,9 +809,19 @@ class ResponseOrchestrationAgent(BaseAgent):
             except (httpx.TimeoutException, TimeoutError):
                 last_error = "Agent timeout"
                 self.logger.warning("Agent %s timed out", agent_id, extra={"agent_id": agent_id})
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as e:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as e:
                 last_error = str(e)
-                self.logger.error("Error invoking agent %s: %s", agent_id, e, extra={"agent_id": agent_id})
+                self.logger.error(
+                    "Error invoking agent %s: %s", agent_id, e, extra={"agent_id": agent_id}
+                )
 
             attempt += 1
             if attempt <= self.max_retries:
@@ -914,8 +954,10 @@ class ResponseOrchestrationAgent(BaseAgent):
         return "Summary of agent responses:\n" + "\n".join(summary_lines)
 
     def _initialize_cache_backend(self) -> None:
-        if self.cache_backend and hasattr(self.cache_backend, "get") and hasattr(
-            self.cache_backend, "set"
+        if (
+            self.cache_backend
+            and hasattr(self.cache_backend, "get")
+            and hasattr(self.cache_backend, "set")
         ):
             self.logger.info("Cache backend configured", extra={"backend": str(self.cache_backend)})
         else:
@@ -927,12 +969,28 @@ class ResponseOrchestrationAgent(BaseAgent):
                 loaded = self.agent_registry_loader()
                 if isinstance(loaded, dict):
                     self.agent_registry.update(loaded)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - defensive
                 self.logger.warning("Agent registry loader failed", exc_info=exc)
         if self.agent_registry_path:
             try:
                 registry_payload = json.loads(Path(self.agent_registry_path).read_text())
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - defensive
                 self.logger.warning("Agent registry path could not be read", exc_info=exc)
                 return
             if isinstance(registry_payload, dict):
@@ -953,7 +1011,15 @@ class ResponseOrchestrationAgent(BaseAgent):
         if self.cache_backend:
             try:
                 cached = self.cache_backend.get(cache_key)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):  # pragma: no cover - defensive
                 cached = None
             if cached:
                 self._cache_hits.add(1)
@@ -974,7 +1040,15 @@ class ResponseOrchestrationAgent(BaseAgent):
             try:
                 self.cache_backend.set(cache_key, result, ttl=self.cache_ttl)
                 return
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):  # pragma: no cover - defensive
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):  # pragma: no cover - defensive
                 pass
         if self.cache_max_entries and len(self._cache) >= self.cache_max_entries:
             self._cache.pop(next(iter(self._cache)), None)

@@ -1,0 +1,87 @@
+{
+  "tenant-process": {
+    "proc-1": {
+      "process_id": "proc-1",
+      "model": {
+        "activities": [
+          "start"
+        ],
+        "transitions": [],
+        "algorithm": "heuristic_miner"
+      },
+      "bpmn": {
+        "type": "bpmn",
+        "start_events": [
+          {
+            "id": "start-start",
+            "name": "Start",
+            "outgoing": "start"
+          }
+        ],
+        "end_events": [
+          {
+            "id": "end-start",
+            "name": "End",
+            "incoming": "start"
+          }
+        ],
+        "tasks": [
+          {
+            "id": "start",
+            "name": "start",
+            "type": "task"
+          }
+        ],
+        "sequence_flows": []
+      },
+      "petri_net": {
+        "type": "petri_net",
+        "places": [
+          {
+            "id": "p_start"
+          },
+          {
+            "id": "p_end"
+          }
+        ],
+        "transitions": [
+          {
+            "id": "start",
+            "label": "start"
+          }
+        ],
+        "arcs": [
+          {
+            "from": "p_start",
+            "to": "start"
+          },
+          {
+            "from": "start",
+            "to": "p_end"
+          }
+        ]
+      },
+      "algorithm": "heuristic_miner",
+      "metrics": {
+        "median_cycle_time": 0.0,
+        "throughput": 1,
+        "activity_count": 1,
+        "avg_waiting_time": 0.0
+      },
+      "visualization": {
+        "type": "process_map",
+        "nodes": [
+          "start"
+        ],
+        "edges": [],
+        "metrics_overlay": {
+          "median_cycle_time": 0.0,
+          "throughput": 1,
+          "activity_count": 1,
+          "avg_waiting_time": 0.0
+        }
+      },
+      "discovered_at": "2026-02-22T03:23:01.890903+00:00"
+    }
+  }
+}

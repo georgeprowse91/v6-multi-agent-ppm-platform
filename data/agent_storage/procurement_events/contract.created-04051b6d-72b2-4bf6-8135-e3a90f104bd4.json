@@ -1,0 +1,82 @@
+{
+  "event_id": "contract.created-04051b6d-72b2-4bf6-8135-e3a90f104bd4",
+  "event_type": "contract.created",
+  "entity_id": "CTR-20260222052538",
+  "payload": {
+    "contract": {
+      "contract_id": "CTR-20260222052538",
+      "vendor_id": "VND-20260222052538",
+      "project_id": "project-1",
+      "type": "standard",
+      "start_date": "2024-01-01",
+      "end_date": "2024-12-31",
+      "value": 20000,
+      "currency": "AUD",
+      "terms": {},
+      "obligations": [],
+      "slas": [],
+      "renewal_options": null,
+      "key_clauses": {
+        "term": "2024-01-01 to 2024-12-31",
+        "value": "20000"
+      },
+      "attachments": [],
+      "status": "Draft",
+      "created_at": "2026-02-22T05:25:38.959434+00:00",
+      "created_by": "system",
+      "signature_workflow": {
+        "status": "Pending Signatures",
+        "method": "manual",
+        "requested_at": "2026-02-22T05:25:38.959451+00:00",
+        "signatories": []
+      },
+      "document": {
+        "document_id": "DOC-20260222052538",
+        "title": "Contract CTR-20260222052538",
+        "url": "/sites/default/Documents/Procurement/Contracts/Contract CTR-20260222052538",
+        "status": "published_mock",
+        "published_at": "2026-02-22T05:25:38.959601+00:00"
+      },
+      "_id": "CTR-20260222052538",
+      "_updated_at": "2026-02-22T05:25:38.960414+00:00"
+    },
+    "connector_results": [
+      {
+        "connector": "sap_ariba",
+        "status": "skipped",
+        "method": "create_contract",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "coupa",
+        "status": "skipped",
+        "method": "create_contract",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "oracle_procurement",
+        "status": "skipped",
+        "method": "create_contract",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "dynamics_365",
+        "status": "skipped",
+        "method": "create_contract",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "erp_ap",
+        "status": "skipped",
+        "method": "create_contract",
+        "detail": "Connector not available or method not supported."
+      }
+    ]
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "a68ab57e-2920-42ce-a703-db2f55cb8efc",
+  "actor_id": "system",
+  "timestamp": "2026-02-22T05:25:38.960845+00:00",
+  "_id": "contract.created-04051b6d-72b2-4bf6-8135-e3a90f104bd4",
+  "_updated_at": "2026-02-22T05:25:38.961766+00:00"
+}

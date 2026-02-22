@@ -1,0 +1,12 @@
+{
+  "control_id": "string",
+  "regulation_id": "string",
+  "description": "string",
+  "owner": "string",
+  "control_type": "string",
+  "requirements": "list[string]",
+  "evidence_requirements": "list[string]",
+  "test_frequency": "string",
+  "_id": "control_requirements",
+  "_updated_at": "2026-02-22T06:02:07.152904+00:00"
+}

@@ -10,20 +10,24 @@ from typing import Any, cast
 
 import httpx
 import jwt
+
 try:
     from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 except ModuleNotFoundError:  # pragma: no cover - fallback for constrained local smoke envs
+
     class RSAPublicKey:  # type: ignore[no-redef]
         pass
+
+
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
+from security.errors import error_payload
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
 from security.config import load_yaml
-from security.errors import error_payload
 
 logger = logging.getLogger("api-gateway-security")
 
@@ -437,7 +441,9 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
             claims = await _validate_jwt(token)
         except HTTPException as exc:
             message = exc.detail if isinstance(exc.detail, str) else "Request failed"
-            payload = error_payload(message=message, code=f"http_{exc.status_code}", details=exc.detail)
+            payload = error_payload(
+                message=message, code=f"http_{exc.status_code}", details=exc.detail
+            )
             return JSONResponse(status_code=exc.status_code, content=payload)
 
         roles_claim = os.getenv("IDENTITY_ROLES_CLAIM", "roles")
@@ -453,7 +459,9 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(status_code=403, content=payload)
         if claim_tenant != tenant_id:
-            payload = error_payload(message="Tenant mismatch", code="http_403", details="Tenant mismatch")
+            payload = error_payload(
+                message="Tenant mismatch", code="http_403", details="Tenant mismatch"
+            )
             return JSONResponse(status_code=403, content=payload)
 
         auth_context = AuthContext(

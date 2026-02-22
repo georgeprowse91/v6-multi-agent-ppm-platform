@@ -19,7 +19,7 @@ if str(SDK_PATH) not in sys.path:
 
 from base_connector import ConnectorCategory, ConnectorConfig
 from rest_connector import OAuth2RestConnector
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 
 DEFAULT_GRAPH_URL = "https://graph.microsoft.com/v1.0"
 DEFAULT_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token"

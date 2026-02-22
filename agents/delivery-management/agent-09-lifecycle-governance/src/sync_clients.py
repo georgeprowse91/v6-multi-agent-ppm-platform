@@ -61,18 +61,32 @@ class ExternalSyncService:
             self._sync_connector("azure_devops", self.azure_devops, payload),
         ]
 
-    def _sync_connector(self, name: str, connector: Any | None, payload: dict[str, Any]) -> SyncOutcome:
+    def _sync_connector(
+        self, name: str, connector: Any | None, payload: dict[str, Any]
+    ) -> SyncOutcome:
         if connector is None:
             return SyncOutcome(system=name, status="skipped", details={"reason": "not_configured"})
         write = getattr(connector, "write", None)
         if not callable(write):
-            return SyncOutcome(system=name, status="skipped", details={"reason": "write_not_supported"})
+            return SyncOutcome(
+                system=name, status="skipped", details={"reason": "write_not_supported"}
+            )
         try:
             response = write("lifecycle_gate", payload)
             return SyncOutcome(system=name, status="synced", details={"response": response})
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             if self.logger:
-                self.logger.warning("External sync failed", extra={"system": name, "error": str(exc)})
+                self.logger.warning(
+                    "External sync failed", extra={"system": name, "error": str(exc)}
+                )
             return SyncOutcome(system=name, status="failed", details={"error": str(exc)})
 
     def close(self) -> None:

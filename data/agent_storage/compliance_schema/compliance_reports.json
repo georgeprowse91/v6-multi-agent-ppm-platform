@@ -1,0 +1,9 @@
+{
+  "report_id": "string",
+  "report_type": "string",
+  "framework": "string",
+  "generated_at": "string",
+  "report_url": "string",
+  "_id": "compliance_reports",
+  "_updated_at": "2026-02-22T06:02:07.154507+00:00"
+}

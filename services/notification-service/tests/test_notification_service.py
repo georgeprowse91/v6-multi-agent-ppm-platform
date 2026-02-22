@@ -52,7 +52,9 @@ def test_send_notification(monkeypatch) -> None:
         "channel": "stdout",
         "recipient": "morgan@ppm.georgeprowse91.com",
     }
-    response = client.post("/v1/notifications/send", json=payload, headers=_auth_headers(monkeypatch))
+    response = client.post(
+        "/v1/notifications/send", json=payload, headers=_auth_headers(monkeypatch)
+    )
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "delivered"

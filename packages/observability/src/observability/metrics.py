@@ -12,11 +12,13 @@ from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExp
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
+
 try:
     from prometheus_client import Counter, Histogram
 except ModuleNotFoundError:  # pragma: no cover - optional dependency
+
     class _NoopPromMetric:
-        def labels(self, *_args: object, **_kwargs: object) -> "_NoopPromMetric":
+        def labels(self, *_args: object, **_kwargs: object) -> _NoopPromMetric:
             return self
 
         def inc(self, *_args: object, **_kwargs: object) -> None:
@@ -25,11 +27,13 @@ except ModuleNotFoundError:  # pragma: no cover - optional dependency
         def observe(self, *_args: object, **_kwargs: object) -> None:
             return None
 
-    def Counter(*_args: object, **_kwargs: object) -> _NoopPromMetric:  # type: ignore[misc]
+    def Counter(*_args: object, **_kwargs: object) -> _NoopPromMetric:  # noqa: N802
         return _NoopPromMetric()
 
-    def Histogram(*_args: object, **_kwargs: object) -> _NoopPromMetric:  # type: ignore[misc]
+    def Histogram(*_args: object, **_kwargs: object) -> _NoopPromMetric:  # noqa: N802
         return _NoopPromMetric()
+
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response

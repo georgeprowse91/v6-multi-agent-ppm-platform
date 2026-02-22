@@ -1,0 +1,37 @@
+# Production environment configuration
+# All sensitive values must use secret references (env:, file:, ${}, keyvault://)
+
+environment: production
+
+database:
+  connection_string: env:DATABASE_CONNECTION_STRING
+  pool_size: 10
+  max_overflow: 20
+
+redis:
+  connection_string: env:REDIS_CONNECTION_STRING
+
+azure_service_bus:
+  connection_string: env:AZURE_SERVICE_BUS_CONNECTION_STRING
+
+openai:
+  api_key: env:OPENAI_API_KEY
+  model: gpt-4o
+
+azure_openai:
+  api_key: env:AZURE_OPENAI_API_KEY
+  endpoint: env:AZURE_OPENAI_ENDPOINT
+
+auth:
+  jwt_secret: env:IDENTITY_JWT_SECRET
+  oidc_client_secret: env:OIDC_CLIENT_SECRET
+
+storage:
+  connection_string: env:AZURE_STORAGE_CONNECTION_STRING
+  account_key: keyvault://ppm-prod-vault/secrets/storage-account-key
+
+monitoring:
+  instrumentation_key: env:APPLICATIONINSIGHTS_CONNECTION_STRING
+
+feature_flags:
+  client_id: env:FEATURE_FLAGS_CLIENT_ID

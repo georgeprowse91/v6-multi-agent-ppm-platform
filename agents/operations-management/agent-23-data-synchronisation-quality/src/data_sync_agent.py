@@ -96,8 +96,6 @@ class InMemorySecretContext:
         return dict(self._values)
 
 
-
-
 class DataSyncAgent(BaseAgent):
     """
     Data Synchronization & Consistency Agent - Manages data synchronization across systems.
@@ -132,12 +130,8 @@ class DataSyncAgent(BaseAgent):
             if config
             else "last_write_wins"
         )
-        self.authoritative_sources = (
-            config.get("authoritative_sources", {}) if config else {}
-        )
-        self.sync_event_webhook_url = (
-            config.get("sync_event_webhook_url") if config else None
-        )
+        self.authoritative_sources = config.get("authoritative_sources", {}) if config else {}
+        self.sync_event_webhook_url = config.get("sync_event_webhook_url") if config else None
         self.sync_event_webhook_timeout = (
             config.get("sync_event_webhook_timeout", 5.0) if config else 5.0
         )
@@ -241,10 +235,18 @@ class DataSyncAgent(BaseAgent):
         self.quality_records: list[dict[str, Any]] = []
         self.sync_logs: list[dict[str, Any]] = []
         self.sync_state_store = TenantStateStore(
-            Path(config.get("sync_state_store_path", "data/sync_state.json") if config else "data/sync_state.json")
+            Path(
+                config.get("sync_state_store_path", "data/sync_state.json")
+                if config
+                else "data/sync_state.json"
+            )
         )
         self.retry_queue_store = TenantStateStore(
-            Path(config.get("retry_queue_store_path", "data/sync_retry_queue.json") if config else "data/sync_retry_queue.json")
+            Path(
+                config.get("retry_queue_store_path", "data/sync_retry_queue.json")
+                if config
+                else "data/sync_retry_queue.json"
+            )
         )
         self.max_retry_attempts = config.get("max_retry_attempts", 3) if config else 3
         self.log_analytics_client: Any | None = None
@@ -317,7 +319,7 @@ class DataSyncAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "sync_data":
@@ -476,7 +478,7 @@ class DataSyncAgent(BaseAgent):
         Returns sync status and master record ID.
         """
         sync_started_at = datetime.now(timezone.utc)
-        self.logger.info(f"Synchronizing {entity_type} from {source_system}")
+        self.logger.info("Synchronizing %s from %s", entity_type, source_system)
         await self._record_sync_log(
             tenant_id=tenant_id,
             entity_type=entity_type,
@@ -576,9 +578,7 @@ class DataSyncAgent(BaseAgent):
 
         try:
             # Transform data using mapping rules
-            transformed_data = await self._transform_data(
-                entity_type, mapped_data, source_system
-            )
+            transformed_data = await self._transform_data(entity_type, mapped_data, source_system)
             await self._run_etl_workflows(tenant_id, entity_type, transformed_data, source_system)
 
             # Check for existing master record
@@ -595,9 +595,7 @@ class DataSyncAgent(BaseAgent):
                 master_id = existing_master.get("master_id")
             else:
                 # Create new master record
-                result = await self._create_master_record(
-                    tenant_id, entity_type, transformed_data
-                )
+                result = await self._create_master_record(tenant_id, entity_type, transformed_data)
                 master_id = result.get("master_id")
 
             # Record sync event
@@ -656,7 +654,15 @@ class DataSyncAgent(BaseAgent):
                 "action": "updated" if existing_master else "created",
                 "latency_seconds": latency_seconds,
             }
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             await self._enqueue_retry(
                 tenant_id,
                 entity_type,
@@ -751,7 +757,15 @@ class DataSyncAgent(BaseAgent):
         for record in records:
             try:
                 result = await self._sync_data(tenant_id, entity_type, record, source_system)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 result = {"status": "failed", "error": str(exc)}
             results.append(result)
 
@@ -850,7 +864,15 @@ class DataSyncAgent(BaseAgent):
                 records = connector.read_changes(entity_type, cursor=cursor, filters=filters)
                 new_cursor = getattr(connector, "last_cursor", None)
                 return records, new_cursor
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 self.logger.warning("cdc_fetch_failed", extra={"error": str(exc)})
 
         query_filters = dict(filters)
@@ -880,7 +902,15 @@ class DataSyncAgent(BaseAgent):
                 return connector.read(entity_type, filters=filters)
             except TypeError:
                 return connector.read(entity_type)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 self.logger.warning(
                     "connector_read_failed",
                     extra={"entity_type": entity_type, "error": str(exc)},
@@ -895,7 +925,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns master record ID.
         """
-        self.logger.info(f"Creating master record for {entity_type}")
+        self.logger.info("Creating master record for %s", entity_type)
 
         # Generate master ID
         master_id = await self._generate_master_id(entity_type)
@@ -935,7 +965,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns update confirmation.
         """
-        self.logger.info(f"Updating master record: {master_id}")
+        self.logger.info("Updating master record: %s", master_id)
 
         master_record = self.master_records.get(master_id)
         if not master_record:
@@ -983,7 +1013,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns detected conflicts.
         """
-        self.logger.info(f"Detecting conflicts for master record: {master_id}")
+        self.logger.info("Detecting conflicts for master record: %s", master_id)
 
         # Get conflicts for this master record
         record_conflicts = [
@@ -1006,7 +1036,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns resolution result.
         """
-        self.logger.info(f"Resolving conflict: {conflict_id}")
+        self.logger.info("Resolving conflict: %s", conflict_id)
 
         conflict = self.conflicts.get(conflict_id)
         if not conflict:
@@ -1049,7 +1079,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns duplicate candidates.
         """
-        self.logger.info(f"Detecting duplicates for entity type: {entity_type}")
+        self.logger.info("Detecting duplicates for entity type: %s", entity_type)
 
         # Get all master records of this type
         type_records = [
@@ -1090,7 +1120,7 @@ class DataSyncAgent(BaseAgent):
             raise ValueError("Decision must be 'approved' or 'rejected'")
 
         if decision_value == "rejected":
-            self.logger.info(f"Merge decision rejected for {primary_id}")
+            self.logger.info("Merge decision rejected for %s", primary_id)
             if self.duplicate_resolution_enabled:
                 self._emit_merge_decision_audit(
                     decision=decision_value,
@@ -1108,7 +1138,7 @@ class DataSyncAgent(BaseAgent):
                 "decision": "rejected",
             }
 
-        self.logger.info(f"Merging {len(master_ids)} duplicates into {primary_id}")
+        self.logger.info("Merging %s duplicates into %s", len(master_ids), primary_id)
 
         if primary_id not in master_ids:
             raise ValueError("Primary ID must be in the list of master IDs")
@@ -1201,7 +1231,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns validation results.
         """
-        self.logger.info(f"Validating {entity_type} data")
+        self.logger.info("Validating %s data", entity_type)
 
         errors = []
         warnings = []
@@ -1237,7 +1267,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns mapping rule ID.
         """
-        self.logger.info(f"Defining mapping: {mapping_config.get('name')}")
+        self.logger.info("Defining mapping: %s", mapping_config.get("name"))
 
         # Generate mapping ID
         mapping_id = await self._generate_mapping_id()
@@ -1318,9 +1348,7 @@ class DataSyncAgent(BaseAgent):
         """Expose latency metrics and event bus statistics."""
         records = [record for record in self.latency_records if record["tenant_id"] == tenant_id]
         avg_latency = (
-            sum(record["latency_seconds"] for record in records) / len(records)
-            if records
-            else 0.0
+            sum(record["latency_seconds"] for record in records) / len(records) if records else 0.0
         )
         return {
             "tenant_id": tenant_id,
@@ -1335,7 +1363,7 @@ class DataSyncAgent(BaseAgent):
 
         Returns master record data.
         """
-        self.logger.info(f"Retrieving master record: {master_id}")
+        self.logger.info("Retrieving master record: %s", master_id)
 
         master_record = self.master_records.get(master_id)
         if not master_record:
@@ -1358,7 +1386,11 @@ class DataSyncAgent(BaseAgent):
     # Helper methods
 
     def _load_validation_rules(self) -> dict[str, list[dict[str, Any]]]:
-        rules_path = Path(self.config.get("validation_rules_path", "config/agent-23/validation_rules.yaml")) if self.config else Path("config/agent-23/validation_rules.yaml")
+        rules_path = (
+            Path(self.config.get("validation_rules_path", "config/agent-23/validation_rules.yaml"))
+            if self.config
+            else Path("config/agent-23/validation_rules.yaml")
+        )
         if not rules_path.exists():
             return {}
         try:
@@ -1367,14 +1399,15 @@ class DataSyncAgent(BaseAgent):
         except (OSError, yaml.YAMLError) as exc:
             self.logger.warning("validation_rules_load_failed", extra={"error": str(exc)})
             return {}
-        return {
-            key: value if isinstance(value, list) else []
-            for key, value in payload.items()
-        }
+        return {key: value if isinstance(value, list) else [] for key, value in payload.items()}
 
     def _load_quality_thresholds(self) -> dict[str, float | dict[str, float]]:
         thresholds_path = (
-            Path(self.config.get("quality_thresholds_path", "config/agent-23/quality_thresholds.yaml"))
+            Path(
+                self.config.get(
+                    "quality_thresholds_path", "config/agent-23/quality_thresholds.yaml"
+                )
+            )
             if self.config
             else Path("config/agent-23/quality_thresholds.yaml")
         )
@@ -1398,7 +1431,9 @@ class DataSyncAgent(BaseAgent):
                 }
         return thresholds
 
-    def _load_schema_registry(self) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]]:
+    def _load_schema_registry(
+        self,
+    ) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]]:
         registry_path = (
             Path(self.config.get("schema_registry_path", "config/agent-23/schema_registry.yaml"))
             if self.config
@@ -1422,9 +1457,7 @@ class DataSyncAgent(BaseAgent):
             version = entry.get("version", "1.0")
             if entity_type and isinstance(schema, dict):
                 registry[entity_type] = schema
-                versions.setdefault(entity_type, []).append(
-                    {"version": version, "schema": schema}
-                )
+                versions.setdefault(entity_type, []).append({"version": version, "schema": schema})
         return registry, versions
 
     def _load_mapping_rules(self) -> list[dict[str, Any]]:
@@ -1482,8 +1515,7 @@ class DataSyncAgent(BaseAgent):
         rules = [
             rule
             for rule in self.transformation_rules
-            if rule.get("entity_type") == entity_type
-            and rule.get("source_system") == source_system
+            if rule.get("entity_type") == entity_type and rule.get("source_system") == source_system
         ]
         if not rules:
             return data
@@ -1519,9 +1551,7 @@ class DataSyncAgent(BaseAgent):
         completeness_score, consistency_score, timeliness_score, age_seconds = (
             self._compute_quality_dimensions(entity_type, validation_result)
         )
-        quality_score = (
-            completeness_score + consistency_score + timeliness_score
-        ) / 3
+        quality_score = (completeness_score + consistency_score + timeliness_score) / 3
         record = {
             "tenant_id": tenant_id,
             "entity_type": entity_type,
@@ -1542,9 +1572,7 @@ class DataSyncAgent(BaseAgent):
         await self._store_quality_report(tenant_id, entity_type)
         await self._evaluate_quality_thresholds(tenant_id, entity_type)
 
-    async def _get_quality_report(
-        self, tenant_id: str, entity_type: str | None
-    ) -> dict[str, Any]:
+    async def _get_quality_report(self, tenant_id: str, entity_type: str | None) -> dict[str, Any]:
         records = [
             record
             for record in self.quality_records
@@ -1565,15 +1593,9 @@ class DataSyncAgent(BaseAgent):
             else 0.0
         )
         avg_timeliness = (
-            sum(record.get("timeliness_score", 0.0) for record in records) / total
-            if total
-            else 0.0
+            sum(record.get("timeliness_score", 0.0) for record in records) / total if total else 0.0
         )
-        quality_score = (
-            (avg_completeness + avg_consistency + avg_timeliness) / 3
-            if total
-            else 0.0
-        )
+        quality_score = (avg_completeness + avg_consistency + avg_timeliness) / 3 if total else 0.0
         return {
             "tenant_id": tenant_id,
             "entity_type": entity_type,
@@ -1670,7 +1692,15 @@ class DataSyncAgent(BaseAgent):
                 )
                 successes += 1
                 self.retry_queue_store.delete(tenant_id, retry_id)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 payload["attempts"] = attempts + 1
                 payload["last_attempt_at"] = datetime.now(timezone.utc).isoformat()
                 self.retry_queue_store.upsert(tenant_id, retry_id, payload)
@@ -1698,7 +1728,15 @@ class DataSyncAgent(BaseAgent):
             )
             self.retry_queue_store.delete(tenant_id, retry_id)
             return {"retry_id": retry_id, "status": "success"}
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             payload["attempts"] = payload.get("attempts", 0) + 1
             payload["last_attempt_at"] = datetime.now(timezone.utc).isoformat()
             payload["last_error"] = str(exc)
@@ -1723,7 +1761,9 @@ class DataSyncAgent(BaseAgent):
             if last_synced:
                 try:
                     last_synced_dt = datetime.fromisoformat(last_synced)
-                    lag_seconds.append((datetime.now(timezone.utc) - last_synced_dt).total_seconds())
+                    lag_seconds.append(
+                        (datetime.now(timezone.utc) - last_synced_dt).total_seconds()
+                    )
                 except ValueError:
                     continue
         average_lag = sum(lag_seconds) / len(lag_seconds) if lag_seconds else 0.0
@@ -1736,7 +1776,11 @@ class DataSyncAgent(BaseAgent):
         }
 
     def _load_pipeline_config(self) -> tuple[list[str], list[str]]:
-        config_path = Path(self.config.get("pipeline_config_path", "config/agent-23/pipelines.yaml")) if self.config else Path("config/agent-23/pipelines.yaml")
+        config_path = (
+            Path(self.config.get("pipeline_config_path", "config/agent-23/pipelines.yaml"))
+            if self.config
+            else Path("config/agent-23/pipelines.yaml")
+        )
         if not config_path.exists():
             return [], []
         try:
@@ -1785,7 +1829,15 @@ class DataSyncAgent(BaseAgent):
                 continue
             try:
                 secret = client.get_secret(secret_name)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - network dependent
                 self.logger.warning(
                     "keyvault_secret_unavailable",
                     extra={"secret": secret_name, "error": str(exc)},
@@ -1800,14 +1852,22 @@ class DataSyncAgent(BaseAgent):
     async def _initialize_connectors(self) -> None:
         _ensure_connector_paths()
         try:
-            from base_connector import ConnectorCategory, ConnectorConfig
             from azure_devops_connector import AzureDevOpsConnector
+            from base_connector import ConnectorCategory, ConnectorConfig
             from jira_connector import JiraConnector
             from planview_connector import PlanviewConnector
             from sap_connector import SapConnector
             from smartsheet_connector import SmartsheetConnector
             from workday_connector import WorkdayConnector
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("connector_import_failed", extra={"error": str(exc)})
             return
 
@@ -1823,7 +1883,15 @@ class DataSyncAgent(BaseAgent):
                 instance_url=self._get_setting("PLANVIEW_INSTANCE_URL", "") or "",
             )
             self.connectors["planview"] = PlanviewConnector(planview_config)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("planview_connector_failed", extra={"error": str(exc)})
         try:
             sap_config = ConnectorConfig(
@@ -1833,7 +1901,15 @@ class DataSyncAgent(BaseAgent):
                 instance_url=self._get_setting("SAP_URL", "") or "",
             )
             self.connectors["sap"] = SapConnector(sap_config)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("sap_connector_failed", extra={"error": str(exc)})
         try:
             jira_config = ConnectorConfig(
@@ -1843,7 +1919,15 @@ class DataSyncAgent(BaseAgent):
                 instance_url=self._get_setting("JIRA_INSTANCE_URL", "") or "",
             )
             self.connectors["jira"] = JiraConnector(jira_config)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("jira_connector_failed", extra={"error": str(exc)})
         try:
             workday_config = ConnectorConfig(
@@ -1853,7 +1937,15 @@ class DataSyncAgent(BaseAgent):
                 instance_url=self._get_setting("WORKDAY_API_URL", "") or "",
             )
             self.connectors["workday"] = WorkdayConnector(workday_config)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("workday_connector_failed", extra={"error": str(exc)})
         try:
             smartsheet_config = ConnectorConfig(
@@ -1863,7 +1955,15 @@ class DataSyncAgent(BaseAgent):
                 instance_url=self._get_setting("SMARTSHEET_API_URL", "") or "",
             )
             self.connectors["smartsheet"] = SmartsheetConnector(smartsheet_config)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("smartsheet_connector_failed", extra={"error": str(exc)})
         try:
             ado_config = ConnectorConfig(
@@ -1873,7 +1973,15 @@ class DataSyncAgent(BaseAgent):
                 instance_url=self._get_setting("AZURE_DEVOPS_ORG_URL", "") or "",
             )
             self.connectors["azure_devops"] = AzureDevOpsConnector(ado_config)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("azure_devops_connector_failed", extra={"error": str(exc)})
 
     async def _initialize_service_bus(self) -> None:
@@ -1896,7 +2004,15 @@ class DataSyncAgent(BaseAgent):
             self.service_bus_topic_sender = self.service_bus_client.get_topic_sender(
                 topic_name=self.service_bus_topic_name
             )
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - network dependent
             self.logger.warning("service_bus_sender_unavailable", extra={"error": str(exc)})
 
     async def _initialize_event_grid(self) -> None:
@@ -1933,7 +2049,15 @@ class DataSyncAgent(BaseAgent):
                         factory_name=factory_name,
                         pipeline_name=pipeline_name,
                     )
-                except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+                except (
+                    ConnectionError,
+                    TimeoutError,
+                    ValueError,
+                    KeyError,
+                    TypeError,
+                    RuntimeError,
+                    OSError,
+                ) as exc:  # pragma: no cover - network dependent
                     self.logger.warning(
                         "data_factory_pipeline_unavailable",
                         extra={"pipeline": pipeline_name, "error": str(exc)},
@@ -1969,7 +2093,11 @@ class DataSyncAgent(BaseAgent):
             return
         message = ServiceBusMessage(
             json.dumps(
-                {"topic": topic, "payload": payload, "published_at": datetime.now(timezone.utc).isoformat()},
+                {
+                    "topic": topic,
+                    "payload": payload,
+                    "published_at": datetime.now(timezone.utc).isoformat(),
+                },
                 default=str,
             )
         )
@@ -1977,13 +2105,29 @@ class DataSyncAgent(BaseAgent):
             try:  # pragma: no cover - network dependent
                 async with self.service_bus_topic_sender:
                     await self.service_bus_topic_sender.send_messages(message)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - network dependent
                 self.logger.warning("service_bus_topic_publish_failed", extra={"error": str(exc)})
         if self.service_bus_queue_sender:
             try:  # pragma: no cover - network dependent
                 async with self.service_bus_queue_sender:
                     await self.service_bus_queue_sender.send_messages(message)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - network dependent
                 self.logger.warning("service_bus_queue_publish_failed", extra={"error": str(exc)})
 
     async def _publish_event_grid_event(self, topic: str, payload: dict[str, Any]) -> None:
@@ -1999,7 +2143,15 @@ class DataSyncAgent(BaseAgent):
         }
         try:  # pragma: no cover - network dependent
             await self.event_grid_client.send([event])
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - network dependent
             self.logger.warning("event_grid_publish_failed", extra={"error": str(exc)})
 
     def _is_duplicate_record(self, tenant_id: str, entity_type: str, data: dict[str, Any]) -> bool:
@@ -2079,7 +2231,15 @@ class DataSyncAgent(BaseAgent):
                         "payload": payload,
                     },
                 )
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - network dependent
                 self.logger.warning(
                     "data_factory_pipeline_trigger_failed",
                     extra={"pipeline": pipeline_name, "error": str(exc)},
@@ -2120,7 +2280,9 @@ class DataSyncAgent(BaseAgent):
         if not self.log_analytics_client:
             return
         rule_id = self._get_setting("LOG_ANALYTICS_RULE_ID")
-        stream_name = self._get_setting("LOG_ANALYTICS_STREAM_NAME", "DataSyncLatency") or "DataSyncLatency"
+        stream_name = (
+            self._get_setting("LOG_ANALYTICS_STREAM_NAME", "DataSyncLatency") or "DataSyncLatency"
+        )
         if not rule_id:
             return
         try:
@@ -2129,14 +2291,25 @@ class DataSyncAgent(BaseAgent):
                 stream_name=stream_name,
                 logs=[record],
             )
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - network dependent
             self.logger.warning("log_analytics_upload_failed", extra={"error": str(exc)})
 
     async def _ingest_quality_metric(self, record: dict[str, Any]) -> None:
         if not self.log_analytics_client:
             return
         rule_id = self._get_setting("LOG_ANALYTICS_RULE_ID")
-        stream_name = self._get_setting("LOG_ANALYTICS_QUALITY_STREAM_NAME", "DataQualityMetrics") or "DataQualityMetrics"
+        stream_name = (
+            self._get_setting("LOG_ANALYTICS_QUALITY_STREAM_NAME", "DataQualityMetrics")
+            or "DataQualityMetrics"
+        )
         if not rule_id:
             return
         try:
@@ -2145,7 +2318,15 @@ class DataSyncAgent(BaseAgent):
                 stream_name=stream_name,
                 logs=[record],
             )
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - network dependent
             self.logger.warning("log_analytics_quality_upload_failed", extra={"error": str(exc)})
 
     async def _generate_master_id(self, entity_type: str) -> str:
@@ -2487,7 +2668,9 @@ class DataSyncAgent(BaseAgent):
                 extra={"url": self.sync_event_webhook_url},
             )
 
-    def _get_transformation_rules(self, entity_type: str, source_system: str) -> list[dict[str, Any]]:
+    def _get_transformation_rules(
+        self, entity_type: str, source_system: str
+    ) -> list[dict[str, Any]]:
         rules = []
         for rule in self.transformation_rules:
             if rule.get("entity_type") != entity_type:
@@ -2551,9 +2734,7 @@ class DataSyncAgent(BaseAgent):
         conflicts: list[dict[str, Any]],
     ) -> dict[str, Any]:
         resolved = new_data.copy()
-        new_timestamp = self._extract_timestamp(new_data) or self._extract_timestamp(
-            master_record
-        )
+        new_timestamp = self._extract_timestamp(new_data) or self._extract_timestamp(master_record)
         current_timestamp = self._extract_timestamp(master_record)
         if new_timestamp and current_timestamp and new_timestamp < current_timestamp:
             for conflict in conflicts:
@@ -2599,7 +2780,11 @@ class DataSyncAgent(BaseAgent):
             raw = payload.get(key)
             if isinstance(raw, str):
                 try:
-                    return datetime.fromisoformat(raw)
+                    dt = datetime.fromisoformat(raw)
+                    # Ensure timezone-aware so arithmetic with datetime.now(utc) works.
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    return dt
                 except ValueError:
                     continue
         return None
@@ -2611,11 +2796,7 @@ class DataSyncAgent(BaseAgent):
         required_fields = self._get_required_fields(entity_type)
         completeness_score = 1.0
         if required_fields:
-            present = sum(
-                1
-                for field in required_fields
-                if data.get(field) not in (None, "", [])
-            )
+            present = sum(1 for field in required_fields if data.get(field) not in (None, "", []))
             completeness_score = present / len(required_fields)
 
         error_count = len(validation_result.get("errors", []))
@@ -2750,9 +2931,7 @@ class DataSyncAgent(BaseAgent):
             previous_row = current_row
         return previous_row[-1]
 
-    def _add_duplicate_pair(
-        self, groups: list[set[str]], left_id: str, right_id: str
-    ) -> None:
+    def _add_duplicate_pair(self, groups: list[set[str]], left_id: str, right_id: str) -> None:
         left_group = None
         right_group = None
         for group in groups:

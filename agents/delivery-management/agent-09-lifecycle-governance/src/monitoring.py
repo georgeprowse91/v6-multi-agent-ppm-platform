@@ -33,7 +33,8 @@ class AzureMonitorClient:
         )
         if self.logger:
             self.logger.info(
-                "Workflow started", extra={"workflow": workflow_name, "workflow_id": context.workflow_id}
+                "Workflow started",
+                extra={"workflow": workflow_name, "workflow_id": context.workflow_id},
             )
 
     def workflow_completed(
@@ -59,7 +60,11 @@ class AzureMonitorClient:
         if self.logger:
             self.logger.info(
                 "Workflow completed",
-                extra={"workflow": workflow_name, "workflow_id": context.workflow_id, "duration_s": duration},
+                extra={
+                    "workflow": workflow_name,
+                    "workflow_id": context.workflow_id,
+                    "duration_s": duration,
+                },
             )
         if duration > self.delay_threshold_s:
             self.raise_alert(
@@ -82,18 +87,28 @@ class AzureMonitorClient:
         if self.logger:
             self.logger.warning(
                 "Workflow failed",
-                extra={"workflow": workflow_name, "workflow_id": context.workflow_id, "error": str(exc)},
+                extra={
+                    "workflow": workflow_name,
+                    "workflow_id": context.workflow_id,
+                    "error": str(exc),
+                },
             )
-        self.raise_alert("workflow.failure", f"Workflow {workflow_name} failed", metadata=record.metadata)
+        self.raise_alert(
+            "workflow.failure", f"Workflow {workflow_name} failed", metadata=record.metadata
+        )
 
     def raise_alert(self, name: str, message: str, metadata: dict[str, Any]) -> None:
         record = MonitorRecord(name=name, status="alert", metadata={"message": message, **metadata})
         self.records.append(record)
         if self.logger:
-            self.logger.error("Azure Monitor alert", extra={"alert": name, "message": message, **metadata})
+            self.logger.error(
+                "Azure Monitor alert", extra={"alert": name, "alert_message": message, **metadata}
+            )
 
     def record_metric(self, name: str, value: float, metadata: dict[str, Any]) -> None:
         record = MonitorRecord(name=name, status="metric", metadata={"value": value, **metadata})
         self.records.append(record)
         if self.logger:
-            self.logger.info("Azure Monitor metric", extra={"metric": name, "value": value, **metadata})
+            self.logger.info(
+                "Azure Monitor metric", extra={"metric": name, "value": value, **metadata}
+            )

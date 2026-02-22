@@ -70,7 +70,7 @@ class IntakeRequest(BaseModel):
     decision: IntakeDecisionRecord | None = None
 
     @classmethod
-    def build(cls, payload: IntakeRequestCreate) -> "IntakeRequest":
+    def build(cls, payload: IntakeRequestCreate) -> IntakeRequest:
         timestamp = utc_now()
         return cls(
             request_id=str(uuid4()),

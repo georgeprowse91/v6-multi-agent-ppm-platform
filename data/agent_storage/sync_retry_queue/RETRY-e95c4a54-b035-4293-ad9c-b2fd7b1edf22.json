@@ -1,0 +1,15 @@
+{
+  "retry_id": "RETRY-e95c4a54-b035-4293-ad9c-b2fd7b1edf22",
+  "tenant_id": "tenant-sync",
+  "entity_type": "project",
+  "source_system": "jira",
+  "data": {
+    "id": "proj-9",
+    "name": "Retry Project"
+  },
+  "reason": "validation_failed",
+  "attempts": 0,
+  "queued_at": "2026-02-22T05:09:30.915628+00:00",
+  "_id": "RETRY-e95c4a54-b035-4293-ad9c-b2fd7b1edf22",
+  "_updated_at": "2026-02-22T05:09:30.916316+00:00"
+}

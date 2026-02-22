@@ -87,7 +87,9 @@ TEMPLATES_PATH = REPO_ROOT / "apps/web/data/templates.json"
 
 
 def slugify(value: str) -> str:
-    return "-".join("".join(ch.lower() if ch.isalnum() else " " for ch in value).split()) or "unknown"
+    return (
+        "-".join("".join(ch.lower() if ch.isalnum() else " " for ch in value).split()) or "unknown"
+    )
 
 
 def friendly_label(value: str) -> str:
@@ -111,13 +113,20 @@ def parse_methodologies(raw_methodologies: list[dict[str, Any]]) -> list[DemoMet
                 DemoActivity(id=str(activity["activity_id"]), name=str(activity["activity_name"]))
                 for activity in stage.get("activities", [])
             ]
-            stages.append(DemoStage(id=str(stage["id"]), name=str(stage["name"]), activities=stage_activities))
-        methodologies.append(DemoMethodology(id=str(method["id"]), name=str(method["name"]), stages=stages))
+            stages.append(
+                DemoStage(id=str(stage["id"]), name=str(stage["name"]), activities=stage_activities)
+            )
+        methodologies.append(
+            DemoMethodology(id=str(method["id"]), name=str(method["name"]), stages=stages)
+        )
     return methodologies
 
 
 def load_conversation_scenarios() -> list[Scenario]:
-    return [Scenario(id=path.stem, label=friendly_label(path.stem)) for path in sorted(CONVERSATIONS_DIR.glob("*.json"))]
+    return [
+        Scenario(id=path.stem, label=friendly_label(path.stem))
+        for path in sorted(CONVERSATIONS_DIR.glob("*.json"))
+    ]
 
 
 def parse_agent_capabilities() -> list[AgentCapability]:
@@ -184,7 +193,10 @@ def load_methodology_activity_details() -> dict[str, dict[str, str]]:
                 if not activity_id:
                     continue
                 details[activity_id] = {
-                    "description": str(activity.get("description") or f"Deliver {activity.get('name', activity_id)} outcomes."),
+                    "description": str(
+                        activity.get("description")
+                        or f"Deliver {activity.get('name', activity_id)} outcomes."
+                    ),
                     "canvas_type": str(activity.get("canvasType") or "document"),
                     "status": str(activity.get("status") or "not_started"),
                 }
@@ -223,7 +235,9 @@ class DemoDataHub:
             if key in DATASET_FILES:
                 self._payloads[key] = json.loads(DATASET_FILES[key].read_text(encoding="utf-8"))
             else:
-                self._payloads[key] = json.loads((CONVERSATIONS_DIR / f"{key}.json").read_text(encoding="utf-8"))
+                self._payloads[key] = json.loads(
+                    (CONVERSATIONS_DIR / f"{key}.json").read_text(encoding="utf-8")
+                )
         return self._payloads[key]
 
     def _record(self, view: str, dataset_keys: list[str]) -> None:
@@ -291,7 +305,9 @@ class DemoDataHub:
                 projects.append(
                     {
                         "id": f"demo-project-{i:02d}",
-                        "name": ["Phoenix Modernization", "Atlas Migration", "Nova Compliance"][i - 1],
+                        "name": ["Phoenix Modernization", "Atlas Migration", "Nova Compliance"][
+                            i - 1
+                        ],
                         "status": ["In Progress", "At Risk", "Planning"][i - 1],
                         "owner": ["R. Chen", "A. Thomas", "P. Iyer"][i - 1],
                         "program_id": "demo-program-01",
@@ -339,7 +355,9 @@ class DemoDataHub:
 
     def normalized_agent_catalog(self) -> list[dict[str, Any]]:
         self._record("Agents", ["demo_run_log"])
-        run_agents = {str(run.get("agent_id")): run for run in self.load("demo_run_log").get("agents", [])}
+        run_agents = {
+            str(run.get("agent_id")): run for run in self.load("demo_run_log").get("agents", [])
+        }
         capabilities = parse_agent_capabilities()
         rows: list[dict[str, Any]] = []
         for idx, capability in enumerate(capabilities, start=1):
@@ -384,21 +402,30 @@ class DemoDataHub:
             rows.append(
                 {
                     "artifact_id": f"artifact-{idx:03d}",
-                    "artifact_type": ["status_report", "timeline", "decision_log", "risk_register"][idx % 4],
+                    "artifact_type": ["status_report", "timeline", "decision_log", "risk_register"][
+                        idx % 4
+                    ],
                     "project_id": "demo-project-01",
                     "status": lifecycle,
                     "required_approvals": 2,
                     "approved_count": 2 if lifecycle in {"approved", "published"} else 1,
                     "publish_ready": lifecycle in {"approved", "published"},
                     "audit_event_id": f"audit-lifecycle-{idx:03d}",
-                    "linked_approval": approvals[idx % len(approvals)].get("title", "Gate approval") if approvals else "Gate approval",
+                    "linked_approval": (
+                        approvals[idx % len(approvals)].get("title", "Gate approval")
+                        if approvals
+                        else "Gate approval"
+                    ),
                     "agent_id": run.get("agent_id", "agent-01"),
                 }
             )
         return rows
 
     def normalized_dashboard(self) -> dict[str, Any]:
-        self._record("Dashboard", ["portfolio_health", "lifecycle_metrics", "workflow_monitoring", "approvals"])
+        self._record(
+            "Dashboard",
+            ["portfolio_health", "lifecycle_metrics", "workflow_monitoring", "approvals"],
+        )
         return {
             "health": self.load("portfolio_health"),
             "lifecycle": self.load("lifecycle_metrics"),
@@ -412,7 +439,9 @@ class DemoDataHub:
         base = self.load("approvals").get("approvals", [])
         rows: list[dict[str, Any]] = []
         for item in base:
-            rows.append({"title": item.get("title", "Untitled"), "approvers": item.get("approvers", "N/A")})
+            rows.append(
+                {"title": item.get("title", "Untitled"), "approvers": item.get("approvers", "N/A")}
+            )
         for item in seed_approvals:
             rows.append(
                 {
@@ -509,7 +538,9 @@ def get_data_hub() -> DemoDataHub:
     return DemoDataHub()
 
 
-def find_methodology(methodologies: list[DemoMethodology], method_id: str) -> DemoMethodology | None:
+def find_methodology(
+    methodologies: list[DemoMethodology], method_id: str
+) -> DemoMethodology | None:
     return next((m for m in methodologies if m.id == method_id), None)
 
 
@@ -517,8 +548,6 @@ def find_stage(method: DemoMethodology | None, stage_id: str) -> DemoStage | Non
     if method is None:
         return None
     return next((s for s in method.stages if s.id == stage_id), None)
-
-
 
 
 def inject_demo_styles() -> None:
@@ -564,6 +593,7 @@ def render_global_context_bar() -> None:
         )
     )
 
+
 def sync_methodology_state(hub: DemoDataHub) -> None:
     try:
         methodologies = hub.methodologies()
@@ -596,7 +626,9 @@ def sync_methodology_state(hub: DemoDataHub) -> None:
     if st.session_state.get("selected_activity_id") not in activity_ids:
         st.session_state["selected_activity_id"] = activity_ids[0]
 
-    activity = next((a for a in stage.activities if a.id == st.session_state["selected_activity_id"]), None)
+    activity = next(
+        (a for a in stage.activities if a.id == st.session_state["selected_activity_id"]), None
+    )
     if activity is None:
         st.error("Selected activity is invalid for the selected stage.")
         st.stop()
@@ -604,8 +636,6 @@ def sync_methodology_state(hub: DemoDataHub) -> None:
     st.session_state["selected_methodology_name"] = method.name
     st.session_state["selected_stage_name"] = stage.name
     st.session_state["selected_activity_name"] = activity.name
-
-
 
 
 def render_scenario_selectors_sidebar(hub: DemoDataHub) -> None:
@@ -619,7 +649,9 @@ def render_scenario_selectors_sidebar(hub: DemoDataHub) -> None:
         "Methodology",
         method_ids,
         index=method_ids.index(st.session_state["selected_methodology_id"]),
-        format_func=lambda method_id: next((m.name for m in methodologies if m.id == method_id), method_id),
+        format_func=lambda method_id: next(
+            (m.name for m in methodologies if m.id == method_id), method_id
+        ),
     )
     sync_methodology_state(hub)
 
@@ -629,7 +661,9 @@ def render_scenario_selectors_sidebar(hub: DemoDataHub) -> None:
         "Stage",
         stage_ids,
         index=stage_ids.index(st.session_state["selected_stage_id"]),
-        format_func=lambda stage_id: next((s.name for s in selected_method.stages if s.id == stage_id), stage_id),
+        format_func=lambda stage_id: next(
+            (s.name for s in selected_method.stages if s.id == stage_id), stage_id
+        ),
     )
     sync_methodology_state(hub)
 
@@ -639,9 +673,12 @@ def render_scenario_selectors_sidebar(hub: DemoDataHub) -> None:
         "Activity",
         activity_ids,
         index=activity_ids.index(st.session_state["selected_activity_id"]),
-        format_func=lambda activity_id: next((a.name for a in selected_stage.activities if a.id == activity_id), activity_id),
+        format_func=lambda activity_id: next(
+            (a.name for a in selected_stage.activities if a.id == activity_id), activity_id
+        ),
     )
     sync_methodology_state(hub)
+
 
 def scenario_restart(script: list[dict[str, str]]) -> None:
     st.session_state["assistant_messages"] = []
@@ -753,10 +790,14 @@ def handle_chip(chip: Chip, outbox: DemoOutbox) -> None:
             st.session_state["selected_activity_id"] = activity_id
     elif chip.action == "COMPLETE_ACTIVITY":
         stage_id = str(payload.get("stage_id") or st.session_state.get("selected_stage_id") or "")
-        activity_id = str(payload.get("activity_id") or st.session_state.get("selected_activity_id") or "")
+        activity_id = str(
+            payload.get("activity_id") or st.session_state.get("selected_activity_id") or ""
+        )
         if activity_id:
             st.session_state["completed_activity_ids"].add(activity_id)
-            append_outbox_event(outbox, "activity.completed", {"stage_id": stage_id, "activity_id": activity_id})
+            append_outbox_event(
+                outbox, "activity.completed", {"stage_id": stage_id, "activity_id": activity_id}
+            )
     elif chip.action == "GENERATE_ARTIFACT":
         artifact_type = str(payload.get("artifact_type") or "status_report")
         artifact_format = str(payload.get("artifact_format") or "md")
@@ -788,14 +829,24 @@ def get_action_chips() -> list[Chip]:
         Chip(
             label="Open selected activity",
             action="OPEN_ACTIVITY",
-            payload={"stage_id": st.session_state.get("selected_stage_id"), "activity_id": st.session_state.get("selected_activity_id")},
+            payload={
+                "stage_id": st.session_state.get("selected_stage_id"),
+                "activity_id": st.session_state.get("selected_activity_id"),
+            },
         ),
         Chip(
             label="Complete current activity",
             action="COMPLETE_ACTIVITY",
-            payload={"stage_id": st.session_state.get("selected_stage_id"), "activity_id": st.session_state.get("selected_activity_id")},
+            payload={
+                "stage_id": st.session_state.get("selected_stage_id"),
+                "activity_id": st.session_state.get("selected_activity_id"),
+            },
         ),
-        Chip(label="Generate status report", action="GENERATE_ARTIFACT", payload={"artifact_type": "status_report", "artifact_format": "md"}),
+        Chip(
+            label="Generate status report",
+            action="GENERATE_ARTIFACT",
+            payload={"artifact_type": "status_report", "artifact_format": "md"},
+        ),
     ]
 
 
@@ -838,9 +889,15 @@ def build_agent_invocation_response(agent: dict[str, Any], prompt: str) -> str:
 def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
     st.subheader("Assistant")
     context_cols = st.columns(2)
-    context_cols[0].markdown(f"**Project:** {st.session_state.get('selected_project') or 'Not selected'}")
-    context_cols[0].markdown(f"**Stage:** {st.session_state.get('selected_stage_name') or 'Not selected'}")
-    context_cols[1].markdown(f"**Activity:** {st.session_state.get('selected_activity_name') or 'Not selected'}")
+    context_cols[0].markdown(
+        f"**Project:** {st.session_state.get('selected_project') or 'Not selected'}"
+    )
+    context_cols[0].markdown(
+        f"**Stage:** {st.session_state.get('selected_stage_name') or 'Not selected'}"
+    )
+    context_cols[1].markdown(
+        f"**Activity:** {st.session_state.get('selected_activity_name') or 'Not selected'}"
+    )
     context_cols[1].markdown(f"**Status:** {st.session_state.get('selected_outcome')}")
 
     st.caption("Action chips")
@@ -850,7 +907,11 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             handle_chip(chip, outbox)
             sync_methodology_state(hub)
 
-    st.session_state["selected_outcome"] = st.selectbox("Scenario outcome", ["on_track", "at_risk", "off_track"], index=["on_track", "at_risk", "off_track"].index(st.session_state["selected_outcome"]))
+    st.session_state["selected_outcome"] = st.selectbox(
+        "Scenario outcome",
+        ["on_track", "at_risk", "off_track"],
+        index=["on_track", "at_risk", "off_track"].index(st.session_state["selected_outcome"]),
+    )
 
     scenarios = load_conversation_scenarios()
     scenario_ids = [s.id for s in scenarios]
@@ -900,21 +961,44 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
     if c_generate.button("Generate", use_container_width=True):
         response, provenance = choose_assistant_response(hub, prompt)
         st.session_state["assistant_messages"].append({"role": "user", "content": prompt})
-        st.session_state["assistant_messages"].append({"role": "assistant", "content": response, "provenance": provenance})
+        st.session_state["assistant_messages"].append(
+            {"role": "assistant", "content": response, "provenance": provenance}
+        )
 
-        selected_agent = next((row for row in agent_catalog if row["agent_id"] == st.session_state.get("selected_invocation_agent")), None)
+        selected_agent = next(
+            (
+                row
+                for row in agent_catalog
+                if row["agent_id"] == st.session_state.get("selected_invocation_agent")
+            ),
+            None,
+        )
         if selected_agent:
             invocation = build_agent_invocation_response(selected_agent, prompt)
-            st.session_state["assistant_messages"].append({"role": "assistant", "content": invocation, "provenance": "agent.invocation"})
-            append_outbox_event(outbox, "assistant.agent_invocation", {"agent_id": selected_agent["agent_id"], "prompt": prompt})
+            st.session_state["assistant_messages"].append(
+                {"role": "assistant", "content": invocation, "provenance": "agent.invocation"}
+            )
+            append_outbox_event(
+                outbox,
+                "assistant.agent_invocation",
+                {"agent_id": selected_agent["agent_id"], "prompt": prompt},
+            )
 
     if c_all.button("Run all 25 agents", use_container_width=True):
-        st.session_state["assistant_messages"].append({"role": "user", "content": "Run complete platform invocation across all agents."})
+        st.session_state["assistant_messages"].append(
+            {"role": "user", "content": "Run complete platform invocation across all agents."}
+        )
         for row in agent_catalog:
             st.session_state["assistant_messages"].append(
-                {"role": "assistant", "content": build_agent_invocation_response(row, prompt), "provenance": "agent.invocation"}
+                {
+                    "role": "assistant",
+                    "content": build_agent_invocation_response(row, prompt),
+                    "provenance": "agent.invocation",
+                }
             )
-        append_outbox_event(outbox, "assistant.agent_invocation.bulk", {"count": len(agent_catalog)})
+        append_outbox_event(
+            outbox, "assistant.agent_invocation.bulk", {"count": len(agent_catalog)}
+        )
 
     artifact = st.session_state.get("assistant_last_artifact")
     if artifact:
@@ -929,7 +1013,9 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
     st.caption("Transcript")
     for msg in st.session_state["assistant_messages"]:
         provenance = f" _(source: {msg.get('provenance')})_" if msg.get("provenance") else ""
-        st.markdown(f"**{msg.get('role', 'assistant').capitalize()}:** {msg.get('content', '')}{provenance}")
+        st.markdown(
+            f"**{msg.get('role', 'assistant').capitalize()}:** {msg.get('content', '')}{provenance}"
+        )
 
 
 def render_feature_flags_panel() -> None:
@@ -943,13 +1029,19 @@ def render_feature_flags_panel() -> None:
         "multi_agent_collab",
         "multimodal_intake",
     ]:
-        st.session_state["feature_flags"][flag] = st.sidebar.checkbox(flag, value=bool(st.session_state["feature_flags"].get(flag, False)))
+        st.session_state["feature_flags"][flag] = st.sidebar.checkbox(
+            flag, value=bool(st.session_state["feature_flags"].get(flag, False))
+        )
 
 
 def render_provenance(hub: DemoDataHub, view_name: str) -> None:
     st.subheader("Data provenance")
     keys = hub.provenance.get(view_name, [])
-    rows = [{"dataset": key, "file": str(DATASET_FILES[key].relative_to(REPO_ROOT))} for key in keys if key in DATASET_FILES]
+    rows = [
+        {"dataset": key, "file": str(DATASET_FILES[key].relative_to(REPO_ROOT))}
+        for key in keys
+        if key in DATASET_FILES
+    ]
     st.dataframe(rows, hide_index=True, use_container_width=True)
 
 
@@ -964,12 +1056,36 @@ def render_home(hub: DemoDataHub) -> None:
     st.subheader("Parity status against web console demo")
     st.dataframe(
         [
-            {"gap_area": "Collections pages", "status": "Closed", "streamlit_surface": "Collections"},
-            {"gap_area": "Intake to project routing", "status": "Closed", "streamlit_surface": "Intake"},
-            {"gap_area": "Agent profile/test/run", "status": "Closed", "streamlit_surface": "Agent Gallery"},
-            {"gap_area": "Analytics what-if/export", "status": "Closed", "streamlit_surface": "Analytics What-If"},
-            {"gap_area": "Artifact lifecycle board", "status": "Closed", "streamlit_surface": "Artifact Lifecycle"},
-            {"gap_area": "Approval type split", "status": "Closed", "streamlit_surface": "Approvals"},
+            {
+                "gap_area": "Collections pages",
+                "status": "Closed",
+                "streamlit_surface": "Collections",
+            },
+            {
+                "gap_area": "Intake to project routing",
+                "status": "Closed",
+                "streamlit_surface": "Intake",
+            },
+            {
+                "gap_area": "Agent profile/test/run",
+                "status": "Closed",
+                "streamlit_surface": "Agent Gallery",
+            },
+            {
+                "gap_area": "Analytics what-if/export",
+                "status": "Closed",
+                "streamlit_surface": "Analytics What-If",
+            },
+            {
+                "gap_area": "Artifact lifecycle board",
+                "status": "Closed",
+                "streamlit_surface": "Artifact Lifecycle",
+            },
+            {
+                "gap_area": "Approval type split",
+                "status": "Closed",
+                "streamlit_surface": "Approvals",
+            },
         ],
         hide_index=True,
         use_container_width=True,
@@ -984,7 +1100,9 @@ def render_workspace(hub: DemoDataHub) -> None:
     if project_ids:
         if not st.session_state["selected_project"]:
             st.session_state["selected_project"] = project_ids[0]
-        st.session_state["selected_project"] = st.selectbox("Project", project_ids, index=project_ids.index(st.session_state["selected_project"]))
+        st.session_state["selected_project"] = st.selectbox(
+            "Project", project_ids, index=project_ids.index(st.session_state["selected_project"])
+        )
 
     methodologies = hub.methodologies()
     selected_method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
@@ -1008,20 +1126,36 @@ def render_workspace(hub: DemoDataHub) -> None:
             }
         )
         for activity in stage.activities:
-            all_activities.append({"stage_id": stage.id, "stage_name": stage.name, "activity_id": activity.id, "activity_name": activity.name})
+            all_activities.append(
+                {
+                    "stage_id": stage.id,
+                    "stage_name": stage.name,
+                    "activity_id": activity.id,
+                    "activity_name": activity.name,
+                }
+            )
 
-    stage_filter = st.text_input("Filter stages or activities", key="workspace_filter", placeholder="Type to narrow methodology map")
+    stage_filter = st.text_input(
+        "Filter stages or activities",
+        key="workspace_filter",
+        placeholder="Type to narrow methodology map",
+    )
     if stage_filter.strip():
         token = stage_filter.strip().lower()
         stage_rows = [
-            row for row in stage_rows
+            row
+            for row in stage_rows
             if token in row["stage_name"].lower() or token in row["activities"].lower()
         ]
     st.dataframe(stage_rows, hide_index=True, use_container_width=True)
 
     if st.button("Run full methodology walkthrough", use_container_width=True):
-        st.session_state["completed_activity_ids"].update({row["activity_id"] for row in all_activities})
-        st.success(f"Completed walkthrough across {len(all_activities)} activities in this methodology.")
+        st.session_state["completed_activity_ids"].update(
+            {row["activity_id"] for row in all_activities}
+        )
+        st.success(
+            f"Completed walkthrough across {len(all_activities)} activities in this methodology."
+        )
 
     activity_map = {f"{row['stage_name']} · {row['activity_name']}": row for row in all_activities}
     if activity_map:
@@ -1049,7 +1183,11 @@ def render_workspace(hub: DemoDataHub) -> None:
         st.markdown(details.get("description", "Description unavailable in local fixtures."))
         d1, d2 = st.columns(2)
         d1.markdown("**Associated artifacts**")
-        d1.dataframe([{"artifact": name} for name in artifact_names], hide_index=True, use_container_width=True)
+        d1.dataframe(
+            [{"artifact": name} for name in artifact_names],
+            hide_index=True,
+            use_container_width=True,
+        )
         d2.markdown("**Attributes**")
         d2.json(attributes)
 
@@ -1134,7 +1272,11 @@ def render_demo_run(hub: DemoDataHub, engine: DemoRunEngine, outbox: DemoOutbox)
                         "stage": stage.name,
                         "activity_id": activity.id,
                         "activity": activity.name,
-                        "status": "completed" if activity.id in st.session_state.get("completed_activity_ids", set()) else "ready",
+                        "status": (
+                            "completed"
+                            if activity.id in st.session_state.get("completed_activity_ids", set())
+                            else "ready"
+                        ),
                     }
                 )
     st.dataframe(walkthrough_rows, hide_index=True, use_container_width=True)
@@ -1148,7 +1290,13 @@ def render_demo_run(hub: DemoDataHub, engine: DemoRunEngine, outbox: DemoOutbox)
 
     st.subheader("Demo outbox")
     outbox_state = outbox.read()
-    st.json({"demo_run_events": len(outbox_state.get("demo_run_events", [])), "assistant_actions": len(outbox_state.get("assistant_actions", [])), "audit_events": len(outbox_state.get("audit_events", []))})
+    st.json(
+        {
+            "demo_run_events": len(outbox_state.get("demo_run_events", [])),
+            "assistant_actions": len(outbox_state.get("assistant_actions", [])),
+            "audit_events": len(outbox_state.get("audit_events", [])),
+        }
+    )
     render_provenance(hub, "Demo Run")
 
 
@@ -1158,8 +1306,6 @@ def render_agent_runs(hub: DemoDataHub, engine: DemoRunEngine) -> None:
     st.metric("Completed agent runs", len(completed))
     st.metric("Queued agent runs", len(queued))
     st.dataframe(completed[-10:], hide_index=True, use_container_width=True)
-
-
 
 
 def render_collections(hub: DemoDataHub) -> None:
@@ -1173,7 +1319,9 @@ def render_collections(hub: DemoDataHub) -> None:
     collection_type = st.session_state.get("collection_type", "projects")
     rows = entities.get(collection_type, [])
 
-    search = st.text_input("Search by id, name, status, owner", value=st.session_state.get("collection_search", ""))
+    search = st.text_input(
+        "Search by id, name, status, owner", value=st.session_state.get("collection_search", "")
+    )
     st.session_state["collection_search"] = search
     lowered = search.lower().strip()
     if lowered:
@@ -1222,7 +1370,17 @@ def render_agent_gallery(hub: DemoDataHub, outbox: DemoOutbox) -> None:
     st.metric("Total registered agents", len(rows))
     search = st.text_input("Filter agents", value="")
     lowered = search.lower().strip()
-    visible = rows if not lowered else [r for r in rows if lowered in r["agent_id"].lower() or lowered in r["capability"].lower() or lowered in r.get("domain", "").lower()]
+    visible = (
+        rows
+        if not lowered
+        else [
+            r
+            for r in rows
+            if lowered in r["agent_id"].lower()
+            or lowered in r["capability"].lower()
+            or lowered in r.get("domain", "").lower()
+        ]
+    )
     st.dataframe(visible, hide_index=True, use_container_width=True)
     if not visible:
         return
@@ -1237,8 +1395,16 @@ def render_agent_gallery(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             "name": row["name"],
             "capability": row["capability"],
             "config_history": [
-                {"version": row["version"], "changed_by": "platform-admin", "changed_at": "2026-02-14T10:00:00Z"},
-                {"version": "v1.0", "changed_by": "platform-admin", "changed_at": "2026-01-20T09:30:00Z"},
+                {
+                    "version": row["version"],
+                    "changed_by": "platform-admin",
+                    "changed_at": "2026-02-14T10:00:00Z",
+                },
+                {
+                    "version": "v1.0",
+                    "changed_by": "platform-admin",
+                    "changed_at": "2026-01-20T09:30:00Z",
+                },
             ],
         }
     )
@@ -1264,7 +1430,14 @@ def render_agent_gallery(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             "audit_event_id": f"audit-run-{uuid4().hex[:8]}",
         }
         append_outbox_event(outbox, "agent.run", run_event)
-        outbox.append("audit_events", {"event_id": run_event["audit_event_id"], "action": "agent.run", "resource_id": row["agent_id"]})
+        outbox.append(
+            "audit_events",
+            {
+                "event_id": run_event["audit_event_id"],
+                "action": "agent.run",
+                "resource_id": row["agent_id"],
+            },
+        )
         st.success("Agent run recorded and visible in audit trail.")
         st.json(run_event)
 
@@ -1277,8 +1450,18 @@ def render_analytics_advanced(hub: DemoDataHub, outbox: DemoOutbox) -> None:
     st.dataframe(dashboard["health"].get("kpis", []), hide_index=True, use_container_width=True)
 
     st.subheader("What-if modeling")
-    b = st.slider("Budget delta (%)", min_value=-30, max_value=30, value=int(st.session_state.get("what_if_budget_delta", 0)))
-    s_delta = st.slider("Scope delta (%)", min_value=-30, max_value=30, value=int(st.session_state.get("what_if_scope_delta", 0)))
+    b = st.slider(
+        "Budget delta (%)",
+        min_value=-30,
+        max_value=30,
+        value=int(st.session_state.get("what_if_budget_delta", 0)),
+    )
+    s_delta = st.slider(
+        "Scope delta (%)",
+        min_value=-30,
+        max_value=30,
+        value=int(st.session_state.get("what_if_scope_delta", 0)),
+    )
     st.session_state["what_if_budget_delta"] = b
     st.session_state["what_if_scope_delta"] = s_delta
 
@@ -1320,8 +1503,12 @@ def render_artifact_lifecycle(hub: DemoDataHub) -> None:
     st.header("Artifact Lifecycle Board")
     rows = hub.normalized_artifact_lifecycle()
     st.dataframe(rows, hide_index=True, use_container_width=True)
-    selected_status = st.selectbox("Filter status", options=["all", "generated", "in_review", "approved", "published"])
-    filtered = rows if selected_status == "all" else [r for r in rows if r["status"] == selected_status]
+    selected_status = st.selectbox(
+        "Filter status", options=["all", "generated", "in_review", "approved", "published"]
+    )
+    filtered = (
+        rows if selected_status == "all" else [r for r in rows if r["status"] == selected_status]
+    )
     st.caption(f"Showing {len(filtered)} artifacts")
     st.dataframe(filtered, hide_index=True, use_container_width=True)
     blockers = [r for r in filtered if not r.get("publish_ready")]
@@ -1333,9 +1520,15 @@ def render_artifact_lifecycle(hub: DemoDataHub) -> None:
 def render_approvals_advanced(hub: DemoDataHub) -> None:
     st.header("Approvals Queues · Stage Gate / Template / Publish")
     approvals = hub.normalized_intake_requests()
-    approval_type = st.selectbox("Approval type", options=["all", "stage_gate", "template", "publish"])
+    approval_type = st.selectbox(
+        "Approval type", options=["all", "stage_gate", "template", "publish"]
+    )
     st.session_state["selected_approval_type"] = approval_type
-    rows = approvals if approval_type == "all" else [r for r in approvals if r.get("approval_type") == approval_type]
+    rows = (
+        approvals
+        if approval_type == "all"
+        else [r for r in approvals if r.get("approval_type") == approval_type]
+    )
     st.dataframe(rows, hide_index=True, use_container_width=True)
     if rows:
         row = rows[0]
@@ -1343,11 +1536,15 @@ def render_approvals_advanced(hub: DemoDataHub) -> None:
         st.markdown(f"**Request:** {row['request_id']} · **Type:** {row['approval_type']}")
         st.markdown(f"Audit deep-link: `{row['request_id']}-audit`")
     render_provenance(hub, "Intake")
+
+
 def main() -> None:
     st.set_page_config(page_title="PPM Standalone Demo", layout="wide")
     inject_demo_styles()
     st.title("Standalone PPM Demo Mode")
-    st.caption("Local-only mirror of web console demo mode (no backend services, no external calls).")
+    st.caption(
+        "Local-only mirror of web console demo mode (no backend services, no external calls)."
+    )
 
     hub = get_data_hub()
     init_state(hub)
@@ -1379,7 +1576,15 @@ def main() -> None:
 
     if st.session_state.get("active_page") in nav_pages:
         st.session_state["selected_page"] = st.session_state["active_page"]
-    st.session_state["selected_page"] = st.sidebar.radio("Navigation", nav_pages, index=nav_pages.index(st.session_state["selected_page"]) if st.session_state["selected_page"] in nav_pages else 0)
+    st.session_state["selected_page"] = st.sidebar.radio(
+        "Navigation",
+        nav_pages,
+        index=(
+            nav_pages.index(st.session_state["selected_page"])
+            if st.session_state["selected_page"] in nav_pages
+            else 0
+        ),
+    )
     st.session_state["active_page"] = st.session_state["selected_page"]
 
     left, right = st.columns([3, 2], gap="large")

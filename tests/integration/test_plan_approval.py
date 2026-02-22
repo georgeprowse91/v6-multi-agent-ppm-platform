@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import httpx
 import pytest
-
 from response_orchestration_agent import ResponseOrchestrationAgent
+
 from tests.helpers.service_bus import build_test_event_bus
 
 

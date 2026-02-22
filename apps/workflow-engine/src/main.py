@@ -36,6 +36,7 @@ for root in (
         sys.path.insert(0, str(root))
 
 from agent_client import get_agent_client  # noqa: E402
+from common.env_validation import environment_value  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.api_governance import (  # noqa: E402
@@ -53,7 +54,6 @@ from workflow_definitions import (  # noqa: E402
 from workflow_runtime import WorkflowRuntime  # noqa: E402
 from workflow_storage import WorkflowStore, resolve_workflow_storage  # noqa: E402
 
-from common.env_validation import environment_value  # noqa: E402
 from config import validate_startup_config  # noqa: E402
 from packages.version import API_VERSION  # noqa: E402
 
@@ -191,6 +191,7 @@ class WorkflowJournalResponse(BaseModel):
     attempt: int
     details: dict[str, Any]
     created_at: str
+
 
 ROLE_POLICIES = {
     "workflow:manage_definitions": {"workflow_admin", "workflow_editor"},
@@ -660,7 +661,9 @@ async def decide_approval(
 
 
 @api_router.get("/workflows/{run_id}/compensation", response_model=list[WorkflowJournalResponse])
-async def get_compensation_journal(run_id: str, http_request: Request) -> list[WorkflowJournalResponse]:
+async def get_compensation_journal(
+    run_id: str, http_request: Request
+) -> list[WorkflowJournalResponse]:
     _require_roles(http_request, ROLE_POLICIES["workflow:monitor"])
     instance = store.get(run_id)
     if not instance:
@@ -683,9 +686,7 @@ async def retry_compensation(
         raise HTTPException(status_code=403, detail="Tenant mismatch")
     definition = _get_definition(instance.workflow_id)
     actor = request.actor or {"id": http_request.state.auth.subject}
-    updated = await runtime.retry_compensation(
-        instance, definition, actor, step_id=request.step_id
-    )
+    updated = await runtime.retry_compensation(instance, definition, actor, step_id=request.step_id)
     return WorkflowRunResponse(
         run_id=updated.run_id,
         workflow_id=updated.workflow_id,

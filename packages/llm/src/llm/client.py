@@ -12,7 +12,8 @@ from typing import Any
 
 import httpx
 from common.resilience import ResilienceMiddleware, dependency_config_from_env
-from llm.router import LLMRouteRequest, LLMRouter
+
+from llm.router import LLMRouter, LLMRouteRequest
 from llm.types import LLMProviderError, LLMResponse, LLMStreamChunk
 
 
@@ -70,9 +71,16 @@ class SemanticCache:
             return None
         if self.on_hit:
             self.on_hit(tenant_id, key)
-        return LLMResponse(content=response.content, raw=dict(response.raw), provider=response.provider, cache_hit=True)
+        return LLMResponse(
+            content=response.content,
+            raw=dict(response.raw),
+            provider=response.provider,
+            cache_hit=True,
+        )
 
-    def put(self, *, tenant_id: str, system_prompt: str, user_prompt: str, response: LLMResponse) -> None:
+    def put(
+        self, *, tenant_id: str, system_prompt: str, user_prompt: str, response: LLMResponse
+    ) -> None:
         key = self._key(tenant_id=tenant_id, system_prompt=system_prompt, user_prompt=user_prompt)
         self._store[key] = (time.time() + self.ttl_seconds, response)
 
@@ -110,7 +118,7 @@ class ProviderAdapter:
     async def complete(self, *, system_prompt: str, user_prompt: str) -> LLMResponse:
         raise NotImplementedError
 
-    async def stream(self, *, system_prompt: str, user_prompt: str) -> AsyncIterator[LLMStreamChunk]:
+    def stream(self, *, system_prompt: str, user_prompt: str) -> AsyncIterator[LLMStreamChunk]:
         raise NotImplementedError
 
 
@@ -129,11 +137,15 @@ class MockProviderAdapter(ProviderAdapter):
             raw = {"content": content}
         return LLMResponse(content=content, raw=raw, provider=self.name)
 
-    async def stream(self, *, system_prompt: str, user_prompt: str) -> AsyncIterator[LLMStreamChunk]:
+    async def stream(
+        self, *, system_prompt: str, user_prompt: str
+    ) -> AsyncIterator[LLMStreamChunk]:
         response = await self.complete(system_prompt=system_prompt, user_prompt=user_prompt)
         tokens = response.content.split(" ")
         for idx, token in enumerate(tokens):
-            yield LLMStreamChunk(index=idx, delta=token + (" " if idx < len(tokens) - 1 else ""), raw={}, done=False)
+            yield LLMStreamChunk(
+                index=idx, delta=token + (" " if idx < len(tokens) - 1 else ""), raw={}, done=False
+            )
         yield LLMStreamChunk(index=len(tokens), delta="", raw={}, done=True)
 
 
@@ -164,7 +176,9 @@ class OpenAIProviderAdapter(ProviderAdapter):
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
         return LLMResponse(content=content, raw=data, provider=self.name)
 
-    async def stream(self, *, system_prompt: str, user_prompt: str) -> AsyncIterator[LLMStreamChunk]:
+    async def stream(
+        self, *, system_prompt: str, user_prompt: str
+    ) -> AsyncIterator[LLMStreamChunk]:
         url = f"{self.base_url}/chat/completions"
         headers = {"Authorization": f"Bearer {self.api_key}"}
         payload = {
@@ -189,9 +203,7 @@ class OpenAIProviderAdapter(ProviderAdapter):
                         payload_item = json.loads(event)
                     except json.JSONDecodeError:
                         continue
-                    delta = (
-                        payload_item.get("choices", [{}])[0].get("delta", {}).get("content", "")
-                    )
+                    delta = payload_item.get("choices", [{}])[0].get("delta", {}).get("content", "")
                     if not delta:
                         continue
                     yield LLMStreamChunk(index=idx, delta=delta, raw=payload_item, done=False)
@@ -248,7 +260,9 @@ class AzureProviderAdapter(OpenAIProviderAdapter):
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
         return LLMResponse(content=content, raw=data, provider=self.name)
 
-    async def stream(self, *, system_prompt: str, user_prompt: str) -> AsyncIterator[LLMStreamChunk]:
+    async def stream(
+        self, *, system_prompt: str, user_prompt: str
+    ) -> AsyncIterator[LLMStreamChunk]:
         # Azure uses the same streaming payload contract as OpenAI chat completions.
         async for chunk in super().stream(system_prompt=system_prompt, user_prompt=user_prompt):
             yield chunk
@@ -281,7 +295,7 @@ class LLMGateway:
         chain = self.config.get("provider_chain")
         if chain:
             return [str(item).lower() for item in chain]
-        selected = provider or os.getenv("LLM_PROVIDER", "mock")
+        selected = provider or os.getenv("LLM_PROVIDER") or "mock"
         fallbacks = self.config.get("fallbacks", [])
         return [selected.lower(), *[str(item).lower() for item in fallbacks]]
 
@@ -359,7 +373,9 @@ class LLMGateway:
         *,
         tenant_id: str = "default",
     ) -> LLMResponse:
-        return asyncio.run(self.complete(system_prompt=system_prompt, user_prompt=user_prompt, tenant_id=tenant_id))
+        return asyncio.run(
+            self.complete(system_prompt=system_prompt, user_prompt=user_prompt, tenant_id=tenant_id)
+        )
 
     async def stream(
         self,
@@ -378,7 +394,9 @@ class LLMGateway:
 
                 async def _operation() -> list[LLMStreamChunk]:
                     streamed: list[LLMStreamChunk] = []
-                    async for chunk in adapter.stream(system_prompt=system_prompt, user_prompt=user_prompt):
+                    async for chunk in adapter.stream(
+                        system_prompt=system_prompt, user_prompt=user_prompt
+                    ):
                         streamed.append(chunk)
                     return streamed
 
@@ -410,11 +428,9 @@ class LLMGateway:
                 tenant_id=tenant_id,
             )
             try:
-                payload = json.loads(response.content)
+                payload: dict[str, Any] = json.loads(response.content)
             except json.JSONDecodeError:
-                working_prompt = (
-                    f"{user_prompt}\n\nReturn strictly valid JSON. Do not include markdown fences or prose."
-                )
+                working_prompt = f"{user_prompt}\n\nReturn strictly valid JSON. Do not include markdown fences or prose."
                 continue
             if self._schema_valid(payload, schema):
                 return payload
@@ -439,7 +455,9 @@ class LLMGateway:
         estimate = TokenBudgetManager.estimate_tokens(system_prompt, user_prompt)
         self.budget.ensure_budget(tenant_id, estimate)
         if self.cache:
-            cached = self.cache.get(tenant_id=tenant_id, system_prompt=system_prompt, user_prompt=user_prompt)
+            cached = self.cache.get(
+                tenant_id=tenant_id, system_prompt=system_prompt, user_prompt=user_prompt
+            )
             if cached:
                 return cached
 
@@ -460,7 +478,11 @@ class LLMGateway:
                         system_prompt=system_prompt,
                         user_prompt=user_prompt,
                         json_mode=json_mode,
-                        temperature=float(os.getenv("LLM_TEMPERATURE", "0") if temperature is None else temperature),
+                        temperature=float(
+                            os.getenv("LLM_TEMPERATURE", "0")
+                            if temperature is None
+                            else temperature
+                        ),
                         max_tokens=max_tokens,
                     ),
                 )
@@ -476,8 +498,12 @@ class LLMGateway:
                 return response
             except LLMProviderError:
                 if self.config.get("demo_mode"):
-                    mock_adapter = MockProviderAdapter(self.config.get("mock_response") or {"demo": "deterministic"})
-                    return await mock_adapter.complete(system_prompt=system_prompt, user_prompt=user_prompt)
+                    mock_adapter = MockProviderAdapter(
+                        self.config.get("mock_response") or {"demo": "deterministic"}
+                    )
+                    return await mock_adapter.complete(
+                        system_prompt=system_prompt, user_prompt=user_prompt
+                    )
 
         last_error: LLMProviderError | None = None
         for provider_name in self.provider_chain:
@@ -506,7 +532,9 @@ class LLMGateway:
         usage = response.raw.get("usage") if isinstance(response.raw, dict) else None
         if isinstance(usage, dict):
             prompt_tokens = int(usage.get("prompt_tokens", estimate))
-            completion_tokens = int(usage.get("completion_tokens", TokenBudgetManager.estimate_tokens(response.content)))
+            completion_tokens = int(
+                usage.get("completion_tokens", TokenBudgetManager.estimate_tokens(response.content))
+            )
             total_tokens = int(usage.get("total_tokens", prompt_tokens + completion_tokens))
             return TokenUsage(prompt_tokens, completion_tokens, total_tokens)
         completion_tokens = TokenBudgetManager.estimate_tokens(response.content)

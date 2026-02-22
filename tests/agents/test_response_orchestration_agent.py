@@ -150,7 +150,12 @@ async def test_response_orchestration_timeout_failure():
         )
         await agent.initialize()
         result = await agent.process(
-            {"routing": [{"agent_id": "risk-management"}], "parameters": {}, "query": "test", "approval_decision": "approve"}
+            {
+                "routing": [{"agent_id": "risk-management"}],
+                "parameters": {},
+                "query": "test",
+                "approval_decision": "approve",
+            }
         )
         payload = result.model_dump()
 

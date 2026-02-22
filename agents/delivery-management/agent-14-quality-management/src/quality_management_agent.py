@@ -128,9 +128,7 @@ class QualityManagementAgent(BaseAgent):
         self.defect_ml_model: dict[str, Any] | None = None
         self.defect_cluster_model: dict[str, Any] | None = None
         self.calendar_client = (config or {}).get("calendar_client")
-        self.calendar_service = CalendarIntegrationService(
-            (config or {}).get("calendar")
-        )
+        self.calendar_service = CalendarIntegrationService((config or {}).get("calendar"))
         self.approval_agent = (config or {}).get("approval_agent")
         self.approval_agent_config = (config or {}).get("approval_agent_config", {})
         self.approval_agent_enabled = (
@@ -206,7 +204,7 @@ class QualityManagementAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "create_quality_plan":
@@ -214,7 +212,7 @@ class QualityManagementAgent(BaseAgent):
             required_fields = ["project_id", "objectives"]
             for field in required_fields:
                 if field not in plan_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
         elif action == "approve_quality_plan":
             if not input_data.get("plan_id"):
@@ -226,14 +224,14 @@ class QualityManagementAgent(BaseAgent):
             required_fields = ["summary", "severity", "component"]
             for field in required_fields:
                 if field not in defect_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
         elif action == "link_test_case_requirements":
             link_data = input_data.get("link", {})
             required_fields = ["test_case_id", "requirement_ids"]
             for field in required_fields:
                 if field not in link_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
         elif action == "update_test_case_links":
             if not input_data.get("link_id"):
@@ -417,7 +415,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns plan ID and objectives.
         """
-        self.logger.info(f"Creating quality plan for project: {plan_data.get('project_id')}")
+        self.logger.info("Creating quality plan for project: %s", plan_data.get("project_id"))
 
         # Generate plan ID
         plan_id = await self._generate_plan_id()
@@ -540,7 +538,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns metric IDs and thresholds.
         """
-        self.logger.info(f"Defining quality metrics for project: {project_id}")
+        self.logger.info("Defining quality metrics for project: %s", project_id)
 
         defined_metrics = []
 
@@ -586,7 +584,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns test case ID and details.
         """
-        self.logger.info(f"Creating test case: {test_case_data.get('name')}")
+        self.logger.info("Creating test case: %s", test_case_data.get("name"))
 
         # Generate test case ID
         test_case_id = await self._generate_test_case_id()
@@ -660,7 +658,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns suite ID and test count.
         """
-        self.logger.info(f"Creating test suite: {suite_data.get('name')}")
+        self.logger.info("Creating test suite: %s", suite_data.get("name"))
 
         # Generate suite ID
         suite_id = await self._generate_suite_id()
@@ -708,7 +706,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns execution results and coverage.
         """
-        self.logger.info(f"Executing test suite: {execution_data.get('suite_id')}")
+        self.logger.info("Executing test suite: %s", execution_data.get("suite_id"))
 
         suite_id = execution_data.get("suite_id")
         test_suite = self.test_suites.get(suite_id)  # type: ignore
@@ -834,7 +832,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns defect ID and workflow status.
         """
-        self.logger.info(f"Logging defect: {defect_data.get('summary')}")
+        self.logger.info("Logging defect: %s", defect_data.get("summary"))
 
         # Generate defect ID
         defect_id = await self._generate_defect_id()
@@ -864,7 +862,9 @@ class QualityManagementAgent(BaseAgent):
             "resolution": None,
             "logged_at": datetime.now(timezone.utc).isoformat(),
             "logged_by": defect_data.get("logged_by", "unknown"),
-            "status_history": [{"status": "Open", "timestamp": datetime.now(timezone.utc).isoformat()}],
+            "status_history": [
+                {"status": "Open", "timestamp": datetime.now(timezone.utc).isoformat()}
+            ],
         }
 
         # Store defect
@@ -908,7 +908,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns updated defect status.
         """
-        self.logger.info(f"Updating defect: {defect_id}")
+        self.logger.info("Updating defect: %s", defect_id)
 
         defect = self.defects.get(defect_id)
         if not defect:
@@ -963,7 +963,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns review ID and participants.
         """
-        self.logger.info(f"Scheduling review: {review_data.get('title')}")
+        self.logger.info("Scheduling review: %s", review_data.get("title"))
 
         # Generate review ID
         review_id = await self._generate_review_id()
@@ -1028,7 +1028,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns audit findings and scores.
         """
-        self.logger.info(f"Conducting audit: {audit_data.get('title')}")
+        self.logger.info("Conducting audit: %s", audit_data.get("title"))
 
         # Generate audit ID
         audit_id = await self._generate_audit_id()
@@ -1093,7 +1093,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns quality metrics and trends.
         """
-        self.logger.info(f"Calculating quality metrics for project: {project_id}")
+        self.logger.info("Calculating quality metrics for project: %s", project_id)
 
         # Get project defects
         project_defects = [d for d in self.defects.values() if d.get("project_id") == project_id]
@@ -1159,9 +1159,7 @@ class QualityManagementAgent(BaseAgent):
         }
 
         history = self.defect_density_history.setdefault(project_id, [])
-        history.append(
-            {"defect_density": defect_density, "timestamp": metrics["calculated_at"]}
-        )
+        history.append({"defect_density": defect_density, "timestamp": metrics["calculated_at"]})
         metrics_record_id = f"QMET-{project_id}-{metrics['calculated_at']}"
         await self._store_record("quality_metrics", metrics_record_id, metrics)
         await self._publish_quality_event(
@@ -1189,7 +1187,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns trend analysis and patterns.
         """
-        self.logger.info(f"Analyzing defect trends for project: {project_id}")
+        self.logger.info("Analyzing defect trends for project: %s", project_id)
 
         # Get project defects
         project_defects = [d for d in self.defects.values() if d.get("project_id") == project_id]
@@ -1220,7 +1218,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns RCA results and recommendations.
         """
-        self.logger.info(f"Performing RCA on {len(defect_ids)} defects")
+        self.logger.info("Performing RCA on %s defects", len(defect_ids))
 
         # Get defects
         defects_to_analyze = [
@@ -1256,7 +1254,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns dashboard data and visualizations.
         """
-        self.logger.info(f"Getting quality dashboard for project: {project_id}")
+        self.logger.info("Getting quality dashboard for project: %s", project_id)
 
         # Calculate current metrics
         metrics = await self._calculate_metrics(project_id) if project_id else {}
@@ -1276,9 +1274,9 @@ class QualityManagementAgent(BaseAgent):
             "defect_statistics": defect_stats,
             "test_summary": test_summary,
             "recent_audits": recent_audits,
-            "recommendations": metrics.get("improvement_recommendations", [])
-            if isinstance(metrics, dict)
-            else [],
+            "recommendations": (
+                metrics.get("improvement_recommendations", []) if isinstance(metrics, dict) else []
+            ),
             "dashboard_generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -1290,7 +1288,7 @@ class QualityManagementAgent(BaseAgent):
 
         Returns report data.
         """
-        self.logger.info(f"Generating {report_type} quality report")
+        self.logger.info("Generating %s quality report", report_type)
 
         if report_type == "summary":
             report = await self._generate_summary_report(filters)
@@ -1364,9 +1362,7 @@ class QualityManagementAgent(BaseAgent):
     ) -> dict[str, Any]:
         """Create a requirement linkage record for a test case."""
         link_id = f"TRL-{uuid.uuid4().hex[:8]}"
-        requirement_ids = list(
-            {str(req) for req in link_data.get("requirement_ids", []) if req}
-        )
+        requirement_ids = list({str(req) for req in link_data.get("requirement_ids", []) if req})
         requirements = await self._link_to_requirements(
             requirement_ids, project_id=link_data.get("project_id")
         )
@@ -1394,7 +1390,9 @@ class QualityManagementAgent(BaseAgent):
         )
         return link_record
 
-    async def _update_test_case_links(self, link_id: str, updates: dict[str, Any]) -> dict[str, Any]:
+    async def _update_test_case_links(
+        self, link_id: str, updates: dict[str, Any]
+    ) -> dict[str, Any]:
         """Update a requirement linkage record."""
         link_record = self.requirement_links.get(link_id)
         if not link_record:
@@ -1448,9 +1446,7 @@ class QualityManagementAgent(BaseAgent):
         ]
         project_type = str(plan_data.get("project_type", "")).lower()
         if project_type in {"compliance", "regulated"}:
-            baseline.append(
-                {"name": "audit_score", "threshold": 0.9, "unit": "percentage"}
-            )
+            baseline.append({"name": "audit_score", "threshold": 0.9, "unit": "percentage"})
         return baseline
 
     async def _link_to_requirements(
@@ -1694,7 +1690,9 @@ class QualityManagementAgent(BaseAgent):
             }
         )
         coverage_snapshot = await self._fetch_coverage_metrics(project_id)
-        coverage_pct = float(coverage_snapshot.get("coverage_pct", 0.0)) if coverage_snapshot else 0.0
+        coverage_pct = (
+            float(coverage_snapshot.get("coverage_pct", 0.0)) if coverage_snapshot else 0.0
+        )
         coverage_result = "pass" if coverage_pct >= self.min_test_coverage * 100 else "fail"
         checks.append(
             {
@@ -2014,7 +2012,9 @@ class QualityManagementAgent(BaseAgent):
         jira_enabled = self.integration_config.get("jira", {}).get("enabled", True)
         azure_enabled = self.integration_config.get("azure_devops", {}).get("enabled", True)
         jira_key = defect.get("external", {}).get("jira_key") if defect.get("external") else None
-        azure_id = defect.get("external", {}).get("azure_work_item") if defect.get("external") else None
+        azure_id = (
+            defect.get("external", {}).get("azure_work_item") if defect.get("external") else None
+        )
         if action == "create":
             jira_key = jira_key or f"JIRA-{defect.get('defect_id')}"
             azure_id = azure_id or f"ADO-{defect.get('defect_id')}"
@@ -2173,9 +2173,11 @@ class QualityManagementAgent(BaseAgent):
         avg_pass_rate = (passed_tests / total_tests) * 100 if total_tests else 0.0
         latest_execution = max(
             executions,
-            key=lambda item: datetime.fromisoformat(item.get("executed_at"))
-            if item.get("executed_at")
-            else datetime.min,
+            key=lambda item: (
+                datetime.fromisoformat(item.get("executed_at"))
+                if item.get("executed_at")
+                else datetime.min
+            ),
         )
         return {
             "total_executions": len(executions),
@@ -2193,9 +2195,11 @@ class QualityManagementAgent(BaseAgent):
             if not project_id or audit.get("project_id") == project_id
         ]
         audits.sort(
-            key=lambda item: datetime.fromisoformat(item.get("audit_date"))
-            if item.get("audit_date")
-            else datetime.min,
+            key=lambda item: (
+                datetime.fromisoformat(item.get("audit_date"))
+                if item.get("audit_date")
+                else datetime.min
+            ),
             reverse=True,
         )
         return audits[:5]
@@ -2383,9 +2387,7 @@ class QualityManagementAgent(BaseAgent):
             self.db_service = DatabaseStorageService(self.config.get("database"))
         return await self.db_service.store(collection, record_id, data)
 
-    async def _import_test_results(
-        self, execution_data: dict[str, Any]
-    ) -> list[dict[str, Any]]:
+    async def _import_test_results(self, execution_data: dict[str, Any]) -> list[dict[str, Any]]:
         raw_results = execution_data.get("test_results")
         if isinstance(raw_results, list):
             results = raw_results
@@ -2451,7 +2453,9 @@ class QualityManagementAgent(BaseAgent):
             "jira_xray": self.integration_config.get("jira_xray", {}).get("enabled", True),
             "testrail": self.integration_config.get("testrail", {}).get("enabled", True),
         }
-        synced = {name: "queued" if enabled else "disabled" for name, enabled in sync_targets.items()}
+        synced = {
+            name: "queued" if enabled else "disabled" for name, enabled in sync_targets.items()
+        }
         external_refs: dict[str, Any] = {}
         if sync_targets.get("azure_devops"):
             external_refs["azure_devops"] = await self._create_azure_devops_test_asset(
@@ -2559,7 +2563,9 @@ class QualityManagementAgent(BaseAgent):
         execution_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Store test results in blob storage (simulated)."""
-        container = self.integration_config.get("blob_storage", {}).get("container", "quality-tests")
+        container = self.integration_config.get("blob_storage", {}).get(
+            "container", "quality-tests"
+        )
         blob_name = f"{suite_id}/{execution_id}/results.json"
         payload = {
             "execution_id": execution_id,
@@ -2588,7 +2594,9 @@ class QualityManagementAgent(BaseAgent):
             "features": ["defect_density", "coverage_pct", "pass_rate"],
         }
         self.defect_prediction_models[project_id] = model_info
-        await self._store_record("quality_defect_models", f"{project_id}-{model_version}", model_info)
+        await self._store_record(
+            "quality_defect_models", f"{project_id}-{model_version}", model_info
+        )
         return model_info
 
     async def _fetch_coverage_metrics(self, project_id: str) -> dict[str, Any]:
@@ -2597,7 +2605,11 @@ class QualityManagementAgent(BaseAgent):
         coverage_data = repo_config.get("coverage_by_project", {}).get(project_id)
         if coverage_data:
             return coverage_data
-        return {"coverage_pct": 85.0, "source": "mock", "captured_at": datetime.now(timezone.utc).isoformat()}
+        return {
+            "coverage_pct": 85.0,
+            "source": "mock",
+            "captured_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     async def _get_code_size_metrics(self, project_id: str) -> dict[str, Any]:
         repo_config = self.integration_config.get("code_repos", {})
@@ -2698,7 +2710,9 @@ class QualityManagementAgent(BaseAgent):
             quality_plan["status"] = "Pending Approval"
         quality_plan["approval"] = approval_response
         self.quality_plan_store.upsert(tenant_id, quality_plan["plan_id"], quality_plan)
-        await self._store_record("quality_plan_approvals", quality_plan["plan_id"], approval_response)
+        await self._store_record(
+            "quality_plan_approvals", quality_plan["plan_id"], approval_response
+        )
         if quality_plan["status"] == "Approved":
             await self._publish_quality_event(
                 "quality.plan.approved",
@@ -2794,10 +2808,7 @@ class QualityManagementAgent(BaseAgent):
         )
 
     def _tokenize_text(self, text: str) -> list[str]:
-        tokens = [
-            "".join(ch for ch in token.lower() if ch.isalnum())
-            for token in text.split()
-        ]
+        tokens = ["".join(ch for ch in token.lower() if ch.isalnum()) for token in text.split()]
         return [token for token in tokens if token]
 
     def _score_labels(self, content: str, label_tokens: dict[str, list[str]]) -> dict[str, float]:
@@ -2868,7 +2879,9 @@ class QualityManagementAgent(BaseAgent):
         )
         return model
 
-    def _vectorize_defects(self, defects: list[dict[str, Any]]) -> tuple[list[list[float]], list[str]]:
+    def _vectorize_defects(
+        self, defects: list[dict[str, Any]]
+    ) -> tuple[list[list[float]], list[str]]:
         texts = []
         for defect in defects:
             text = " ".join(

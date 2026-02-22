@@ -1,0 +1,22 @@
+{
+  "tenant_id": "tenant-a",
+  "wbs": {
+    "wbs_id": "PRJ-20260222054107-973e4a-WBS-001",
+    "project_id": "PRJ-20260222054107-973e4a",
+    "structure": {
+      "1.0": {
+        "name": "Project Management",
+        "children": {}
+      },
+      "2.0": {
+        "name": "Delivery Phase",
+        "children": {}
+      }
+    },
+    "created_at": "2026-02-22T05:41:07.150026+00:00",
+    "status": "Draft",
+    "version": "1.0"
+  },
+  "_id": "PRJ-20260222054107-973e4a-WBS-001",
+  "_updated_at": "2026-02-22T05:41:07.171054+00:00"
+}

@@ -1,0 +1,10 @@
+{
+  "allocation_id": "cb48f328-3931-4af4-aada-51a9922ba613",
+  "environment": "staging",
+  "release_id": "REL-20260222060211",
+  "reserved_at": "2026-02-22T06:02:11.604583+00:00",
+  "reserved_until": "2024-06-03T04:00:00",
+  "status": "reserved",
+  "_id": "cb48f328-3931-4af4-aada-51a9922ba613",
+  "_updated_at": "2026-02-22T06:02:11.604753+00:00"
+}

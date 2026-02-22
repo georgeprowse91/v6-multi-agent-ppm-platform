@@ -4,18 +4,22 @@ import json
 import logging
 import os
 import threading
-from collections.abc import Awaitable, Callable
 from collections import OrderedDict
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, cast
 
 import httpx
 import jwt
+
 try:
     from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 except ModuleNotFoundError:  # pragma: no cover - fallback for constrained local smoke envs
+
     class RSAPublicKey:  # type: ignore[no-redef]
         pass
+
+
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
@@ -179,7 +183,10 @@ async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
     try:
         jwks_url = config.jwks_url
         issuer = config.issuer
-        if not jwks_url and (config.oidc_discovery_url or issuer):
+        # Only attempt OIDC discovery when no jwt_secret is configured (RS256 path).
+        # If jwt_secret is set the caller intends HS256 validation; deriving a
+        # discovery URL from issuer would cause unnecessary network calls.
+        if not jwks_url and not config.jwt_secret and (config.oidc_discovery_url or issuer):
             discovery_url = config.oidc_discovery_url or (
                 f"{issuer.rstrip('/')}/.well-known/openid-configuration" if issuer else None
             )
@@ -273,7 +280,9 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
             auth_context = await authenticate_request(request, self._config)
         except HTTPException as exc:
             message = exc.detail if isinstance(exc.detail, str) else "Request failed"
-            payload = error_payload(message=message, code=f"http_{exc.status_code}", details=exc.detail)
+            payload = error_payload(
+                message=message, code=f"http_{exc.status_code}", details=exc.detail
+            )
             return JSONResponse(status_code=exc.status_code, content=payload)
 
         request.state.auth = auth_context

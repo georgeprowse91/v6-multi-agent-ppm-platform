@@ -5,9 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-
-from data_quality.remediation import remediate_from_issues, remediate_payload
 from data_quality import rules as data_quality_rules
+from data_quality.remediation import remediate_from_issues, remediate_payload
 from data_quality.rules import DataQualityIssue, evaluate_quality_rules, evaluate_records
 from data_quality.schema_validation import validate_instance
 
@@ -53,7 +52,9 @@ def test_rules_required_fields_range_and_type_checks(
                 "error",
                 "proj-001",
             ),
-            DataQualityIssue("schema", "/start_date: '2026-13-01' is not a 'date'", "error", "proj-001"),
+            DataQualityIssue(
+                "schema", "/start_date: '2026-13-01' is not a 'date'", "error", "proj-001"
+            ),
         ],
     )
 
@@ -136,7 +137,9 @@ def test_remediation_coercion_fallback_and_untouched_field_preservation(
     record["metadata"] = {"source": "erp", "owner": "finance"}
 
     issues = [
-        DataQualityIssue("budget_amount", "amount must be greater than zero", "error", "budget-001"),
+        DataQualityIssue(
+            "budget_amount", "amount must be greater than zero", "error", "budget-001"
+        ),
         DataQualityIssue(
             "budget_fiscal_year",
             "fiscal_year must be between 2020 and 2100",
@@ -272,7 +275,10 @@ def test_schema_validation_boundary_inputs_for_empty_null_and_unexpected_nested_
 
     null_payload: dict[str, object] = {"id": None}
     null_errors = validate_instance(null_payload, SCHEMA_DIR / "document.schema.json")
-    assert any(error.path == "/id" and "None is not of type 'string'" in error.message for error in null_errors)
+    assert any(
+        error.path == "/id" and "None is not of type 'string'" in error.message
+        for error in null_errors
+    )
 
     nested_payload = _load_example("audit-event")
     nested_payload["actor"]["unexpected"] = "value"  # type: ignore[index]

@@ -1,5 +1,4 @@
 import pytest
-
 from process_mining_agent import ProcessMiningAgent
 
 from tests.helpers.service_bus import build_test_event_bus

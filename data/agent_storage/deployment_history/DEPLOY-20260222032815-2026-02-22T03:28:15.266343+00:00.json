@@ -1,0 +1,11 @@
+{
+  "deployment_plan_id": "DEPLOY-20260222032815",
+  "release_id": "REL-20260222032815",
+  "environment": "staging",
+  "status": "Completed",
+  "timestamp": "2026-02-22T03:28:15.266343+00:00",
+  "tenant_id": "tenant-rel",
+  "correlation_id": "2dd71f5b-9aa4-4aed-a333-24303d84a8e5",
+  "_id": "DEPLOY-20260222032815-2026-02-22T03:28:15.266343+00:00",
+  "_updated_at": "2026-02-22T03:28:15.266513+00:00"
+}

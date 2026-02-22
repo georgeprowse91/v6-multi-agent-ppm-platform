@@ -1,0 +1,10 @@
+{
+  "event_id": "EVENT-1",
+  "entity_type": "project",
+  "master_id": "MASTER-PROJECT-20260222051831",
+  "source_system": "jira",
+  "status": "success",
+  "timestamp": "2026-02-22T05:18:31.389452+00:00",
+  "_id": "EVENT-1",
+  "_updated_at": "2026-02-22T05:18:31.392755+00:00"
+}

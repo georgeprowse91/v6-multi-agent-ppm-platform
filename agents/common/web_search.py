@@ -185,7 +185,15 @@ async def summarize_snippets(
             return summary
     except (LLMProviderError, ValueError) as exc:
         logger.warning("LLM summary failed", extra={"error": str(exc)})
-    except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - defensive
+    except (
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+        OSError,
+    ) as exc:  # pragma: no cover - defensive
         logger.warning("Unexpected summarization error", extra={"error": str(exc)})
 
     return "\n".join(snippets[:3])

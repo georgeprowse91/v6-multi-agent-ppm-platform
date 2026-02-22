@@ -19,7 +19,7 @@ if str(SDK_PATH) not in sys.path:
 
 from base_connector import ConnectorCategory, ConnectorConfig
 from rest_connector import ApiKeyRestConnector
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 
 DEFAULT_SMARTSHEET_URL = "https://api.smartsheet.com/2.0"
 

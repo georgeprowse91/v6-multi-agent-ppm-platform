@@ -28,9 +28,9 @@ if str(LLM_ROOT) not in sys.path:
 
 from llm import LLMGateway  # noqa: E402
 from observability.tracing import get_trace_id  # noqa: E402
-from prompt_registry import PromptRegistry, enforce_redaction  # noqa: E402
 
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from prompt_registry import PromptRegistry, enforce_redaction  # noqa: E402
 
 
 class IntentRouterContext(BaseModel):
@@ -163,7 +163,9 @@ class IntentRouterAgent(BaseAgent):
             "intent_confidence_threshold",
             self.routing_config.default_min_confidence,
         )
-        self.top_k_intents = int(self.config.get("top_k_intents") or self.agent_config.get("top_k_intents") or 2)
+        self.top_k_intents = int(
+            self.config.get("top_k_intents") or self.agent_config.get("top_k_intents") or 2
+        )
         self.intent_confidence_thresholds: dict[str, float] = {
             str(intent): float(threshold)
             for intent, threshold in (self.agent_config.get("confidence_thresholds") or {}).items()
@@ -184,7 +186,9 @@ class IntentRouterAgent(BaseAgent):
         self._label_prefix_pattern = re.compile(r"^[A-Z_]+\s*:\s*")
         self._currency_aliases = {"$": "AUD", "€": "EUR", "£": "GBP", "¥": "JPY"}
         self._portfolio_pattern = re.compile(r"^PORT(?:FOLIO)?[-_\s]?\d{1,6}$", re.IGNORECASE)
-        self._project_pattern = re.compile(r"^(?:PROJ|PRJ|PROJECT)?[-_\s]?[A-Z0-9]{2,20}$", re.IGNORECASE)
+        self._project_pattern = re.compile(
+            r"^(?:PROJ|PRJ|PROJECT)?[-_\s]?[A-Z0-9]{2,20}$", re.IGNORECASE
+        )
         llm_config = self.config.get("llm_config") or {}
         if (
             not llm_config
@@ -252,7 +256,10 @@ class IntentRouterAgent(BaseAgent):
             context.get("correlation_id") or input_data.get("correlation_id") or str(uuid.uuid4())
         )
 
-        self.logger.info("Classifying query", extra={"query": query, "tenant_id": tenant_id, "correlation_id": correlation_id})
+        self.logger.info(
+            "Classifying query",
+            extra={"query": query, "tenant_id": tenant_id, "correlation_id": correlation_id},
+        )
 
         llm_payload = {
             "request": {"text": query, "context": context},
@@ -388,7 +395,13 @@ class IntentRouterAgent(BaseAgent):
         config_path = Path(
             self.config.get("agent_config_path")
             or os.getenv("INTENT_ROUTER_AGENT_CONFIG_PATH")
-            or (Path(__file__).resolve().parents[4] / "ops" / "config" / "agents" / "intent-router.yaml")
+            or (
+                Path(__file__).resolve().parents[4]
+                / "ops"
+                / "config"
+                / "agents"
+                / "intent-router.yaml"
+            )
         )
         try:
             payload = yaml.safe_load(config_path.read_text())
@@ -413,7 +426,9 @@ class IntentRouterAgent(BaseAgent):
                 model=model_target,
             )
         except (OSError, ValueError, RuntimeError) as exc:
-            self.logger.warning("Unable to initialize transformer classifier", extra={"error": str(exc)})
+            self.logger.warning(
+                "Unable to initialize transformer classifier", extra={"error": str(exc)}
+            )
             return None
 
     def _load_nlp_model(self) -> Any:
@@ -439,7 +454,10 @@ class IntentRouterAgent(BaseAgent):
             {"label": "SCHEDULE_FOCUS", "pattern": "milestone"},
             {"label": "SCHEDULE_FOCUS", "pattern": "milestones"},
             {"label": "CURRENCY", "pattern": [{"LOWER": {"IN": ["usd", "eur", "gbp", "jpy"]}}]},
-            {"label": "PROJECT_ID", "pattern": [{"LOWER": "project"}, {"IS_ASCII": True, "OP": "+"}]},
+            {
+                "label": "PROJECT_ID",
+                "pattern": [{"LOWER": "project"}, {"IS_ASCII": True, "OP": "+"}],
+            },
             {
                 "label": "PORTFOLIO_ID",
                 "pattern": [{"LOWER": "portfolio"}, {"IS_ASCII": True, "OP": "+"}],
@@ -523,6 +541,31 @@ class IntentRouterAgent(BaseAgent):
         normalized.sort(key=lambda item: float(item.get("confidence", 0.0)), reverse=True)
         return normalized[: self.top_k_intents]
 
+    # Keyword patterns for intent detection when no NLP model is available.
+    _INTENT_KEYWORDS: dict[str, list[str]] = {
+        "portfolio_query": ["portfolio", "programme", "program", "roadmap", "overview", "status", "health"],
+        "financial_query": ["budget", "financial", "finance", "cost", "spend", "variance", "roi", "profit", "expenditure", "forecast revenue"],
+        "schedule_query": ["schedule", "timeline", "milestone", "deadline", "gantt", "critical path", "delay", "due date"],
+        "risk_query": ["risk", "issue", "threat", "vulnerability", "mitigation", "register", "hazard"],
+        "resource_query": ["resource", "capacity", "utilization", "allocation", "headcount", "team", "staffing"],
+        "compliance_query": ["compliance", "regulatory", "regulation", "hipaa", "audit", "gdpr", "policy", "governance"],
+    }
+
+    def _keyword_classify_intent(self, query: str) -> list[dict[str, Any]]:
+        """Classify intent from keywords when no transformer model is available."""
+        lowered = query.lower()
+        scored: list[dict[str, Any]] = []
+        for intent, keywords in self._INTENT_KEYWORDS.items():
+            hits = sum(1 for kw in keywords if kw in lowered)
+            if hits:
+                confidence = min(0.5 + hits * 0.1, 0.95)
+                scored.append({"intent": intent, "confidence": round(confidence, 2)})
+        if scored:
+            scored.sort(key=lambda x: x["confidence"], reverse=True)
+            return scored[: self.top_k_intents]
+        fallback_intent = self.routing_config.fallback_intent
+        return [{"intent": fallback_intent, "confidence": 0.5}]
+
     async def _classify_intent(self, query: str) -> list[dict[str, Any]]:
         """
         Classify user intent using NLP models.
@@ -530,8 +573,8 @@ class IntentRouterAgent(BaseAgent):
         Returns list of intents with confidence scores.
         """
         if self.intent_classifier is None:
-            fallback_intent = self.routing_config.fallback_intent
-            return [{"intent": fallback_intent, "confidence": 0.5}]
+            # Use keyword-based matching when no transformer model is available.
+            return self._keyword_classify_intent(query)
 
         try:
             classification = self.intent_classifier(
@@ -547,7 +590,10 @@ class IntentRouterAgent(BaseAgent):
 
         labels = classification.get("labels", [])
         scores = classification.get("scores", [])
-        predictions = [IntentPrediction(intent=str(label), confidence=float(score)) for label, score in zip(labels, scores)]
+        predictions = [
+            IntentPrediction(intent=str(label), confidence=float(score))
+            for label, score in zip(labels, scores)
+        ]
         normalized = self._normalize_intents(predictions)
         if normalized:
             return normalized
@@ -633,7 +679,9 @@ class IntentRouterAgent(BaseAgent):
             r"(?:(?P<symbol>[\$€£¥])\s*)?(?P<value>\d+(?:\.\d+)?)\s?(?P<suffix>k|m)?\b"
         )
         for amount_match in amount_pattern.finditer(query_lower):
-            context_window = query_lower[max(0, amount_match.start() - 12) : amount_match.end() + 12]
+            context_window = query_lower[
+                max(0, amount_match.start() - 12) : amount_match.end() + 12
+            ]
             if not (
                 amount_match.group("symbol")
                 or amount_match.group("suffix")

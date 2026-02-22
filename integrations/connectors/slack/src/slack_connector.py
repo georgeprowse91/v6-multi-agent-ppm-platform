@@ -24,7 +24,7 @@ from base_connector import ConnectorCategory, ConnectorConfig
 from http_client import HttpClient, RetryConfig
 from mcp_client import MCPClient, MCPClientError
 from rest_connector import RestConnector
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 try:
     from .mappers import map_from_mcp_response, map_to_mcp_params
 except ImportError:

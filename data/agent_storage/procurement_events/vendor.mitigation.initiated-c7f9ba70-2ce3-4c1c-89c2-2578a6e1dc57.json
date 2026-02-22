@@ -1,0 +1,23 @@
+{
+  "event_id": "vendor.mitigation.initiated-c7f9ba70-2ce3-4c1c-89c2-2578a6e1dc57",
+  "event_type": "vendor.mitigation.initiated",
+  "entity_id": "VND-20260222033143",
+  "payload": {
+    "vendor_id": "VND-20260222033143",
+    "task": {
+      "task_id": "task-1",
+      "status": "queued"
+    },
+    "notification": {
+      "status": "sent",
+      "subject": "Vendor risk mitigation required: Signal Metrics"
+    },
+    "reason": "Risk alert received"
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "corr-1",
+  "actor_id": "system",
+  "timestamp": "2026-02-22T03:31:43.135220+00:00",
+  "_id": "vendor.mitigation.initiated-c7f9ba70-2ce3-4c1c-89c2-2578a6e1dc57",
+  "_updated_at": "2026-02-22T03:31:43.136106+00:00"
+}

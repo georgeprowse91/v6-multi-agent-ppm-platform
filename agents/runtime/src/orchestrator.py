@@ -10,21 +10,20 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import yaml
+from observability.metrics import build_agent_execution_metrics
 
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.base_agent import BaseAgent
 from agents.runtime.src.data_service import DataServiceClient
-from agents.runtime.src.audit import build_audit_event, emit_audit_event
 from agents.runtime.src.event_bus import EventBus, get_event_bus, publish_insight
 from agents.runtime.src.models import AgentRun, AgentRunStatus
+from agents.runtime.src.notification_service import NotificationServiceClient
 from packages.memory_client import MemoryClient
 from services.memory_service.memory_service import MemoryService
-from agents.runtime.src.notification_service import NotificationServiceClient
-from observability.metrics import build_agent_execution_metrics
 
 WEB_SRC_ROOT = Path(__file__).resolve().parents[3] / "apps" / "web" / "src"
 if str(WEB_SRC_ROOT) not in sys.path:
@@ -98,13 +97,11 @@ class HumanReviewRequest:
     rule_name: str
 
 
-
-
 class _TemplateWorkflowAgent(BaseAgent):
     def __init__(self, agent_id: str) -> None:
         super().__init__(agent_id=agent_id)
 
-    async def execute(self, input_data: dict[str, Any]) -> dict[str, Any]:
+    async def process(self, input_data: dict[str, Any]) -> dict[str, Any]:
         return {
             "success": True,
             "metadata": {
@@ -113,6 +110,10 @@ class _TemplateWorkflowAgent(BaseAgent):
             },
             "actions": [],
         }
+
+    async def execute(self, input_data: dict[str, Any]) -> dict[str, Any]:
+        return await self.process(input_data)
+
 
 class Orchestrator:
     """Async orchestration engine for running agent DAGs."""
@@ -160,11 +161,7 @@ class Orchestrator:
         task_lookup = {task.task_id: task for task in tasks}
         self._validate_tasks(task_lookup)
         request_context = dict(context or {})
-        correlation_id = (
-            request_context.get("correlation_id")
-            or memory_key
-            or str(uuid.uuid4())
-        )
+        correlation_id = request_context.get("correlation_id") or memory_key or str(uuid.uuid4())
         request_context["correlation_id"] = correlation_id
         resolved_memory_key = memory_key or correlation_id
         shared_context = await self._load_context(resolved_memory_key, request_context)
@@ -219,7 +216,6 @@ class Orchestrator:
         }
         return OrchestrationResult(results=results, context=shared_context, metrics=metrics)
 
-
     async def run_template_workflow(
         self,
         *,
@@ -249,7 +245,10 @@ class Orchestrator:
                 f"Template workflow prerequisites not satisfied: {', '.join(missing_dependencies)}"
             )
 
-        if lifecycle_event in {"review", "approve"} or "publish_external" in mapping.agent_bindings.orchestration.side_effects:
+        if (
+            lifecycle_event in {"review", "approve"}
+            or "publish_external" in mapping.agent_bindings.orchestration.side_effects
+        ):
             context_refs = {**context_refs, "human_review_required": True}
 
         tasks = [
@@ -263,7 +262,9 @@ class Orchestrator:
                     "side_effects": mapping.agent_bindings.orchestration.side_effects,
                     "context_refs": context_refs,
                 },
-                depends_on=[] if index == 0 else [f"template-{template_id}-{lifecycle_event}-{index - 1}"],
+                depends_on=(
+                    [] if index == 0 else [f"template-{template_id}-{lifecycle_event}-{index - 1}"]
+                ),
             )
             for index, agent_id in enumerate(selected_agents)
         ]
@@ -374,7 +375,11 @@ class Orchestrator:
             }
             await self._event_bus.publish(
                 "orchestrator.task.started",
-                {"task_id": task.task_id, "depends_on": list(task.depends_on), "correlation_id": memory_key},
+                {
+                    "task_id": task.task_id,
+                    "depends_on": list(task.depends_on),
+                    "correlation_id": memory_key,
+                },
             )
             try:
                 result_payload = await self._execute_with_retries(task, input_data)
@@ -400,7 +405,11 @@ class Orchestrator:
                     await self._send_agent_run_notification(agent_run, result_payload)
                 await self._event_bus.publish(
                     "orchestrator.task.completed",
-                    {"task_id": task.task_id, "success": result_payload.get("success", False), "correlation_id": memory_key},
+                    {
+                        "task_id": task.task_id,
+                        "success": result_payload.get("success", False),
+                        "correlation_id": memory_key,
+                    },
                 )
                 self._execution_metrics.duration_seconds.record(
                     time.perf_counter() - started_at,
@@ -419,7 +428,15 @@ class Orchestrator:
                             "correlation_id": memory_key,
                         },
                     )
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # noqa: BLE001
                 metadata = {"task_id": task.task_id}
                 if isinstance(exc, TimeoutError):
                     metadata["timeout"] = True
@@ -582,7 +599,7 @@ class Orchestrator:
         try:
             decision = await asyncio.wait_for(waiter, timeout=self._human_review_timeout_seconds)
             return decision
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return {
                 "review_id": review_id,
                 "decision": "reject",
@@ -730,16 +747,26 @@ class Orchestrator:
                 result = await self._execute_with_timeout(task, input_data, timeout_seconds)
                 if not self._retry_policy.should_retry(None, result):
                     return result
-            except asyncio.TimeoutError as exc:
+            except TimeoutError as exc:
                 last_error = self._build_timeout_error(task, timeout_seconds, exc)
                 if not self._retry_policy.should_retry(last_error, None):
                     raise last_error
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # noqa: BLE001
                 last_error = exc
                 if not self._retry_policy.should_retry(exc, None):
                     raise
             if attempt < self._retry_policy.max_attempts:
-                correlation_id = ((input_data.get("context") or {}).get("correlation_id") or "unknown")
+                correlation_id = (input_data.get("context") or {}).get(
+                    "correlation_id"
+                ) or "unknown"
                 await self._event_bus.publish(
                     "orchestrator.task.retry",
                     {"task_id": task.task_id, "attempt": attempt, "correlation_id": correlation_id},
@@ -795,9 +822,7 @@ class Orchestrator:
         exc: asyncio.TimeoutError,
     ) -> TimeoutError:
         timeout_value = timeout_seconds if timeout_seconds is not None else 0.0
-        error = TimeoutError(
-            f"Task {task.task_id} exceeded timeout of {timeout_value:.2f} seconds"
-        )
+        error = TimeoutError(f"Task {task.task_id} exceeded timeout of {timeout_value:.2f} seconds")
         error.timeout_seconds = timeout_seconds
         error.__cause__ = exc
         return error
@@ -987,7 +1012,9 @@ class Orchestrator:
 
     async def _persist_agent_run(self, agent_run: AgentRun) -> None:
         if not self._data_service:
-            logger.info("agent_run_persistence_skipped", extra={"reason": "data_service_unconfigured"})
+            logger.info(
+                "agent_run_persistence_skipped", extra={"reason": "data_service_unconfigured"}
+            )
             return
         try:
             await self._data_service.store_entity(

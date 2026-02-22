@@ -1,5 +1,4 @@
 import pytest
-
 from intent_router_agent import IntentRouterAgent
 
 
@@ -19,7 +18,9 @@ async def test_intent_router_multi_intent_top_two_predictions() -> None:
             "nlp_model": None,
             "disable_transformers": True,
             "llm_provider": "mock",
-            "llm_config": {"mock_response": {"intents": [{"intent": "general_query", "confidence": 0.1}]}},
+            "llm_config": {
+                "mock_response": {"intents": [{"intent": "general_query", "confidence": 0.1}]}
+            },
             "routing_config_path": "ops/config/agents/intent-routing.yaml",
             "agent_config_path": "ops/config/agents/intent-router.yaml",
         }
@@ -42,7 +43,9 @@ async def test_intent_router_extracts_entities_and_validates_schema() -> None:
             "nlp_model": None,
             "disable_transformers": True,
             "llm_provider": "mock",
-            "llm_config": {"mock_response": {"intents": [{"intent": "general_query", "confidence": 0.1}]}},
+            "llm_config": {
+                "mock_response": {"intents": [{"intent": "general_query", "confidence": 0.1}]}
+            },
             "routing_config_path": "ops/config/agents/intent-routing.yaml",
             "agent_config_path": "ops/config/agents/intent-router.yaml",
         }
@@ -75,7 +78,9 @@ async def test_intent_router_applies_per_intent_thresholds() -> None:
             "nlp_model": None,
             "disable_transformers": True,
             "llm_provider": "mock",
-            "llm_config": {"mock_response": {"intents": [{"intent": "general_query", "confidence": 0.1}]}},
+            "llm_config": {
+                "mock_response": {"intents": [{"intent": "general_query", "confidence": 0.1}]}
+            },
             "routing_config_path": "ops/config/agents/intent-routing.yaml",
             "agent_config_path": "ops/config/agents/intent-router.yaml",
         }

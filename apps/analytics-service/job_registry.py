@@ -1,9 +1,8 @@
 from pathlib import Path
 from typing import Any, cast
 
-from security.config import load_yaml
-
 from jsonschema import Draft202012Validator, FormatChecker
+from security.config import load_yaml
 
 JOB_MANIFEST_DIR = Path(__file__).resolve().parent / "jobs" / "manifests"
 SCHEMA_PATH = JOB_MANIFEST_DIR.parent / "schema" / "job-manifest.schema.json"

@@ -1,11 +1,11 @@
-from pathlib import Path
 import sys
 import types
+from pathlib import Path
 
 import pytest
 
-
 if "prometheus_client" not in sys.modules:
+
     class _DummyMetric:
         def labels(self, *args, **kwargs):
             return self
@@ -22,6 +22,7 @@ if "prometheus_client" not in sys.modules:
     )
 
 from intent_router_agent import IntentRouterAgent
+
 from prompt_registry import PromptRegistry
 
 

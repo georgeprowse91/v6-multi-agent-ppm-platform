@@ -119,7 +119,6 @@ def test_oidc_login_flow_sets_session_cookie():
     assert set(payload["roles"]) == {"PMO_ADMIN", "PM"}
 
 
-
 def test_oidc_callback_redirects_project_context_to_spa_route():
     os.environ["OIDC_ISSUER_URL"] = "https://issuer.example.com"
     os.environ["OIDC_CLIENT_ID"] = "client-123"

@@ -12,9 +12,10 @@ from __future__ import annotations
 
 import inspect
 import os
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from uuid import uuid4
 
 from security.lineage import mask_lineage_payload
@@ -55,9 +56,7 @@ class SynapseManager:
         if self.spark_pool_name and hasattr(self.synapse_client, "create_spark_pool"):
             self.synapse_client.create_spark_pool(self.workspace_name, self.spark_pool_name)
         if hasattr(self.synapse_client, "sql_pools") and self.sql_pool_name:
-            self.synapse_client.sql_pools.create_or_update(
-                self.workspace_name, self.sql_pool_name
-            )
+            self.synapse_client.sql_pools.create_or_update(self.workspace_name, self.sql_pool_name)
         if hasattr(self.synapse_client, "spark_pools") and self.spark_pool_name:
             self.synapse_client.spark_pools.create_or_update(
                 self.workspace_name, self.spark_pool_name
@@ -118,7 +117,9 @@ class DataLakeManager:
         payload: list[dict[str, Any]],
     ) -> dict[str, str]:
         raw_path = f"/raw/{source}/{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.json"
-        curated_path = f"/curated/{domain}/{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.json"
+        curated_path = (
+            f"/curated/{domain}/{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.json"
+        )
         if self.service_client:
             file_system = self.service_client.get_file_system_client(self.file_system_name)
             raw_file = file_system.create_file(raw_path.lstrip("/"))
@@ -147,7 +148,9 @@ class MLModelManager:
         self.model_cache[model_name] = model
         return model
 
-    async def train_model(self, model_name: str, training_payload: dict[str, Any]) -> dict[str, Any]:
+    async def train_model(
+        self, model_name: str, training_payload: dict[str, Any]
+    ) -> dict[str, Any]:
         if self.ml_client and hasattr(self.ml_client, "jobs"):
             job = self.ml_client.jobs.create_or_update(training_payload)
             return {"model_name": model_name, "job_id": getattr(job, "name", "unknown")}
@@ -177,7 +180,9 @@ class PowerBIEmbedManager:
             },
         }
 
-    async def get_embed_config(self, report_type: str, user_context: dict[str, Any]) -> dict[str, Any]:
+    async def get_embed_config(
+        self, report_type: str, user_context: dict[str, Any]
+    ) -> dict[str, Any]:
         template = self.report_templates.get(report_type)
         if not template:
             raise ValueError(f"Unknown report template: {report_type}")
@@ -275,7 +280,9 @@ class LanguageQueryService:
 class ReportRepository:
     """Stores reports and narratives in PostgreSQL or Cosmos DB."""
 
-    def __init__(self, postgres_conn: Any | None = None, cosmos_container: Any | None = None) -> None:
+    def __init__(
+        self, postgres_conn: Any | None = None, cosmos_container: Any | None = None
+    ) -> None:
         self.postgres_conn = postgres_conn
         self.cosmos_container = cosmos_container
         self.audit_log: list[dict[str, Any]] = []
@@ -367,7 +374,9 @@ class AnalyticsInsightsAgent(BaseAgent):
             "SYNAPSE_SQL_POOL_NAME", config.get("synapse_sql_pool_name") if config else ""
         )
         self.synapse_spark_pool_name = (
-            config.get("synapse_spark_pool_name", "analytics-spark") if config else "analytics-spark"
+            config.get("synapse_spark_pool_name", "analytics-spark")
+            if config
+            else "analytics-spark"
         )
 
         self.synapse_manager = config.get("synapse_manager") if config else None
@@ -424,14 +433,14 @@ class AnalyticsInsightsAgent(BaseAgent):
                 config.get("event_hub_consumer") if config else None,
             )
 
-        self.stream_analytics_manager = (
-            config.get("stream_analytics_manager") if config else None
-        )
+        self.stream_analytics_manager = config.get("stream_analytics_manager") if config else None
         if self.stream_analytics_manager is None:
             self.stream_analytics_manager = StreamAnalyticsManager()
         self.narrative_service = config.get("narrative_service") if config else None
         if self.narrative_service is None:
-            self.narrative_service = NarrativeService(config.get("openai_client") if config else None)
+            self.narrative_service = NarrativeService(
+                config.get("openai_client") if config else None
+            )
 
         self.language_service = config.get("language_service") if config else None
         if self.language_service is None:
@@ -517,7 +526,11 @@ class AnalyticsInsightsAgent(BaseAgent):
                     "metric_name": "deployment.frequency",
                     "target": 2.0,
                     "thresholds": {"min": 1.0},
-                    "event_types": ["deployment.succeeded", "deployment.failed", "deployment.started"],
+                    "event_types": [
+                        "deployment.succeeded",
+                        "deployment.failed",
+                        "deployment.started",
+                    ],
                     "trend_direction": "higher_is_better",
                 },
                 {
@@ -561,7 +574,9 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         await self._maybe_await(self.synapse_manager.ensure_pools)
         await self._maybe_await(self.data_lake_manager.ensure_file_system)
-        await self._maybe_await(self.data_factory_manager.ensure_pipelines, self.data_factory_pipelines)
+        await self._maybe_await(
+            self.data_factory_manager.ensure_pipelines, self.data_factory_pipelines
+        )
         self.logger.info(
             "Synapse pools initialized",
             extra={
@@ -571,14 +586,15 @@ class AnalyticsInsightsAgent(BaseAgent):
             },
         )
 
-        self.event_bus.subscribe("project.health.updated", self._handle_health_updated)
-        self.event_bus.subscribe(
-            "project.health.report.generated", self._handle_health_report_generated
-        )
-        for topic in self.analytics_event_topics:
-            self.event_bus.subscribe(topic, self._build_event_handler(topic))
-        self.event_bus.subscribe("project.updated", self._build_event_handler("project.updated"))
-        self.event_bus.subscribe("resource.updated", self._build_event_handler("resource.updated"))
+        if self.event_bus and hasattr(self.event_bus, "subscribe"):
+            self.event_bus.subscribe("project.health.updated", self._handle_health_updated)
+            self.event_bus.subscribe(
+                "project.health.report.generated", self._handle_health_report_generated
+            )
+            for topic in self.analytics_event_topics:
+                self.event_bus.subscribe(topic, self._build_event_handler(topic))
+            self.event_bus.subscribe("project.updated", self._build_event_handler("project.updated"))
+            self.event_bus.subscribe("resource.updated", self._build_event_handler("resource.updated"))
 
         self.logger.info("Analytics & Insights Agent initialized")
 
@@ -615,7 +631,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "create_dashboard":
@@ -783,7 +799,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         Returns aggregated dataset.
         """
-        self.logger.info(f"Aggregating data from {len(data_sources)} sources")
+        self.logger.info("Aggregating data from %s sources", len(data_sources))
 
         # Collect data from sources
         aggregated_data = await self._collect_from_sources(data_sources)
@@ -802,7 +818,9 @@ class AnalyticsInsightsAgent(BaseAgent):
                 self.data_lake_manager.store_dataset(
                     source=source,
                     domain="analytics",
-                    payload=[record for record in harmonized_data if record.get("source") == source],
+                    payload=[
+                        record for record in harmonized_data if record.get("source") == source
+                    ],
                 )
             )
         synapse_details = self.synapse_manager.ingest_dataset(
@@ -827,7 +845,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         Returns dashboard ID and configuration.
         """
-        self.logger.info(f"Creating dashboard: {dashboard_config.get('name')}")
+        self.logger.info("Creating dashboard: %s", dashboard_config.get("name"))
 
         # Generate dashboard ID
         dashboard_id = await self._generate_dashboard_id()
@@ -862,7 +880,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.dashboards[dashboard_id] = dashboard
         self.analytics_output_store.upsert(tenant_id, dashboard_id, dashboard.copy())
 
-
         return {
             "dashboard_id": dashboard_id,
             "name": dashboard["name"],
@@ -877,7 +894,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         Returns report content.
         """
-        self.logger.info(f"Generating report: {report_spec.get('title')}")
+        self.logger.info("Generating report: %s", report_spec.get("title"))
 
         # Generate report ID
         report_id = await self._generate_report_id()
@@ -908,7 +925,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.analytics_output_store.upsert(tenant_id, report_id, report.copy())
         await self.report_repository.store_report(report.copy())
 
-
         return {
             "report_id": report_id,
             "title": report["title"],
@@ -925,7 +941,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         Returns predictions with confidence intervals.
         """
-        self.logger.info(f"Running prediction: {model_type}")
+        self.logger.info("Running prediction: %s", model_type)
 
         input_data = {**input_data, "tenant_id": tenant_id}
 
@@ -955,7 +971,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.predictions[prediction_id] = prediction_record
         self.analytics_output_store.upsert(tenant_id, prediction_id, prediction_record.copy())
 
-
         return {
             "prediction_id": prediction_id,
             "model_type": model_type,
@@ -971,7 +986,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         Returns scenario comparison.
         """
-        self.logger.info(f"Running scenario analysis: {scenario.get('name')}")
+        self.logger.info("Running scenario analysis: %s", scenario.get("name"))
 
         # Generate scenario ID
         scenario_id = await self._generate_scenario_id()
@@ -1055,7 +1070,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         Returns KPI values and trends.
         """
-        self.logger.info(f"Tracking KPI: {kpi_config.get('name')}")
+        self.logger.info("Tracking KPI: %s", kpi_config.get("name"))
 
         # Generate KPI ID if new
         kpi_id = kpi_config.get("kpi_id") or await self._generate_kpi_id()
@@ -1148,7 +1163,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         Returns query results.
         """
-        self.logger.info(f"Executing query: {query}")
+        self.logger.info("Executing query: %s", query)
 
         parsed_query = await self._parse_query(query)
 
@@ -1169,7 +1184,7 @@ class AnalyticsInsightsAgent(BaseAgent):
 
         Returns dashboard with current data.
         """
-        self.logger.info(f"Retrieving dashboard: {dashboard_id}")
+        self.logger.info("Retrieving dashboard: %s", dashboard_id)
 
         dashboard = self.dashboards.get(dashboard_id)
         if not dashboard:
@@ -1255,7 +1270,6 @@ class AnalyticsInsightsAgent(BaseAgent):
         self.data_lineage[lineage_id] = masked_lineage
         self.analytics_lineage_store.upsert(tenant_id, lineage_id, masked_lineage)
 
-
         return {
             "lineage_id": lineage_id,
             "sources": len(lineage.get("source_systems", [])),
@@ -1287,7 +1301,9 @@ class AnalyticsInsightsAgent(BaseAgent):
         """Monitor Data Factory pipeline status."""
         return await self.data_factory_manager.get_pipeline_status(run_id)
 
-    async def _train_kpi_model(self, model_name: str | None, training_payload: dict[str, Any]) -> dict[str, Any]:
+    async def _train_kpi_model(
+        self, model_name: str | None, training_payload: dict[str, Any]
+    ) -> dict[str, Any]:
         """Train KPI predictive model using Azure ML."""
         if not model_name:
             raise ValueError("model_name is required")
@@ -1356,10 +1372,7 @@ class AnalyticsInsightsAgent(BaseAgent):
         lineage_id = await self._record_data_lineage(
             tenant_id,
             selected_sources,
-            [
-                {"source": source, "run_id": run_map[source]}
-                for source in selected_sources
-            ],
+            [{"source": source, "run_id": run_map[source]} for source in selected_sources],
         )
         return {
             "sources": selected_sources,
@@ -1433,7 +1446,9 @@ class AnalyticsInsightsAgent(BaseAgent):
         payload = event.get("payload", event)
         tenant_id = event.get("tenant_id", payload.get("tenant_id", "default"))
         report = payload.get("report", payload)
-        report_id = report.get("report_id", f"health-report-{datetime.now(timezone.utc).isoformat()}")
+        report_id = report.get(
+            "report_id", f"health-report-{datetime.now(timezone.utc).isoformat()}"
+        )
         self.reports[report_id] = report
         self.analytics_output_store.upsert(tenant_id, report_id, report.copy())
 
@@ -1748,7 +1763,9 @@ class AnalyticsInsightsAgent(BaseAgent):
         """Set up data refresh schedule."""
         return {
             "interval_minutes": interval_minutes,
-            "next_refresh": (datetime.now(timezone.utc) + timedelta(minutes=interval_minutes)).isoformat(),
+            "next_refresh": (
+                datetime.now(timezone.utc) + timedelta(minutes=interval_minutes)
+            ).isoformat(),
         }
 
     async def _collect_report_data(
@@ -2150,13 +2167,15 @@ class AnalyticsInsightsAgent(BaseAgent):
             "period": period,
             "summary": {
                 "project_count": len(metrics),
-                "avg_cycle_time_days": round(sum(cycle_times) / len(cycle_times), 2)
-                if cycle_times
-                else 0,
+                "avg_cycle_time_days": (
+                    round(sum(cycle_times) / len(cycle_times), 2) if cycle_times else 0
+                ),
                 "risk_occurrences_total": sum(risk_occurrences),
-                "avg_budget_variance_pct": round(sum(budget_variances) / len(budget_variances), 4)
-                if budget_variances
-                else 0,
+                "avg_budget_variance_pct": (
+                    round(sum(budget_variances) / len(budget_variances), 4)
+                    if budget_variances
+                    else 0
+                ),
             },
             "trends": patterns,
             "anomalies": anomalies,

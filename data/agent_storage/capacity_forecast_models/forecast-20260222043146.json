@@ -1,0 +1,16 @@
+{
+  "run_id": "forecast-20260222043146",
+  "tenant_id": "tenant-a",
+  "history_months": 2,
+  "trained_at": "2026-02-22T04:31:46.823505+00:00",
+  "capacity_model": {
+    "model_name": "tenant-a-capacity",
+    "trained": true
+  },
+  "demand_model": {
+    "model_name": "tenant-a-demand",
+    "trained": true
+  },
+  "_id": "forecast-20260222043146",
+  "_updated_at": "2026-02-22T04:31:46.823705+00:00"
+}

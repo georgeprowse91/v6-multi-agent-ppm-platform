@@ -61,7 +61,9 @@ def register_error_handlers(app: FastAPI) -> None:
             correlation_id=correlation_id,
         )
         headers = {"X-Correlation-ID": correlation_id} if correlation_id else None
-        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=payload, headers=headers)
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=payload, headers=headers
+        )
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(

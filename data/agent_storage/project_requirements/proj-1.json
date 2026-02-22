@@ -1,0 +1,29 @@
+{
+  "tenant_id": "unknown",
+  "requirements": {
+    "project_id": "proj-1",
+    "requirements": [
+      {
+        "id": "REQ-a775de",
+        "text": "The system shall support SSO.",
+        "source": "form_recognizer",
+        "project_id": "proj-1",
+        "category": "functional",
+        "priority": "medium"
+      }
+    ],
+    "categories": {
+      "functional": 1
+    },
+    "conflicts": [],
+    "validation": {
+      "complete": true,
+      "missing_fields": [],
+      "validation_score": 0.95
+    },
+    "total_count": 1,
+    "updated_at": "2026-02-22T06:02:11.206802+00:00"
+  },
+  "_id": "proj-1",
+  "_updated_at": "2026-02-22T06:02:11.206995+00:00"
+}

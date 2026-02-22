@@ -27,6 +27,11 @@ for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT, C
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
+from common.env_validation import (  # noqa: E402
+    durability_mode_for_storage,
+    enforce_no_default_file_backed_storage,
+    environment_value,
+)
 from feature_flags import is_feature_enabled  # noqa: E402
 from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
@@ -47,11 +52,6 @@ from storage import (  # noqa: E402
 
 from packages.version import API_VERSION
 from security.config import load_yaml  # noqa: E402
-from common.env_validation import (  # noqa: E402
-    durability_mode_for_storage,
-    enforce_no_default_file_backed_storage,
-    environment_value,
-)
 
 logger = logging.getLogger("data-service")
 logging.basicConfig(level=logging.INFO)
@@ -76,8 +76,7 @@ class SchemaRegistrationRequest(BaseModel):
     compatibility_mode: CompatibilityMode = Field(
         "full",
         description=(
-            "Compatibility validation mode against latest version: "
-            "backward, forward, or full"
+            "Compatibility validation mode against latest version: " "backward, forward, or full"
         ),
     )
 
@@ -280,7 +279,9 @@ def _update_readiness_metrics(status: str) -> tuple[str | None, str | None]:
     if status == "ok" and previous != "ok":
         degraded_since = state.get("degraded_since")
         if degraded_since:
-            READINESS_MTTR_SECONDS.record((now - degraded_since).total_seconds(), {"service.name": "data-service"})
+            READINESS_MTTR_SECONDS.record(
+                (now - degraded_since).total_seconds(), {"service.name": "data-service"}
+            )
         state["recovered_at"] = now
         state["degraded_since"] = None
         READINESS_RECOVERY_TOTAL.add(1, {"service.name": "data-service"})
@@ -310,7 +311,9 @@ def _to_response(checks: dict[str, dict[str, str]], status_code: int) -> JSONRes
         degraded_since=degraded_since,
         recovered_at=recovered_at,
     )
-    return JSONResponse(status_code=status_code if status != "ok" else 200, content=payload.model_dump())
+    return JSONResponse(
+        status_code=status_code if status != "ok" else 200, content=payload.model_dump()
+    )
 
 
 @app.get("/livez", response_model=HealthResponse)
@@ -343,7 +346,9 @@ async def readyz() -> JSONResponse:
         )
     if not scheduler:
         checks["retention_scheduler_heartbeat"] = _build_check(
-            "down", "warning", "Ensure retention scheduler starts successfully during application startup."
+            "down",
+            "warning",
+            "Ensure retention scheduler starts successfully during application startup.",
         )
     else:
         snapshot = scheduler.snapshot()
@@ -619,9 +624,7 @@ async def list_scenarios(
     store: DataServiceStore = Depends(get_store),
 ) -> list[EntityResponse]:
     records = await store.list_entities(SCENARIO_SCHEMA, tenant_id, skip, limit)
-    response.headers["X-Total-Count"] = str(
-        await store.count_entities(SCENARIO_SCHEMA, tenant_id)
-    )
+    response.headers["X-Total-Count"] = str(await store.count_entities(SCENARIO_SCHEMA, tenant_id))
     response.headers["X-Limit"] = str(limit)
     response.headers["X-Offset"] = str(skip)
     return [_entity_response(record) for record in records]
@@ -637,9 +640,7 @@ async def list_agent_runs(
 ) -> list[EntityResponse]:
     _require_feature("agent_run_tracking")
     records = await store.list_entities(AGENT_RUN_SCHEMA, tenant_id, skip, limit)
-    response.headers["X-Total-Count"] = str(
-        await store.count_entities(AGENT_RUN_SCHEMA, tenant_id)
-    )
+    response.headers["X-Total-Count"] = str(await store.count_entities(AGENT_RUN_SCHEMA, tenant_id))
     response.headers["X-Limit"] = str(limit)
     response.headers["X-Offset"] = str(skip)
     return [_entity_response(record) for record in records]
@@ -714,7 +715,6 @@ def _entity_response(record: EntityRecord) -> EntityResponse:
     )
 
 
-
 def _validate_schema_definition(schema: dict[str, Any]) -> None:
     check_schema = getattr(Draft202012Validator, "check_schema", None)
     if check_schema is None:
@@ -723,6 +723,7 @@ def _validate_schema_definition(schema: dict[str, Any]) -> None:
         check_schema(schema)
     except Exception as exc:  # pragma: no cover - upstream jsonschema exceptions vary
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
 
 def _validate_payload(schema_record: SchemaRecord, payload: dict[str, Any]) -> None:
     validator = Draft202012Validator(schema_record.schema, format_checker=FormatChecker())
@@ -757,9 +758,7 @@ def _load_canonical_mappings(connector_name: str) -> dict[str, set[str]]:
         if not schema_name:
             continue
         fields = {
-            entry.get("target")
-            for entry in (spec.get("fields") or [])
-            if entry.get("target")
+            entry.get("target") for entry in (spec.get("fields") or []) if entry.get("target")
         }
         schema_targets[schema_name] = fields
     _CANONICAL_MAPPING_CACHE[connector_name] = schema_targets
@@ -817,7 +816,13 @@ def _resolve_fixture_path(connector_name: str, fixture_path: str | None) -> Path
             raise HTTPException(status_code=404, detail="Fixture file not found")
         return path
     default_fixture = (
-        REPO_ROOT / "integrations" / "connectors" / connector_name / "tests" / "fixtures" / "projects.json"
+        REPO_ROOT
+        / "integrations"
+        / "connectors"
+        / connector_name
+        / "tests"
+        / "fixtures"
+        / "projects.json"
     )
     if default_fixture.exists():
         return default_fixture

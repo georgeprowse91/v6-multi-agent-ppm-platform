@@ -11,5 +11,7 @@ class WorkflowService:
 
     async def start_workflow(self, payload: dict[str, Any]) -> dict[str, Any]:
         schema_name = payload.get("schema_name", "workflow_runs")
-        response = await self._data_client.store_entity(schema_name=schema_name, payload=payload, headers={})
+        response = await self._data_client.store_entity(
+            schema_name=schema_name, payload=payload, headers={}
+        )
         return response.json()

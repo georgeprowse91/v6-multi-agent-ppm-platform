@@ -1,0 +1,19 @@
+{
+  "snapshot_id": "ES-project-4-20260222060207",
+  "project_id": "project-4",
+  "collected_at": "2026-02-22T06:02:07.160073+00:00",
+  "sources": [],
+  "metadata": {
+    "agent_id": "agent_016"
+  },
+  "payload": {
+    "risk_mitigations": [],
+    "quality_results": [],
+    "audit_logs": [],
+    "deployment_evidence": [],
+    "privacy_impact_assessed": false,
+    "security_scans": []
+  },
+  "_id": "ES-project-4-20260222060207",
+  "_updated_at": "2026-02-22T06:02:07.160290+00:00"
+}

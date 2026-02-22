@@ -217,9 +217,7 @@ def _apply_rule(bundle: dict[str, Any], rule: dict[str, Any]) -> bool:
     if operator in {"gte", "lte"}:
         if value is None or expected is None:
             return False
-        if not isinstance(value, (int, float, str)) or not isinstance(
-            expected, (int, float, str)
-        ):
+        if not isinstance(value, (int, float, str)) or not isinstance(expected, (int, float, str)):
             return False
         try:
             current = float(value)
@@ -266,9 +264,7 @@ def validate_policy_bundle(policy_bundle: dict[str, Any]) -> list[str]:
                 continue
             op = rule.get("operator")
             if op and op not in _VALID_OPERATORS:
-                errors.append(
-                    f"policies[{idx}].rules[{ridx}]: unknown operator '{op}'"
-                )
+                errors.append(f"policies[{idx}].rules[{ridx}]: unknown operator '{op}'")
             if "field" not in rule:
                 errors.append(f"policies[{idx}].rules[{ridx}]: missing required field 'field'")
 
@@ -295,9 +291,7 @@ def evaluate_policy_bundle(bundle: dict[str, Any], policy_bundle: dict[str, Any]
         if change_type and change_type in _APPROVAL_CHANGE_TYPES:
             if not _approval_granted(bundle):
                 requires_approval = True
-                reasons.append(
-                    f"approval_required: {change_type.replace('_', ' ')} change"
-                )
+                reasons.append(f"approval_required: {change_type.replace('_', ' ')} change")
 
     if requires_approval:
         return PolicyDecision(decision="approval_required", reasons=tuple(reasons))

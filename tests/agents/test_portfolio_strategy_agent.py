@@ -149,9 +149,7 @@ async def test_portfolio_financial_integration_enrichment():
     result = await agent.process(
         {
             "action": "optimize_portfolio",
-            "projects": [
-                {"project_id": "P1", "name": "Financial Sync", "category": "operations"}
-            ],
+            "projects": [{"project_id": "P1", "name": "Financial Sync", "category": "operations"}],
             "constraints": {"budget_ceiling": 800, "resource_capacity": {}},
         }
     )

@@ -2,6 +2,7 @@ import asyncio
 
 import pytest
 from approval_workflow_agent import ApprovalWorkflowAgent
+
 from integrations.services.integration import EventBusClient, EventEnvelope
 
 
@@ -126,7 +127,9 @@ async def test_approval_workflow_digest_notifications_and_templates(tmp_path, mo
             sent_messages.append({"to": to, "subject": subject, "body": body})
             return {"status": "sent"}
 
-        async def send_teams_message(self, team_id, channel_id, message, chat_id=None, user_id=None):
+        async def send_teams_message(
+            self, team_id, channel_id, message, chat_id=None, user_id=None
+        ):
             sent_messages.append({"to": team_id or chat_id, "subject": "teams", "body": message})
             return {"status": "sent"}
 

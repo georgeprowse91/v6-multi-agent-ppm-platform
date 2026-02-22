@@ -67,8 +67,7 @@ async def test_dynamic_escalation_uses_high_risk_and_criticality_thresholds(tmp_
             "approval_policies_path": str(tmp_path / "approval_policies.yaml"),
         }
     )
-    (tmp_path / "approval_policies.yaml").write_text(
-        """
+    (tmp_path / "approval_policies.yaml").write_text("""
 escalation_timeout_hours: 48
 risk_thresholds:
   high: 12
@@ -79,8 +78,7 @@ criticality_levels:
   high: 12
   normal: 24
   low: 48
-""".strip()
-    )
+""".strip())
     await agent.initialize()
 
     result = await agent.process(
@@ -116,8 +114,7 @@ async def test_dynamic_escalation_uses_low_risk_defaults(tmp_path):
             "approval_policies_path": str(tmp_path / "approval_policies.yaml"),
         }
     )
-    (tmp_path / "approval_policies.yaml").write_text(
-        """
+    (tmp_path / "approval_policies.yaml").write_text("""
 escalation_timeout_hours: 72
 risk_thresholds:
   high: 10
@@ -128,8 +125,7 @@ criticality_levels:
   high: 18
   normal: 30
   low: 42
-""".strip()
-    )
+""".strip())
     await agent.initialize()
 
     result = await agent.process(

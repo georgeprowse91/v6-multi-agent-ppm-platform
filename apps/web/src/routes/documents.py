@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
-
 from dependencies import get_document_service_client
+from fastapi import APIRouter, Depends, Query
 from web_services.documents import DocumentService
 
 router = APIRouter(prefix="/v1/api/document-canvas", tags=["documents"])

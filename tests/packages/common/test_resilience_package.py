@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-
 from common.resilience import (
     CircuitBreakerPolicy,
     CircuitOpenError,
@@ -40,7 +39,9 @@ def _build_middleware() -> ResilienceMiddleware:
     )
 
 
-def test_circuit_breaker_closed_to_open_to_half_open_to_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_circuit_breaker_closed_to_open_to_half_open_to_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     clock = _FakeClock()
     monkeypatch.setattr("common.resilience.time.monotonic", clock.monotonic)
 

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import logging
 from collections import deque
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 from fastapi import FastAPI
 
@@ -31,7 +32,7 @@ class ComponentRuntimeState:
 
 
 @dataclass(slots=True)
-class StartupFailure(Exception):
+class StartupFailure(Exception):  # noqa: N818
     component: str
     message: str
     startup_order: list[str]

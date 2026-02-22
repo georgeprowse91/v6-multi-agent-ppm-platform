@@ -107,7 +107,9 @@ async def list_certifications(
 
 
 @router.get("/certifications/{connector_id}", response_model=CertificationRecordResponse)
-async def get_certification(connector_id: str, http_request: Request) -> CertificationRecordResponse:
+async def get_certification(
+    connector_id: str, http_request: Request
+) -> CertificationRecordResponse:
     auth = http_request.state.auth
     record = _get_store().get_record(connector_id, auth.tenant_id)
     if not record:

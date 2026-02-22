@@ -9,9 +9,10 @@ Specification: agents/operations-management/agent-20-continuous-improvement-proc
 """
 
 import json
+from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
@@ -90,7 +91,15 @@ class ProcessMiningAgent(BaseAgent):
         if self.event_bus is None:
             try:
                 self.event_bus = get_event_bus()
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 self.event_bus = None
         self.event_topics = (
             config.get(
@@ -195,7 +204,7 @@ class ProcessMiningAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "ingest_event_log":
@@ -365,7 +374,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Returns ingestion statistics.
         """
-        self.logger.info(f"Ingesting event log with {len(events)} events")
+        self.logger.info("Ingesting event log with %s events", len(events))
 
         # Validate events
         valid_events = await self._validate_events(events)
@@ -410,7 +419,7 @@ class ProcessMiningAgent(BaseAgent):
         self, tenant_id: str, process_id: str, expected_model: dict[str, Any]
     ) -> dict[str, Any]:
         """Compare actual traces against expected process model."""
-        self.logger.info(f"Checking conformance for process: {process_id}")
+        self.logger.info("Checking conformance for process: %s", process_id)
 
         events = await self._get_process_events(process_id)
         if not events:
@@ -419,8 +428,7 @@ class ProcessMiningAgent(BaseAgent):
         traces = await self._build_traces(events)
         expected_activities = set(expected_model.get("activities", []))
         expected_transitions = {
-            (edge.get("from"), edge.get("to"))
-            for edge in expected_model.get("transitions", [])
+            (edge.get("from"), edge.get("to")) for edge in expected_model.get("transitions", [])
         }
 
         deviations: list[dict[str, Any]] = []
@@ -448,9 +456,7 @@ class ProcessMiningAgent(BaseAgent):
             else:
                 compliant_traces += 1
 
-        compliance_rate = (
-            (compliant_traces / len(traces)) * 100 if traces else 0.0
-        )
+        compliance_rate = (compliant_traces / len(traces)) * 100 if traces else 0.0
         report = {
             "process_id": process_id,
             "expected_model": expected_model,
@@ -472,7 +478,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Returns process model and visualization.
         """
-        self.logger.info(f"Discovering process {process_id} using {algorithm}")
+        self.logger.info("Discovering process %s using %s", process_id, algorithm)
 
         # Get event logs for process
         events = await self._get_process_events(process_id)
@@ -534,7 +540,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Returns bottleneck analysis.
         """
-        self.logger.info(f"Detecting bottlenecks for process: {process_id}")
+        self.logger.info("Detecting bottlenecks for process: %s", process_id)
 
         process_model = self.process_models.get(process_id) or self.process_model_store.get(
             tenant_id, process_id
@@ -583,7 +589,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Returns deviation analysis.
         """
-        self.logger.info(f"Detecting deviations for process: {process_id}")
+        self.logger.info("Detecting deviations for process: %s", process_id)
 
         # Get designed process model
         designed_model = await self._get_designed_process_model(tenant_id, process_id)
@@ -639,7 +645,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Returns root cause insights.
         """
-        self.logger.info(f"Analyzing root cause for issue {issue_id} in process {process_id}")
+        self.logger.info("Analyzing root cause for issue %s in process %s", issue_id, process_id)
 
         # Get process events
         events = await self._get_process_events(process_id)
@@ -674,7 +680,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Returns improvement ID and details.
         """
-        self.logger.info(f"Creating improvement: {improvement_data.get('title')}")
+        self.logger.info("Creating improvement: %s", improvement_data.get("title"))
 
         # Generate improvement ID
         improvement_id = await self._generate_improvement_id()
@@ -806,13 +812,13 @@ class ProcessMiningAgent(BaseAgent):
             "by_status": {k: len(v) for k, v in by_status.items()},
         }
 
-    async def _track_benefits(self, improvement_id: str) -> dict[str, Any]:
+    async def _track_benefits(self, improvement_id: str, tenant_id: str = "") -> dict[str, Any]:
         """
         Track benefit realization for improvement.
 
         Returns benefit metrics.
         """
-        self.logger.info(f"Tracking benefits for improvement: {improvement_id}")
+        self.logger.info("Tracking benefits for improvement: %s", improvement_id)
 
         improvement = self.improvement_backlog.get(improvement_id)
         if not improvement:
@@ -870,7 +876,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Returns benchmark comparison.
         """
-        self.logger.info(f"Benchmarking performance for process: {process_id}")
+        self.logger.info("Benchmarking performance for process: %s", process_id)
 
         # Get current process metrics
         current_metrics = await self._get_current_process_metrics(process_id)
@@ -943,7 +949,7 @@ class ProcessMiningAgent(BaseAgent):
 
         Returns process analysis.
         """
-        self.logger.info(f"Generating insights for process: {process_id}")
+        self.logger.info("Generating insights for process: %s", process_id)
 
         process_model = self.process_models.get(process_id) or self.process_model_store.get(
             tenant_id, process_id
@@ -1037,9 +1043,9 @@ class ProcessMiningAgent(BaseAgent):
             due_days = 14 if impact == "high" else 30
             improvement_id = await self._generate_improvement_id()
             priority_score = 90 - (index * 5)
-            target_due_date = (
-                datetime.now(timezone.utc) + timedelta(days=due_days)
-            ).replace(microsecond=0)
+            target_due_date = (datetime.now(timezone.utc) + timedelta(days=due_days)).replace(
+                microsecond=0
+            )
             item = {
                 "improvement_id": improvement_id,
                 "title": recommendation,
@@ -1086,9 +1092,9 @@ class ProcessMiningAgent(BaseAgent):
         outcome: str,
         completed_by: str | None,
     ) -> dict[str, Any]:
-        improvement = self.improvement_backlog.get(improvement_id) or self.improvement_backlog_store.get(
-            tenant_id, improvement_id
-        )
+        improvement = self.improvement_backlog.get(
+            improvement_id
+        ) or self.improvement_backlog_store.get(tenant_id, improvement_id)
         if not improvement:
             raise ValueError(f"Improvement not found: {improvement_id}")
 
@@ -1096,7 +1102,9 @@ class ProcessMiningAgent(BaseAgent):
             **improvement,
             "status": "Completed",
             "completed_at": datetime.now(timezone.utc).isoformat(),
-            "completed_by": completed_by or improvement.get("owner") or self.default_improvement_owner,
+            "completed_by": completed_by
+            or improvement.get("owner")
+            or self.default_improvement_owner,
             "outcome": outcome,
         }
         self.improvement_backlog[improvement_id] = completed
@@ -1301,15 +1309,21 @@ class ProcessMiningAgent(BaseAgent):
             if not data:
                 return []
             parsed: dict[str, Any] = json.loads(data)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return []
         logs: list[dict[str, Any]] = []
         for tenant_records in parsed.values():
             if isinstance(tenant_records, dict):
                 logs.extend(
-                    record
-                    for record in tenant_records.values()
-                    if isinstance(record, dict)
+                    record for record in tenant_records.values() if isinstance(record, dict)
                 )
         return logs
 
@@ -1386,8 +1400,7 @@ class ProcessMiningAgent(BaseAgent):
         traces = await self._build_traces(events)
         start_activities, end_activities = self._get_start_end_activities(traces)
         transitions = [
-            {"id": activity, "label": activity}
-            for activity in process_model.get("activities", [])
+            {"id": activity, "label": activity} for activity in process_model.get("activities", [])
         ]
         places = [{"id": "p_start"}, {"id": "p_end"}]
         arcs: list[dict[str, str]] = []
@@ -1432,9 +1445,7 @@ class ProcessMiningAgent(BaseAgent):
             if timestamps:
                 cycle_times.append((max(timestamps) - min(timestamps)).total_seconds() / 3600)
 
-        median_cycle_time = (
-            sorted(cycle_times)[len(cycle_times) // 2] if cycle_times else 0.0
-        )
+        median_cycle_time = sorted(cycle_times)[len(cycle_times) // 2] if cycle_times else 0.0
         return {
             "median_cycle_time": round(median_cycle_time, 2),
             "throughput": len(traces),
@@ -1457,9 +1468,7 @@ class ProcessMiningAgent(BaseAgent):
             if timestamps:
                 cycle_times.append((max(timestamps) - min(timestamps)).total_seconds() / 3600)
 
-        median_cycle_time = (
-            sorted(cycle_times)[len(cycle_times) // 2] if cycle_times else 0.0
-        )
+        median_cycle_time = sorted(cycle_times)[len(cycle_times) // 2] if cycle_times else 0.0
         return {
             "median_cycle_time": round(median_cycle_time, 2),
             "throughput": len(traces),
@@ -1493,11 +1502,7 @@ class ProcessMiningAgent(BaseAgent):
         if key == "process_id":
             return event.get("process_id")
         metadata = event.get("metadata", {})
-        return (
-            metadata.get(key)
-            if isinstance(metadata, dict)
-            else event.get(key)
-        )
+        return metadata.get(key) if isinstance(metadata, dict) else event.get(key)
 
     async def _generate_process_visualization(
         self, process_model: dict[str, Any], metrics: dict[str, Any]
@@ -1520,9 +1525,7 @@ class ProcessMiningAgent(BaseAgent):
         activity_counts: dict[str, int] = {}
 
         for case_id, activity_sequence in traces.items():
-            case_events = [
-                e for e in events if e.get("case_id") == case_id and e.get("timestamp")
-            ]
+            case_events = [e for e in events if e.get("case_id") == case_id and e.get("timestamp")]
             case_events = sorted(
                 case_events,
                 key=lambda e: self._safe_parse_timestamp(e.get("timestamp")) or datetime.min,
@@ -1555,9 +1558,7 @@ class ProcessMiningAgent(BaseAgent):
             return 0.0
         traces = await self._build_traces(events)
         timestamps = [
-            self._safe_parse_timestamp(e.get("timestamp"))
-            for e in events
-            if e.get("timestamp")
+            self._safe_parse_timestamp(e.get("timestamp")) for e in events if e.get("timestamp")
         ]
         timestamps = [ts for ts in timestamps if ts]
         if len(timestamps) < 2:
@@ -1578,9 +1579,7 @@ class ProcessMiningAgent(BaseAgent):
             )
         return recommendations
 
-    async def _get_designed_process_model(
-        self, tenant_id: str, process_id: str
-    ) -> dict[str, Any]:
+    async def _get_designed_process_model(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """Get designed process model."""
         if self.workflow_engine_agent:
             response = await self.workflow_engine_agent.process(
@@ -1666,8 +1665,12 @@ class ProcessMiningAgent(BaseAgent):
         weighted_penalty = 0.0
         for deviation in deviations:
             category = str(deviation.get("category") or "")
-            severity = str(deviation.get("severity") or default_severity_by_category.get(category, "medium"))
-            weighted_penalty += category_weights.get(category, 1.0) * severity_weights.get(severity, 1.0)
+            severity = str(
+                deviation.get("severity") or default_severity_by_category.get(category, "medium")
+            )
+            weighted_penalty += category_weights.get(category, 1.0) * severity_weights.get(
+                severity, 1.0
+            )
 
         process_opportunities = (total_expected_activities or 0) * (total_cases or 0)
         denominator = max(1, process_opportunities, len(deviations))
@@ -1975,7 +1978,7 @@ class ProcessMiningAgent(BaseAgent):
         ]
 
     async def _subscribe_to_event_bus(self) -> None:
-        if not self.event_bus:
+        if not self.event_bus or not hasattr(self.event_bus, "subscribe"):
             return
         for topic in self.event_topics:
             self.event_bus.subscribe(topic, self._handle_event_bus_event)
@@ -2092,9 +2095,7 @@ class ProcessMiningAgent(BaseAgent):
             )
         await self._publish_lessons_learned(tenant_id, payload)
 
-    async def _publish_lessons_learned(
-        self, tenant_id: str, payload: dict[str, Any]
-    ) -> None:
+    async def _publish_lessons_learned(self, tenant_id: str, payload: dict[str, Any]) -> None:
         knowledge_payload = {
             "source_agent": self.agent_id,
             "title": f"Process improvement recommendations for {payload.get('process_id')}",
@@ -2108,7 +2109,11 @@ class ProcessMiningAgent(BaseAgent):
         }
         if self.knowledge_agent:
             await self.knowledge_agent.process(
-                {"action": "ingest_agent_output", "tenant_id": tenant_id, "payload": knowledge_payload}
+                {
+                    "action": "ingest_agent_output",
+                    "tenant_id": tenant_id,
+                    "payload": knowledge_payload,
+                }
             )
             return
         if self.event_bus:
@@ -2137,9 +2142,7 @@ class ProcessMiningAgent(BaseAgent):
         for idx in range(len(items) - 1):
             yield items[idx], items[idx + 1]
 
-    def _resolve_store_path(
-        self, config: dict[str, Any] | None, key: str, fallback: str
-    ) -> Path:
+    def _resolve_store_path(self, config: dict[str, Any] | None, key: str, fallback: str) -> Path:
         if config and config.get(key):
             return Path(config.get(key))
         return Path(fallback)

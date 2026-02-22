@@ -19,11 +19,11 @@ for path in (WORKFLOW_ENGINE_SRC, COMMON_SRC):
         sys.path.insert(0, str(path))
 
 from agent_client import get_agent_client  # noqa: E402
+from common.env_validation import environment_value  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
 from security.audit_log import build_event, get_audit_log_store
 from workflow_definitions import load_definition, seed_definitions  # noqa: E402
 from workflow_runtime import WorkflowRuntime  # noqa: E402
-from common.env_validation import environment_value  # noqa: E402
 from workflow_storage import WorkflowStore, resolve_workflow_storage  # noqa: E402
 
 router = APIRouter()

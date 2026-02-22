@@ -435,7 +435,9 @@ async def test_quality_management_devops_and_ci_sync(tmp_path):
             "test_case": {"project_id": "project-1", "name": "Unit test"},
         }
     )
-    assert test_case_response["sync_status"]["external_refs"]["azure_devops"]["plan_id"] == "plan-99"
+    assert (
+        test_case_response["sync_status"]["external_refs"]["azure_devops"]["plan_id"] == "plan-99"
+    )
 
     suite_response = await agent.process(
         {

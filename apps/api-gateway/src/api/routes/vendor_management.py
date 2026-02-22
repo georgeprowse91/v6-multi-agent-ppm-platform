@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field, ValidationError
 
 router = APIRouter()
@@ -52,7 +52,9 @@ async def get_vendor_profile(vendor_id: str, request: Request) -> VendorProfileR
 
 
 @router.patch("/vendors/{vendor_id}", response_model=VendorUpdateResponse)
-async def update_vendor_profile(vendor_id: str, payload: VendorUpdateRequest, request: Request) -> VendorUpdateResponse:
+async def update_vendor_profile(
+    vendor_id: str, payload: VendorUpdateRequest, request: Request
+) -> VendorUpdateResponse:
     """Update fields on a vendor profile."""
     orchestrator = request.app.state.orchestrator
 
@@ -80,6 +82,7 @@ async def update_vendor_profile(vendor_id: str, payload: VendorUpdateRequest, re
 
 @router.get("/vendors", response_model=VendorListResponse)
 async def list_vendors(
+    request: Request,
     category: str | None = Query(default=None),
     status: str | None = Query(default=None),
     min_rating: float | None = Query(default=None),

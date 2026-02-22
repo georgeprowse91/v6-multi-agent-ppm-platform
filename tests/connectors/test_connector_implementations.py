@@ -23,6 +23,8 @@ secrets_module = types.ModuleType("security.secrets")
 keyvault_module = types.ModuleType("security.keyvault")
 dlp_module.redact_payload = lambda payload: payload
 secrets_module.resolve_secret = lambda value: value
+
+
 class DummyKeyVaultConfig:  # noqa: D401 - simple mock
     def __init__(self, vault_url: str | None = None) -> None:
         self.vault_url = vault_url
@@ -59,8 +61,8 @@ import http_client as http_client_module
 from adp_connector import AdpConnector
 from archer_connector import ArcherConnector
 from asana_connector import AsanaConnector
-from azure_devops_connector import AzureDevOpsConnector
 from azure_communication_services_connector import AzureCommunicationServicesConnector
+from azure_devops_connector import AzureDevOpsConnector
 from base_connector import ConnectionStatus, ConnectorCategory, ConnectorConfig
 from clarity_connector import ClarityConnector
 from confluence_connector import ConfluenceConnector

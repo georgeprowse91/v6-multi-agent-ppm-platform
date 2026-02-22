@@ -1,0 +1,10 @@
+{
+  "project_id": "project-1",
+  "model_version": "subsystem-20260222033635",
+  "trained_at": "2026-02-22T03:36:35.961690+00:00",
+  "subsystem_distribution": {
+    "billing": 1
+  },
+  "_id": "project-1-subsystem-20260222033635",
+  "_updated_at": "2026-02-22T03:36:35.961837+00:00"
+}

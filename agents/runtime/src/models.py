@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -66,7 +66,7 @@ class AgentValidationError(BaseModel):
     details: list[dict[str, Any]] = Field(default_factory=list)
 
 
-class AgentRunStatus(str, Enum):
+class AgentRunStatus(StrEnum):
     queued = "queued"
     running = "running"
     succeeded = "succeeded"
@@ -135,7 +135,7 @@ class AgentRun(BaseModel):
         return self.model_copy(update=updated_fields)
 
 
-class ReadinessSeverity(str, Enum):
+class ReadinessSeverity(StrEnum):
     """Severity level for readiness checks."""
 
     info = "info"

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 import numpy as np
 
 try:
-    import faiss  # type: ignore
+    import faiss
 except Exception:  # pragma: no cover - optional dependency
     faiss = None
 
@@ -199,7 +199,7 @@ class FaissVectorStore:
 
         if faiss is not None and shard in self._faiss_indexes:
             index = self._faiss_indexes[shard]
-            distances, indices = index.search(query_vector, min(top_k, len(state.ids)))
+            distances, indices = index.search(query_vector, min(top_k, len(state.ids)))  # type: ignore[attr-defined]
             results: list[tuple[str, float]] = []
             for dist, idx in zip(distances[0], indices[0], strict=False):
                 if idx < 0:
@@ -271,4 +271,4 @@ def _cosine_similarity_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     b_norm = np.linalg.norm(b, axis=1, keepdims=True)
     a_norm[a_norm == 0] = 1.0
     b_norm[b_norm == 0] = 1.0
-    return (a / a_norm) @ (b / b_norm).T
+    return np.array((a / a_norm) @ (b / b_norm).T)

@@ -5,16 +5,19 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
-
 from agent_registry import load_agent_registry
 from methodologies import available_methodologies, get_methodology_map
+from pydantic import BaseModel, Field
 from template_mappings import CANVAS_TYPES, get_template_mapping
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 RUNTIME_REGISTRY_PATH = DATA_DIR / "methodology_node_runtime.json"
 CONNECTOR_REGISTRY_PATH = (
-    Path(__file__).resolve().parents[3] / "integrations" / "connectors" / "registry" / "connectors.json"
+    Path(__file__).resolve().parents[3]
+    / "integrations"
+    / "connectors"
+    / "registry"
+    / "connectors.json"
 )
 LIFECYCLE_EVENTS = ("view", "generate", "update", "review", "approve", "publish")
 
@@ -91,7 +94,9 @@ def _load_connector_types() -> set[str]:
     return set()
 
 
-def _collect_nodes(map_payload: dict[str, Any]) -> tuple[set[str], set[tuple[str, str]], set[tuple[str, str, str]]]:
+def _collect_nodes(
+    map_payload: dict[str, Any],
+) -> tuple[set[str], set[tuple[str, str]], set[tuple[str, str, str]]]:
     stages: set[str] = set()
     activities: set[tuple[str, str]] = set()
     tasks: set[tuple[str, str, str]] = set()
@@ -105,7 +110,9 @@ def _collect_nodes(map_payload: dict[str, Any]) -> tuple[set[str], set[tuple[str
             if stage_id and activity_id:
                 activities.add((stage_id, activity_id))
 
-    def walk(nodes: list[dict[str, Any]], stage_id: str | None = None, activity_id: str | None = None) -> None:
+    def walk(
+        nodes: list[dict[str, Any]], stage_id: str | None = None, activity_id: str | None = None
+    ) -> None:
         for node in nodes:
             node_type = str(node.get("type", ""))
             node_id = str(node.get("id"))
@@ -156,7 +163,9 @@ def _validate_registry(registry: RuntimeRegistry) -> RuntimeRegistry:
 
         stages, activities, tasks = collected_nodes[key.methodology_id]
         if key.stage_id not in stages:
-            raise ValueError(f"Unknown stage_id `{key.stage_id}` for methodology `{key.methodology_id}`")
+            raise ValueError(
+                f"Unknown stage_id `{key.stage_id}` for methodology `{key.methodology_id}`"
+            )
         if key.activity_id is not None and (key.stage_id, key.activity_id) not in activities:
             raise ValueError(
                 f"Unknown activity_id `{key.activity_id}` under stage `{key.stage_id}` ({key.methodology_id})"
@@ -211,7 +220,9 @@ def _validate_registry(registry: RuntimeRegistry) -> RuntimeRegistry:
                 )
 
     if missing_view_errors:
-        raise ValueError("Missing required runtime mappings:\n" + "\n".join(sorted(missing_view_errors)))
+        raise ValueError(
+            "Missing required runtime mappings:\n" + "\n".join(sorted(missing_view_errors))
+        )
 
     return registry
 
@@ -231,7 +242,11 @@ def _merge_with_template_defaults(mapping: RuntimeMapping) -> dict[str, Any]:
         "template_ids": [base_mapping.template_id],
         "agent_workflow": {
             "workflow_id": mapping.resolution.agent_workflow.workflow_id,
-            "mode": "single" if len(getattr(base_mapping.agent_bindings, event, [])) <= 1 else "sequential",
+            "mode": (
+                "single"
+                if len(getattr(base_mapping.agent_bindings, event, [])) <= 1
+                else "sequential"
+            ),
             "agent_ids": getattr(base_mapping.agent_bindings, event, []),
             "dag_ref": base_mapping.agent_bindings.orchestration.dag_name,
             "depends_on_templates": base_mapping.agent_bindings.orchestration.depends_on_templates,

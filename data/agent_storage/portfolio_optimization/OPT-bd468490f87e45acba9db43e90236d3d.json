@@ -1,0 +1,38 @@
+{
+  "optimization_id": "OPT-bd468490f87e45acba9db43e90236d3d",
+  "selected_projects": [
+    {
+      "project_id": "P1",
+      "project_name": "Financial Sync",
+      "score": 0.56,
+      "cost": 500.0,
+      "expected_value": 1200.0,
+      "value": 660.0,
+      "category": "operations",
+      "resource_requirements": {},
+      "risk_score": 0.6,
+      "alignment_score": 0.7,
+      "roi_score": 0.3
+    }
+  ],
+  "total_projects": 1,
+  "total_cost": 500.0,
+  "total_value": 1200.0,
+  "budget_utilization": 0.625,
+  "portfolio_metrics": {
+    "average_score": 0.56,
+    "average_roi": 0.3,
+    "total_npv": 1200.0,
+    "risk_profile": "balanced",
+    "strategic_coverage": 0.8
+  },
+  "constraints_applied": {
+    "budget_ceiling": 800,
+    "resource_capacity": {}
+  },
+  "optimization_method": "integer_programming",
+  "discount_rate": 0.08,
+  "optimized_at": "2026-02-22T06:02:10.554258+00:00",
+  "_id": "OPT-bd468490f87e45acba9db43e90236d3d",
+  "_updated_at": "2026-02-22T06:02:10.554523+00:00"
+}

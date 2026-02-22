@@ -15,7 +15,10 @@ from workflow_storage import WorkflowStore  # noqa: E402
 def test_storage_crud_and_idempotency_concurrency(tmp_path: Path) -> None:
     store = WorkflowStore(tmp_path / "workflow.db")
     store.ping()
-    definition = {"metadata": {"name": "Flow", "version": "v2", "owner": "qa"}, "steps": [{"id": "s", "type": "notification"}]}
+    definition = {
+        "metadata": {"name": "Flow", "version": "v2", "owner": "qa"},
+        "steps": [{"id": "s", "type": "notification"}],
+    }
     store.upsert_definition("wf", definition)
     assert store.get_definition("wf").version == "v2"
 
@@ -38,7 +41,9 @@ def test_storage_serialization_roundtrip_across_states(tmp_path: Path) -> None:
         assert loaded.status == status
         assert loaded.payload == {"nested": {"items": [1, {"x": True}]}}
 
-    state = store.upsert_step_state("run-state", "step-1", "completed", attempts=2, output={"result": ["a", 2, {"ok": True}]})
+    state = store.upsert_step_state(
+        "run-state", "step-1", "completed", attempts=2, output={"result": ["a", 2, {"ok": True}]}
+    )
     assert state.output["result"][2]["ok"] is True
 
     approval = store.upsert_approval(

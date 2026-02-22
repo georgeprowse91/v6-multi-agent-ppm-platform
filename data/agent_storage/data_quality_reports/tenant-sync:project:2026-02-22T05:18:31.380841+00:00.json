@@ -1,0 +1,31 @@
+{
+  "tenant_id": "tenant-sync",
+  "entity_type": "project",
+  "total_records": 1,
+  "valid_records": 1,
+  "error_rate": 0.0,
+  "avg_completeness_score": 1.0,
+  "avg_consistency_score": 1.0,
+  "avg_timeliness_score": 1.0,
+  "quality_score": 1.0,
+  "records": [
+    {
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "valid": true,
+      "error_count": 0,
+      "warning_count": 0,
+      "validated_at": "2026-02-22T05:18:31.380014+00:00",
+      "completeness_score": 1.0,
+      "consistency_score": 1.0,
+      "timeliness_score": 1.0,
+      "quality_score": 1.0,
+      "age_seconds": null,
+      "_id": "tenant-sync:project:2026-02-22T05:18:31.380014+00:00",
+      "_updated_at": "2026-02-22T05:18:31.380408+00:00"
+    }
+  ],
+  "_id": "tenant-sync:project:2026-02-22T05:18:31.380841+00:00",
+  "_updated_at": "2026-02-22T05:18:31.381042+00:00"
+}

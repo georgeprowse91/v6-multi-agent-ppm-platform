@@ -1,0 +1,21 @@
+{
+  "resource_id": "res-constraint",
+  "name": "Jamie",
+  "role": "Engineer",
+  "skills": [
+    "python"
+  ],
+  "location": "Remote",
+  "cost_rate": 0.0,
+  "certifications": [],
+  "availability": 1.0,
+  "team_memberships": [],
+  "created_at": "2026-02-22T06:02:12.128273+00:00",
+  "status": "Active",
+  "training": {},
+  "training_load": 0.0,
+  "employee_id": "res-constraint",
+  "source_system": "agent",
+  "_id": "res-constraint",
+  "_updated_at": "2026-02-22T06:02:12.130831+00:00"
+}

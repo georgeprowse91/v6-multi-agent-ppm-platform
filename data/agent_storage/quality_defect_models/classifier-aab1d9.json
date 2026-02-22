@@ -1,0 +1,25 @@
+{
+  "label_tokens": {
+    "integration_failure": [
+      "latency",
+      "spike",
+      "on",
+      "login",
+      "auth",
+      "integrationfailure"
+    ]
+  },
+  "severity_tokens": {
+    "high": [
+      "latency",
+      "spike",
+      "on",
+      "login",
+      "auth",
+      "integrationfailure"
+    ]
+  },
+  "trained_at": "2026-02-22T04:15:07.688403+00:00",
+  "_id": "classifier-aab1d9",
+  "_updated_at": "2026-02-22T04:15:07.688707+00:00"
+}

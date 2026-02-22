@@ -7,10 +7,9 @@ from typing import Any
 
 import yaml
 
-from security.config import resolve_config
-
 from data_quality.rules import DataQualityIssue
 from data_quality.schema_validation import SchemaValidationError, validate_instance
+from security.config import resolve_config
 
 
 @dataclass(frozen=True)
@@ -40,10 +39,10 @@ def _get_value(payload: dict[str, Any], field_path: str) -> Any:
 
 def _load_rule_set(rule_set: dict[str, Any] | str | Path) -> dict[str, Any]:
     if isinstance(rule_set, dict):
-        return resolve_config(rule_set)
+        return dict(resolve_config(rule_set))
     path = Path(rule_set)
-    data = yaml.safe_load(path.read_text())
-    return resolve_config(data)
+    data: dict[str, Any] = yaml.safe_load(path.read_text()) or {}
+    return dict(resolve_config(data))
 
 
 def apply_rule_set(rule_set: dict[str, Any] | str | Path, payload: dict[str, Any]) -> RuleSetResult:

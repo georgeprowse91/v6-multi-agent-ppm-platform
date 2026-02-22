@@ -37,9 +37,7 @@ def _load_config(tmp_path: Path, **overrides) -> ConnectorConfig:
     return loaded
 
 
-def test_mcp_enabled_sync_flow_lists_tools_and_records(
-    mock_mcp_server, tmp_path: Path
-) -> None:
+def test_mcp_enabled_sync_flow_lists_tools_and_records(mock_mcp_server, tmp_path: Path) -> None:
     mock_mcp_server.register_tool(
         "tools.listRecords",
         result={"records": [{"id": "rec-1", "name": "Alpha"}]},
@@ -83,9 +81,7 @@ def test_mcp_disabled_sync_flow_uses_rest(mock_mcp_server, tmp_path: Path) -> No
     assert mock_mcp_server.requests == []
 
 
-def test_mcp_fallback_sync_flow_uses_rest_on_error(
-    mock_mcp_server, tmp_path: Path
-) -> None:
+def test_mcp_fallback_sync_flow_uses_rest_on_error(mock_mcp_server, tmp_path: Path) -> None:
     mock_mcp_server.register_tool(
         "tools.listRecords",
         error={"code": -32001, "message": "MCP tool failure"},

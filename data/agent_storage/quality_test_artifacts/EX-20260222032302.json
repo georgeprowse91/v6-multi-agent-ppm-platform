@@ -1,0 +1,18 @@
+{
+  "execution_id": "EX-20260222032302",
+  "suite_id": "TS-20260222032302",
+  "project_id": "project-1",
+  "results": [
+    {
+      "test_case_id": "TC-20260222032302",
+      "name": "Login test",
+      "result": "fail",
+      "runner": "playwright",
+      "browser": "chromium",
+      "duration_ms": 1200,
+      "artifact": "TC-20260222032302.zip"
+    }
+  ],
+  "_id": "EX-20260222032302",
+  "_updated_at": "2026-02-22T03:23:02.890772+00:00"
+}

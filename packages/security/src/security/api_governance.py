@@ -27,7 +27,9 @@ class Pagination:
 
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         correlation_id = request.headers.get(CORRELATION_ID_HEADER) or str(uuid.uuid4())
         request.state.correlation_id = correlation_id
         response = await call_next(request)
@@ -43,13 +45,17 @@ def apply_api_governance(app: FastAPI, *, service_name: str) -> None:
     register_error_handlers(app)
 
 
-def set_pagination_headers(response: Response, *, page: int, page_size: int, total_count: int) -> None:
+def set_pagination_headers(
+    response: Response, *, page: int, page_size: int, total_count: int
+) -> None:
     response.headers["X-Page"] = str(page)
     response.headers["X-Page-Size"] = str(page_size)
     response.headers["X-Total-Count"] = str(total_count)
 
 
-def health_response_payload(*, service: str, status: str = "ok", dependencies: dict[str, str] | None = None) -> dict[str, object]:
+def health_response_payload(
+    *, service: str, status: str = "ok", dependencies: dict[str, str] | None = None
+) -> dict[str, object]:
     return {
         "status": status,
         "service": service,

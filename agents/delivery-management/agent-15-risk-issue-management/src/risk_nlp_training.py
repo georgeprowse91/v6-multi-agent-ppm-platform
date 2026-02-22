@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-
 from typing import Any
 
 
@@ -44,9 +43,7 @@ def train_model(
         return tokenizer(batch["text"], padding="max_length", truncation=True)
 
     tokenized = dataset.map(tokenize, batched=True)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_name, num_labels=num_labels
-    )
+    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
     args = TrainingArguments(
         output_dir=str(output_dir),
         per_device_train_batch_size=batch_size,

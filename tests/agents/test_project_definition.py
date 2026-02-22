@@ -4,7 +4,6 @@ import types
 
 import pytest
 
-
 prometheus_stub = types.ModuleType("prometheus_client")
 
 
@@ -39,7 +38,6 @@ sys.modules["tools.runtime_paths"] = runtime_paths_stub
 
 
 from pydantic import BaseModel
-
 
 events_stub = types.ModuleType("events")
 

@@ -9,20 +9,19 @@ right time through appropriate channels, fostering engagement and monitoring sen
 Specification: agents/operations-management/agent-21-stakeholder-comms/README.md
 """
 
-from datetime import datetime, timedelta, timezone
 import importlib.util
 import json
 import os
-from pathlib import Path
 import sqlite3
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 import requests
-
 from agents.common.connector_integration import CalendarIntegrationService, NotificationService
 from agents.runtime import BaseAgent
 from agents.runtime.src.state_store import TenantStateStore
-from integrations.connectors.sdk.src.secrets import fetch_keyvault_secret, resolve_secret
+from connector_secrets import fetch_keyvault_secret, resolve_secret
 
 
 def _safe_find_spec(module_name: str) -> bool:
@@ -113,8 +112,7 @@ class CommunicationHistoryStore:
             self._table = metadata_table
         else:
             self._sqlite_conn = sqlite3.connect(self._sqlite_path(db_url))
-            self._sqlite_conn.execute(
-                """
+            self._sqlite_conn.execute("""
                 CREATE TABLE IF NOT EXISTS communications_history (
                     record_id TEXT PRIMARY KEY,
                     stakeholder_id TEXT,
@@ -125,8 +123,7 @@ class CommunicationHistoryStore:
                     metadata TEXT,
                     created_at TEXT
                 )
-                """
-            )
+                """)
             self._sqlite_conn.commit()
 
     def _sqlite_path(self, db_url: str) -> str:
@@ -177,7 +174,9 @@ class ServiceBusPublisher:
         self.connection_string = connection_string
         self.topic_name = topic_name
         self.queue_name = queue_name
-        self.enabled = bool(connection_string) and ServiceBusClient is not None and ServiceBusMessage
+        self.enabled = (
+            bool(connection_string) and ServiceBusClient is not None and ServiceBusMessage
+        )
 
     def publish(self, event_type: str, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.enabled or (not self.topic_name and not self.queue_name):
@@ -294,8 +293,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             (config or {}).get("azure_openai_api_key") or os.getenv("AZURE_OPENAI_API_KEY")
         )
         self.openai_deployment = resolve_secret(
-            (config or {}).get("azure_openai_deployment")
-            or os.getenv("AZURE_OPENAI_DEPLOYMENT")
+            (config or {}).get("azure_openai_deployment") or os.getenv("AZURE_OPENAI_DEPLOYMENT")
         )
         self.openai_api_version = (config or {}).get(
             "azure_openai_api_version", os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
@@ -335,8 +333,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "crm_upsert_endpoint", os.getenv("CRM_UPSERT_ENDPOINT", "/api/stakeholders")
         )
         self.crm_timeout_seconds = int(
-            (config or {}).get("crm_timeout_seconds")
-            or os.getenv("CRM_TIMEOUT_SECONDS", "10")
+            (config or {}).get("crm_timeout_seconds") or os.getenv("CRM_TIMEOUT_SECONDS", "10")
         )
 
         self.service_bus_connection_string = resolve_secret(
@@ -359,7 +356,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
             self.service_bus_connection_string, self.service_bus_topic, self.service_bus_queue
         )
 
-        self.slack_client = WebClient(token=self.slack_token) if WebClient and self.slack_token else None
+        self.slack_client = (
+            WebClient(token=self.slack_token) if WebClient and self.slack_token else None
+        )
         self.twilio_client = (
             TwilioClient(self.twilio_account_sid, self.twilio_auth_token)
             if TwilioClient and self.twilio_account_sid and self.twilio_auth_token
@@ -374,7 +373,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         self.default_locale = (config or {}).get("default_locale", "en-AU")
         self.delivery_batch_size = int((config or {}).get("delivery_batch_size", 50))
-        self.delivery_batch_interval = int((config or {}).get("delivery_batch_interval_minutes", 15))
+        self.delivery_batch_interval = int(
+            (config or {}).get("delivery_batch_interval_minutes", 15)
+        )
         self.digest_window_minutes = int((config or {}).get("digest_window_minutes", 60))
         self.digest_batch_size = int((config or {}).get("digest_batch_size", 10))
         self.digest_queue: dict[tuple[str, str], list[dict[str, Any]]] = {}
@@ -384,7 +385,6 @@ class StakeholderCommunicationsAgent(BaseAgent):
         """Initialize database connections, communication platforms, and AI models."""
         await super().initialize()
         self.logger.info("Initializing Stakeholder & Communications Management Agent...")
-
 
         self.logger.info("Stakeholder & Communications Management Agent initialized")
 
@@ -417,7 +417,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "register_stakeholder":
@@ -425,7 +425,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             required_fields = ["name", "email", "role"]
             for field in required_fields:
                 if field not in stakeholder_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         return True
@@ -542,7 +542,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         self, tenant_id: str, stakeholder_data: dict[str, Any]
     ) -> dict[str, Any]:
         """Register new stakeholder."""
-        self.logger.info(f"Registering stakeholder: {stakeholder_data.get('name')}")
+        self.logger.info("Registering stakeholder: %s", stakeholder_data.get("name"))
 
         # Generate stakeholder ID
         stakeholder_id = await self._generate_stakeholder_id()
@@ -575,6 +575,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "sentiment_score": 0,
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
+        # Preserve CRM enrichment data from the profile enrichment step above.
+        if stakeholder_data.get("crm_profile"):
+            stakeholder["crm_profile"] = stakeholder_data["crm_profile"]
+        if stakeholder_data.get("crm_synced_at"):
+            stakeholder["crm_synced_at"] = stakeholder_data["crm_synced_at"]
 
         # Store stakeholder
         self.stakeholder_register[stakeholder_id] = stakeholder
@@ -614,7 +619,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _classify_stakeholder(self, tenant_id: str, stakeholder_id: str) -> dict[str, Any]:
         """Classify stakeholder using power-interest matrix."""
-        self.logger.info(f"Classifying stakeholder: {stakeholder_id}")
+        self.logger.info("Classifying stakeholder: %s", stakeholder_id)
 
         stakeholder = self._load_stakeholder(tenant_id, stakeholder_id)
         if not stakeholder:
@@ -631,7 +636,6 @@ class StakeholderCommunicationsAgent(BaseAgent):
         stakeholder["engagement_strategy"] = engagement_strategy
         self.stakeholder_store.upsert(tenant_id, stakeholder_id, stakeholder.copy())
 
-
         return {
             "stakeholder_id": stakeholder_id,
             "influence": influence,
@@ -642,7 +646,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _create_communication_plan(self, plan_data: dict[str, Any]) -> dict[str, Any]:
         """Create communication plan."""
-        self.logger.info(f"Creating communication plan: {plan_data.get('name')}")
+        self.logger.info("Creating communication plan: %s", plan_data.get("name"))
 
         # Generate plan ID
         plan_id = await self._generate_plan_id()
@@ -669,7 +673,6 @@ class StakeholderCommunicationsAgent(BaseAgent):
         # Store plan
         self.communication_plans[plan_id] = plan
 
-
         return {
             "plan_id": plan_id,
             "name": plan["name"],
@@ -680,7 +683,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _generate_message(self, message_data: dict[str, Any]) -> dict[str, Any]:
         """Generate personalized message."""
-        self.logger.info(f"Generating message: {message_data.get('subject')}")
+        self.logger.info("Generating message: %s", message_data.get("subject"))
 
         # Generate message ID
         message_id = await self._generate_message_id()
@@ -760,7 +763,6 @@ class StakeholderCommunicationsAgent(BaseAgent):
         # Store message
         self.messages[message_id] = message
 
-
         return {
             "message_id": message_id,
             "subject": message["subject"],
@@ -789,7 +791,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "schedule": batch_schedule,
         }
 
-    async def _edit_message(self, message_id: str | None, message_data: dict[str, Any]) -> dict[str, Any]:
+    async def _edit_message(
+        self, message_id: str | None, message_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """Edit a draft message before sending."""
         if not message_id or message_id not in self.messages:
             raise ValueError("Message not found for editing")
@@ -812,7 +816,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
             stakeholder_id = personalized.get("stakeholder_id")
             stakeholder = self.stakeholder_register.get(stakeholder_id)
             if stakeholder:
-                personalized_content = await self._personalize_content(message["content"], stakeholder)
+                personalized_content = await self._personalize_content(
+                    message["content"], stakeholder
+                )
                 personalized_messages.append(
                     {"stakeholder_id": stakeholder_id, "content": personalized_content}
                 )
@@ -827,7 +833,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _send_message(self, tenant_id: str, message_id: str) -> dict[str, Any]:
         """Send message to stakeholders."""
-        self.logger.info(f"Sending message: {message_id}")
+        self.logger.info("Sending message: %s", message_id)
 
         message = self.messages.get(message_id)
         if not message:
@@ -1008,7 +1014,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _collect_feedback(self, feedback_data: dict[str, Any]) -> dict[str, Any]:
         """Collect stakeholder feedback."""
-        self.logger.info(f"Collecting feedback from: {feedback_data.get('stakeholder_id')}")
+        self.logger.info("Collecting feedback from: %s", feedback_data.get("stakeholder_id"))
 
         # Generate feedback ID
         feedback_id = await self._generate_feedback_id()
@@ -1084,7 +1090,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _analyze_sentiment(self, stakeholder_id: str | None) -> dict[str, Any]:
         """Analyze stakeholder sentiment trends."""
-        self.logger.info(f"Analyzing sentiment for stakeholder: {stakeholder_id}")
+        self.logger.info("Analyzing sentiment for stakeholder: %s", stakeholder_id)
 
         if stakeholder_id:
             # Analyze single stakeholder
@@ -1107,7 +1113,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _schedule_event(self, event_data: dict[str, Any]) -> dict[str, Any]:
         """Schedule event or meeting."""
-        self.logger.info(f"Scheduling event: {event_data.get('title')}")
+        self.logger.info("Scheduling event: %s", event_data.get("title"))
 
         # Generate event ID
         event_id = await self._generate_event_id()
@@ -1117,8 +1123,12 @@ class StakeholderCommunicationsAgent(BaseAgent):
             event_data.get("duration", 60),
             event_data.get("time_window"),
         )
-        optimal_time = meeting_suggestions[0] if meeting_suggestions else await self._propose_optimal_time(
-            event_data.get("stakeholder_ids", []), event_data.get("duration", 60)
+        optimal_time = (
+            meeting_suggestions[0]
+            if meeting_suggestions
+            else await self._propose_optimal_time(
+                event_data.get("stakeholder_ids", []), event_data.get("duration", 60)
+            )
         )
 
         agenda = event_data.get("agenda", [])
@@ -1196,7 +1206,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _track_engagement(self, stakeholder_id: str | None) -> dict[str, Any]:
         """Track stakeholder engagement metrics."""
-        self.logger.info(f"Tracking engagement for stakeholder: {stakeholder_id}")
+        self.logger.info("Tracking engagement for stakeholder: %s", stakeholder_id)
 
         if stakeholder_id:
             # Track single stakeholder
@@ -1231,7 +1241,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         self, project_id: str | None, filters: dict[str, Any]
     ) -> dict[str, Any]:
         """Get stakeholder dashboard data."""
-        self.logger.info(f"Getting stakeholder dashboard for project: {project_id}")
+        self.logger.info("Getting stakeholder dashboard for project: %s", project_id)
 
         # Get stakeholder summary
         stakeholder_summary = await self._get_stakeholder_summary(project_id)
@@ -1258,7 +1268,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         self, report_type: str, filters: dict[str, Any]
     ) -> dict[str, Any]:
         """Generate communication report."""
-        self.logger.info(f"Generating {report_type} communication report")
+        self.logger.info("Generating %s communication report", report_type)
 
         if report_type == "summary":
             return await self._generate_summary_report(filters)
@@ -1284,7 +1294,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
         return fetch_keyvault_secret(self.keyvault_url, secret_name)
 
     def _record_communication_history(self, record: dict[str, Any]) -> None:
-        record["record_id"] = record.get("record_id") or f"COM-{datetime.now(timezone.utc).isoformat()}"
+        record["record_id"] = (
+            record.get("record_id") or f"COM-{datetime.now(timezone.utc).isoformat()}"
+        )
         record["created_at"] = record.get("created_at") or datetime.now(timezone.utc).isoformat()
         self.history_store.add_record(record)
 
@@ -1408,12 +1420,22 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 "crm_id": record.get("Id"),
                 "name": record.get("Name"),
                 "title": record.get("Title"),
-                "account": (record.get("Account") or {}).get("Name")
-                if isinstance(record.get("Account"), dict)
-                else record.get("Account.Name"),
+                "account": (
+                    (record.get("Account") or {}).get("Name")
+                    if isinstance(record.get("Account"), dict)
+                    else record.get("Account.Name")
+                ),
                 "email": record.get("Email"),
             }
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # noqa: BLE001
             self.logger.warning("CRM sync failed: %s", exc)
             return await self._sync_with_crm_rest(stakeholder_data)
 
@@ -1445,7 +1467,15 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 "email": payload.get("email") or email,
                 "raw": payload,
             }
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # noqa: BLE001
             self.logger.warning("CRM REST sync failed: %s", exc)
             return {}
 
@@ -1475,7 +1505,15 @@ class StakeholderCommunicationsAgent(BaseAgent):
             if response.status_code >= 400:
                 return {"status": "error", "code": response.status_code}
             return {"status": "ok"}
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # noqa: BLE001
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # noqa: BLE001
             self.logger.warning("CRM upsert failed: %s", exc)
             return {"status": "error", "reason": str(exc)}
 
@@ -1685,7 +1723,9 @@ class StakeholderCommunicationsAgent(BaseAgent):
             stakeholder.get("role", "general"),
             stakeholder.get("locale") or self.default_locale,
         )
-        template = self._get_template("digest_update", stakeholder.get("locale") or self.default_locale)
+        template = self._get_template(
+            "digest_update", stakeholder.get("locale") or self.default_locale
+        )
         subject = template.get("subject", "Update digest")
         body_template = template.get("body", "{digest_items}")
         payload = {
@@ -1711,9 +1751,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             return None
         now_utc = datetime.now(timezone.utc)
         local_time = now_utc + timedelta(minutes=utc_offset)
-        candidate = local_time.replace(
-            hour=int(preferred_hour), minute=0, second=0, microsecond=0
-        )
+        candidate = local_time.replace(hour=int(preferred_hour), minute=0, second=0, microsecond=0)
         if candidate <= local_time:
             candidate = candidate + timedelta(days=1)
         send_time = candidate - timedelta(minutes=utc_offset)
@@ -1868,14 +1906,12 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 attendees.append({"emailAddress": {"address": stakeholder.get("email")}})
         if not attendees or not self.exchange_token:
             return []
-        start_time = (
-            (time_window or {}).get("start")
-            or (datetime.now(timezone.utc) + timedelta(days=1)).replace(hour=9, minute=0).isoformat()
-        )
-        end_time = (
-            (time_window or {}).get("end")
-            or (datetime.now(timezone.utc) + timedelta(days=7)).replace(hour=17, minute=0).isoformat()
-        )
+        start_time = (time_window or {}).get("start") or (
+            datetime.now(timezone.utc) + timedelta(days=1)
+        ).replace(hour=9, minute=0).isoformat()
+        end_time = (time_window or {}).get("end") or (
+            datetime.now(timezone.utc) + timedelta(days=7)
+        ).replace(hour=17, minute=0).isoformat()
         payload = {
             "attendees": attendees,
             "meetingDuration": f"PT{duration}M",
@@ -1891,11 +1927,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
         response = await self._graph_request(
             self.exchange_token, "POST", "/me/findMeetingTimes", payload
         )
-        suggestions = response.get("meetingTimeSuggestions", []) if isinstance(response, dict) else []
+        suggestions = (
+            response.get("meetingTimeSuggestions", []) if isinstance(response, dict) else []
+        )
         return [
-            suggestion.get("meetingTimeSlot", {})
-            .get("start", {})
-            .get("dateTime")
+            suggestion.get("meetingTimeSlot", {}).get("start", {}).get("dateTime")
             for suggestion in suggestions
             if suggestion.get("meetingTimeSlot")
         ]
@@ -1937,10 +1973,10 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "start": {"dateTime": scheduled_time, "timeZone": "UTC"},
             "end": {
                 "dateTime": (
-                    start_dt + timedelta(minutes=event.get("duration_minutes", 60))
-                ).isoformat()
-                if scheduled_time
-                else None,
+                    (start_dt + timedelta(minutes=event.get("duration_minutes", 60))).isoformat()
+                    if scheduled_time
+                    else None
+                ),
                 "timeZone": "UTC",
             },
             "attendees": attendees,
@@ -2086,7 +2122,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
                 from_=self.twilio_from_number,
                 to=phone,
             )
-            return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat(), "sid": message.sid}
+            return {
+                "status": "delivered",
+                "sent_at": datetime.now(timezone.utc).isoformat(),
+                "sid": message.sid,
+            }
         if self.twilio_account_sid and self.twilio_auth_token and self.twilio_from_number:
             payload = {
                 "From": self.twilio_from_number,
@@ -2139,9 +2179,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
             headers = {"Content-Type": "application/json"}
             if self.push_api_key:
                 headers["Authorization"] = f"Bearer {self.push_api_key}"
-            response = requests.post(
-                self.push_endpoint, json=payload, headers=headers, timeout=10
-            )
+            response = requests.post(self.push_endpoint, json=payload, headers=headers, timeout=10)
             if response.status_code < 400:
                 return {"status": "delivered", "sent_at": datetime.now(timezone.utc).isoformat()}
             return {"status": "failed", "reason": response.text}
@@ -2215,9 +2253,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         )
         return [line.strip("- ").strip() for line in draft.get("content", "").splitlines() if line]
 
-    async def _summarize_report(
-        self, report: str, role: str, locale: str | None
-    ) -> dict[str, Any]:
+    async def _summarize_report(self, report: str, role: str, locale: str | None) -> dict[str, Any]:
         """Summarize a report into concise content for a role."""
         if not report:
             return {"summary": "", "provider": "empty"}
@@ -2505,7 +2541,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _generate_summary_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate summary communication report."""
-        return {"report_type": "summary", "data": {}, "generated_at": datetime.now(timezone.utc).isoformat()}
+        return {
+            "report_type": "summary",
+            "data": {},
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     async def _generate_engagement_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Generate engagement report."""

@@ -1,8 +1,8 @@
 import importlib.util
 import logging
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-import sys
 
 import pytest
 

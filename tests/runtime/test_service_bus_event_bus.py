@@ -22,7 +22,7 @@ class FakeSender:
     def __init__(self) -> None:
         self.messages: list[FakeServiceBusMessage] = []
 
-    async def __aenter__(self) -> "FakeSender":
+    async def __aenter__(self) -> FakeSender:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
@@ -38,7 +38,7 @@ class FakeClient:
         self.topic_name: str | None = None
         self.closed = False
 
-    async def __aenter__(self) -> "FakeClient":
+    async def __aenter__(self) -> FakeClient:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:

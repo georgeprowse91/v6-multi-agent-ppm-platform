@@ -32,7 +32,11 @@ def test_main_module_stays_small() -> None:
 
 
 def test_no_import_cycles_between_routes_services_dependencies() -> None:
-    targets = [*SRC_ROOT.glob("routes/*.py"), *SRC_ROOT.glob("services/*.py"), SRC_ROOT / "dependencies.py"]
+    targets = [
+        *SRC_ROOT.glob("routes/*.py"),
+        *SRC_ROOT.glob("services/*.py"),
+        SRC_ROOT / "dependencies.py",
+    ]
     modules = {_module_name(path): path for path in targets if path.name != "__init__.py"}
     graph: dict[str, set[str]] = {name: set() for name in modules}
 

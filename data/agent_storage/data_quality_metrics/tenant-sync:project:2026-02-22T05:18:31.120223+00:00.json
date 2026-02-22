@@ -1,0 +1,16 @@
+{
+  "tenant_id": "tenant-sync",
+  "entity_type": "project",
+  "source_system": "sap",
+  "valid": true,
+  "error_count": 0,
+  "warning_count": 0,
+  "validated_at": "2026-02-22T05:18:31.120223+00:00",
+  "completeness_score": 1.0,
+  "consistency_score": 1.0,
+  "timeliness_score": 1.0,
+  "quality_score": 1.0,
+  "age_seconds": null,
+  "_id": "tenant-sync:project:2026-02-22T05:18:31.120223+00:00",
+  "_updated_at": "2026-02-22T05:18:31.120494+00:00"
+}

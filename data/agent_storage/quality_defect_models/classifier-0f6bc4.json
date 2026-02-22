@@ -1,0 +1,21 @@
+{
+  "label_tokens": {
+    "code_defect": [
+      "calculation",
+      "bug",
+      "billing",
+      "codedefect"
+    ]
+  },
+  "severity_tokens": {
+    "medium": [
+      "calculation",
+      "bug",
+      "billing",
+      "codedefect"
+    ]
+  },
+  "trained_at": "2026-02-22T05:20:39.769239+00:00",
+  "_id": "classifier-0f6bc4",
+  "_updated_at": "2026-02-22T05:20:39.769395+00:00"
+}

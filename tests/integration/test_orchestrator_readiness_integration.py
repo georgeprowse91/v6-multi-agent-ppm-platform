@@ -4,7 +4,6 @@ import importlib.util
 import sys
 import types
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -121,9 +120,13 @@ def _load_module(name: str, path: Path):
     return module
 
 
-persistence_module = _load_module("orchestration_service_persistence_readiness", SERVICE_SRC / "persistence.py")
+persistence_module = _load_module(
+    "orchestration_service_persistence_readiness", SERVICE_SRC / "persistence.py"
+)
 sys.modules["persistence"] = persistence_module
-orchestrator_module = _load_module("orchestration_service_orchestrator_readiness", SERVICE_SRC / "orchestrator.py")
+orchestrator_module = _load_module(
+    "orchestration_service_orchestrator_readiness", SERVICE_SRC / "orchestrator.py"
+)
 sys.modules["orchestrator"] = orchestrator_module
 
 AgentOrchestrator = orchestrator_module.AgentOrchestrator
@@ -178,5 +181,3 @@ async def test_readiness_failure_quarantines_agent() -> None:
     assert readiness is not None
     assert readiness.ready is False
     assert "Missing required configuration keys" in (readiness.last_failure_reason or "")
-
-

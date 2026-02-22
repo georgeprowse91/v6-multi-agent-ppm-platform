@@ -1,0 +1,26 @@
+{
+  "tenant-process": {
+    "proc-1": {
+      "process_id": "proc-1",
+      "recommendations": [
+        "Process is performing well - maintain current practices"
+      ],
+      "generated_at": "2026-02-22T06:02:10.624059+00:00",
+      "context": {
+        "metrics": {
+          "median_cycle_time": 0.0,
+          "throughput": 1,
+          "activity_count": 1,
+          "avg_waiting_time": 0.0
+        },
+        "bottlenecks": [],
+        "deviations": {
+          "skipped_activities": [],
+          "extra_activities": [],
+          "wrong_sequence": [],
+          "excessive_loops": []
+        }
+      }
+    }
+  }
+}

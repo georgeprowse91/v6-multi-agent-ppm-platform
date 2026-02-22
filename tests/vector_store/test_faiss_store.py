@@ -1,7 +1,6 @@
 import time
 
 import numpy as np
-
 from packages.vector_store.faiss_store import FaissVectorStore
 
 
@@ -79,7 +78,9 @@ def test_large_dummy_dataset_query_latency() -> None:
     embeddings = np.asarray([_unit(row) for row in embeddings], dtype=np.float32)
     ids = [f"item-{idx}" for idx in range(rows)]
 
-    store = FaissVectorStore(dimension=dimension, num_shards=8, batch_size=256, nlist=128, nprobe=16)
+    store = FaissVectorStore(
+        dimension=dimension, num_shards=8, batch_size=256, nlist=128, nprobe=16
+    )
     store.add_embeddings(embeddings, ids)
     store.flush()
 

@@ -12,8 +12,9 @@ from starlette.requests import Request
 
 pytest.importorskip("cryptography")
 
-from security import auth
 from security.auth import AuthConfig
+
+from security import auth
 
 FIXED_NOW = 1_700_000_000
 HS256_SECRET = "unit-test-secret"
@@ -49,7 +50,9 @@ def _build_request(headers: dict[str, str]) -> Request:
     return Request(scope)
 
 
-def _make_hs256_token(*, tenant_id: str = "tenant-alpha", exp: int | None = None, secret: str = HS256_SECRET) -> str:
+def _make_hs256_token(
+    *, tenant_id: str = "tenant-alpha", exp: int | None = None, secret: str = HS256_SECRET
+) -> str:
     claims: dict[str, Any] = {
         "sub": "user-123",
         "tenant_id": tenant_id,
@@ -100,7 +103,12 @@ async def test_validate_jwt_matrix(
     ("claims", "tenant_header", "expected_status", "expected_detail"),
     [
         (
-            {"sub": "user-123", "roles": ["viewer"], "aud": "ppm-platform", "iss": "https://issuer.example"},
+            {
+                "sub": "user-123",
+                "roles": ["viewer"],
+                "aud": "ppm-platform",
+                "iss": "https://issuer.example",
+            },
             "tenant-alpha",
             403,
             "Tenant claim missing",
@@ -141,7 +149,11 @@ async def test_authenticate_request_claim_failures(
     [
         ({"roles": []}, [], []),
         ({"roles": ["Admin", "admin", "EDITOR", "Admin"]}, [], ["Admin", "admin", "EDITOR"]),
-        ({"roles": "analyst, Analyst ANALYST"}, ["reviewer", "reviewer"], ["analyst", "Analyst", "ANALYST", "reviewer"]),
+        (
+            {"roles": "analyst, Analyst ANALYST"},
+            ["reviewer", "reviewer"],
+            ["analyst", "Analyst", "ANALYST", "reviewer"],
+        ),
     ],
 )
 def test_normalize_roles_edge_cases(
@@ -170,11 +182,13 @@ class _MockResponse:
 
 
 class _MockAsyncClient:
-    def __init__(self, routes: dict[str, _MockResponse], calls: list[str], *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, routes: dict[str, _MockResponse], calls: list[str], *args: Any, **kwargs: Any
+    ) -> None:
         self._routes = routes
         self._calls = calls
 
-    async def __aenter__(self) -> "_MockAsyncClient":
+    async def __aenter__(self) -> _MockAsyncClient:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
@@ -200,7 +214,9 @@ async def test_oidc_helpers_load_discovery_and_jwks(monkeypatch: pytest.MonkeyPa
         lambda *args, **kwargs: _MockAsyncClient(routes, calls, *args, **kwargs),
     )
 
-    oidc_config = await auth._load_oidc_config("https://issuer.example/.well-known/openid-configuration")
+    oidc_config = await auth._load_oidc_config(
+        "https://issuer.example/.well-known/openid-configuration"
+    )
     jwks = await auth._load_jwks("https://issuer.example/jwks")
 
     assert oidc_config["jwks_uri"] == "https://issuer.example/jwks"
@@ -214,7 +230,9 @@ async def test_oidc_helpers_load_discovery_and_jwks(monkeypatch: pytest.MonkeyPa
 @pytest.mark.asyncio
 async def test_oidc_helper_failure_path_raises_http_error(monkeypatch: pytest.MonkeyPatch) -> None:
     routes = {
-        "https://issuer.example/.well-known/openid-configuration": _MockResponse({}, status_code=503)
+        "https://issuer.example/.well-known/openid-configuration": _MockResponse(
+            {}, status_code=503
+        )
     }
     monkeypatch.setattr(
         auth.httpx,

@@ -1,0 +1,21 @@
+{
+  "resource_id": "res-constraint",
+  "schedule": {
+    "resource_id": "res-constraint",
+    "available_hours_per_day": 8,
+    "working_days": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "planned_leave": [],
+    "holidays": []
+  },
+  "availability": 1.0,
+  "tenant_id": "tenant-a",
+  "updated_at": "2026-02-22T06:02:12.128916+00:00",
+  "_id": "res-constraint",
+  "_updated_at": "2026-02-22T06:02:12.129197+00:00"
+}

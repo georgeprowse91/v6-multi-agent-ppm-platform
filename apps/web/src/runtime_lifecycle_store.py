@@ -52,7 +52,9 @@ class RuntimeLifecycleStore:
         self._write(payload)
         return merged
 
-    def list_approvals(self, *, tenant_id: str, workspace_id: str, status: str = "pending") -> list[dict[str, Any]]:
+    def list_approvals(
+        self, *, tenant_id: str, workspace_id: str, status: str = "pending"
+    ) -> list[dict[str, Any]]:
         payload = self._load()
         tenant_bucket = payload["approvals"].get(tenant_id, {})
         items = list(tenant_bucket.get(workspace_id, {}).values())
@@ -60,7 +62,9 @@ class RuntimeLifecycleStore:
             items = [item for item in items if item.get("status") == status]
         return sorted(items, key=lambda item: item.get("requested_at", ""), reverse=True)
 
-    def create_approval(self, *, tenant_id: str, workspace_id: str, approval: dict[str, Any]) -> dict[str, Any]:
+    def create_approval(
+        self, *, tenant_id: str, workspace_id: str, approval: dict[str, Any]
+    ) -> dict[str, Any]:
         payload = self._load()
         tenant_bucket = payload["approvals"].setdefault(tenant_id, {})
         workspace_bucket = tenant_bucket.setdefault(workspace_id, {})
@@ -68,7 +72,9 @@ class RuntimeLifecycleStore:
         self._write(payload)
         return approval
 
-    def get_approval(self, *, tenant_id: str, workspace_id: str, approval_id: str) -> dict[str, Any] | None:
+    def get_approval(
+        self, *, tenant_id: str, workspace_id: str, approval_id: str
+    ) -> dict[str, Any] | None:
         payload = self._load()
         return payload["approvals"].get(tenant_id, {}).get(workspace_id, {}).get(approval_id)
 
@@ -87,13 +93,22 @@ class RuntimeLifecycleStore:
         approval = workspace_bucket.get(approval_id)
         if not approval:
             return None
-        approval["status"] = "approved" if decision == "approve" else "rejected" if decision == "reject" else "needs_changes"
+        approval["status"] = (
+            "approved"
+            if decision == "approve"
+            else "rejected" if decision == "reject" else "needs_changes"
+        )
         approval["decision"] = decision
         approval["decision_notes"] = notes
         approval["decided_by"] = actor
         approval["decided_at"] = _now()
         approval.setdefault("history", []).append(
-            {"action": decision, "actor": actor, "notes": notes, "timestamp": approval["decided_at"]}
+            {
+                "action": decision,
+                "actor": actor,
+                "notes": notes,
+                "timestamp": approval["decided_at"],
+            }
         )
         self._write(payload)
         return approval

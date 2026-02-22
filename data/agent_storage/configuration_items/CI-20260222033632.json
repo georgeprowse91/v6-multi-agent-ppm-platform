@@ -1,0 +1,15 @@
+{
+  "ci_id": "CI-20260222033632",
+  "name": "db-cluster",
+  "type": "software",
+  "version": "1.0",
+  "owner": "ops",
+  "status": "active",
+  "project_id": null,
+  "relationships": [],
+  "attributes": {},
+  "created_at": "2026-02-22T03:36:32.963544+00:00",
+  "last_modified": "2026-02-22T03:36:32.963548+00:00",
+  "_id": "CI-20260222033632",
+  "_updated_at": "2026-02-22T03:36:32.964195+00:00"
+}

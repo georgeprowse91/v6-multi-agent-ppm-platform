@@ -8,7 +8,7 @@ import sys
 
 def _build_scanner_cmd(source_report: str) -> str:
     return (
-        "python -c \"import pathlib,shutil; "
+        'python -c "import pathlib,shutil; '
         f"shutil.copyfile(r'{source_report}', r'{{json_report}}'); "
         "pathlib.Path(r'{html_report}').write_text('<html></html>')\""
     )

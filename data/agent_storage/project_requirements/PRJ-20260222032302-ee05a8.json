@@ -1,0 +1,28 @@
+{
+  "tenant_id": "unknown",
+  "requirements": {
+    "project_id": "PRJ-20260222032302-ee05a8",
+    "requirements": [
+      {
+        "id": "REQ-fa4b21",
+        "text": "System shall support SSO.",
+        "source": "manual",
+        "category": null,
+        "priority": "medium"
+      }
+    ],
+    "categories": {
+      "null": 1
+    },
+    "conflicts": [],
+    "validation": {
+      "complete": true,
+      "missing_fields": [],
+      "validation_score": 0.95
+    },
+    "total_count": 1,
+    "updated_at": "2026-02-22T03:23:02.087402+00:00"
+  },
+  "_id": "PRJ-20260222032302-ee05a8",
+  "_updated_at": "2026-02-22T03:23:02.087629+00:00"
+}

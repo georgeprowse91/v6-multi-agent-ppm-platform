@@ -2,16 +2,15 @@ from __future__ import annotations
 
 import math
 import random
-from collections import OrderedDict
-from collections import Counter
+from collections import Counter, OrderedDict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import yaml
 
+import numpy as np
 from packages.vector_store import FaissVectorStore
 
 
@@ -135,7 +134,9 @@ class FaissBackedVectorSearchIndex:
         self._query_cache_size = max(1, int(config.get("query_cache_size", 128)))
 
     def add(self, doc_id: str, text: str, metadata: dict[str, Any]) -> None:
-        embedding = np.asarray(self.embedding_service.embed([text])[0], dtype=np.float32).reshape(1, -1)
+        embedding = np.asarray(self.embedding_service.embed([text])[0], dtype=np.float32).reshape(
+            1, -1
+        )
         self.vector_store.add_embeddings(embedding, [doc_id])
         self._metadata[doc_id] = metadata
         self._query_cache.clear()

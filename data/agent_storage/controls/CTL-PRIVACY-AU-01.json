@@ -1,0 +1,20 @@
+{
+  "control_id": "CTL-PRIVACY-AU-01",
+  "description": "Conduct privacy impact assessments for personal information under APP obligations.",
+  "regulation": "REG-PRIVACY-ACT-AU",
+  "control_type": "preventive",
+  "owner": "privacy",
+  "requirements": [
+    "implemented",
+    "data_privacy",
+    "evidence"
+  ],
+  "test_frequency": "annually",
+  "evidence_requirements": [],
+  "status": "Active",
+  "last_test_date": null,
+  "last_test_result": null,
+  "created_at": "2026-02-22T06:02:07.151422+00:00",
+  "_id": "CTL-PRIVACY-AU-01",
+  "_updated_at": "2026-02-22T06:02:07.151645+00:00"
+}

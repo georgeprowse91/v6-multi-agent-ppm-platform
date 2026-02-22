@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-
 REPO_ROOT = Path(__file__).resolve().parents[4]
 OBSERVABILITY_SRC = REPO_ROOT / "packages" / "observability" / "src"
 AGENT_SRC = Path(__file__).resolve().parents[1] / "src"

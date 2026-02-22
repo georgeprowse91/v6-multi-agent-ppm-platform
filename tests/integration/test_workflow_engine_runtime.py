@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import importlib
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
-import importlib
 import jwt
 import pytest
 from fastapi.testclient import TestClient

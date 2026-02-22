@@ -23,8 +23,7 @@ class KnowledgeDatabase:
 
     def _ensure_schema(self) -> None:
         with self._connect() as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS documents (
                     document_id TEXT PRIMARY KEY,
                     tenant_id TEXT NOT NULL,
@@ -40,10 +39,8 @@ class KnowledgeDatabase:
                     created_at TEXT NOT NULL,
                     modified_at TEXT NOT NULL
                 )
-                """
-            )
-            conn.execute(
-                """
+                """)
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS document_versions (
                     version_id TEXT PRIMARY KEY,
                     document_id TEXT NOT NULL,
@@ -52,27 +49,21 @@ class KnowledgeDatabase:
                     metadata TEXT NOT NULL,
                     created_at TEXT NOT NULL
                 )
-                """
-            )
-            conn.execute(
-                """
+                """)
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS document_tags (
                     document_id TEXT NOT NULL,
                     tag TEXT NOT NULL
                 )
-                """
-            )
-            conn.execute(
-                """
+                """)
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS graph_nodes (
                     node_id TEXT PRIMARY KEY,
                     node_type TEXT NOT NULL,
                     attributes TEXT NOT NULL
                 )
-                """
-            )
-            conn.execute(
-                """
+                """)
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS graph_edges (
                     edge_id TEXT PRIMARY KEY,
                     source_id TEXT NOT NULL,
@@ -80,10 +71,8 @@ class KnowledgeDatabase:
                     relation TEXT NOT NULL,
                     created_at TEXT NOT NULL
                 )
-                """
-            )
-            conn.execute(
-                """
+                """)
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS document_interactions (
                     interaction_id TEXT PRIMARY KEY,
                     document_id TEXT NOT NULL,
@@ -91,15 +80,14 @@ class KnowledgeDatabase:
                     payload TEXT NOT NULL,
                     created_at TEXT NOT NULL
                 )
-                """
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_documents_tenant ON documents(tenant_id)"
-            )
+                """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_documents_tenant ON documents(tenant_id)")
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_versions_document ON document_versions(document_id)"
             )
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_tags_document ON document_tags(document_id)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_tags_document ON document_tags(document_id)"
+            )
 
     def upsert_document(self, document: dict[str, Any]) -> None:
         metadata = json.dumps(document.get("metadata", {}))
@@ -157,7 +145,9 @@ class KnowledgeDatabase:
                     ),
                 )
 
-            conn.execute("DELETE FROM document_tags WHERE document_id = ?", (document["document_id"],))
+            conn.execute(
+                "DELETE FROM document_tags WHERE document_id = ?", (document["document_id"],)
+            )
             for tag in document.get("tags", []):
                 conn.execute(
                     "INSERT INTO document_tags (document_id, tag) VALUES (?, ?)",
@@ -186,7 +176,9 @@ class KnowledgeDatabase:
                 ),
             )
 
-    def record_interaction(self, document_id: str, interaction_type: str, payload: dict[str, Any]) -> None:
+    def record_interaction(
+        self, document_id: str, interaction_type: str, payload: dict[str, Any]
+    ) -> None:
         interaction_id = str(uuid4())
         created_at = datetime.now(timezone.utc).isoformat()
         with self._connect() as conn:

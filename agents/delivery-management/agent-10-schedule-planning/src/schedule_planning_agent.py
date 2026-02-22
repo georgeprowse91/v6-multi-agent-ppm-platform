@@ -16,14 +16,13 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 from change_configuration_agent import ChangeConfigurationAgent
+
 try:
     from events import ScheduleBaselineLockedEvent, ScheduleDelayEvent
 except Exception:
     from packages.contracts.src.events import ScheduleBaselineLockedEvent, ScheduleDelayEvent
 from observability.tracing import get_trace_id
-from sqlalchemy.orm import Session
 
 from agents.common.scenario import ScenarioEngine
 from agents.runtime import BaseAgent, get_event_bus
@@ -31,6 +30,7 @@ from agents.runtime.src.state_store import TenantStateStore
 from integrations.services.integration import (
     AIModelService,
     AnalyticsClient,
+    Base,
     CacheClient,
     CacheSettings,
     DatabricksMonteCarloClient,
@@ -42,9 +42,9 @@ from integrations.services.integration import (
     PersistenceSettings,
     SqlRepository,
     create_sql_engine,
-    Base,
 )
 from integrations.services.integration.ml import AzureMLClient
+from sqlalchemy.orm import Session
 
 
 class SchedulePlanningAgent(BaseAgent):
@@ -87,13 +87,19 @@ class SchedulePlanningAgent(BaseAgent):
         self.enable_external_sync = config.get("enable_external_sync", False) if config else False
         self.enable_calendar_sync = config.get("enable_calendar_sync", False) if config else False
         self.enable_cache = config.get("enable_cache", True) if config else True
-        self.enable_ai_model_service = config.get("enable_ai_model_service", True) if config else True
+        self.enable_ai_model_service = (
+            config.get("enable_ai_model_service", True) if config else True
+        )
         self.enable_ml_simulation = config.get("enable_ml_simulation", True) if config else True
         self.cache_ttl_seconds = config.get("cache_ttl_seconds", 600) if config else 600
         self.risk_adjustments_path = (
             Path(config.get("risk_adjustments_path"))
             if config and config.get("risk_adjustments_path")
-            else Path(__file__).resolve().parents[4] / "ops" / "config" / "agents" / "risk_adjustments.yaml"
+            else Path(__file__).resolve().parents[4]
+            / "ops"
+            / "config"
+            / "agents"
+            / "risk_adjustments.yaml"
         )
         self.risk_adjustments = self._load_risk_adjustments_config()
 
@@ -119,9 +125,9 @@ class SchedulePlanningAgent(BaseAgent):
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
             self.event_bus = get_event_bus()
-        self.integration_event_bus = (
-            config.get("integration_event_bus") if config else None
-        ) or (EventBusClient() if self.enable_event_publishing else None)
+        self.integration_event_bus = (config.get("integration_event_bus") if config else None) or (
+            EventBusClient() if self.enable_event_publishing else None
+        )
         self.analytics_client = AnalyticsClient() if self.enable_analytics else None
         self.cache_client = (
             CacheClient(
@@ -146,14 +152,14 @@ class SchedulePlanningAgent(BaseAgent):
                 ExternalSyncSettings(
                     enable_ms_project=config.get("enable_ms_project", False) if config else False,
                     enable_jira=config.get("enable_jira", False) if config else False,
-                    enable_azure_devops=config.get("enable_azure_devops", False)
-                    if config
-                    else False,
+                    enable_azure_devops=(
+                        config.get("enable_azure_devops", False) if config else False
+                    ),
                     enable_smartsheet=config.get("enable_smartsheet", False) if config else False,
                     enable_outlook=config.get("enable_outlook", False) if config else False,
-                    enable_google_calendar=config.get("enable_google_calendar", False)
-                    if config
-                    else False,
+                    enable_google_calendar=(
+                        config.get("enable_google_calendar", False) if config else False
+                    ),
                 )
             )
             if self.enable_external_sync or self.enable_calendar_sync
@@ -182,8 +188,7 @@ class SchedulePlanningAgent(BaseAgent):
         await super().initialize()
         self.logger.info("Initializing Schedule & Planning Agent...")
 
-
-        if self.event_bus:
+        if self.event_bus and hasattr(self.event_bus, "subscribe"):
             self.event_bus.subscribe("risk.updated", self._handle_risk_event)
             self.event_bus.subscribe("resource.updated", self._handle_resource_event)
 
@@ -216,7 +221,7 @@ class SchedulePlanningAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "create_schedule":
@@ -400,7 +405,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns schedule ID and Gantt chart data.
         """
-        self.logger.info(f"Creating schedule for project: {project_id}")
+        self.logger.info("Creating schedule for project: %s", project_id)
 
         # Generate unique schedule ID
         schedule_id = await self._generate_schedule_id(project_id)
@@ -414,7 +419,9 @@ class SchedulePlanningAgent(BaseAgent):
         # Apply duration estimates to tasks
         tasks_with_durations = await self._apply_duration_estimates(tasks, duration_estimates)
         resolved_risk_data = self._resolve_risk_data(risk_data, dependency_results, context)
-        tasks_with_durations = self._apply_risk_adjustments_to_tasks(tasks_with_durations, resolved_risk_data)
+        tasks_with_durations = self._apply_risk_adjustments_to_tasks(
+            tasks_with_durations, resolved_risk_data
+        )
 
         # Define dependencies
         dependencies = await self._suggest_dependencies(tasks_with_durations)
@@ -483,7 +490,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         await self._sync_external_tools(schedule)
 
-        self.logger.info(f"Created schedule: {schedule_id}")
+        self.logger.info("Created schedule: %s", schedule_id)
 
         return {
             "schedule_id": schedule_id,
@@ -542,7 +549,9 @@ class SchedulePlanningAgent(BaseAgent):
 
             azure_estimate = None
             if self.azure_ml_client and self.duration_model_id:
-                azure_estimate = self.azure_ml_client.predict_duration(self.duration_model_id, complexity)
+                azure_estimate = self.azure_ml_client.predict_duration(
+                    self.duration_model_id, complexity
+                )
 
             base_estimate = await self._combine_duration_estimates(
                 historical_data, ml_estimate, azure_estimate
@@ -574,7 +583,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns dependency network diagram.
         """
-        self.logger.info(f"Mapping dependencies for schedule: {schedule_id}")
+        self.logger.info("Mapping dependencies for schedule: %s", schedule_id)
 
         schedule = self.schedules.get(schedule_id)
         if not schedule:
@@ -628,7 +637,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns critical path and total project duration.
         """
-        self.logger.info(f"Calculating critical path for schedule: {schedule_id}")
+        self.logger.info("Calculating critical path for schedule: %s", schedule_id)
 
         schedule = self.schedules.get(schedule_id)
         if not schedule:
@@ -671,7 +680,9 @@ class SchedulePlanningAgent(BaseAgent):
             await self._persist_schedule(schedule)
 
         if previous_path != schedule["critical_path"]:
-            await self._publish_critical_path_changed(schedule, previous_path, schedule["critical_path"])
+            await self._publish_critical_path_changed(
+                schedule, previous_path, schedule["critical_path"]
+            )
 
         await self._publish_schedule_updated(schedule, "schedule.updated")
 
@@ -696,7 +707,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns optimized schedule respecting resource availability.
         """
-        self.logger.info(f"Creating resource-constrained schedule: {schedule_id}")
+        self.logger.info("Creating resource-constrained schedule: %s", schedule_id)
 
         schedule = self.schedules.get(schedule_id)
         if not schedule:
@@ -712,7 +723,9 @@ class SchedulePlanningAgent(BaseAgent):
         }
 
         # Get resource availability from Resource Management Agent
-        resource_availability = await self._get_resource_availability(resources, context=lookup_context)
+        resource_availability = await self._get_resource_availability(
+            resources, context=lookup_context
+        )
 
         # Apply resource leveling
         leveled_schedule = await self._resource_leveling(tasks, dependencies, resource_availability)
@@ -747,7 +760,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns probabilistic completion dates.
         """
-        self.logger.info(f"Running Monte Carlo simulation for schedule: {schedule_id}")
+        self.logger.info("Running Monte Carlo simulation for schedule: %s", schedule_id)
 
         if self.cache_client:
             cached = self.cache_client.get(self._simulation_cache_key(schedule_id))
@@ -772,6 +785,7 @@ class SchedulePlanningAgent(BaseAgent):
             return duration
 
         if self.databricks_client:
+
             def _databricks_sampler(index: int, rng_local: random.Random) -> float:
                 sampled_tasks = [
                     dict(
@@ -803,7 +817,7 @@ class SchedulePlanningAgent(BaseAgent):
             p95 = monte_carlo.percentiles.get(95, 0)
             distribution_stats = monte_carlo.statistics
         elif self.ai_model_service and self.enable_ml_simulation:
-            simulation_results = await self._run_ml_simulation(tasks, dependencies, iterations)
+            simulation_results = await self._run_ml_simulation(tasks, dependencies, iterations, task_samples)
             p50 = await self._calculate_percentile(simulation_results, 50)
             p80 = await self._calculate_percentile(simulation_results, 80)
             p90 = await self._calculate_percentile(simulation_results, 90)
@@ -811,7 +825,9 @@ class SchedulePlanningAgent(BaseAgent):
             distribution_stats = {
                 "min": min(simulation_results) if simulation_results else 0,
                 "max": max(simulation_results) if simulation_results else 0,
-                "mean": sum(simulation_results) / len(simulation_results) if simulation_results else 0,
+                "mean": (
+                    sum(simulation_results) / len(simulation_results) if simulation_results else 0
+                ),
             }
         else:
             monte_carlo = await self.scenario_engine.run_monte_carlo(
@@ -843,7 +859,9 @@ class SchedulePlanningAgent(BaseAgent):
             "distribution": distribution_stats,
         }
         if self.enable_persistence and self._sql_engine:
-            await self._persist_simulation(schedule, iterations, p50, p80, p90, p95, risk_score, distribution_stats)
+            await self._persist_simulation(
+                schedule, iterations, p50, p80, p90, p95, risk_score, distribution_stats
+            )
 
         await self._publish_schedule_simulated(schedule, iterations, p50, p80, p90, p95, risk_score)
 
@@ -884,7 +902,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns milestone status and alerts.
         """
-        self.logger.info(f"Tracking milestones for schedule: {schedule_id}")
+        self.logger.info("Tracking milestones for schedule: %s", schedule_id)
 
         milestones = self.milestones.get(schedule_id, [])
 
@@ -925,7 +943,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns optimized schedule with recommendations.
         """
-        self.logger.info(f"Optimizing schedule: {schedule_id}")
+        self.logger.info("Optimizing schedule: %s", schedule_id)
 
         schedule = self.schedules.get(schedule_id)
         if not schedule:
@@ -957,7 +975,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns scenario comparison results.
         """
-        self.logger.info(f"Running what-if analysis for schedule: {schedule_id}")
+        self.logger.info("Running what-if analysis for schedule: %s", schedule_id)
 
         schedule = self.schedules.get(schedule_id)
         if not schedule:
@@ -1046,7 +1064,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns baseline ID and locked schedule.
         """
-        self.logger.info(f"Creating baseline for schedule: {schedule_id}")
+        self.logger.info("Creating baseline for schedule: %s", schedule_id)
 
         schedule = await self._get_schedule_state(tenant_id, schedule_id)
         if not schedule:
@@ -1102,7 +1120,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns variance analysis.
         """
-        self.logger.info(f"Tracking variance for schedule: {schedule_id}")
+        self.logger.info("Tracking variance for schedule: %s", schedule_id)
 
         schedule = await self._get_schedule_state(tenant_id, schedule_id)
         if not schedule:
@@ -1205,7 +1223,7 @@ class SchedulePlanningAgent(BaseAgent):
         correlation_id: str,
     ) -> dict[str, Any]:
         """Update schedule details and persist to canonical storage."""
-        self.logger.info(f"Updating schedule: {schedule_id}")
+        self.logger.info("Updating schedule: %s", schedule_id)
         schedule = await self._get_schedule_state(tenant_id, schedule_id)
         if not schedule:
             raise ValueError(f"Schedule not found: {schedule_id}")
@@ -1251,7 +1269,7 @@ class SchedulePlanningAgent(BaseAgent):
 
         Returns sprint backlog and capacity planning.
         """
-        self.logger.info(f"Sprint planning for project: {project_id}")
+        self.logger.info("Sprint planning for project: %s", project_id)
 
         # Get team velocity and capacity
         team_velocity = sprint_data.get("team_velocity", 0)
@@ -1628,7 +1646,9 @@ class SchedulePlanningAgent(BaseAgent):
         conflicts: list[dict[str, Any]] = []
         for update in updates:
             payload = update.payload
-            conflicts.extend(self._apply_external_update(schedule, payload, update.timestamp.isoformat()))
+            conflicts.extend(
+                self._apply_external_update(schedule, payload, update.timestamp.isoformat())
+            )
 
         schedule.setdefault("external_sync", {})
         schedule["external_sync"]["last_synced_at"] = datetime.now(timezone.utc).isoformat()
@@ -2119,13 +2139,17 @@ class SchedulePlanningAgent(BaseAgent):
         project_id = context.get("project_id")
 
         normalized = self._normalize_resource_availability(resources)
-        resource_ids = [resource_id for resource_id in resources.keys() if isinstance(resource_id, str)]
+        resource_ids = [
+            resource_id for resource_id in resources.keys() if isinstance(resource_id, str)
+        ]
         if not resource_ids:
             return normalized
 
         if not self.resource_capacity_agent:
             for resource_id in resource_ids:
-                normalized.setdefault(resource_id, {}).setdefault("warning", "resource_capacity_unavailable")
+                normalized.setdefault(resource_id, {}).setdefault(
+                    "warning", "resource_capacity_unavailable"
+                )
             return normalized
 
         for resource_id in resource_ids:
@@ -2149,7 +2173,9 @@ class SchedulePlanningAgent(BaseAgent):
                     response,
                 )
             except Exception as exc:
-                fallback = normalized.setdefault(resource_id, {"capacity": 1.0, "period_availability": {}})
+                fallback = normalized.setdefault(
+                    resource_id, {"capacity": 1.0, "period_availability": {}}
+                )
                 fallback.setdefault("warning", "resource_capacity_fetch_failed")
                 fallback["warning_details"] = str(exc)
         return normalized
@@ -2165,7 +2191,9 @@ class SchedulePlanningAgent(BaseAgent):
                     parsed_capacity = float(capacity)
                 except (TypeError, ValueError):
                     parsed_capacity = 1.0
-                period_values = raw.get("period_availability") or raw.get("availability_by_period") or {}
+                period_values = (
+                    raw.get("period_availability") or raw.get("availability_by_period") or {}
+                )
                 parsed_periods = self._parse_period_availability(period_values)
                 normalized[resource_id] = {
                     "capacity": max(0.0, parsed_capacity),
@@ -2180,7 +2208,10 @@ class SchedulePlanningAgent(BaseAgent):
                     parsed_capacity = float(raw)
                 except (TypeError, ValueError):
                     parsed_capacity = 1.0
-                normalized[resource_id] = {"capacity": max(0.0, parsed_capacity), "period_availability": {}}
+                normalized[resource_id] = {
+                    "capacity": max(0.0, parsed_capacity),
+                    "period_availability": {},
+                }
         return normalized
 
     def _parse_period_availability(self, raw_periods: Any) -> dict[int, float]:
@@ -2236,9 +2267,11 @@ class SchedulePlanningAgent(BaseAgent):
             merged["period_availability"] = period_availability
             merged["capacity"] = max(
                 0.0,
-                float(average_availability)
-                if average_availability is not None
-                else max(period_availability.values()),
+                (
+                    float(average_availability)
+                    if average_availability is not None
+                    else max(period_availability.values())
+                ),
             )
         elif average_availability is not None:
             try:
@@ -2264,7 +2297,9 @@ class SchedulePlanningAgent(BaseAgent):
         for key, value in resource_availability.items():
             if isinstance(value, dict):
                 capacities[key] = float(value.get("capacity", 1.0))
-                period_capacities[key] = self._parse_period_availability(value.get("period_availability", {}))
+                period_capacities[key] = self._parse_period_availability(
+                    value.get("period_availability", {})
+                )
             else:
                 capacities[key] = float(value)
                 period_capacities[key] = {}
@@ -2328,7 +2363,9 @@ class SchedulePlanningAgent(BaseAgent):
         utilization: dict[str, float] = {}
         capacities: dict[str, float] = {}
         for key, value in resource_availability.items():
-            capacities[key] = float(value.get("capacity", 1.0)) if isinstance(value, dict) else float(value)
+            capacities[key] = (
+                float(value.get("capacity", 1.0)) if isinstance(value, dict) else float(value)
+            )
 
         total_usage: dict[str, float] = {key: 0.0 for key in capacities}
         for task in schedule:
@@ -2416,6 +2453,7 @@ class SchedulePlanningAgent(BaseAgent):
         tasks: list[dict[str, Any]],
         dependencies: list[dict[str, Any]],
         iterations: int,
+        task_samples: dict[str, list[float]] | None = None,
     ) -> list[float]:
         rng = random.Random(self.simulation_seed)
         results: list[float] = []
@@ -2429,6 +2467,11 @@ class SchedulePlanningAgent(BaseAgent):
                 sampled.append(dict(task, duration=duration))
             duration_total = await self._calculate_simulated_duration(sampled, dependencies)
             results.append(duration_total)
+            if task_samples is not None:
+                for task in sampled:
+                    task_id = task.get("task_id")
+                    if task_id in task_samples:
+                        task_samples[task_id].append(float(task.get("duration", 0)))
         return results
 
     async def _persist_simulation(
@@ -2505,9 +2548,9 @@ class SchedulePlanningAgent(BaseAgent):
                 "status": schedule_row.status,
                 "tasks": tasks,
                 "dependencies": dependencies,
-                "start_date": schedule_row.start_date.isoformat()
-                if schedule_row.start_date
-                else None,
+                "start_date": (
+                    schedule_row.start_date.isoformat() if schedule_row.start_date else None
+                ),
                 "end_date": schedule_row.end_date.isoformat() if schedule_row.end_date else None,
                 "loaded_from_db": True,
             }
@@ -2698,9 +2741,7 @@ class SchedulePlanningAgent(BaseAgent):
             await self._persist_earned_value(schedule, result)
         return result
 
-    async def _fetch_financial_actuals(
-        self, project_id: str, *, tenant_id: str
-    ) -> dict[str, Any]:
+    async def _fetch_financial_actuals(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         if self.financial_agent:
             response = await self.financial_agent.process(
                 {
@@ -2732,7 +2773,9 @@ class SchedulePlanningAgent(BaseAgent):
             "planned_percent": planned_percent,
         }
 
-    async def _persist_earned_value(self, schedule: dict[str, Any], earned_value: dict[str, Any]) -> None:
+    async def _persist_earned_value(
+        self, schedule: dict[str, Any], earned_value: dict[str, Any]
+    ) -> None:
         if not self._sql_engine:
             return
         with Session(self._sql_engine) as session:

@@ -1,0 +1,9 @@
+{
+  "resource_id": "res-perf",
+  "on_time_rate": 0.9,
+  "quality_score": 0.95,
+  "completion_rate": 0.92,
+  "customer_satisfaction": 0.88,
+  "_id": "perf-1",
+  "_updated_at": "2026-02-22T06:02:12.159055+00:00"
+}

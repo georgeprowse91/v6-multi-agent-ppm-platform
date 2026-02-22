@@ -18,7 +18,7 @@ if str(SDK_PATH) not in sys.path:
 
 from base_connector import ConnectorCategory, ConnectorConfig
 from rest_connector import OAuth2RestConnector
-from secrets import fetch_keyvault_secret, resolve_secret
+from connector_secrets import fetch_keyvault_secret, resolve_secret
 
 
 class ZoomConnector(OAuth2RestConnector):

@@ -12,11 +12,70 @@
           ]
         },
         {
+          "heading": "Scope and decision responsibilities",
+          "content": [
+            "**Scope (in-scope responsibilities)**",
+            "Classify user queries into one or more intents using an LLM-backed classifier with a deterministic fallback.",
+            "Normalize intent confidence and enforce minimum confidence thresholds per intent before routing.",
+            "Map validated intents to downstream agent routes defined in the routing configuration.",
+            "Extract basic parameters from the query to pass downstream (project/portfolio IDs, currency, amount, schedule focus).",
+            "Emit audit events for classifications and fallback usage.",
+            "**Out of scope (must-not behaviors)**",
+            "Do **not** generate the final user response; downstream domain agents and Agent 02 handle response assembly.",
+            "Do **not** execute domain logic or approvals; Agent 03 (approval workflow) and domain agents own those flows.",
+            "Do **not** route intents that are not present in the routing configuration or below confidence thresholds."
+          ]
+        },
+        {
+          "heading": "Inputs and outputs",
+          "content": [
+            "**Inputs**",
+            "Required: `query` (non-empty string).",
+            "Optional: `context` (dictionary) including `tenant_id` and `correlation_id`.",
+            "**Outputs**",
+            "`intents`: normalized list of intents with confidence scores.",
+            "`routing`: list of target agents, each containing `agent_id`, `intent`, `priority`, optional `action`, and `depends_on`.",
+            "`parameters`: extracted parameters for downstream agents.",
+            "Echoed `query` and `context` for traceability."
+          ]
+        },
+        {
+          "heading": "Handoff boundaries with Agent 02 and Agent 03",
+          "content": [
+            "**Agent 02 (Response Orchestration)**: consumes `routing`, `intents`, and `parameters` from Agent 01 to orchestrate calls to downstream agents and merge their outputs. Agent 01 must not format final responses or merge downstream outputs.",
+            "**Agent 03 (Approval Workflow)**: triggered only when routing rules or downstream agents indicate a governance requirement. Agent 01 should only route to Agent 03 when the configured intent routes include approval dependencies; Agent 03 owns escalation, policy checks, and approval state transitions."
+          ]
+        },
+        {
+          "heading": "Functional gaps / inconsistencies to resolve",
+          "content": [
+            "**Prompt configuration coupling**: intent recognition depends on `agents/runtime/prompts/examples/intent-router.prompt.yaml`. Update both the routing config and prompt examples when adding new intents to avoid mismatches.",
+            "**Routing config drift**: routing is driven by `config/agents/intent-routing.yaml`. If this config omits an intent returned by the LLM, Agent 01 will drop it; ensure config and prompts stay aligned.",
+            "**Fallback behavior**: when LLM output is invalid/low-confidence, the fallback classifier only uses static keyword signals; expand or tune signals to avoid under-classification for new intents.",
+            "**Parameter schema limits**: extracted parameters are currently minimal (project/portfolio IDs, currency, amount, schedule focus). Downstream agents requiring richer inputs must extend extraction logic or supply their own enrichment."
+          ]
+        },
+        {
+          "heading": "Required prompt/tool/template/connector/UI alignment",
+          "content": [
+            "**Prompt**: `agents/runtime/prompts/examples/intent-router.prompt.yaml` must enumerate the same intent names defined in `config/agents/intent-routing.yaml`.",
+            "**Routing config**: `config/agents/intent-routing.yaml` must include routes for any intent the prompt can emit; otherwise Agent 01 will not dispatch to downstream agents.",
+            "**Audit/observability**: classification and fallback audit events must be consumed by observability tooling to support traceability."
+          ]
+        },
+        {
+          "heading": "Checkpoint: scope + dependency map entry",
+          "content": [
+            "**Dependencies**: LLM client, prompt registry, audit event pipeline, intent routing configuration.",
+            "**Execution flow**: validate input → prompt LLM → normalize intents → apply config thresholds → extract parameters → map to routes → emit audit events → return routing payload."
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/core-orchestration/agent-01-intent-router/src`: Implementation source for this component.",
-            "`agents/core-orchestration/agent-01-intent-router/tests`: Test suites and fixtures.",
-            "`agents/core-orchestration/agent-01-intent-router/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/core-orchestration/agent-01-intent-router/src): Implementation source for this component.",
+            "[tests](/agents/core-orchestration/agent-01-intent-router/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/core-orchestration/agent-01-intent-router/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -30,6 +89,15 @@
           "content": [
             "Run the agent locally with the shared runner:",
             "Run unit tests (if present):"
+          ]
+        },
+        {
+          "heading": "Advanced classification and extraction",
+          "content": [
+            "Transformer-based classifier support is enabled via `transformers` using `distilbert-base-uncased` (or local fine-tuned artifacts under `models/intent_classifier/`).",
+            "Multi-intent output returns the top-2 intents with confidence scores, filtered by global and per-intent thresholds.",
+            "Entity extraction uses spaCy (with an entity ruler fallback) to capture `portfolio_id`, `project_id`, `currency`, `amount`, and `schedule_focus`.",
+            "Extracted parameters are validated against the `ExtractedParameters` schema before returning to downstream agents."
           ]
         },
         {
@@ -69,11 +137,75 @@
           ]
         },
         {
+          "heading": "Scope and responsibilities",
+          "content": [
+            "Agent 02 is responsible for executing the multi-agent plan created by the intent router, coordinating parallel/sequential agent execution, and aggregating responses into a single payload for the caller. It owns orchestration-specific behaviors such as retry logic, caching, circuit breaking, and audit event emission. It does **not** decide which intents/agents to run, nor does it enforce approval policies beyond invoking downstream agents that require approvals.",
+            "### Inputs",
+            "Agent 02 accepts an orchestration request with:",
+            "`routing`: ordered routing entries (agent id, optional action, dependencies).",
+            "`parameters`: shared parameters for downstream agents (including optional `prompt` metadata).",
+            "`query`: original user query (informational).",
+            "`context`: tenant/correlation metadata and project context.",
+            "`correlation_id`, `tenant_id`, `prompt_id`, `prompt_description`, `prompt_tags`: optional prompt context when not already embedded in `parameters.prompt`.",
+            "### Outputs",
+            "Agent 02 returns:",
+            "`aggregated_response`: merged text output from successful agent calls.",
+            "`agent_results`: per-agent status and payloads (success/failure, cached status).",
+            "`execution_summary`: counts of total/successful/failed agents.",
+            "### Decisions owned by Agent 02",
+            "Execution grouping derived from dependencies (parallel vs sequential).",
+            "Retry/backoff policy for each agent invocation.",
+            "Circuit breaker state and cache usage.",
+            "Aggregation behavior when partial failures occur.",
+            "Optional external research enrichment when prompt metadata indicates vendor/compliance needs.",
+            "### Must / must-not behaviors",
+            "Must:",
+            "Honor dependency ordering in routing entries.",
+            "Preserve correlation/tenant metadata when invoking downstream agents.",
+            "Emit audit events for invocations, failures, and aggregation.",
+            "Respect configured timeouts, retries, and concurrency limits.",
+            "Must not:",
+            "Re-route or reinterpret intents (owned by Agent 01).",
+            "Initiate approval workflows directly (owned by Agent 03).",
+            "Override downstream agent responses beyond aggregation and lightweight summarization."
+          ]
+        },
+        {
+          "heading": "Orchestration flow + dependency map entry",
+          "content": [
+            "**Flow:** `Agent 01 (Intent Router) → Agent 02 (Response Orchestration) → Downstream Agents → Aggregated Response`",
+            "**Dependencies:**",
+            "Upstream: Agent 01 provides `routing` entries and shared parameters.",
+            "Downstream: Specialized agents execute tasks; Agent 03 is invoked only if the routing plan includes approval-specific agents/actions.",
+            "Shared services: event bus (publish `agent.requested`, `agent.completed`, `agent.failed`), audit logging, and observability metrics.",
+            "**Handoff boundaries:**",
+            "Agent 01 hands off the routing plan and parameters; Agent 02 executes exactly what is provided and returns results + summary.",
+            "Agent 03 owns approval gating and state transitions; Agent 02 only invokes the approval agent when included in routing."
+          ]
+        },
+        {
+          "heading": "Overlap / leakage considerations",
+          "content": [
+            "**Routing vs orchestration:** Agent 02 should not choose or reorder intents; if it receives empty or cyclic routing, it must return an error (cycle detection) rather than attempt to infer intent.",
+            "**Approval workflows:** Agent 02 should not implement approval logic itself; ensure the routing plan includes the approval agent for guarded actions.",
+            "**Prompt enrichment:** Agent 02 enriches parameters with external research based on prompt metadata; prompt ownership remains with prompt templates and Agent 01 configuration."
+          ]
+        },
+        {
+          "heading": "Gaps, inconsistencies, and alignment needs",
+          "content": [
+            "**Prompt metadata alignment:** Ensure prompt templates and UI inputs supply `prompt_id`, `prompt_description`, and `prompt_tags` consistently so external research behavior is deterministic.",
+            "**Routing contract:** `depends_on` should be validated upstream in Agent 01 and/or `config/agents/intent-routing.yaml` to avoid runtime dependency cycles.",
+            "**Connector alignment:** Downstream agents that require approval should expose explicit actions so the routing plan can include Agent 03 prior to execution.",
+            "**UI/UX alignment:** Surface partial-failure aggregation messaging to users so they understand which agents succeeded vs failed."
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/core-orchestration/agent-02-response-orchestration/src`: Implementation source for this component.",
-            "`agents/core-orchestration/agent-02-response-orchestration/tests`: Test suites and fixtures.",
-            "`agents/core-orchestration/agent-02-response-orchestration/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/core-orchestration/agent-02-response-orchestration/src): Implementation source for this component.",
+            "[tests](/agents/core-orchestration/agent-02-response-orchestration/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/core-orchestration/agent-02-response-orchestration/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -119,9 +251,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/core-orchestration/agent-03-approval-workflow/src`: Implementation source for this component.",
-            "`agents/core-orchestration/agent-03-approval-workflow/tests`: Test suites and fixtures.",
-            "`agents/core-orchestration/agent-03-approval-workflow/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/core-orchestration/agent-03-approval-workflow/src): Implementation source for this component.",
+            "[tests](/agents/core-orchestration/agent-03-approval-workflow/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/core-orchestration/agent-03-approval-workflow/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -140,7 +272,109 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "### Dynamic escalation policy",
+            "Approval escalation timing is dynamically computed using risk and criticality context and loaded from `ops/config/agents/approval_policies.yaml`.",
+            "`risk_thresholds`: maps computed request risk (`high`, `medium`, `low`) to escalation timeout hours.",
+            "`criticality_levels`: maps computed criticality (`critical`, `high`, `normal`, `low`) to escalation timeout hours.",
+            "At runtime, the agent computes `risk_score` and `criticality_level` from request details (for example `amount`, `urgency`, `project_type`, and `strategic_importance`) and then picks the most conservative timeout across both mappings.",
+            "These values are persisted in approval metadata, included in audit events, and rendered in escalation notifications.",
+            "### Delegation rules",
+            "Approval delegation can be toggled and configured via `ops/config/agents/approval_workflow.yaml`.",
+            "`delegation.enabled`: enables/disables delegate substitution during approver resolution.",
+            "`delegation.default_duration_days`: default active window when a delegate rule omits an explicit end date.",
+            "`delegation.rules`: map of approver IDs to one or more delegate rules. Each rule supports:",
+            "`delegate`: delegate user ID",
+            "`start`: ISO-8601 start datetime (optional)",
+            "`end`: ISO-8601 end datetime (optional)",
+            "Runtime behavior:",
+            "When approvers are resolved, the agent checks each approver for an active delegation rule at the current UTC time.",
+            "If a delegate is active, the delegate is assigned as the approver and delegation metadata is persisted in the approval record (`chain.delegations`).",
+            "Notification text includes: `You are receiving this approval request on behalf of {original_approver}` for delegated requests.",
+            "Notification subscription preferences now support `notify_delegate_directly` (default `true`):",
+            "`true`: deliver delegated notifications to the delegate user.",
+            "`false`: route delegated notifications to the original approver while preserving delegated assignment metadata.",
+            "### Notification localization and accessibility",
+            "Approval notifications now support locale-aware templates and accessibility-focused output controls.",
+            "`notification_routing.*.locale`: Preferred notification locale (for example `en`, `fr`).",
+            "`notification_routing.*.accessible_format`: Accessibility rendering mode. Supported values:",
+            "`text_only` (default): Plain text rendering.",
+            "`html_with_alt_text`: Sends a high-contrast HTML variant with larger default font sizing.",
+            "Stored subscription preferences in `NotificationSubscriptionStore` now persist both `locale` and `accessible_format`.",
+            "Templates are loaded from locale folders under:",
+            "`agents/core-orchestration/agent-03-approval-workflow/src/templates/{locale}/approval_notification.md`",
+            "If the configured locale template is missing, the agent falls back to English (`en`).",
+            "To add a new locale:",
+            "Create `src/templates/<new-locale>/approval_notification.md`.",
+            "Add all notification keys used by approval, escalation, and digest flows.",
+            "Validate with `pytest tests/notification/test_localization.py`."
+          ]
+        },
+        {
+          "heading": "Intended scope and responsibilities",
+          "content": [
+            "**Agent 03 owns the approval workflow control loop.** It is responsible for:",
+            "Validating approval requests and decision payloads.",
+            "Resolving approvers (roles, delegation, escalation) and building approval chains.",
+            "Emitting notifications, reminders, and audit events.",
+            "Recording decisions and publishing approval lifecycle events.",
+            "**It must not:**",
+            "Determine user intent or orchestrate multi-agent response composition (owned by Agents 01–02).",
+            "Execute downstream governance state transitions (owned by governance agents such as Agent 09).",
+            "Mutate project/system data outside the approval record, audit trail, and notification preferences."
+          ]
+        },
+        {
+          "heading": "Inputs, outputs, and decision responsibilities",
+          "content": [
+            "**Inputs (primary):**",
+            "Approval request payloads with `request_type`, `request_id`, `requester`, `details`, and optional `context`.",
+            "Approval decisions with `approval_id`, `decision`, `approver_id`, and optional `comments/context`.",
+            "Notification preference actions (`subscribe`, `unsubscribe`, `update`, `interaction`).",
+            "**Outputs (primary):**",
+            "Approval chain metadata (approvers, chain type, deadline, status).",
+            "Notification dispatch attempts and escalation scheduling.",
+            "Audit and analytics events for approvals and decisions.",
+            "**Decision responsibilities:**",
+            "Approver routing and delegation resolution.",
+            "Escalation timing and notification delivery strategy.",
+            "Approval state transitions (`pending`, `approved`, `rejected`) as recorded in the approval store."
+          ]
+        },
+        {
+          "heading": "Overlap boundaries and handoffs",
+          "content": [
+            "**Agent 01 (Intent Router):**",
+            "**Upstream handoff:** Agent 01 routes approval-intent requests here based on intent routing.",
+            "**Boundary:** Agent 03 does not reclassify intent; it assumes intent is already validated.",
+            "**Agent 02 (Response Orchestration):**",
+            "**Upstream handoff:** Agent 02 may request approval creation or decision recording when assembling responses.",
+            "**Boundary:** Agent 03 does not craft user-facing narrative responses; it returns approval metadata/events for Agent 02 to present.",
+            "**Downstream governance agents (e.g., Agent 09 Lifecycle Governance):**",
+            "**Downstream handoff:** Approval events (`approval.created`, `approval.decision`, `approval.approved/rejected`) are published for governance agents to act on.",
+            "**Boundary:** Agent 03 does not execute lifecycle transitions or enforce governance gates beyond recording decisions and escalation."
+          ]
+        },
+        {
+          "heading": "Functional gaps and alignment checkpoints",
+          "content": [
+            "**Gaps / inconsistencies to track:**",
+            "Approval gate definitions must be aligned with governance stage gates (Agent 09) and intent routing schema (Agent 01).",
+            "Notification templates and escalation timing must align with UI and notification service capabilities.",
+            "Event payload schemas must remain compatible with Event Bus and analytics consumers.",
+            "**Required alignment:** Prompting, tool schemas, and UI should use the same approval decision vocabulary (`pending`, `approved`, `rejected`) and include `approval_id`, `tenant_id`, and `correlation_id` where applicable."
+          ]
+        },
+        {
+          "heading": "Checkpoint: approval gate definitions",
+          "content": [
+            "| Gate | Trigger | Required inputs | Output | | --- | --- | --- | --- | | **Approval requested** | New approval request | `request_type`, `request_id`, `requester`, `details` | Approval chain + `approval_id`, status `pending` | | **Decision recorded** | Approver submits decision | `approval_id`, `decision`, `approver_id`, optional `comments` | Stored decision + audit/event emission | | **Escalation fired** | SLA timeout reached | Approval chain + escalation policy | Reminder notifications + escalation audit/event | | **Approval closed** | Decision is `approved` or `rejected` | `approval_id`, decision | Finalized status + downstream governance events |"
+          ]
+        },
+        {
+          "heading": "Checkpoint: dependency map entry",
+          "content": [
+            "| Entry | Details | | --- | --- | | **Upstream dependencies** | Agent 01 intent routing; Agent 02 response orchestration; Notification service; Role directory lookup. | | **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., Agent 09 lifecycle governance). | | **Data contracts** | Approval request schema, decision schema, and event payloads (approval lifecycle events). |"
           ]
         },
         {
@@ -165,11 +399,81 @@
           ]
         },
         {
+          "heading": "Intended scope",
+          "content": [
+            "### Responsibilities",
+            "Capture new demand requests from any intake channel and normalize into a single demand record.",
+            "Validate minimum intake criteria (required fields and schema compliance).",
+            "Categorize demand (project, change request, issue, idea) and flag likely duplicates.",
+            "Provide a demand pipeline view for screening and routing.",
+            "Notify the requester that intake is complete and the request is queued.",
+            "### Inputs",
+            "`action`: `submit_request`, `check_duplicates`, `get_pipeline`.",
+            "`request` payload (for submit/check): `title`, `description`, `business_objective` (required); `requester`, `business_unit`, `urgency`, `source` (optional).",
+            "`filters` payload (for pipeline queries): `status`, `query`.",
+            "`context`: `tenant_id`, `correlation_id` (optional; used for audit/event metadata).",
+            "### Outputs",
+            "`submit_request`: `demand_id`, `category`, `status`, `duplicates_found`, `similar_requests`, `next_steps`.",
+            "`check_duplicates`: `duplicates_found`, `similar_requests`.",
+            "`get_pipeline`: `total_requests`, `by_status`, `by_category`, `items`.",
+            "Event emission: `demand.created` with demand metadata for downstream agents.",
+            "### Decision responsibilities",
+            "Accept/decline requests based on minimum intake criteria.",
+            "Categorize and triage at intake only (no prioritization, funding, or scheduling).",
+            "Flag duplicates but never auto-merge or auto-close demand.",
+            "### Must / must-not behaviors",
+            "**Must** validate required fields and schema rules before accepting a demand.",
+            "**Must** store the normalized demand record with created/tenant metadata.",
+            "**Must** notify the requester and publish a `demand.created` event.",
+            "**Must not** approve funding, assign budgets, or commit delivery resources.",
+            "**Must not** set portfolio priority or sequencing (reserved for Agents 05–07).",
+            "**Must not** bypass schema/rules validation even for internal requests."
+          ]
+        },
+        {
+          "heading": "Overlap & handoff boundaries (Agents 05–07)",
+          "content": [
+            "### Agent 05: Business Case Investment",
+            "**Overlap risk**: early cost/benefit or ROI estimation during intake.",
+            "**Boundary**: Demand Intake captures the request and triage metadata only. It hands off a validated demand record for Agent 05 to build the business case and investment recommendation.",
+            "### Agent 06: Portfolio Strategy Optimisation",
+            "**Overlap risk**: intake-level prioritization, portfolio scoring, or portfolio fit analysis.",
+            "**Boundary**: Demand Intake should provide categorization and urgency only; strategic scoring and optimization are performed by Agent 06 after a business case exists.",
+            "### Agent 07: Program Management",
+            "**Overlap risk**: dependency mapping or program-level scheduling at intake.",
+            "**Boundary**: Demand Intake does not define program structure. It delivers clean demand records for Agent 07 to manage dependencies once the demand is accepted into a program of work."
+          ]
+        },
+        {
+          "heading": "Functional gaps / inconsistencies & alignment needs",
+          "content": [
+            "**Intake criteria gaps**: current schema does not capture scope size, estimated cost/benefit, regulatory impact, or dependency signals needed by downstream agents. Add optional fields or linked templates for these details.",
+            "**Duplication logic**: duplicate detection is heuristic-only; add a manual review flag or human confirmation step to avoid false merges.",
+            "**Triage routing**: no explicit routing rule set for which demands go to Agent 05 vs. Agent 07 (e.g., issues vs. initiatives). Add a routing table or decision matrix.",
+            "**Prompt/template alignment**: ensure intake templates (forms, chat prompts, email ingestion) match required fields and the demand schema.",
+            "**Connector alignment**: validate connectors for intake sources (email/forms/Slack/Teams) pass `tenant_id`, `requester`, and `source` consistently.",
+            "**UI alignment**: intake UI should surface required fields, duplicate suggestions, and `next_steps` messaging."
+          ]
+        },
+        {
+          "heading": "Checkpoint: intake criteria + dependency map entry",
+          "content": [
+            "### Intake criteria (minimum)",
+            "Required fields: `title`, `description`, `business_objective`.",
+            "Accepted urgency values: `Low`, `Medium`, `High`, `Critical`.",
+            "Validated against demand schema and rule set before persistence.",
+            "### Dependency map entry (ready for execution)",
+            "**Upstream**: Intake channels (forms/email/chat), requester identity, tenant context.",
+            "**Core services**: schema validator, rule engine, notification service, embedding + vector search index, tenant state store, event bus.",
+            "**Downstream**: `demand.created` event → Agent 05 for business case; portfolio intake reporting → Agent 06; accepted program candidates → Agent 07."
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/portfolio-management/agent-04-demand-intake/src`: Implementation source for this component.",
-            "`agents/portfolio-management/agent-04-demand-intake/tests`: Test suites and fixtures.",
-            "`agents/portfolio-management/agent-04-demand-intake/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/portfolio-management/agent-04-demand-intake/src): Implementation source for this component.",
+            "[tests](/agents/portfolio-management/agent-04-demand-intake/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/portfolio-management/agent-04-demand-intake/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -215,9 +519,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/portfolio-management/agent-05-business-case-investment/src`: Implementation source for this component.",
-            "`agents/portfolio-management/agent-05-business-case-investment/tests`: Test suites and fixtures.",
-            "`agents/portfolio-management/agent-05-business-case-investment/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/portfolio-management/agent-05-business-case-investment/src): Implementation source for this component.",
+            "[tests](/agents/portfolio-management/agent-05-business-case-investment/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/portfolio-management/agent-05-business-case-investment/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -237,6 +541,23 @@
           "heading": "Configuration",
           "content": [
             "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+          ]
+        },
+        {
+          "heading": "Advanced financial modelling",
+          "content": [
+            "The agent now supports richer investment modelling driven by `ops/config/agents/business-case-settings.yaml`:",
+            "Configurable `discount_rate` and `inflation_rate` used in NPV/IRR calculations.",
+            "`currency_rates` mapping for converting input costs/benefits/cash flows into a base AUD view.",
+            "Configurable `simulation_iterations` for Monte Carlo NPV simulation.",
+            "Configurable `sensitivity_variations` range applied to cost/revenue assumptions for sensitivity analysis.",
+            "### Configuration file",
+            "Example:",
+            "### Response additions",
+            "ROI and scenario-analysis responses include:",
+            "`assumptions`: discount/inflation/currency/simulation settings used.",
+            "`sensitivity_analysis`: variation table with NPV and IRR impact.",
+            "`monte_carlo_summary` (for ROI) / `simulation` (per scenario): mean NPV, standard deviation, and probability of negative NPV."
           ]
         },
         {
@@ -261,11 +582,73 @@
           ]
         },
         {
+          "heading": "Scope validation (intended behaviors)",
+          "content": [
+            "### Responsibilities (must)",
+            "Prioritize portfolio candidates using multi-criteria scoring (strategic alignment, ROI, risk, resource feasibility, compliance).【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L20-L31】",
+            "Optimize portfolio composition against constraints (budget ceiling, resource capacity, risk appetite, minimum alignment).【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L221-L280】",
+            "Run scenario analysis and compare outcomes across scenarios, including rebalancing recommendations.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L151-L190】",
+            "Emit portfolio prioritization events and audit records for traceability.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L1190-L1263】",
+            "### Inputs (expected)",
+            "`action` to select the workflow: prioritize, calculate alignment score, optimize, scenario analysis, rebalance, get status, compare scenarios, scenario CRUD, approval submission, or decision recording.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L82-L144】",
+            "`projects` list with costs, category, ROI, strategic objectives/tags, risk level, resource requirements, and compliance signals.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L193-L269】",
+            "`constraints` containing budget ceiling, resource capacity, risk appetite, minimum alignment score, and optional optimization method or weight overrides.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L221-L246】",
+            "`criteria_weights` (optional) to override default scoring weights for prioritization.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L42-L69】",
+            "`scenario`/`scenario_ids` for scenario CRUD and comparison workflows.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L147-L189】",
+            "### Outputs (guaranteed)",
+            "Ranked portfolio records with per-criterion scores, recommendations, and audit metadata.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L193-L346】",
+            "Optimization results including selected projects, portfolio metrics, and trade-offs.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L279-L480】",
+            "Scenario comparison summaries and best-scenario recommendation when provided scenarios exist.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L1104-L1156】",
+            "Event payloads for downstream consumers (`portfolio.prioritized`).【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L1215-L1247】",
+            "### Decision responsibilities (agent-owned)",
+            "Assign approve/defer/reject recommendations based on weighted scores and policy guardrails.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L239-L296】",
+            "Select optimal portfolio compositions based on constraints and risk/return trade-offs.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L221-L480】",
+            "Recommend rebalancing actions to hit investment mix targets.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L969-L1067】",
+            "### Must-not behaviors (explicit constraints)",
+            "Must not approve a portfolio item that policy guardrails deny; downgrade approvals to defer when required.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L257-L286】",
+            "Must not run optimization without budget/resource constraints supplied (validation enforces this).【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L101-L128】",
+            "Must not emit approval decisions without a `portfolio_id` (validation enforces required IDs).【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L119-L128】"
+          ]
+        },
+        {
+          "heading": "Overlap & handoff boundaries",
+          "content": [
+            "### Agent 05 (Business Case Investment)",
+            "**Overlap risk:** Both agents touch ROI and investment sizing. Agent 06 consumes project financials and produces portfolio recommendations; Agent 05 owns the detailed business-case build and investment decision inputs.",
+            "**Handoff boundary:** Agent 05 should provide validated project-level financials (cost, ROI, expected value, benefits) to Agent 06. Agent 06 must not recalculate core business cases; it only uses those outputs for prioritization and optimization. This keeps case ownership with Agent 05 and portfolio composition ownership with Agent 06.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L221-L369】",
+            "### Agent 07 (Program Management)",
+            "**Overlap risk:** Program governance can overlap with portfolio rebalancing and scenario planning.",
+            "**Handoff boundary:** Agent 06 outputs portfolio compositions, scenario outcomes, and rebalancing recommendations. Agent 07 consumes the approved portfolio and coordinates execution sequencing, dependencies, and benefits realization. Agent 06 must not own delivery scheduling or program dependency management beyond high-level resource capacity checks.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L279-L1067】"
+          ]
+        },
+        {
+          "heading": "Functional gaps & alignment needs",
+          "content": [
+            "**Prompt alignment:** Ensure upstream prompts consistently send `action`, `projects`, `constraints`, and `criteria_weights` as documented; otherwise validation will reject optimization workflows.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L82-L145】",
+            "**Tool/connector alignment:** Financial enrichment depends on integration clients (`financial_agent`, resource agent) and optional database storage. Confirm connectors are wired and surfaced in orchestration templates/UI forms so required fields arrive populated.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L70-L92】",
+            "**Scenario UX alignment:** Scenario CRUD exists in the agent; UI/templates should allow save/list/select scenario IDs to enable compare/what-if flows.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L147-L189】",
+            "**Policy guardrails:** The policy engine can override approvals; ensure downstream UI shows policy reasons and that orchestration keeps `correlation_id` for audit traceability.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L1187-L1263】"
+          ]
+        },
+        {
+          "heading": "Checkpoint: strategy criteria + dependency map entry",
+          "content": [
+            "### Strategy criteria (ready for execution)",
+            "Strategic alignment (default weight 0.30)",
+            "ROI (default weight 0.25)",
+            "Risk (default weight 0.20)",
+            "Resource feasibility (default weight 0.15)",
+            "Compliance (default weight 0.10)【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L42-L69】",
+            "### Dependency map (ready for execution)",
+            "| Dependency | Source | Required By | Notes | | --- | --- | --- | --- | | Business-case financials (cost, ROI, expected value) | Agent 05 | Prioritization/Optimization | Required for scoring and value calculations; Agent 06 does not own business case creation.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L221-L369】 | | Resource capacity & feasibility signals | Resource agent integration | Optimization/Rebalancing | Optional integration; falls back to project data if missing.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L746-L772】 | | Portfolio approval decision | Approval agent integration | Submit/Record approval | Requires portfolio ID and decision payloads for audit trail continuity.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L119-L189】 | | Event bus & audit trail | Runtime/event bus | Downstream orchestration | Required for portfolio.prioritized and policy audit events.【F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py†L1190-L1263】 |"
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src`: Implementation source for this component.",
-            "`agents/portfolio-management/agent-06-portfolio-strategy-optimisation/tests`: Test suites and fixtures.",
-            "`agents/portfolio-management/agent-06-portfolio-strategy-optimisation/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src): Implementation source for this component.",
+            "[tests](/agents/portfolio-management/agent-06-portfolio-strategy-optimisation/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/portfolio-management/agent-06-portfolio-strategy-optimisation/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -309,11 +692,87 @@
           ]
         },
         {
+          "heading": "Scope validation (intended behavior)",
+          "content": [
+            "### Intended scope & responsibilities",
+            "Owns program setup and coordination across multiple projects (create program, generate integrated roadmaps, track inter-project dependencies, aggregate benefits, coordinate shared resources, identify synergies, analyze change impact, monitor program health, optimize program schedules, and manage program-level approval/decision records).【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L25-L118】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L142-L310】",
+            "Acts as the program-level orchestrator that pulls data from delivery agents (schedule, resource, financial, risk, quality, project definition, lifecycle) to compute cross-project insights, health, and optimization outcomes.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L92-L118】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L352-L904】",
+            "Publishes program events (created, roadmap updated, health updated, optimized, decision recorded) and stores program artifacts in tenant state or databases for downstream consumption.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L331-L404】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L708-L820】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L2460-L2617】",
+            "### Inputs & outputs (contract-level expectations)",
+            "**Inputs:** `action` plus supporting data per action (e.g., `program` for creation; `program_id` for roadmap, dependencies, health, optimization; `change` for impact analysis).【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L142-L309】",
+            "**Program creation input:** `program.name`, `program.description`, `program.strategic_objectives`, `program.constituent_projects` (required). Optional `methodology`, `portfolio_id`, `created_by` metadata.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L173-L266】",
+            "**Primary outputs:**",
+            "Program record with `program_id`, `status`, `constituent_projects`, and next steps.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L240-L309】",
+            "Integrated roadmap payload (milestones, dependencies, critical path, timelines).【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L312-L412】",
+            "Dependency graphs + analysis and optimization recommendations.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L413-L504】",
+            "Aggregated benefits/ROI, resource coordination, synergy opportunities, change impact assessment, health metrics, optimization output, and approval/decision records.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L506-L1172】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L2460-L3076】",
+            "### Decision responsibilities",
+            "**Owns program-level coordination decisions** such as dependency sequencing recommendations, resource contention resolution guidance, synergy prioritization, and program optimization scoring.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L413-L1172】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L2460-L2930】",
+            "**Delegates domain-specific decisions** (schedule health, budget health, risk health, quality health, resource health) to delivery agents; Program Management only aggregates and weights them into a composite score.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L708-L820】",
+            "**Escalates approval decisions** to the Approval Workflow Agent when configured, then records the decision log and publishes program decision events.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L2982-L3076】",
+            "### Must / must-not behaviors",
+            "**Must** validate `action` and `program_id`/required program fields before processing, and **must** fail fast on unknown actions or missing IDs.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L142-L223】",
+            "**Must** persist program, roadmap, dependencies, health, optimization, and decision artifacts to tenant stores / database when configured.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L240-L412】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L676-L820】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L2571-L2617】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L3040-L3076】",
+            "**Must not** redefine project-level scope, schedules, budgets, risks, or quality plans; those remain owned by delivery agents (08–16). Program Management only aggregates, correlates, and optimizes at program level.【F:agents/delivery-management/agent-08-project-definition-scope/src/project_definition_agent.py†L1-L83】【F:agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py†L1-L63】【F:agents/delivery-management/agent-11-resource-capacity/src/resource_capacity_agent.py†L1-L60】【F:agents/delivery-management/agent-12-financial-management/src/financial_management_agent.py†L1-L59】【F:agents/delivery-management/agent-14-quality-management/src/quality_management_agent.py†L1-L56】【F:agents/delivery-management/agent-15-risk-issue-management/src/risk_management_agent.py†L1-L52】"
+          ]
+        },
+        {
+          "heading": "Overlap / leakage analysis",
+          "content": [
+            "### Portfolio agents (04–06)",
+            "**Agent 04 Demand Intake** handles intake and initial demand capture; Program Management should not accept demand intake directly beyond `create_program` for already-approved demand packages.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L240-L309】",
+            "**Agent 05 Business Case Investment** owns project-level benefit/cost baselines; Program Management aggregates benefits from project business cases and must avoid duplicating business case creation logic.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L506-L603】",
+            "**Agent 06 Portfolio Strategy Optimisation** optimizes across the portfolio; Program Management optimizes within a program. Ensure program optimization outputs roll up to portfolio-level optimization without altering portfolio-wide priorities.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L2460-L2617】",
+            "### Delivery agents (08–16)",
+            "**Project Definition (08)** supplies charters and scope; Program Management consumes project detail for synergy analysis and must not alter scope baselines directly.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L896-L1005】【F:agents/delivery-management/agent-08-project-definition-scope/src/project_definition_agent.py†L1-L83】",
+            "**Lifecycle Governance (09)** enforces phase gates/health; Program Management aggregates health and publishes program-level status without bypassing lifecycle gate controls.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L708-L820】【F:agents/delivery-management/agent-09-lifecycle-governance/src/project_lifecycle_agent.py†L1-L63】",
+            "**Schedule Planning (10)** creates project schedules; Program Management references schedules to build program roadmaps, critical paths, and optimization scenarios.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L312-L493】【F:agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py†L1-L63】",
+            "**Resource Capacity (11)** owns resource allocation/utilization; Program Management identifies cross-project conflicts and recommends sequencing changes but should not override allocations directly.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L605-L703】【F:agents/delivery-management/agent-11-resource-capacity/src/resource_capacity_agent.py†L1-L60】",
+            "**Financial Management (12)** owns budgets, forecasts, and ROI; Program Management aggregates benefits/costs and program-level ROI and must avoid maintaining separate project-level ledgers.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L506-L603】【F:agents/delivery-management/agent-12-financial-management/src/financial_management_agent.py†L1-L59】",
+            "**Vendor & Procurement (13)** owns vendor onboarding/contracts; Program Management only flags program-level vendor synergies and consolidation opportunities, not procurement actions.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L774-L900】【F:agents/delivery-management/agent-13-vendor-procurement/src/vendor_procurement_agent.py†L1-L33】",
+            "**Quality (14)** owns test/defect/audit; Program Management consumes quality health metrics for the composite score and should not create quality plans.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L708-L820】【F:agents/delivery-management/agent-14-quality-management/src/quality_management_agent.py†L1-L56】",
+            "**Risk (15)** owns risk registers and mitigations; Program Management aggregates risk health and change impact but must not maintain a standalone risk register.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L708-L820】【F:agents/delivery-management/agent-15-risk-issue-management/src/risk_management_agent.py†L1-L52】",
+            "**Compliance (16)** governs regulatory compliance; Program Management should include compliance outputs in program reporting but must not alter compliance control mappings or evidence directly.【F:agents/delivery-management/agent-16-compliance-regulatory/src/compliance_regulatory_agent.py†L1-L52】"
+          ]
+        },
+        {
+          "heading": "Functional gaps / inconsistencies to address",
+          "content": [
+            "**Input contract gaps:** no explicit schema enforcement for roadmap/benefit/health/optimization inputs (beyond `action` and `program_id`), which can cause inconsistent payloads between orchestration and UI/API layers.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L142-L309】",
+            "**Program start/end calculation:** `_calculate_program_start` and `_calculate_program_end` currently return “now” rather than deriving from schedules, which can misalign program timeline reporting with schedule planning outputs.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L1063-L1074】",
+            "**Dependency type consistency:** inter-project dependencies use program-specific types (`schedule_overlap`, `shared_resource`, `resource_contention`), while delivery schedule planning uses traditional FS/SS/FF/SF types; map or normalize when handing off to schedule agents or UI visualizations.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L934-L1037】【F:agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py†L1-L63】",
+            "**Approval boundary:** program approval exists, but no explicit linkage to lifecycle gates or compliance approvals; integrate approval outcomes with delivery governance to avoid conflicting approvals.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L2982-L3039】【F:agents/delivery-management/agent-09-lifecycle-governance/src/project_lifecycle_agent.py†L1-L63】"
+          ]
+        },
+        {
+          "heading": "Alignment requirements (prompt/tool/template/connector/UI)",
+          "content": [
+            "**Prompt/template alignment:** ensure program creation UI/API supplies `strategic_objectives` and `constituent_projects`, and downstream UI supports displaying program roadmaps, dependency graphs, health, and optimization artifacts as stored by the agent.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L173-L309】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L312-L412】",
+            "**Connector alignment:** Planview/Clarity/Jira/Azure DevOps mappings and Cosmos dependency graphs are optional integrations; UI and orchestration should degrade gracefully when connectors are absent and fall back to stored tenant-state data.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L186-L204】【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L1730-L2069】",
+            "**Tool alignment:** schedule, resource, financial, risk, quality agents must expose the actions used here (`get_schedule`, `get_utilization`, `get_financial_summary`, health actions) to keep program health calculations consistent.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L844-L1187】"
+          ]
+        },
+        {
+          "heading": "Program → Delivery handoff definition (ready for execution)",
+          "content": [
+            "### Handoff package (from Program Management to Delivery orchestration) Provide a program handoff payload containing:",
+            "`program_id`, `portfolio_id`, `name`, `description`, `methodology`, `strategic_objectives` (from program record).【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L240-L266】",
+            "`constituent_projects` with each project’s charter/scope references (from Project Definition Agent) and schedule/budget baselines if available.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L896-L1005】【F:agents/delivery-management/agent-08-project-definition-scope/src/project_definition_agent.py†L1-L83】",
+            "`roadmap` (milestones, dependencies, critical path) for scheduling coordination and dependency visualization.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L312-L412】",
+            "`resource_conflicts` and `resource_allocation_recommendations` to seed Resource Capacity mitigation workflows.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L605-L703】",
+            "`benefit_aggregation` and `program_roi` for Financial Management tracking and variance monitoring.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L506-L603】",
+            "`health_snapshot` (composite score + domain metrics) to inform Lifecycle Governance and delivery dashboards.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L708-L820】",
+            "### Delivery-side obligations",
+            "Delivery agents must treat program-level dependencies and roadmap as constraints, not replacements for project-level scheduling and scope baselines.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L312-L504】【F:agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py†L1-L63】",
+            "Delivery governance must acknowledge program approval outcomes and capture any gate deviations as program-level change impacts for feedback to Program Management.【F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py†L2982-L3076】【F:agents/delivery-management/agent-09-lifecycle-governance/src/project_lifecycle_agent.py†L1-L63】"
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/portfolio-management/agent-07-program-management/src`: Implementation source for this component.",
-            "`agents/portfolio-management/agent-07-program-management/tests`: Test suites and fixtures.",
-            "`agents/portfolio-management/agent-07-program-management/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/portfolio-management/agent-07-program-management/src): Implementation source for this component.",
+            "[tests](/agents/portfolio-management/agent-07-program-management/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/portfolio-management/agent-07-program-management/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -359,9 +818,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-08-project-definition-scope/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-08-project-definition-scope/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-08-project-definition-scope/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-08-project-definition-scope/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-08-project-definition-scope/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-08-project-definition-scope/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -382,6 +841,95 @@
           "content": [
             "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "For optional external scope research, set `SEARCH_API_ENDPOINT` and `SEARCH_API_KEY`, and enable the agent flag `enable_external_research` in project configuration to allow outbound queries."
+          ]
+        },
+        {
+          "heading": "Scope baseline (Agent 08)",
+          "content": [
+            "### Intended scope",
+            "Agent 08 owns project definition artifacts through the approved scope baseline. It is responsible for creating and maintaining:",
+            "Project charter (business case, objectives, high-level constraints, success criteria).",
+            "Scope statement (in/out of scope, deliverables).",
+            "WBS structure derived from the scope statement.",
+            "Requirements intake, traceability matrix, and stakeholder/RACI artifacts.",
+            "Scope baseline creation and scope creep detection against the baseline.",
+            "### Inputs",
+            "`charter_data` (title, description, project_type, methodology, objectives, in/out of scope, deliverables).",
+            "`project_id` (for WBS, requirements, baseline, and scope creep checks).",
+            "`scope_statement` (for WBS generation or baseline comparison).",
+            "`requirements` (for requirements repository + traceability mapping).",
+            "`stakeholders` (for register and RACI matrix).",
+            "Optional `context` (tenant_id, correlation_id) and external research controls.",
+            "### Outputs",
+            "Charter document + sectioned output.",
+            "WBS hierarchy + ID.",
+            "Requirements repository + traceability matrix.",
+            "Stakeholder register + RACI matrix.",
+            "Scope baseline snapshot + scope creep variance report.",
+            "Scope research proposal (optional external research).",
+            "### Decision responsibilities",
+            "Validate required fields per action before proceeding.",
+            "Determine approval workflow triggers for scope changes or baseline deviations.",
+            "Assess scope creep variance vs. configured threshold.",
+            "Select data sources (templates, local context, external research) when generating scope proposals.",
+            "### Must / must-not behaviors",
+            "Must:",
+            "Enforce required inputs for each action; reject incomplete requests.",
+            "Emit baseline artifacts before schedule or resource planning proceeds.",
+            "Record scope baseline snapshots in the scope baseline store.",
+            "Publish scope baseline and scope change events for downstream agents.",
+            "Must not:",
+            "Commit to schedule dates, durations, or resource assignments.",
+            "Override approved baseline without an approval workflow decision.",
+            "Create cost or financial commitments (owned by financial agent)."
+          ]
+        },
+        {
+          "heading": "Overlap & handoff boundaries (Agents 10–11)",
+          "content": [
+            "### Overlap / leakage risks",
+            "**Agent 10 (Schedule Planning):** WBS output can overlap with schedule work packages. Agent 08 must stop at scope/WBS definition and avoid sequencing, durations, or dependency calculations.",
+            "**Agent 11 (Resource Capacity):** RACI and stakeholder inputs can overlap with resource staffing. Agent 08 must not assign named resources or capacity commitments.",
+            "### Handoff boundaries",
+            "**To Agent 10:** Provide WBS, scope baseline, and requirements traceability as inputs for activity definition, dependency mapping, and schedule development.",
+            "**To Agent 11:** Provide RACI roles, stakeholder register, and WBS deliverables as inputs for role-based capacity planning and allocation constraints.",
+            "**From Agent 09 (Lifecycle Governance):** Receive approved baseline flags and governance gates before freezing scope."
+          ]
+        },
+        {
+          "heading": "Functional gaps & alignment checklist",
+          "content": [
+            "### Gaps / inconsistencies to resolve",
+            "Scope baseline storage is in local tenant state; confirm downstream agents can read baseline summaries or require explicit event payloads.",
+            "External scope research relies on `SEARCH_API_*` and optional LLM availability; ensure fallback logic is acceptable in offline environments.",
+            "Traceability matrix formats may differ from downstream schedule/resource tooling; confirm required schema.",
+            "### Prompt/tool/template/connector/UI alignment",
+            "**Prompting:** Ensure charter, scope statement, and WBS prompts align with organization templates (template library config).",
+            "**Tools/Connectors:** Confirm document management, project management, and database services are configured to persist baseline artifacts.",
+            "**UI:** Validate that scope baseline approvals and creep alerts surface in the orchestration UI for downstream agent gating."
+          ]
+        },
+        {
+          "heading": "Dependency map entry (execution ready)",
+          "content": [
+            "**Upstream dependencies**",
+            "Project initiation context (sponsor, objectives, methodology).",
+            "Governance approvals from Agent 09 for baseline freezing.",
+            "**Downstream dependencies**",
+            "Agent 10 consumes WBS + baseline scope for schedule planning.",
+            "Agent 11 consumes RACI roles + deliverables for capacity planning.",
+            "**Critical gating artifact**",
+            "Scope baseline snapshot + approval status (must exist before schedule/resource planning).",
+            "### Baseline repository and traceability matrix",
+            "Agent 08 now persists scope baselines in a SQL-backed repository (`services/scope_baseline`) using SQLAlchemy. By default it uses SQLite at `data/scope_baselines.db`, and can be overridden with `SCOPE_BASELINE_DB_URL`.",
+            "Key operations:",
+            "`manage_scope_baseline`: locks and persists a baseline snapshot and returns `baseline_id`.",
+            "`get_baseline`: retrieves a persisted baseline by `baseline_id`.",
+            "`create_traceability_matrix`: generates requirement-to-WBS mappings with coverage status and emits matrix events.",
+            "Published events:",
+            "`baseline.created` when a baseline record is persisted.",
+            "`traceability.matrix.created` when a traceability matrix is generated.",
+            "Existing `scope.baseline.locked` remains for baseline lock notifications."
           ]
         },
         {
@@ -406,11 +954,88 @@
           ]
         },
         {
+          "heading": "Scope & Responsibilities",
+          "content": [
+            "Owns project lifecycle state, phase transitions, and governance gate enforcement.",
+            "Monitors project health, publishes health events, and produces health dashboards/reports.",
+            "Recommends and adapts delivery methodologies; maintains gate criteria and methodology maps.",
+            "Records audit data for gate evaluations, overrides, and summaries."
+          ]
+        },
+        {
+          "heading": "Inputs & Outputs",
+          "content": [
+            "### Accepted actions (inputs)",
+            "`initiate_project` (requires `project_data.project_id`, `name`, `methodology`).",
+            "`transition_phase` (requires `project_id`, `target_phase`, plus orchestration metadata).",
+            "`evaluate_gate`, `override_gate`, `get_gate_history`.",
+            "`monitor_health`, `generate_health_report`, `get_health_dashboard`, `get_health_history`.",
+            "`recommend_methodology`, `adjust_methodology`, `update_methodology_config`.",
+            "`get_project_status`, `get_readiness_scores`, `train_readiness_model`, `score_readiness`.",
+            "### Primary outputs",
+            "Lifecycle records (`current_phase`, `methodology_map`, `gates_passed`, readiness scores).",
+            "Gate evaluation results (criteria status, readiness score, summaries, override audit).",
+            "Health telemetry (composite score, metrics, status, recommendations).",
+            "Events: `gate.passed`, `gate.failed`, `gate.overridden`, `phase.changed`, `project.transitioned`,",
+            "`project.health.updated`, `project.health.report.generated`."
+          ]
+        },
+        {
+          "heading": "Decision Responsibilities",
+          "content": [
+            "Enforce gate criteria before phase transitions; block transitions when criteria fail.",
+            "Escalate gate override decisions to Agent 03 (Approval Workflow) and record approvals.",
+            "Publish governance/health events for downstream analytics and UI consumption."
+          ]
+        },
+        {
+          "heading": "Must / Must-Not Behaviors",
+          "content": [
+            "**Must**",
+            "Validate action inputs and required identifiers before processing.",
+            "Persist gate evaluations, health metrics, and lifecycle state updates.",
+            "Notify external systems and subscribers when gates pass/fail or health changes.",
+            "**Must-Not**",
+            "Must not auto-override failed gates without an explicit approval workflow decision.",
+            "Must not allow phase transitions when gate criteria are unmet (unless override approved)."
+          ]
+        },
+        {
+          "heading": "Overlaps & Handoff Boundaries",
+          "content": [
+            "**Agent 03 (Approval Workflow):** Agent 09 owns gate evaluation but must hand off any override",
+            "request for approval; Agent 03 returns approval status and audit ID that Agent 09 records.",
+            "**Agent 16 (Compliance Regulatory):** Agent 09 owns lifecycle gating but relies on Agent 16 to",
+            "supply regulatory/compliance attestations that become gate criteria evidence (e.g., compliance sign-offs, audit readiness)."
+          ]
+        },
+        {
+          "heading": "Functional Gaps / Alignment Needs",
+          "content": [
+            "**Compliance monitoring gap:** Agent 09 declares compliance monitoring but currently has no",
+            "explicit connector to Agent 16 for compliance evidence; define an event contract or API call.",
+            "**Gate evidence ingestion:** Gate criteria depend on artifacts/approvals stored on the project",
+            "record; UI/forms must capture these fields and sync them into the lifecycle store.",
+            "**Prompt/template alignment:** Gate summaries and readiness scoring should use standardized",
+            "checklist templates so that AI summaries and audits are consistent across phases.",
+            "**Connector alignment:** External sync should map gate results into Planview/Clarity/Jira/Azure",
+            "DevOps with consistent field names so dashboards reflect governance status."
+          ]
+        },
+        {
+          "heading": "Governance Gate Definitions (Execution-Ready Defaults)",
+          "content": [
+            "Default gates are derived from phase transitions and/or explicit gate requests. Criteria names map directly to project artifacts/approvals and are evaluated during gate checks.",
+            "| Gate / Transition | Criteria (all required) | Evidence source | | --- | --- | --- | | `Initiate → Plan` (`initiate_to_plan_gate`) | `charter_document_complete`, `charter_approved`, `sponsor_assigned` | Charter artifact, approvals, sponsor assignment | | `Plan → Execute` (`plan_to_execute_gate`) | `scope_baseline_approved`, `schedule_baseline_approved`, `budget_approved` | Scope/schedule/budget approvals | | `Plan → Iterate` (`plan_to_iterate_gate`) | `scope_baseline_approved`, `schedule_baseline_approved`, `budget_approved` | Scope/schedule/budget approvals | | `Execute → Monitor` / `Execute → Close` | `deliverables_complete`, `quality_criteria_met` | Deliverables artifact, quality metrics | | `Monitor → Close` | `acceptance_complete` | Client acceptance approval | | `Iterate → Release` | `iteration_complete`, `release_criteria_met` | Iteration artifacts, release readiness evidence | | `Release → Close` | `release_criteria_met`, `closure_approved` | Release readiness, closure approval | | `Sprint 0 → Sprint 1` | `sprint_planning_complete` | Sprint planning artifacts | | `Sprint 1 → Sprint 2` | `sprint_review_complete`, `sprint_retrospective_complete` | Sprint review/retro artifacts | | `Sprint 1 → Release` | `sprint_review_complete`, `sprint_retrospective_complete`, `release_criteria_met` | Sprint review/retro artifacts, release readiness |",
+            "Explicit gate requests (e.g., `charter_approved`, `baseline_approved`, `acceptance_complete`, `closure_approved`, `release_criteria_met`) map to the same criteria list above."
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-09-lifecycle-governance/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-09-lifecycle-governance/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-09-lifecycle-governance/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-09-lifecycle-governance/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-09-lifecycle-governance/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-09-lifecycle-governance/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -456,9 +1081,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-10-schedule-planning/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-10-schedule-planning/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-10-schedule-planning/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-10-schedule-planning/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-10-schedule-planning/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-10-schedule-planning/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -481,11 +1106,69 @@
           ]
         },
         {
+          "heading": "Scope, I/O contract, and decision responsibilities",
+          "content": [
+            "### Intended scope (what Agent 10 owns)",
+            "Convert WBS into a schedule, including task sequencing, dependencies, and milestone identification.",
+            "Estimate task durations using AI/historical signals and apply them to schedules.",
+            "Calculate CPM metrics (early/late dates, critical path, total duration).",
+            "Produce schedule optimization, what-if analysis, and Monte Carlo risk simulations.",
+            "Manage schedule baselines and variance tracking for timeline governance.",
+            "Provide sprint planning artifacts (backlog/capacity views) when requested.",
+            "### Inputs, outputs, and required fields The agent processes a single `action` per request. Required inputs are enforced at validation time.",
+            "| Action | Required Inputs | Outputs | | --- | --- | --- | | `create_schedule` | `project_id`, `wbs` | `schedule_id`, Gantt data, dependencies, critical path, milestones, duration | | `estimate_duration` | `tasks` | Task durations + confidence intervals | | `map_dependencies` | `schedule_id`, `dependencies` | Dependency network diagram | | `calculate_critical_path` | `schedule_id` | Critical path tasks + total duration | | `resource_constrained_schedule` | `schedule_id`, `resources` | Resource-leveled schedule + utilization + revised critical path | | `run_monte_carlo` | `schedule_id`, `iterations` (optional) | Probabilistic completion dates + risk score/drivers | | `track_milestones` | `schedule_id` | Milestone status + upcoming deadlines | | `optimize_schedule` | `schedule_id` | Optimized schedule + improvement summary | | `what_if_analysis` | `schedule_id`, `what_if_params` | Scenario comparison results | | `manage_baseline` | `schedule_id` | Baseline ID + locked schedule metadata | | `track_variance` | `schedule_id` | Variance analysis vs baseline | | `sprint_planning` | `project_id`, `sprint_data` | Sprint backlog + capacity planning | | `get_schedule` | `schedule_id` | Full schedule record |",
+            "### Decision responsibilities (what the agent decides)",
+            "Task sequencing, dependency mapping suggestions, and CPM calculations.",
+            "Duration estimates (including uncertainty) and milestone identification.",
+            "Resource leveling logic when provided resource availability data.",
+            "Schedule risk metrics derived from Monte Carlo simulation.",
+            "Baseline lock decisions based on configured approval thresholds.",
+            "### Must / must-not behaviors",
+            "**Must** reject requests that omit required `action` or required identifiers (`project_id`, `schedule_id`, `wbs`).",
+            "**Must** treat resource availability as an input or external dependency (do not invent HR data).",
+            "**Must** publish schedule updates and baseline events when integrations are enabled.",
+            "**Must not** create or edit the enterprise risk register; only simulate schedule risk signals.",
+            "**Must not** override resource allocations owned by Resource Capacity (Agent 11).",
+            "**Must not** change governance policies managed by Lifecycle Governance (Agent 9) or Risk (Agent 15).",
+            "### Checkpoint ✅ **Planning I/O contract ready for execution.**"
+          ]
+        },
+        {
+          "heading": "Overlap analysis and handoff boundaries",
+          "content": [
+            "### Agent 11 (Resource Capacity) overlap",
+            "**Overlap area:** resource-constrained scheduling, utilization reporting, and allocation feasibility.",
+            "**Handoff boundary:** Agent 10 consumes capacity/availability inputs from Agent 11 and returns schedule adjustments. Agent 11 remains the source of truth for allocations, calendars, and skill availability.",
+            "**Escalation trigger:** when scheduling requires new/changed allocations, route to Agent 11 for approval or creation of allocations.",
+            "### Agent 15 (Risk/Issue Management) overlap",
+            "**Overlap area:** schedule risk scoring and delay impacts.",
+            "**Handoff boundary:** Agent 10 outputs schedule risk metrics and simulation results; Agent 15 owns risk register updates, mitigation plans, and issue escalation workflows.",
+            "**Escalation trigger:** if schedule risk exceeds threshold or repeated delays are detected, notify Agent 15 with the risk signal."
+          ]
+        },
+        {
+          "heading": "Gaps, inconsistencies, and alignment needs",
+          "content": [
+            "**Resource availability stub:** current availability intake is a pass-through. Align inputs from Agent 11 so `resources` includes capacity calendars and allocation constraints.",
+            "**Event payload schema:** schedule risk/resource event payloads should be documented and shared with Agent 11/15 to avoid mismatch.",
+            "**External sync toggles:** MS Project/Jira/Smartsheet sync is configured but requires connector mappings and UI indicators of sync status.",
+            "**Prompt/tool alignment:** scheduling actions need prompt templates that enforce required fields and surface dependency types (FS/SS/FF/SF).",
+            "**UI alignment:** surface critical path, baseline variance, and Monte Carlo percentiles in timeline UI cards."
+          ]
+        },
+        {
           "heading": "Troubleshooting",
           "content": [
             "`run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.",
             "Runtime errors about missing secrets: populate the required env vars in `.env`.",
             "Docker execution fails: verify Docker is running and the agent has a `Dockerfile`."
+          ]
+        },
+        {
+          "heading": "Risk-based planning integration",
+          "content": [
+            "Consumes `risk_data` (`project_risk_level`, `task_risks`) and applies duration buffers from `ops/config/agents/risk_adjustments.yaml`.",
+            "Risk-adjusted durations are used during schedule creation and critical-path recalculation."
           ]
         }
       ],
@@ -504,15 +1187,86 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-11-resource-capacity/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-11-resource-capacity/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-11-resource-capacity/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-11-resource-capacity/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-11-resource-capacity/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-11-resource-capacity/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
           "heading": "How it's used",
           "content": [
             "Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution."
+          ]
+        },
+        {
+          "heading": "Scope, inputs/outputs, and decisioning",
+          "content": [
+            "### Intended scope",
+            "Manage the resource pool (people/equipment), capacity calendars, and allocations.",
+            "Intake resource demand, match skills, and route approvals.",
+            "Forecast capacity vs. demand, plan capacity, and run scenarios.",
+            "Sync capacity and profile data from HRIS, Planview, and Jira Tempo sources.",
+            "### Inputs (actions) and outputs Supported `action` values in `process()` and their expected output shape:",
+            "`add_resource`, `update_resource`, `delete_resource`: return resource profile and status.",
+            "`request_resource`: return request ID, recommended candidates, approver, and approval payload.",
+            "`approve_request`: return approval status and allocation if approved.",
+            "`search_resources`: return matching resources and count.",
+            "`match_skills`: return ranked candidates with match scores.",
+            "`forecast_capacity`: return capacity/demand forecast, bottlenecks, and recommendations.",
+            "`plan_capacity`: return capacity plan, gaps, and mitigation strategies.",
+            "`scenario_analysis`: return baseline vs. scenario comparison with recommendation.",
+            "`allocate_resource`: return allocation ID and allocation payload.",
+            "`get_availability`: return calendar availability by day with average availability.",
+            "`get_utilization`: return utilization summary and over/under allocations.",
+            "`identify_conflicts`: return conflicts and resolution recommendations.",
+            "`get_resource_pool`: return filtered resource pool.",
+            "### Decision responsibilities",
+            "Determines if a resource request requires approval and routes it to approvers.",
+            "Calculates candidate ranking and skill match thresholds for recommended resources.",
+            "Validates allocations against allocation limits and overlap constraints.",
+            "Detects over-allocation conflicts and produces mitigation recommendations.",
+            "### Must / must-not behaviors **Must**",
+            "Enforce allocation constraints when `enforce_allocation_constraints` is true.",
+            "Reject allocations with invalid percentage or invalid date ordering.",
+            "Persist resource/allocations to the state store and publish allocation events.",
+            "Publish resource events for create/update/request/approval flows.",
+            "**Must not**",
+            "Create allocations for unknown resources.",
+            "Exceed maximum concurrent allocations or allocation thresholds when enforcement is enabled.",
+            "Skip notification routing when approvals are required."
+          ]
+        },
+        {
+          "heading": "Capacity allocation rules (execution-ready checkpoint)",
+          "content": [
+            "Allocation validation must satisfy all of the following before persisting:",
+            "Resource exists in the pool (or synced store).",
+            "Allocation percentage is > 0 and ≤ 100.",
+            "Start date is on or before end date.",
+            "Overlapping allocations count is below `max_concurrent_allocations` when enforcement is enabled.",
+            "Total overlapping allocation percentage stays within `max_allocation_threshold` (expressed as a 1.0–1.0+ multiplier of 100%).",
+            "If any check fails, return a validation error and do not persist or publish allocation events."
+          ]
+        },
+        {
+          "heading": "Overlap & handoff boundaries (Agents 10 & 12)",
+          "content": [
+            "### Agent 10 (Schedule Planning) **Overlap:** Resource-constrained scheduling, allocation feasibility, and calendar-aware planning. **Handoff boundary:** Agent 11 owns resource availability, allocation validation, and utilization. Agent 10 owns schedule creation, dependency mapping, critical path, and baseline management. **Integration expectation:** Agent 10 consumes allocation events (`resource.allocation.created`) and availability data (`get_availability`) rather than revalidating or mutating allocations.",
+            "### Agent 12 (Financial Management) **Overlap:** Labor cost implications, forecast inputs, and resource cost rates. **Handoff boundary:** Agent 11 provides allocation/capacity facts and cost rates per resource; Agent 12 owns budgeting, cost tracking, and financial forecasting/variance analysis. **Integration expectation:** Agent 12 should treat Agent 11 as the system of record for allocations and resource availability, and request updates via `get_utilization`, `forecast_capacity`, or allocation events."
+          ]
+        },
+        {
+          "heading": "Gaps, inconsistencies, and alignment requirements",
+          "content": [
+            "### Functional gaps / inconsistencies",
+            "**Approval routing details**: approval routing hints exist, but the requester/approver resolution lacks explicit mapping rules in this spec (rely on `approval_routing` config).",
+            "**Cost rate usage**: allocations include `cost_rate` at the resource level, but there is no explicit cost roll-up output in allocation responses.",
+            "**Conflict resolution outputs**: conflict recommendations are generated but not persisted or published as events.",
+            "### Required alignment (prompt/tool/template/connector/UI)",
+            "**Prompt & templates**: Ensure prompts include required fields for `request_resource` and `allocate_resource` actions (project_id, dates, effort, resource_id).",
+            "**Connectors**: Align Planview/Tempo connectors with allocation normalization fields (`allocation_id`, `resource_id`, `project_id`, dates, percentage).",
+            "**UI**: Resource allocation screens must surface validation errors, approval status, and conflicts; calendar view should consume `get_availability` responses.",
+            "**Event schema**: Downstream agents should subscribe to `resource.allocation.created` and `resource.request.approved/rejected` for schedule/financial sync."
           ]
         },
         {
@@ -568,6 +1322,13 @@
             "Runtime errors about missing secrets: populate the required env vars in `.env`.",
             "Docker execution fails: verify Docker is running and the agent has a `Dockerfile`."
           ]
+        },
+        {
+          "heading": "Risk-based capacity integration",
+          "content": [
+            "Applies risk load factors from `ops/config/agents/risk_adjustments.yaml` to demand and utilization calculations.",
+            "Includes risk-driven recommendations in `plan_capacity` output when high/medium risk is present."
+          ]
         }
       ],
       "source_file": "agents/delivery-management/agent-11-resource-capacity/README.md"
@@ -585,9 +1346,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-12-financial-management/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-12-financial-management/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-12-financial-management/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-12-financial-management/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-12-financial-management/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-12-financial-management/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -618,6 +1379,84 @@
           ]
         },
         {
+          "heading": "Intended scope",
+          "content": [
+            "Agent 12 owns financial execution for in-flight portfolios, programs, and projects. It focuses on budget baselines, cost tracking, forecasts, variance analysis, earned value, and profitability reporting. The agent integrates with ERP systems to reconcile funding and actuals, and publishes finance events to the service bus for downstream consumers. It also supports multi-currency conversions and tax handling where required by the portfolio. Source of truth for business-case creation and procurement decisions stays with other agents (see handoffs below)."
+          ]
+        },
+        {
+          "heading": "Inputs & outputs",
+          "content": [
+            "**Primary inputs**",
+            "`action`: Financial workflow selector (budget creation/update, cost tracking, forecast, variance, EVM, summary/reporting, currency conversion, profitability).",
+            "`budget`: Budget payload with project/portfolio identifiers, totals, and cost breakdowns.",
+            "`costs`: Cost/transaction payloads for tracking actuals and accruals.",
+            "`project_id` / `portfolio_id`: Entity identifiers for finance queries.",
+            "`time_period`: Reporting range for forecast/variance.",
+            "`context`: `tenant_id`, `correlation_id`, `actor_id` for auditability.",
+            "**Primary outputs**",
+            "Budget baseline and approval status.",
+            "Cost tracking summaries, accruals, and category breakdowns.",
+            "Forecast projections and estimate-at-completion values.",
+            "Variance and earned value metrics.",
+            "Financial summaries and standardized reports (summary, variance, forecast, cash flow, profitability).",
+            "Currency conversion results and profitability metrics (ROI/NPV/IRR/payback period)."
+          ]
+        },
+        {
+          "heading": "Decision responsibilities",
+          "content": [
+            "Validate budget integrity and data quality before persistence.",
+            "Determine variance thresholds and flagging based on configured percent/absolute limits.",
+            "Trigger approval workflows for budget baselines and updates.",
+            "Reconcile funding availability with ERP transactions before confirming budget readiness.",
+            "Publish finance events and audit logs for lifecycle visibility."
+          ]
+        },
+        {
+          "heading": "Must / must-not behaviors",
+          "content": [
+            "**Must**",
+            "Enforce tenant scoping, correlation IDs, and actor attribution for auditability.",
+            "Persist budgets, actuals, and forecasts to tenant stores and database storage.",
+            "Emit audit events and publish finance lifecycle events for downstream analytics.",
+            "Validate cost breakdowns and perform data quality checks before approvals.",
+            "Resolve secrets via Key Vault configuration when provided.",
+            "Call ERP integration for funding validation and cost transactions ingestion.",
+            "**Must not**",
+            "Replace the Business Case & Investment agent for initial ROI/business case creation.",
+            "Approve or reject procurement contracts (handoff to Vendor & Procurement agent).",
+            "Bypass approval workflows when approval integration is enabled.",
+            "Modify vendor records or procurement policies."
+          ]
+        },
+        {
+          "heading": "Handoffs and overlap boundaries",
+          "content": [
+            "**Agent 05 – Business Case & Investment**",
+            "Overlap risk: profitability and ROI metrics are calculated here for live performance, while Agent 05 owns initial business case creation and investment recommendations. **Handoff boundary:** Agent 12 consumes approved business case cash flow inputs (via agent integration or related agent endpoint) and tracks actuals/variance against the approved baseline. Agent 05 remains the source of truth for business-case narratives, scenario modeling, and investment decisions.",
+            "**Agent 13 – Vendor & Procurement**",
+            "Overlap risk: vendor invoices, contracts, and purchase orders influence actual costs. **Handoff boundary:** Agent 13 owns vendor onboarding, contract management, invoice capture, and procurement approvals. Agent 12 consumes invoice/actuals data (ERP/AP connectors or events) to update cost tracking and forecasts, and provides budget availability checks back to Agent 13."
+          ]
+        },
+        {
+          "heading": "Functional gaps and alignment requirements",
+          "content": [
+            "**Prompt alignment:** Ensure orchestrator prompts pass `context` (tenant/correlation/actor IDs) and include `budget`/`costs` payloads with currency and cost breakdowns for approval readiness.",
+            "**Tool alignment:** ERP connector and Service Bus event publishing are mandatory for production workflows; ensure connector registry and secrets are configured before live execution.",
+            "**Template alignment:** Use the finance templates (cost management plan, cost baseline, variance report, financial risk plan) when generating reports or delivering documentation.",
+            "**Connector alignment:** Confirm exchange-rate/tax-rate provider configs or fixture paths are available for multi-currency and tax handling.",
+            "**UI alignment:** Financial dashboards should surface budget status (draft/approved), variance alerts, forecast accuracy, and approval trail links to the audit log."
+          ]
+        },
+        {
+          "heading": "Execution checkpoints",
+          "content": [
+            "**Financial controls ready:** approval workflow integration, audit events, variance thresholds, and ERP funding validation enabled.",
+            "**Dependency map entry ready:** Agent 12 depends on ERP finance connectors, approval workflow, service bus eventing, key vault secrets, and related agent endpoints for resource plans, schedule progress, and benefits."
+          ]
+        },
+        {
           "heading": "Troubleshooting",
           "content": [
             "`run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.",
@@ -641,9 +1480,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-13-vendor-procurement/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-13-vendor-procurement/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-13-vendor-procurement/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-13-vendor-procurement/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-13-vendor-procurement/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-13-vendor-procurement/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -712,9 +1551,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-14-quality-management/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-14-quality-management/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-14-quality-management/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-14-quality-management/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-14-quality-management/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-14-quality-management/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -733,7 +1572,77 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+          ]
+        },
+        {
+          "heading": "Scope validation & decision boundaries",
+          "content": [
+            "### Intended scope (Agent 14 owns)",
+            "Agent 14 owns **quality planning, test management, defect tracking, and quality analytics** across delivery workstreams. Its scope includes:",
+            "Quality plan creation/approval, standards/acceptance criteria, and metric definitions.",
+            "Test case/suite management, execution tracking, and coverage reporting.",
+            "Defect logging, updates, trend analysis, root cause analysis, and quality reporting.",
+            "Quality dashboards and release-readiness quality gate evaluation inputs.",
+            "### Inputs / outputs (validated behaviors)",
+            "The agent validates required inputs for specific actions and returns structured outputs that downstream agents can consume:",
+            "**Inputs (required by action):**",
+            "`create_quality_plan`: `plan.project_id`, `plan.objectives`",
+            "`approve_quality_plan`: `plan_id`",
+            "`log_defect`: `defect.summary`, `defect.severity`, `defect.component`",
+            "`link_test_case_requirements`: `link.test_case_id`, `link.requirement_ids`",
+            "`update_test_case_links`: `link_id`",
+            "`sync_defect_tickets`: `defect_ids`",
+            "All actions accept `context.tenant_id` / `context.correlation_id` when provided.",
+            "**Outputs (by action):**",
+            "Plans: plan ID + objectives + status + recommended metrics.",
+            "Tests: test case/suite IDs + execution results + coverage + artifacts.",
+            "Defects: defect ID + workflow status + trend analysis + RCA summaries.",
+            "Reporting: quality dashboards, quality reports, and gate readiness signals.",
+            "### Decision responsibilities (what Agent 14 decides)",
+            "Approves or rejects quality plans **when the approval workflow agent is enabled** (status normalization and plan state transitions).",
+            "Computes quality metrics and determines **quality gate readiness** based on defined thresholds.",
+            "Determines defect trend classifications and RCA recommendations.",
+            "### Must / must-not behaviors",
+            "**Must:**",
+            "Validate required inputs for each action before processing.",
+            "Persist quality plans, test artifacts, defects, and audit findings.",
+            "Publish quality events for downstream orchestration when plans/defects/tests are updated.",
+            "Provide deterministic quality gate criteria and evaluation results for release decisions.",
+            "**Must not:**",
+            "Make release deployment decisions (belongs to Agent 18).",
+            "Own risk/issue register decisions or enterprise risk treatment plans (belongs to Agent 15).",
+            "Override stakeholder release governance without documented quality gate outputs."
+          ]
+        },
+        {
+          "heading": "Overlap/leakage analysis & handoff boundaries",
+          "content": [
+            "### Agent 15 (Risk & Issue Management)",
+            "**Overlap risk:** Defect trends and RCA recommendations can look like “issue management.” **Boundary:** Agent 14 **tracks defects and quality-specific issues**; Agent 15 **owns enterprise risk/issue registers, mitigation plans, and escalation decisions**. **Handoff:** When defect trends indicate delivery risk (e.g., defect density threshold breach or repeated escape patterns), Agent 14 must emit a risk signal to Agent 15 with severity, trend, and recommended mitigation options.",
+            "### Agent 18 (Release Deployment)",
+            "**Overlap risk:** Quality gates are part of release readiness. **Boundary:** Agent 14 **defines and evaluates quality gates**, while Agent 18 **decides release sequencing, deployment approvals, and rollout mechanics**. **Handoff:** Agent 14 provides gate results (pass/fail + metrics + defects summary) to Agent 18 for final release decisioning and deployment orchestration."
+          ]
+        },
+        {
+          "heading": "Functional gaps / inconsistencies & alignment needs",
+          "content": [
+            "**Prompt alignment:** Ensure prompts request “quality gate evidence” (coverage, defect density, pass rate, outstanding critical defects) instead of generic “go/no-go” language.",
+            "**Tool alignment:** Map quality actions to existing integration mocks (Azure DevOps Test Plans, Jira Xray, TestRail, Playwright) and ensure identifiers are passed through to Agent 18 for release tickets.",
+            "**Template alignment:** Standardize report templates so that quality gate outputs are formatted for Agent 18 consumption (gate status + thresholds + exceptions).",
+            "**Connector alignment:** Confirm connectors can ingest/emit defect IDs and test run artifacts for cross-agent traceability.",
+            "**UI alignment:** UI components should surface “Quality Gate Status,” “Coverage %,” “Defect Density,” and “Open Critical Defects” with drill-down to test and defect artifacts."
+          ]
+        },
+        {
+          "heading": "Quality gate definitions (execution-ready)",
+          "content": [
+            "Use the following default gate definitions unless overridden by config:",
+            "**Coverage Gate:** `coverage_pct >= min_test_coverage` (default 80%).",
+            "**Defect Density Gate:** `defect_density <= defect_density_threshold` (default 0.05 per KLOC).",
+            "**Execution Pass Rate Gate:** `pass_rate_pct >= 95%` for the most recent execution window.",
+            "**Regulated Audit Gate (conditional):** `audit_score >= 90%` when project type is compliance/regulated.",
+            "Gate results should be reported as `pass|fail`, include metric values, and provide any exceptions required for release governance.",
             "### Quality management integrations",
             "The quality management agent supports the following configuration keys (all optional) in its config payload:",
             "These settings let the agent simulate (or integrate with) Azure DevOps Test Plans, Jira Xray, TestRail, Playwright automation runs, Blob Storage artifacts, Azure ML defect prediction, and coverage metrics collected from code repositories. Release notes and quality reports are generated with Azure OpenAI prompt templates using the provided `prompt_prefix` when available."
@@ -761,11 +1670,73 @@
           ]
         },
         {
+          "heading": "Scope, intent, and decision rights",
+          "content": [
+            "### Intended scope",
+            "Owns the end-to-end risk/issue lifecycle: identification, assessment, scoring, prioritization, mitigation planning, and ongoing monitoring across projects, programs, and portfolios.",
+            "Maintains a central risk register with scoring, triggers, mitigation plans, and event history.",
+            "Produces quantitative outputs (Monte Carlo, sensitivity analysis) and qualitative guidance (mitigation strategies).",
+            "Publishes risk events for downstream agents and dashboards.",
+            "### Inputs",
+            "Project/portfolio context: project_id, portfolio_id, owners, classifications.",
+            "Operational signals: schedule delays, cost overruns, quality defect rates, resource utilization.",
+            "PM connector signals (Planview/MS Project/Jira/Azure DevOps) tagged as risks.",
+            "Documents and knowledge base content (SharePoint/Confluence) for risk extraction and mitigations.",
+            "Optional ML services or cognitive search results for risk extraction and scoring.",
+            "### Outputs",
+            "Risk register records with probability/impact scoring and status updates.",
+            "Mitigation plans and trigger definitions.",
+            "Risk datasets stored in data lake/synapse and optional GRC integration objects.",
+            "Event bus messages (e.g., `risk.triggered`, `risk.created`, `risk.updated`) to drive escalation and governance.",
+            "Reports: summary, detailed, mitigation status.",
+            "### Decision responsibilities",
+            "Determine risk classification, scoring, and priority ordering.",
+            "Decide when a signal crosses a trigger threshold and must escalate.",
+            "Recommend mitigation strategies; do not approve or execute them.",
+            "Escalate high-severity risks to governance and compliance agents and flag owners.",
+            "### Must / must-not behaviors",
+            "Must validate risk records against schema and data-quality rules before publishing.",
+            "Must capture source/provenance for extracted risks (connector, doc, model).",
+            "Must emit event updates when risk status, scoring, or triggers change materially.",
+            "Must not change project scope, schedule baselines, or financial forecasts directly (handoff to Agents 09/10/12).",
+            "Must not triage or close defects directly (handoff to Agent 14).",
+            "Must not approve compliance exceptions (handoff to Agent 16)."
+          ]
+        },
+        {
+          "heading": "Overlap and handoff boundaries",
+          "content": [
+            "### Agent 14: Quality Management",
+            "Overlap: quality defects, test failures, and quality KPIs are risk signals.",
+            "Handoff boundary: Agent 14 owns defect triage and quality remediation. Agent 15 only interprets those signals to update risk scores, create risk entries, and trigger escalation when thresholds are exceeded.",
+            "Required interface: structured quality signals (defect rate, severity, trend) and QA milestone outcomes.",
+            "### Agent 09: Lifecycle Governance",
+            "Overlap: project health and governance escalations depend on risk status.",
+            "Handoff boundary: Agent 09 owns phase-gate decisions and portfolio health reporting. Agent 15 supplies risk status, trigger events, and mitigation readiness for inclusion in governance scorecards.",
+            "Required interface: governance receives `risk.triggered`/`risk.updated` events and risk summaries per project/portfolio."
+          ]
+        },
+        {
+          "heading": "Gaps, inconsistencies, and alignment needs",
+          "content": [
+            "Escalation taxonomy: ensure event names and severity labels are consistent with the governance event catalog so Agent 09 can consume them without translation.",
+            "Issue vs. risk distinction: clarify in UI/templates when an item is a realized issue versus a potential risk; current implementation emphasizes risks and may need explicit “issue” status mapping.",
+            "Connector alignment: PM connectors use heterogeneous fields (priority/severity/labels). Normalize into a shared risk signal schema for UI and reporting consistency.",
+            "Mitigation ownership: mitigation plans are stored but require explicit ownership/approval workflow; align with governance templates for accountability and follow-through."
+          ]
+        },
+        {
+          "heading": "Risk/issue escalation map (checkpoint)",
+          "content": [
+            "| Trigger type | Threshold signal | Risk action | Escalation event | Governance handoff | | --- | --- | --- | --- | --- | | Cost overrun | overrun_pct ≥ threshold | increase score, update status | `risk.triggered` | Agent 09 updates health/phase gating | | Schedule delay | delay_days ≥ threshold | increase score, update status | `risk.triggered` | Agent 09 updates health/phase gating | | Quality defect rate | defect_rate ≥ threshold | increase score, update status | `risk.triggered` | Agent 14 notified; Agent 09 consumes summary | | Resource utilization | utilization ≥ threshold | increase score, update status | `risk.triggered` | Agent 11 notified; Agent 09 consumes summary | | High risk score | score ≥ high_risk_threshold | flag as high severity | `risk.updated` | Governance escalation workflow |"
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-15-risk-issue-management/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-15-risk-issue-management/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-15-risk-issue-management/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-15-risk-issue-management/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-15-risk-issue-management/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-15-risk-issue-management/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -804,6 +1775,13 @@
             "Runtime errors about missing secrets: populate the required env vars in `.env`.",
             "Docker execution fails: verify Docker is running and the agent has a `Dockerfile`."
           ]
+        },
+        {
+          "heading": "Risk data outputs for downstream planning",
+          "content": [
+            "Risk prioritization and matrix outputs now include `risk_level` and optional `task_id`/`project_id` fields.",
+            "Dashboard responses include a `risk_data` payload for schedule and resource agents."
+          ]
         }
       ],
       "source_file": "agents/delivery-management/agent-15-risk-issue-management/README.md"
@@ -821,9 +1799,10 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/delivery-management/agent-16-compliance-regulatory/src`: Implementation source for this component.",
-            "`agents/delivery-management/agent-16-compliance-regulatory/tests`: Test suites and fixtures.",
-            "`agents/delivery-management/agent-16-compliance-regulatory/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/agent-16-compliance-regulatory/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/agent-16-compliance-regulatory/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/agent-16-compliance-regulatory/Dockerfile): Container build recipe for local or CI use.",
+            "[COMPLIANCE_CONTROL_CATALOG.md](/agents/delivery-management/agent-16-compliance-regulatory/COMPLIANCE_CONTROL_CATALOG.md): Scope validation, control catalog, and handoff boundaries for execution readiness."
           ]
         },
         {
@@ -869,9 +1848,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-17-change-configuration/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-17-change-configuration/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-17-change-configuration/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-17-change-configuration/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-17-change-configuration/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-17-change-configuration/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -909,6 +1888,69 @@
           ]
         },
         {
+          "heading": "Scope validation",
+          "content": [
+            "### Intended scope (what Agent 17 owns)",
+            "Change request intake, classification, and risk/impact assessment.",
+            "Approval workflow coordination and auditing.",
+            "CMDB/CI registration, baselines, and dependency visualization.",
+            "Change implementation gating (staging/automated tests) and rollback triggers.",
+            "Publishing change events/metrics to the event bus and notifying stakeholders.",
+            "### Inputs (expected)",
+            "`action` (required): One of the supported actions in `process` (e.g., `submit_change_request`, `assess_impact`, `approve_change`, `implement_change`, `cicd_webhook`).",
+            "`change` (for submit/predict): Title, description, requester, priority, repo references (`repo_provider`, `repo_slug`, `pull_request_id`, `commit_id`), IaC paths (`iac_files`, `iac_repo_path`), optional `ci_ids`, `risk_category`, `knowledge_query`.",
+            "`approval`, `review`, `implementation`, `updates`, and `filters` payloads for respective actions.",
+            "`context` (optional): `tenant_id`, `correlation_id`, `user_id` (actor) for traceability.",
+            "### Outputs (guaranteed)",
+            "Structured JSON payloads that include `change_id` and status fields for each action.",
+            "Persisted change records, audit entries, and CMDB updates via storage services.",
+            "Published events for lifecycle steps (created, approved/rejected, implementation started, rolled back, metrics).",
+            "### Decision responsibilities",
+            "**Must decide**: change classification, approval routing, approval requirement, risk/impact recommendations, and whether to proceed/roll back based on staging/tests.",
+            "**Must not decide**: final deployment scheduling mechanics (delegated to Agent 18), workflow orchestration definition/templating (delegated to Agent 24), or approval policy governance beyond configured thresholds.",
+            "### Must / must-not behaviors",
+            "**Must**",
+            "Validate `action` and required fields for `submit_change_request`.",
+            "Persist change records and audit entries on each state transition.",
+            "Enrich change context with repo/IaC/knowledge data when provided.",
+            "Publish events for key lifecycle transitions.",
+            "**Must not**",
+            "Deploy releases directly or manage runtime deployment plans.",
+            "Modify workflow templates or orchestration definitions owned by the workflow engine.",
+            "Bypass approval requirements when thresholds dictate approval."
+          ]
+        },
+        {
+          "heading": "Overlap analysis and handoff boundaries",
+          "content": [
+            "### Agent 18: Release Deployment",
+            "**Potential overlap**",
+            "Change implementation and deployment coordination are adjacent to release orchestration.",
+            "**Handoff boundary**",
+            "Agent 17 **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`).",
+            "Agent 18 **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.",
+            "### Agent 24: Workflow Process Engine",
+            "**Potential overlap**",
+            "Both handle workflow orchestration; Agent 17 builds a change workflow instance.",
+            "**Handoff boundary**",
+            "Agent 17 **requests** workflow creation and manages change state; Agent 24 **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence."
+          ]
+        },
+        {
+          "heading": "Gaps, inconsistencies, and alignment requirements",
+          "content": [
+            "**Workflow orchestration alignment**: Agent 17 uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while Agent 24 defines workflow specs/templates. Align on a shared workflow schema and ensure Agent 17 payloads conform to the templates/versions maintained by Agent 24.",
+            "**Deployment status contract**: Agent 17 expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with Agent 18, including intermediate states (queued, in-progress, rolled-back).",
+            "**Approval policy governance**: Agent 17 uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.",
+            "**Event taxonomy**: Agent 17 emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by Agents 18 and 24.",
+            "**Connector/UI alignment**: Ensure UI fields for change intake map to the expected input keys (`repo_provider`, `repo_slug`, IaC paths) and that connectors (ITSM, repo APIs, Service Bus) are configured consistently across environments.",
+            "### Checkpoint: change control handoffs",
+            "Agent 17 submits change workflows (creates/updates change state).",
+            "Agent 24 runs and governs workflow definitions/execution.",
+            "Agent 18 executes deployment and reports status."
+          ]
+        },
+        {
           "heading": "Troubleshooting",
           "content": [
             "`run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.",
@@ -932,9 +1974,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-18-release-deployment/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-18-release-deployment/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-18-release-deployment/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-18-release-deployment/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-18-release-deployment/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-18-release-deployment/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -962,6 +2004,41 @@
             "`run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.",
             "Runtime errors about missing secrets: populate the required env vars in `.env`.",
             "Docker execution fails: verify Docker is running and the agent has a `Dockerfile`."
+          ]
+        },
+        {
+          "heading": "Release Deployment validation notes (scope, I/O, decisions, handoffs)",
+          "content": [
+            "### Intended scope",
+            "Owns release planning, readiness assessment, deployment orchestration, environment management, rollback, and post-deployment verification across environments (dev/test/stage/prod).【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L20-L133】",
+            "Integrates with approvals, scheduling, environment reservation, configuration management, CI/CD, monitoring, analytics, and documentation publishing for release execution governance.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L86-L166】",
+            "### Inputs / outputs",
+            "**Inputs:** action-driven payloads including `release`, `release_id`, `deployment_plan`, `deployment_plan_id`, `environment`, `environment_id`, `verification_params`, and `filters`. Required inputs are enforced for key actions (e.g., `plan_release` requires name/target_environment, `execute_deployment` requires deployment_plan_id).【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L152-L205】",
+            "**Outputs:** action-specific responses including release IDs/schedules, readiness assessments with go/no-go, deployment plans and statuses, rollback outcomes, environment configurations, drift checks, release notes, metrics, and verification results.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L206-L340】",
+            "### Decision responsibilities",
+            "**Go/No-Go:** computed in readiness assessment using approvals, change readiness, environment readiness, test/coverage gates, and blocker collection, yielding a recommendation and score.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L464-L544】【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L2373-L2564】",
+            "**Approval gating:** required for production (configurable), relies on approval workflow agent when configured; blocks execution if not approved or not configured.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L56-L132】【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L648-L705】",
+            "**Rollback decisions:** auto-rollback triggered on anomaly thresholds or verification failures; manual rollback action supported with rollback scripts and orchestration steps.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L758-L896】【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L1554-L1574】",
+            "### Must / must-not behaviors",
+            "**Must:** enforce readiness gates when enabled; check approval requirements for protected environments; log and persist release/deployment state; emit events for readiness and rollback lifecycle updates.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L80-L705】【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L842-L896】",
+            "**Must not:** proceed to deployment when readiness gates recommend NO-GO or approvals are missing/unapproved; must not skip rollback actions when auto-rollback triggers or verification fails if `auto_rollback_on_anomaly` is enabled.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L648-L705】【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L792-L896】",
+            "### Overlap / leakage with Agent 14 (Quality) & Agent 17 (Change/Configuration)",
+            "**Agent 14 overlap:** quality metrics, test results, defect density, and coverage gates are referenced by readiness checks (quality is a shared dependency). Release agent should consume quality signals from Agent 14 instead of duplicating test/defect management workflows.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L486-L507】【F:agents/delivery-management/agent-14-quality-management/src/quality_management_agent.py†L20-L174】",
+            "**Agent 17 overlap:** change approvals and configuration drift checks intersect with change management and CMDB ownership. Release agent should request change approval status and configuration drift/CMDB baselines from Agent 17 rather than authoring change records itself.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L1350-L1536】【F:agents/operations-management/agent-17-change-configuration/src/change_configuration_agent.py†L20-L174】",
+            "### Handoff boundaries",
+            "**From Agent 17 → Agent 18:** approved change tickets/config baselines + risk/impact summaries. Agent 18 consumes approvals to satisfy readiness gates and schedules deployments accordingly.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L477-L507】【F:agents/operations-management/agent-17-change-configuration/src/change_configuration_agent.py†L20-L174】",
+            "**From Agent 14 → Agent 18:** verified test execution results, coverage snapshots, and defect status to satisfy readiness criteria and post-deployment verification inputs.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L486-L507】【F:agents/delivery-management/agent-14-quality-management/src/quality_management_agent.py†L20-L174】",
+            "**From Agent 18 → Agent 17:** deployment outcomes, rollback events, and configuration drift discoveries to update change records/CMDB for closure and audit trail.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L842-L896】",
+            "### Functional gaps / inconsistencies & alignment needs",
+            "**Prompt/template alignment:** readiness criteria are partially implicit (approval/test/coverage/quality/environment readiness) but not surfaced as a formal checklist template; require a release readiness template to standardize inputs and outputs for orchestration UI/workflow.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L486-L507】",
+            "**Connector alignment:** readiness checks expect approval and change signals, but connectors are not enforced; add explicit connector requirements for quality/change systems (e.g., CI pipelines, test management, CMDB) to avoid silent “pass” defaults.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L1334-L1536】",
+            "**UI alignment:** release calendar, deployment plans, and readiness assessments are stored but UI references are absent; requires UI surfaces for release calendar, deployment history, and gate status to prevent opaque decisions.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L702-L888】",
+            "### Release readiness criteria (ready for execution) The release agent’s current readiness gates are execution-ready as long as upstream signals are wired:",
+            "**Approvals complete** (release + change approvals).【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L477-L507】",
+            "**Quality gates pass** (test/coverage/defect thresholds).【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L486-L507】",
+            "**Environment readiness** (availability + config drift checks).【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L368-L417】【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L1121-L1215】",
+            "**Risk/compliance checks** (via risk/compliance agents when configured).【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L96-L106】【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L2373-L2564】",
+            "**Go/No-Go recommendation** is computed and enforced when `enforce_readiness_gates` is enabled.【F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py†L80-L705】"
           ]
         }
       ],
@@ -978,11 +2055,106 @@
           ]
         },
         {
+          "heading": "Intended scope",
+          "content": [
+            "Agent 19 owns the knowledge/document lifecycle across the portfolio: ingesting, classifying, indexing, governing access, and serving documents/knowledge artifacts for downstream agents and humans. The agent operates as the system of record for document metadata, summaries, and knowledge graph relationships (projects, programs, risks, decisions, lessons learned). It does **not** originate stakeholder communications or analytics KPI narratives; it provides curated knowledge artifacts to those agents when requested.",
+            "### In-scope responsibilities",
+            "Ingest documents from users, agent outputs, and connected repositories (e.g., Confluence, SharePoint, Git).",
+            "Normalize metadata, enforce schema validation, and manage document versions/retention.",
+            "Generate summaries, tags, entity extraction, taxonomy labeling, and knowledge graph links.",
+            "Enforce access controls and classification rules for retrieval.",
+            "Provide search (keyword + semantic) and recommendation services.",
+            "Persist knowledge artifacts (lessons learned, decisions, risks) for reuse.",
+            "### Out-of-scope responsibilities",
+            "Sending emails/messages or scheduling meetings (belongs to Agent 21).",
+            "Computing portfolio KPIs, predictive analytics, or dashboards (belongs to analytics agents).",
+            "Executing workflow automations outside knowledge capture or storage."
+          ]
+        },
+        {
+          "heading": "Inputs and outputs",
+          "content": [
+            "### Inputs",
+            "**User or agent requests** with an `action` (e.g., `upload_document`, `ingest_sources`, `search_documents`).",
+            "**Documents** with `title`, `content`, and metadata (project/program/portfolio IDs, classification, permissions).",
+            "**Ingestion sources** for repositories (Confluence, SharePoint, Git).",
+            "**Access context** for authorization checks (`user_id`, `roles`, `attributes`).",
+            "### Outputs",
+            "**Document IDs, versions, and classification labels** upon ingestion.",
+            "**Search results** with relevance scores and excerpts.",
+            "**Summaries, extracted entities, and knowledge graph links.**",
+            "**Lessons learned IDs and categorized knowledge artifacts.**",
+            "**Access logs and version history** for audit/traceability."
+          ]
+        },
+        {
+          "heading": "Decision responsibilities",
+          "content": [
+            "Agent 19 is the decision-maker for:",
+            "Document acceptance/rejection based on schema validation and required metadata.",
+            "Auto-classification, tagging, and taxonomy placement.",
+            "Access control enforcement (RBAC/ABAC).",
+            "Knowledge graph relationship creation (document → project/program/portfolio, risk, decision).",
+            "Whether to trigger asynchronous summarization/entity extraction tasks.",
+            "Agent 19 **does not** decide:",
+            "Who receives communications or how/when to notify stakeholders (Agent 21).",
+            "KPI definitions, analytics model outputs, or dashboard narrative framing (Analytics agents)."
+          ]
+        },
+        {
+          "heading": "Must / must-not behaviors",
+          "content": [
+            "**Must**",
+            "Validate required fields and schema before persisting documents.",
+            "Preserve version history on updates and emit knowledge ingestion events.",
+            "Enforce access controls before returning content.",
+            "Record knowledge graph relationships for decisions/risks where detected.",
+            "Maintain traceability metadata (source, timestamps, ownership).",
+            "**Must not**",
+            "Bypass access controls for non-public documents.",
+            "Modify or delete documents without versioning or audit trail.",
+            "Send stakeholder-facing messages or create analytics KPIs.",
+            "Store documents without classification and ownership metadata."
+          ]
+        },
+        {
+          "heading": "Overlap analysis and handoff boundaries",
+          "content": [
+            "### Agent 21: Stakeholder Comms",
+            "**Potential overlap:** Meeting minutes, decisions, and summaries may be both knowledge artifacts and communication payloads. **Boundary:** Agent 19 **stores and indexes** the documents; Agent 21 **delivers** communications. **Handoff:** Agent 19 provides curated artifacts (summaries, decision logs, lessons learned) to Agent 21 for distribution. Agent 21 should not modify source knowledge content; it may annotate distribution metadata in its own system.",
+            "### Analytics agent (Agent 22)",
+            "**Potential overlap:** Both domains handle insights, reports, and narrative summaries. **Boundary:** Agent 19 **curates content** and provides retrieval/search; Agent 22 **computes KPIs, predictive insights, and dashboards**. **Handoff:** Agent 22 requests document corpora or knowledge artifacts (lessons learned, decision/risk history) from Agent 19 to enrich models and narratives. Agent 19 should not compute KPIs or analytics metrics."
+          ]
+        },
+        {
+          "heading": "Functional gaps / inconsistencies to resolve",
+          "content": [
+            "**Prompt alignment:** Current system prompts should explicitly differentiate document curation vs. communications and analytics responsibilities to avoid duplicate summaries.",
+            "**Tooling alignment:** Connectors (Confluence/SharePoint/Git) should share a common ingestion contract with analytics ETL pipelines to prevent double-ingestion.",
+            "**Template alignment:** Knowledge summaries and decision logs should follow a shared template so Agent 21 can reuse them verbatim in outbound comms.",
+            "**UI alignment:** Knowledge search UI should expose access context and classification filters to avoid unauthorized disclosure.",
+            "**Knowledge graph alignment:** Risk/decision extraction should include consistent identifiers so analytics agents can join knowledge artifacts with KPI datasets."
+          ]
+        },
+        {
+          "heading": "Knowledge lifecycle map (checkpoint)",
+          "content": [
+            "**Capture**: user upload, agent output ingestion, or repository sync.",
+            "**Validate**: schema enforcement, metadata normalization, classification tagging.",
+            "**Enrich**: summaries, entities, taxonomy labels, knowledge graph links.",
+            "**Store**: versioned persistence + audit log; emit ingestion event.",
+            "**Retrieve**: keyword/semantic search with access control.",
+            "**Share**: handoff curated artifacts to Agent 21 / analytics agents.",
+            "**Review**: annotations, approvals, retention and lifecycle updates.",
+            "**Retire**: archive or delete with audit trail and compliance checks."
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-19-knowledge-document-management/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-19-knowledge-document-management/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-19-knowledge-document-management/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-19-knowledge-document-management/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-19-knowledge-document-management/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-19-knowledge-document-management/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1011,6 +2183,24 @@
             "Runtime errors about missing secrets: populate the required env vars in `.env`.",
             "Docker execution fails: verify Docker is running and the agent has a `Dockerfile`."
           ]
+        },
+        {
+          "heading": "Semantic search and summarization",
+          "content": [
+            "Agent 19 now supports embedding-powered semantic search and concise result summaries:",
+            "Embeddings are generated with `sentence-transformers` (default model: `all-MiniLM-L6-v2`) with automatic fallback to local embeddings if the model is unavailable.",
+            "Vector search can run in-memory or via the FAISS-backed vector store (`vector_store_backend`).",
+            "Search responses include per-document metadata (`title`, `date`, `relevance_score`) and an LLM-generated concise summary for each hit.",
+            "Summaries are prompt-driven via the prompt registry (`prompts/knowledge-agent/summary_prompt_v1.md`) and inputs are sanitized for prompt injection before summarization.",
+            "### Configuration knobs",
+            "Agent-level defaults are defined in `ops/config/agents/knowledge_agent.yaml`:",
+            "`embeddings.model`: sentence-transformers model name.",
+            "`embeddings.dimensions`: expected embedding dimension.",
+            "`embeddings.vector_store_backend`: `in_memory` or `faiss`.",
+            "`search.semantic_result_limit`: top-N semantic results to return.",
+            "`summarization.summary_token_limit`: max summary tokens per document.",
+            "`summarization.summary_prompt_agent_id`: prompt registry key for summarization prompt selection."
+          ]
         }
       ],
       "source_file": "agents/operations-management/agent-19-knowledge-document-management/README.md"
@@ -1026,11 +2216,141 @@
           ]
         },
         {
+          "heading": "Intended scope",
+          "content": [
+            "Agent 20 owns continuous improvement and process mining for operational workflows. It ingests execution event logs, discovers as-is process models, checks conformance against designed processes, detects bottlenecks/deviations, and turns findings into improvement initiatives with benefit tracking. It is not a general analytics warehouse or workflow engine; it is the process-insight-to-improvement loop.",
+            "### Primary responsibilities",
+            "Ingest and validate event logs for process instances.",
+            "Discover process models and performance metrics from execution traces.",
+            "Detect bottlenecks, deviations, and root causes.",
+            "Generate improvement recommendations and backlog items.",
+            "Track benefit realization and benchmark performance.",
+            "Share best practices with the knowledge agent and notify workflow engine of improvement",
+            "recommendations."
+          ]
+        },
+        {
+          "heading": "Inputs and outputs",
+          "content": [
+            "### Inputs",
+            "`events` payloads for `ingest_event_log` (event logs with case/process identifiers).",
+            "`process_id` and optional `algorithm` for process discovery.",
+            "`process_id` plus `expected_model` or `process_model_id` for conformance.",
+            "`issue_id` for root cause analysis.",
+            "`improvement` payload for creating improvement initiatives.",
+            "`benchmark_criteria` or filters for benchmarking and reporting.",
+            "Optional `tenant_id` for multi-tenant storage scoping.",
+            "`analytics_report` payload for `ingest_analytics_report` containing periodic trends, anomalies, and recommendations from Agent 22.",
+            "### Outputs",
+            "Process models (activities, transitions, BPMN/Petri net representations).",
+            "Conformance reports with compliance rates and deviations.",
+            "Bottleneck and deviation analyses with recommendations.",
+            "Improvement backlog entries with priority scores and expected benefits.",
+            "Benefit realization metrics and ROI summaries.",
+            "KPI rollups for process/project/program levels.",
+            "Analytics-driven improvement backlog items with owners and target dates.",
+            "Persisted improvement completion history (`date`, `owner`, `outcome`) retrievable by tenant."
+          ]
+        },
+        {
+          "heading": "Decision responsibilities",
+          "content": [
+            "Agent 20 is responsible for:",
+            "Selecting mining algorithms for discovery (defaulting to heuristic miner).",
+            "Determining bottleneck thresholds and deviation thresholds for alerts.",
+            "Prioritizing improvements based on benefits and feasibility scoring.",
+            "Emitting workflow improvement recommendations to the workflow engine.",
+            "Agent 20 is not responsible for:",
+            "Approving or executing workflow changes (Agent 24 handles workflow execution).",
+            "Curating enterprise-wide analytics models/warehouses (Agents 22/25).",
+            "Authoring enterprise policy or compliance rules (handled by governance agents)."
+          ]
+        },
+        {
+          "heading": "Must / must-not behaviors",
+          "content": [
+            "### Must",
+            "Validate action inputs before processing.",
+            "Persist event logs, models, conformance reports, and recommendations by tenant.",
+            "Emit improvement recommendation events to the workflow engine when improvements are created.",
+            "Publish process discovery and benefit realization events to the event bus.",
+            "### Must not",
+            "Trigger workflow execution directly outside of the workflow engine interface.",
+            "Overwrite curated analytics KPIs owned by analytics agents.",
+            "Generate recommendations without traceable evidence from event logs/metrics."
+          ]
+        },
+        {
+          "heading": "Overlap and handoff boundaries",
+          "content": [
+            "### Analytics agent (Agent 22)",
+            "**Overlap**: Both Agent 20 and Agent 22 compute KPIs and performance metrics.",
+            "**Boundary**: Agent 20 computes process-level KPIs for improvement decisions; Agent 22",
+            "consolidate portfolio-wide KPIs, predictive analytics, and dashboarding.",
+            "**Handoff**: Agent 20 publishes process insights and benefit realization events; analytics",
+            "agent consumes these events for enterprise reporting and forecasting.",
+            "### Workflow engine (Agent 24)",
+            "**Overlap**: Both agents operate on process models.",
+            "**Boundary**: Agent 20 discovers as-is models and recommends improvements; Agent 24 owns the",
+            "execution of to-be workflows and orchestration definitions.",
+            "**Handoff**: Agent 20 emits `workflow.improvement.recommendation` events to Agent 24; Agent 24",
+            "updates workflows, approvals, and execution state."
+          ]
+        },
+        {
+          "heading": "Functional gaps and required alignment",
+          "content": [
+            "### Gaps / inconsistencies",
+            "Improvement backlog persistence is currently in-memory while other artifacts are tenant-stored.",
+            "Deviation and bottleneck thresholds are static defaults; no configuration guardrails are",
+            "documented for tenant overrides.",
+            "KPI rollups overlap analytics agent scopes without explicit governance rules.",
+            "### Required alignment (prompt/tool/template/connector/UI)",
+            "**Prompt**: Ensure agent prompt explicitly distinguishes process-improvement KPIs vs enterprise",
+            "analytics KPIs to avoid overlap with Agents 22/25.",
+            "**Tooling**: Align event schemas with analytics ingestion (`events.ingested`,",
+            "`process.discovered`, `benefits.realized`) to avoid schema drift.",
+            "**Templates**: Provide a standard improvement initiative template shared with Agent 24 to",
+            "translate recommendations into workflow updates.",
+            "**Connectors**: Ensure task-sync integration is configured for improvement backlog handoff.",
+            "**UI**: Expose improvement backlog, conformance reports, and benefit tracking dashboards",
+            "separate from global analytics dashboards."
+          ]
+        },
+        {
+          "heading": "Improvement feedback loop (checkpoint)",
+          "content": [
+            "**Ingest**: Receive execution events via `ingest_event_log` and persist by tenant.",
+            "**Discover**: Build as-is process models and performance metrics.",
+            "**Assess**: Run conformance, bottleneck, and deviation analyses.",
+            "**Diagnose**: Perform root cause analysis for prioritized issues.",
+            "**Recommend**: Generate improvement initiatives with expected benefits and priority scoring.",
+            "**Handoff**: Emit `workflow.improvement.recommendation` events to Agent 24 and create tasks.",
+            "**Implement**: Workflow engine executes approved changes (Agent 24 responsibility).",
+            "**Track**: Measure realized benefits, update KPIs, and publish benefit events.",
+            "**Benchmark**: Compare against internal/external benchmarks for continuous calibration."
+          ]
+        },
+        {
+          "heading": "Closed-loop analytics integration (Agent 22 → Agent 20)",
+          "content": [
+            "Agent 20 now consumes analytics insights to operationalize continuous improvement:",
+            "Receive periodic analytics via `ingest_analytics_report`.",
+            "Convert recommendations into backlog items, categorize them, and prioritize by impact/feasibility.",
+            "Assign default or rule-based owners and set target dates.",
+            "Publish the generated backlog to knowledge management (`knowledge_agent`) or event topic fallback (`knowledge.improvement_backlog.published`).",
+            "Notify stakeholders on additions/completions through notification integration (`notification_service`) or event fallback (`notification.improvement`).",
+            "Mark actions complete with `complete_improvement`.",
+            "Persist completed actions into `improvement_history_store` and retrieve with `get_improvement_history`.",
+            "### Suggested payload contract for `ingest_analytics_report`"
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-20-continuous-improvement-process-mining/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-20-continuous-improvement-process-mining/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-20-continuous-improvement-process-mining/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-20-continuous-improvement-process-mining/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-20-continuous-improvement-process-mining/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-20-continuous-improvement-process-mining/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1074,11 +2394,100 @@
           ]
         },
         {
+          "heading": "Intended scope",
+          "content": [
+            "Agent 21 owns stakeholder communication operations, including:",
+            "Maintaining the stakeholder register and engagement profiles.",
+            "Classifying stakeholders (influence/interest) and recommending engagement strategies.",
+            "Building communication plans tied to portfolio/project updates.",
+            "Generating, editing, scheduling, and sending outbound messages (email/Teams/Slack/SMS/push/portal).",
+            "Collecting feedback and sentiment, tracking engagement, and producing comms reports.",
+            "Coordinating events/meetings and publishing comms events to workflow/analytics systems.",
+            "Out of scope:",
+            "Approving outbound communications (handled by Agent 03).",
+            "Authoring/curating official knowledge artifacts (handled by Agent 19).",
+            "Portfolio governance decisions or delivery lifecycle approvals (handled by other agents)."
+          ]
+        },
+        {
+          "heading": "Inputs and outputs",
+          "content": [
+            "### Primary inputs (by action)",
+            "`register_stakeholder`: `stakeholder` payload with name, email, role, organization, preferences.",
+            "`classify_stakeholder`: `stakeholder_id`.",
+            "`create_communication_plan`: `plan` payload with project, stakeholders, schedule, channel.",
+            "`generate_message` / `edit_message`: message template data, attachments, recipients.",
+            "`send_message` / `schedule_message`: `message_id` and delivery mode.",
+            "`summarize_report`: `report` content plus target role/locale.",
+            "`update_communication_preferences`: `stakeholder_id` with preference updates.",
+            "`collect_feedback` / `analyze_sentiment`: feedback payloads or stakeholder identifier.",
+            "`schedule_event`: event payload (time, attendees, meeting details).",
+            "`track_engagement` / `track_delivery_event`: stakeholder and delivery telemetry.",
+            "`get_stakeholder_dashboard` / `generate_communication_report`: project/filters.",
+            "### Outputs",
+            "Stakeholder records, classifications, engagement strategies, and preferences.",
+            "Communication plans, message drafts, delivery schedules, and send results.",
+            "Feedback/sentiment results, engagement metrics, and reporting summaries.",
+            "Workflow triggers, service bus events, and communication history entries."
+          ]
+        },
+        {
+          "heading": "Decision responsibilities",
+          "content": [
+            "Agent 21 is responsible for:",
+            "Determining stakeholder classifications and engagement strategies.",
+            "Selecting delivery channels based on preferences, consent, and channel availability.",
+            "Scheduling batches/digests and optimizing send times.",
+            "Generating and personalizing message content.",
+            "Triggering workflow automation and publishing comms events/metrics.",
+            "Approval decisions and policy enforcement (beyond consent) remain with Agent 03."
+          ]
+        },
+        {
+          "heading": "Must / must-not behaviors",
+          "content": [
+            "Must:",
+            "Enforce consent/opt-out rules before sending communications.",
+            "Store communication history and emit comms events for downstream analytics.",
+            "Respect delivery modes (immediate, scheduled, digest) and batching controls.",
+            "Provide traceable outputs for stakeholder updates and message actions.",
+            "Must not:",
+            "Send outbound communications requiring approval before Agent 03 approval is granted.",
+            "Modify or overwrite authoritative knowledge documents owned by Agent 19.",
+            "Exfiltrate or log secrets; use configured secret providers only."
+          ]
+        },
+        {
+          "heading": "Overlap and handoff boundaries (Agents 19 & 03)",
+          "content": [
+            "### Agent 03: Approval Workflow",
+            "**Overlap risk:** outbound communications that require approval or escalation. **Handoff:** Agent 21 submits message drafts + metadata to Agent 03 for approval when policy or content flags require it. Agent 21 resumes delivery only after approval status is returned. **Boundary:** Agent 03 owns approval decisions, audit trails, and approval notifications. Agent 21 owns message preparation, delivery execution, and delivery telemetry.",
+            "### Agent 19: Knowledge Document Management",
+            "**Overlap risk:** content summaries or reports that could become knowledge artifacts. **Handoff:** Agent 21 can request approved knowledge snippets or finalized documents from Agent 19 to use in communications; Agent 21 can submit post-communication summaries for capture. **Boundary:** Agent 19 manages canonical documents, versioning, and distribution repositories; Agent 21 only references or links those artifacts in outbound messages."
+          ]
+        },
+        {
+          "heading": "Functional gaps, inconsistencies, and alignment needs",
+          "content": [
+            "**Approval enforcement:** current implementation flags `review_required` but does not block send; align with Agent 03 by adding a required approval state gate.",
+            "**CRM alignment:** README lists Salesforce-specific variables while implementation supports generic CRM endpoints; document precedence and mapping.",
+            "**Connector alignment:** Notification/Calendar integrations are used in code but not documented in required env vars; add connector configuration or defaults.",
+            "**Templates/UI alignment:** communication templates and digest batching lack UI/portal configuration detail; define where templates live and how they are reviewed.",
+            "**Telemetry alignment:** define how delivery events map to analytics (Agent 22) and knowledge capture (Agent 19)."
+          ]
+        },
+        {
+          "heading": "Communications trigger matrix (execution-ready)",
+          "content": [
+            "| Trigger | Inputs | Action | Approval required | Output/records | Handoff | | --- | --- | --- | --- | --- | --- | | Stakeholder added | `stakeholder` payload | Register stakeholder + classify | No (unless policy) | Stakeholder profile, classification | Optionally send profile summary to Agent 19 | | Project status update | `report`/summary source | Generate update message | Yes if external audience | Draft message, summary, delivery plan | Send draft to Agent 03 for approval | | Risk/issue escalation | Risk payload + audience | Send escalation comms | Yes | Delivery results + history | Coordinate approvals with Agent 03 | | Change request | Change details + audience | Compose change notice | Yes | Message + delivery telemetry | Agent 03 approval, Agent 19 update | | Release milestone | Release notes | Broadcast release update | Yes if external | Message + schedule | Agent 03 approval; Agent 19 docs link | | Stakeholder feedback received | Feedback payload | Analyze sentiment + update engagement | No | Sentiment score, engagement update | Feed analytics/knowledge | | Event/meeting scheduled | Event details | Send invites/notifications | No (internal) | Calendar event, notifications | Calendar integration | | Engagement drop | Engagement metrics | Trigger re-engagement plan | Maybe (policy) | New plan + draft message | Agent 03 approval if required |"
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-21-stakeholder-comms/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-21-stakeholder-comms/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-21-stakeholder-comms/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-21-stakeholder-comms/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-21-stakeholder-comms/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-21-stakeholder-comms/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1155,11 +2564,95 @@
           ]
         },
         {
+          "heading": "Scope, inputs, and outputs",
+          "content": [
+            "**Intended scope**",
+            "Portfolio-level analytics, dashboards, reporting, and narrative insights for project health, KPI tracking, and scenario analysis.",
+            "Cross-domain event ingestion (schedule, deployment, risk, quality, resource) and KPI computation based on event history.",
+            "Azure-first analytics stack orchestration (Synapse, Data Lake, Data Factory), plus Power BI embedding and narrative generation.",
+            "**Primary inputs**",
+            "`action`: the requested operation. Supported values include: `aggregate_data`, `create_dashboard`, `generate_report`, `run_prediction`, `scenario_analysis`, `generate_narrative`, `track_kpi`, `query_data`, `natural_language_query`, `get_dashboard`, `get_insights`, `update_data_lineage`, `get_powerbi_report`, `orchestrate_etl`, `monitor_etl`, `train_kpi_model`, `provision_analytics_stack`, `ingest_sources`, `ingest_realtime_event`, `compute_kpis_batch`, `generate_periodic_report`.",
+            "`tenant_id` (top-level or in `context`): required to scope storage and event history.",
+            "Action-specific payloads:",
+            "`data_sources`, `dashboard`, `report`, `model_type`, `scenario`, `kpi`, `query`, `filters`, `dashboard_id`, `lineage`, `pipelines`, `run_id`, `report_type`, `user_context`, `event`, `event_type`, `training_payload`.",
+            "**Primary outputs**",
+            "`aggregate_data`: record count, statistics, lineage ID, data lake paths, Synapse ingest metadata.",
+            "`create_dashboard`: dashboard ID, widget count, refresh schedule, URL.",
+            "`generate_report`: report ID, visualization count, narrative, download URL.",
+            "`run_prediction`: prediction ID, predicted value, confidence + interval, recommendations.",
+            "`scenario_analysis`: baseline, scenario metrics, comparison, recommendations + simulation summary.",
+            "`generate_narrative`: narrative content with stored ID.",
+            "`track_kpi`: KPI value, trend, threshold status + alert IDs.",
+            "`query_data`/`natural_language_query`: query response payloads and timestamps.",
+            "`get_insights`: anomalies/patterns + recommendations (also emits event bus updates).",
+            "`generate_periodic_report`: periodic cross-project summary with cycle time, risk frequency, budget variance, trends, anomalies, and recommended process changes.",
+            "`get_powerbi_report`: embed URL + access token.",
+            "`provision_analytics_stack`/`ingest_sources`/`orchestrate_etl`/`monitor_etl`: operational pipeline metadata."
+          ]
+        },
+        {
+          "heading": "Decision responsibilities",
+          "content": [
+            "Decide which KPI definitions to compute from incoming events and when to publish `analytics.kpi.updated`.",
+            "Decide alerting outcomes for KPI thresholds and emit `analytics.kpi.threshold_breached`.",
+            "Decide narrative wording and insight recommendations based on detected anomalies/patterns.",
+            "Decide orchestration actions for data pipelines and provisioning."
+          ]
+        },
+        {
+          "heading": "Must / must-not behaviors",
+          "content": [
+            "**Must**",
+            "Always validate `action` and required fields before executing.",
+            "Always scope storage and event history operations by `tenant_id`.",
+            "Always redact sensitive fields (PII) or mask lineage when `LINEAGE_MASK_SALT` is set.",
+            "Publish analytics events (`analytics.insights.generated`, `analytics.kpi.updated`, etc.) when outcomes are produced.",
+            "**Must-not**",
+            "Must not generate dashboards with more than the configured widget limit.",
+            "Must not expose raw sensitive fields in lineage or event payloads.",
+            "Must not run ML prediction without `model_type` and required inputs."
+          ]
+        },
+        {
+          "heading": "Overlap, leakage, and handoff boundaries",
+          "content": [
+            "**Coordination with Agent 25 (System Health Monitoring)**",
+            "Agent 22 focuses on portfolio health analytics, narrative generation, and orchestration of Azure services; it also handles Power BI embed configs and cross-domain scenario simulations.",
+            "Agent 25 focuses on system health telemetry, alerts, and SLO monitoring; Agent 22 can consume these health signals as inputs to dashboards or narrative summaries.",
+            "**Handoff boundaries**",
+            "Agent 22 remains the analytics/reporting orchestrator (dashboards, reports, narratives, scenario analysis, Power BI embedding).",
+            "Agent 25 owns system health alerting, telemetry aggregation, and incident escalation workflows.",
+            "**Overlap with Agent 20 (Continuous Improvement Process Mining)**",
+            "Agent 20 focuses on process mining and improvement opportunities; Agent 22 focuses on analytics consumption and storytelling.",
+            "Handoff: Agent 20 provides mined process insights and cycle-time metrics that Agent 22 can surface in dashboards and reports."
+          ]
+        },
+        {
+          "heading": "Gaps, inconsistencies, and alignment needs",
+          "content": [
+            "**Naming/roles clarity**: Ensure documentation consistently assigns analytics ownership to Agent 22 and reserves system health telemetry and alerting for Agent 25.",
+            "**Action documentation vs. runtime behavior**: Ensure orchestration docs list the full action set (including ETL/power BI/realtime ingestion actions).",
+            "**Event taxonomy alignment**: The analytics event topics list should be aligned with upstream agents’ emitted event names (schedule, deployment, risk, quality, resource).",
+            "**Connector parity**: Ensure the Azure services referenced (Synapse, Data Factory, Event Hub, Power BI, OpenAI) have corresponding connectors and secrets defined in `.env.example` and runtime docs.",
+            "**UI alignment**: Dashboard/report endpoints (`/dashboards/{id}`, `/reports/{id}/download`, `/narrative`) should match the frontend/API routing templates."
+          ]
+        },
+        {
+          "heading": "Analytics output contract (checkpoint)",
+          "content": [
+            "The analytics output contract is ready for execution when:",
+            "The `action` list above is registered in orchestration routing.",
+            "All outputs are produced with a `tenant_id` and timestamps.",
+            "KPI alerts and insight events are emitted on the event bus with consistent payload schemas.",
+            "Output stores (analytics outputs, alerts, lineage, events, KPI history, health snapshots) are reachable via configured state stores or database adapters."
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-22-analytics-insights/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-22-analytics-insights/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-22-analytics-insights/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-22-analytics-insights/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-22-analytics-insights/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-22-analytics-insights/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1184,7 +2677,23 @@
             "Key workflows now include:",
             "Provisioning Synapse pools, Data Lake file systems, and Data Factory pipelines via `provision_analytics_stack`.",
             "Ingesting Planview, Jira, Workday, and SAP data via `ingest_sources` and storing ingestion manifests in ADLS.",
-            "Streaming real-time events through Event Hub and Stream Analytics with `ingest_realtime_event`."
+            "Streaming real-time events through Event Hub and Stream Analytics with `ingest_realtime_event`.",
+            "Generating monthly/periodic portfolio reports through `generate_periodic_report`, including trend/anomaly detection and recommendation outputs for Agent 20 backlog ingestion."
+          ]
+        },
+        {
+          "heading": "Continuous improvement loop integration (Agent 20 handoff)",
+          "content": [
+            "Agent 22 now supports a closed-loop handoff to Agent 20:",
+            "Build periodic analytics payloads using `generate_periodic_report`.",
+            "Include `project_metrics` in `filters` (e.g., `cycle_time_days`, `risk_occurrences`, `budget_variance_pct`, `late_task_ratio`, `scope_creep_count`).",
+            "The response includes:",
+            "`summary` rollups,",
+            "`trends` and `anomalies`,",
+            "`recommendations` for process change/training,",
+            "`report_id` for traceability.",
+            "Agent emits `analytics.periodic_report.generated` for downstream subscribers.",
+            "This output is designed to be consumed by Agent 20 via `ingest_analytics_report`."
           ]
         },
         {
@@ -1230,15 +2739,105 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-23-data-synchronisation-quality/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-23-data-synchronisation-quality/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-23-data-synchronisation-quality/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-23-data-synchronisation-quality/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-23-data-synchronisation-quality/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-23-data-synchronisation-quality/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
           "heading": "How it's used",
           "content": [
             "Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution."
+          ]
+        },
+        {
+          "heading": "Scope, responsibilities, and decisioning",
+          "content": [
+            "### Intended scope",
+            "Govern data synchronization quality for mastered PPM entities (project, resource, vendor, financial, etc.) flowing between source systems and the canonical model.",
+            "Validate inbound payloads, map them to canonical schemas, and enforce data-quality thresholds before propagation.",
+            "Detect duplicates/conflicts and resolve or queue them based on configured policies.",
+            "Emit audit, lineage, and telemetry events for downstream analytics and monitoring.",
+            "### Inputs",
+            "**Action payloads** (via agent runner): `sync_data`, `run_sync`, `validate_data`, `detect_conflicts`, `resolve_conflict`, `detect_duplicates`, `merge_duplicates`, `get_quality_report`, `get_retry_queue`, `process_retries`, `reprocess_retry`, `get_dashboard`.",
+            "**Configuration files** loaded at startup:",
+            "`config/agent-23/validation_rules.yaml`",
+            "`config/agent-23/pipelines.yaml`",
+            "`config/agent-23/schema_registry.yaml`",
+            "`config/agent-23/mapping_rules.yaml`",
+            "`config/agent-23/quality_thresholds.yaml`",
+            "**External connectors**: Planview, SAP, Jira, Workday (via Key Vault + connector secrets).",
+            "**Events**: `sync.start`, `sync.complete`, `conflict.detected` via Service Bus/Event Grid.",
+            "### Outputs",
+            "**Canonical master records** persisted to state storage and optional databases.",
+            "**Sync telemetry**: latency metrics, quality metrics, retry queue entries.",
+            "**Quality reports**: per-entity summaries of completeness, consistency, timeliness.",
+            "**Audit/lineage events** emitted to event bus, Log Analytics, and audit stores.",
+            "### Decision responsibilities",
+            "**Data quality gating**: accept, reject, or retry a payload based on validation rules and quality thresholds.",
+            "**Conflict strategy**: apply `last_write_wins`, `timestamp_based`, `authoritative_source`, `prefer_existing`, or `manual`.",
+            "**Duplicate handling**: flag, merge, or reject based on fuzzy match confidence thresholds.",
+            "**Retry policy**: determine retry eligibility and backoff based on failure reason and max attempts.",
+            "### Must / must-not behaviors",
+            "**Must**",
+            "Enforce schema validation and rule-based validation before master record updates.",
+            "Record sync logs, quality metrics, and audit events for every sync request.",
+            "Preserve lineage and trace IDs for downstream observability.",
+            "Queue failed validations for retry rather than silent drop.",
+            "**Must not**",
+            "Must not overwrite authoritative fields when the source system is not the authority.",
+            "Must not emit analytics insights (delegated to analytics agents) beyond raw metrics.",
+            "Must not mutate canonical records without a successful validation pass."
+          ]
+        },
+        {
+          "heading": "Overlap, leakage, and handoff boundaries",
+          "content": [
+            "### Analytics agent (Agent 22)",
+            "**Overlap risk**: analytics reporting aggregates quality metrics; Agent 23 produces the raw data quality signals and reports only.",
+            "**Handoff boundary**: Agent 23 publishes quality events/metrics; Agent 22 consumes, aggregates, and generates dashboards, KPIs, narratives, and forecasting.",
+            "**Leakage to avoid**: Agent 23 should not compute portfolio-level KPIs, forecasts, or narrative summaries.",
+            "### Agent 24: Workflow Process Engine",
+            "**Overlap risk**: Agent 24 can orchestrate retries/compensation workflows. Agent 23 owns data sync quality decisions and retry eligibility.",
+            "**Handoff boundary**: Agent 23 emits `sync.complete` and `conflict.detected` events and publishes retry queue status; Agent 24 uses these signals to trigger workflows (e.g., human review for manual conflict resolution).",
+            "**Leakage to avoid**: Agent 23 should not orchestrate complex multi-step workflow routing; defer to Agent 24 for orchestration."
+          ]
+        },
+        {
+          "heading": "Functional gaps, inconsistencies, and alignment needs",
+          "content": [
+            "**Prompt/tool alignment**: ensure agent runner routes `get_quality_report`, `get_dashboard`, and retry actions to Agent 23 instead of analytics agents.",
+            "**Template alignment**: add/confirm templates for quality exception review workflows in Agent 24 and dashboards in analytics agents.",
+            "**Connector alignment**: confirm connector credential availability in Key Vault for Planview/SAP/Jira/Workday and ensure sync mappings exist in `mapping_rules.yaml`.",
+            "**UI alignment**: dashboards should visualize quality dimensions (completeness, consistency, timeliness) and include retry queue counts and conflict backlog.",
+            "**Schema versioning**: ensure `schema_registry.yaml` and registered schemas include version metadata to avoid mismatched validation."
+          ]
+        },
+        {
+          "heading": "Data quality rules (checkpoint-ready)",
+          "content": [
+            "Minimum rules and thresholds for execution readiness:",
+            "**Completeness**: required fields present per schema + validation rules.",
+            "**Consistency**: field ranges and referential checks pass; no conflicting authoritative updates.",
+            "**Timeliness**: `updated_at` within SLA (`sync_latency_sla_seconds`, default 60s).",
+            "**Uniqueness**: duplicate detection confidence below `duplicate_confidence_threshold` (default 0.85).",
+            "**Schema compliance**: JSON schema validation passes for entity type.",
+            "**Auditability**: sync logs, lineage payload, and audit events recorded for every sync."
+          ]
+        },
+        {
+          "heading": "Dependency map entry (checkpoint-ready)",
+          "content": [
+            "**Upstream dependencies**",
+            "Source systems: Planview, SAP, Jira, Workday.",
+            "Schema and rule configs: `config/agent-23/*.yaml`.",
+            "Event bus: Azure Service Bus / Event Grid.",
+            "**Downstream dependencies**",
+            "Analytics agent (Agent 22): quality metrics, reports, and sync telemetry.",
+            "Agent 24 Workflow Engine: conflict and retry orchestration.",
+            "Data stores: SQL/Cosmos for master records and audit history.",
+            "**Key events**",
+            "`sync.start`, `sync.complete`, `conflict.detected`."
           ]
         },
         {
@@ -1328,11 +2927,72 @@
           ]
         },
         {
+          "heading": "Scope validation (Agent 24)",
+          "content": [
+            "### Intended scope",
+            "Orchestrate workflow definitions (JSON/YAML/BPMN) into executable task graphs, persist them, and manage workflow instances (start, pause, resume, cancel).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L90-L437】",
+            "Coordinate task execution via a task queue, track task assignments, and manage retries/compensation logic for failed steps.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1207-L1764】",
+            "Emit workflow events for audit/telemetry and integrate with event bus topics (workflow notifications, Azure Monitor/Event Grid).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1351-L1512】",
+            "### Out of scope (explicit non-responsibilities)",
+            "Source-control change governance, CI/CD policy enforcement, or repo compliance checks (belongs to Agent 17 change configuration).【F:agents/operations-management/agent-17-change-configuration/README.md†L1-L97】",
+            "Process mining and improvement analytics (belongs to Agent 20 continuous improvement/process mining).【F:agents/operations-management/agent-20-continuous-improvement-process-mining/README.md†L1-L31】",
+            "UI ownership: this agent emits events and tasks, but does not define UI/UX workflows or render task experiences directly (no UI modules in scope).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1351-L2017】",
+            "### Inputs",
+            "API actions: `define_workflow`, `start_workflow`, `get_workflow_status`, `assign_task`, `complete_task`, `cancel_workflow`, `pause_workflow`, `resume_workflow`, `handle_event`, `retry_failed_task`, `get_workflow_instances`, `get_task_inbox`, `deploy_bpmn_workflow`, `upload_bpmn_workflow`.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L122-L299】",
+            "Workflow definitions: JSON/YAML spec via `workflow_spec`/`workflow_yaml`, or BPMN 2.0 XML via `bpmn_xml`/`bpmn_path`.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L181-L307】【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L885-L939】",
+            "Trigger events: event payloads via `handle_event` and Service Bus subscriptions (`workflow.triggers`).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L340-L394】【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1171-L1178】",
+            "### Outputs",
+            "Workflow definition results (workflow ID, orchestration steps, validation status).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L319-L389】",
+            "Workflow instance status/summary responses (status, progress, tasks).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L439-L605】",
+            "Task assignment/notification events and task queue messages for downstream execution.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L607-L1350】",
+            "### Decision responsibilities",
+            "Authorization: role-based guardrails per action in `rbac_policy`.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L61-L92】【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1845-L1857】",
+            "Workflow progression: determines next tasks based on transitions, dependencies, and conditions.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1281-L1415】",
+            "Compensation/retry strategy: applies retry policies and triggers compensation workflows on failures/cancel events.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1168-L1764】",
+            "### Must / must-not behaviors",
+            "Must validate workflow definitions before persisting or starting instances (name + task presence + spec parsing).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L905-L1040】",
+            "Must persist workflow definitions/instances/tasks to the state store before emitting events or returning success responses.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L319-L631】",
+            "Must not start workflows or execute tasks if authorization fails (RBAC enforcement).【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1845-L1857】",
+            "Must evaluate event payload criteria with deterministic matching semantics, including nested field-path lookups and fail-closed handling for malformed definitions.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1491-L1654】"
+          ]
+        },
+        {
+          "heading": "Handoff boundaries with Agent 17 and Agent 20",
+          "content": [
+            "### Agent 17 (Change Configuration)",
+            "Agent 17 owns change requests, approvals, repo integrations, and CI/CD change status workflows. Agent 24 should only orchestrate the workflow steps once a change request is created and should receive change metadata as workflow inputs (e.g., `workflow_spec` + repository/PR metadata).【F:agents/operations-management/agent-17-change-configuration/README.md†L1-L92】【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L214-L292】",
+            "Boundary: Agent 24 must not author or evaluate change approvals; it should create/route tasks for approvals, then await completion via `complete_task` events.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L607-L744】",
+            "### Agent 20 (Continuous Improvement Process Mining)",
+            "Agent 20 consumes workflow execution events/telemetry for process mining and continuous improvement insights. Agent 24 publishes `workflow.events`/monitoring payloads which Agent 20 can ingest.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1351-L1512】",
+            "Boundary: Agent 24 should not analyze or optimize workflows based on historical performance; those insights should be owned by Agent 20 and fed back via new/updated workflow definitions.【F:agents/operations-management/agent-20-continuous-improvement-process-mining/README.md†L1-L31】"
+          ]
+        },
+        {
+          "heading": "Functional gaps, inconsistencies, and alignment needs",
+          "content": [
+            "### Functional gaps/inconsistencies",
+            "`retry_failed_task` marks a task as retrying but does not re-enqueue or re-run it, unlike `_mark_task_failed` which schedules retries. Align retry semantics so both paths are consistent.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L752-L792】【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1642-L1735】",
+            "BPMN upload path reads from disk without validating file existence/size limits; add guardrails if the orchestration service exposes this to users.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L816-L835】",
+            "Workflow completion logic excludes decision/parallel/loop tasks but depends on completed task IDs; ensure those virtual steps are not marked as required tasks in definitions or else completion checks will miscount.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1417-L1444】",
+            "### Required prompt/tool/template/connector/UI alignment",
+            "Prompt/API: document mandatory `action` values and required fields in orchestration service docs so callers provide `workflow_id`, `instance_id`, or `bpmn_xml` as needed.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L122-L196】",
+            "Template alignment: ensure workflow templates in `config/agent-24/workflow_templates.yaml` follow `ppm.workflow/v1` and include `metadata`/`steps` fields consistent with `workflow_spec` parsing.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1860-L1876】【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_spec.py†L1-L122】",
+            "Connector alignment: confirm Service Bus/Event Grid/Monitor topic names match enterprise integration catalogs; the agent publishes to `workflow.events`, `workflow.notifications`, `azure.monitor.telemetry`, and `azure.eventgrid.events`.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L1351-L1512】",
+            "UI alignment: the UI should render task inboxes based on `get_task_inbox` outputs and handle status transitions (`assigned`, `completed`, `failed`) consistently with the agent’s task lifecycle.【F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py†L723-L875】"
+          ]
+        },
+        {
+          "heading": "Checkpoint",
+          "content": [
+            "Workflow orchestration boundaries are validated and ready for execution, with remaining focus on retry semantics and template alignment confirmations."
+          ]
+        },
+        {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-24-workflow-process-engine/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-24-workflow-process-engine/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-24-workflow-process-engine/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-24-workflow-process-engine/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-24-workflow-process-engine/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-24-workflow-process-engine/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1395,9 +3055,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "`agents/operations-management/agent-25-system-health-monitoring/src`: Implementation source for this component.",
-            "`agents/operations-management/agent-25-system-health-monitoring/tests`: Test suites and fixtures.",
-            "`agents/operations-management/agent-25-system-health-monitoring/Dockerfile`: Container build recipe for local or CI use."
+            "[src](/agents/operations-management/agent-25-system-health-monitoring/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/agent-25-system-health-monitoring/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/agent-25-system-health-monitoring/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {

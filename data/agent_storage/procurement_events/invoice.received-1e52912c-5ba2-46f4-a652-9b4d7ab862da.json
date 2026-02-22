@@ -1,0 +1,65 @@
+{
+  "event_id": "invoice.received-1e52912c-5ba2-46f4-a652-9b4d7ab862da",
+  "event_type": "invoice.received",
+  "entity_id": "INV-20260222054111",
+  "payload": {
+    "invoice": {
+      "invoice_id": "INV-20260222054111",
+      "vendor_invoice_number": "INV-001",
+      "vendor_id": "VND-20260222054111",
+      "po_number": "PO-1",
+      "invoice_date": "2024-01-10",
+      "due_date": null,
+      "line_items": [],
+      "subtotal": null,
+      "tax": null,
+      "total_amount": 20000,
+      "currency": "AUD",
+      "payment_terms": null,
+      "attachments": [],
+      "reconciliation_status": "Pending",
+      "payment_status": "Unpaid",
+      "received_at": "2026-02-22T05:41:11.455816+00:00",
+      "_id": "INV-20260222054111",
+      "_updated_at": "2026-02-22T05:41:11.456428+00:00"
+    },
+    "connector_results": [
+      {
+        "connector": "sap_ariba",
+        "status": "skipped",
+        "method": "record_invoice",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "coupa",
+        "status": "skipped",
+        "method": "record_invoice",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "oracle_procurement",
+        "status": "skipped",
+        "method": "record_invoice",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "dynamics_365",
+        "status": "skipped",
+        "method": "record_invoice",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "erp_ap",
+        "status": "skipped",
+        "method": "record_invoice",
+        "detail": "Connector not available or method not supported."
+      }
+    ]
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "ead83749-f31b-44cd-9669-38b6b1cfeab3",
+  "actor_id": "system",
+  "timestamp": "2026-02-22T05:41:11.456790+00:00",
+  "_id": "invoice.received-1e52912c-5ba2-46f4-a652-9b4d7ab862da",
+  "_updated_at": "2026-02-22T05:41:11.457724+00:00"
+}

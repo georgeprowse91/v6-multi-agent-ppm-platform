@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
-
 from dependencies import get_connector_hub_client
+from fastapi import APIRouter, Depends
 from web_services.connectors import ConnectorService
 
 router = APIRouter(prefix="/v1/api/connector-gallery", tags=["connectors"])

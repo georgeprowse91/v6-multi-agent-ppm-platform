@@ -355,7 +355,9 @@ async def _send_slack_notification(rendered: str, recipient: str | None) -> str:
 async def _send_acs_notification(rendered: str, recipient: str | None) -> str:
     endpoint = resolve_secret(os.getenv("NOTIFICATION_ACS_ENDPOINT"))
     token = resolve_secret(os.getenv("NOTIFICATION_ACS_ACCESS_TOKEN"))
-    target = _coerce_recipient_to_target(recipient, resolve_secret(os.getenv("NOTIFICATION_ACS_DEVICE_TOKEN")))
+    target = _coerce_recipient_to_target(
+        recipient, resolve_secret(os.getenv("NOTIFICATION_ACS_DEVICE_TOKEN"))
+    )
     if not endpoint or not token or not target:
         raise ValueError("ACS push notification configuration is incomplete")
 

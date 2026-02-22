@@ -4,11 +4,15 @@ import sqlite3
 from pathlib import Path
 
 import pytest
+
 import sqlalchemy
 from sqlalchemy.exc import SQLAlchemyError
 
-if not hasattr(sqlalchemy, 'ForeignKey'):
-    pytest.skip('agent-config RBAC tests require full SQLAlchemy ForeignKey support', allow_module_level=True)
+if not hasattr(sqlalchemy, "ForeignKey"):
+    pytest.skip(
+        "agent-config RBAC tests require full SQLAlchemy ForeignKey support",
+        allow_module_level=True,
+    )
 
 from agent_config_service import AgentConfigRBACStore
 
@@ -49,7 +53,9 @@ def test_rbac_user_role_crud_and_authorization_checks(rbac_store: AgentConfigRBA
     assert rbac_store.can_user_configure_agents("u-1", "t-1") is False
 
 
-def test_rbac_persistence_conflict_and_delete_behavior(rbac_store: AgentConfigRBACStore, tmp_path: Path) -> None:
+def test_rbac_persistence_conflict_and_delete_behavior(
+    rbac_store: AgentConfigRBACStore, tmp_path: Path
+) -> None:
     rbac_store.sync_user_roles(
         user_id="u-2",
         tenant_id="t-2",
@@ -76,7 +82,9 @@ def test_rbac_persistence_conflict_and_delete_behavior(rbac_store: AgentConfigRB
         assert user_role_rows_after_delete == []
 
 
-def test_rbac_database_failure_can_be_retried(monkeypatch, rbac_store: AgentConfigRBACStore) -> None:
+def test_rbac_database_failure_can_be_retried(
+    monkeypatch, rbac_store: AgentConfigRBACStore
+) -> None:
     original_begin = rbac_store.engine.begin
     attempts = {"count": 0}
 

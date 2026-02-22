@@ -5,7 +5,11 @@ SRC_DIR = Path(__file__).resolve().parents[1] / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from template_mappings import get_template_mapping, list_templates_for_methodology_node, load_template_mappings  # noqa: E402
+from template_mappings import (  # noqa: E402
+    get_template_mapping,
+    list_templates_for_methodology_node,
+    load_template_mappings,
+)
 
 
 def test_template_mappings_load_and_referential_integrity() -> None:

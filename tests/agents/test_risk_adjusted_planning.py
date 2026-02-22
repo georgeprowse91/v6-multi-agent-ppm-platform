@@ -1,5 +1,4 @@
 import pytest
-
 from resource_capacity_agent import ResourceCapacityAgent
 from risk_management_agent import RiskManagementAgent
 from schedule_planning_agent import SchedulePlanningAgent

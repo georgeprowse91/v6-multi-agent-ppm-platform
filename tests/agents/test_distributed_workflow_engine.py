@@ -1,6 +1,6 @@
 import pytest
 from workflow_engine_agent import WorkflowEngineAgent
-from workflow_state_store import DatabaseWorkflowStateStore, JsonWorkflowStateStore
+from workflow_state_store import DatabaseWorkflowStateStore
 from workflow_task_queue import InMemoryWorkflowTaskQueue
 
 

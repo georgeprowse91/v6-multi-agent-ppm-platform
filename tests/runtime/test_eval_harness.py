@@ -58,9 +58,7 @@ def test_eval_harness_runs_multi_agent_flow_manifest(tmp_path: Path) -> None:
                         {
                             "id": "intent",
                             "fixture": step1.name,
-                            "expected_outputs": [
-                                {"field": "intent", "equals": "financial_query"}
-                            ],
+                            "expected_outputs": [{"field": "intent", "equals": "financial_query"}],
                         },
                         {
                             "id": "orchestrate",

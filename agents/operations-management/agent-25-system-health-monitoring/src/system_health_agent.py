@@ -23,10 +23,10 @@ from typing import Any
 import httpx
 from observability.metrics import build_kpi_handles, configure_metrics
 from observability.tracing import configure_tracing, start_agent_span
-from integrations.services.integration.analytics import AnalyticsClient
 
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
+from integrations.services.integration.analytics import AnalyticsClient
 
 
 def _safe_find_spec(module_name: str) -> bool:
@@ -35,18 +35,15 @@ def _safe_find_spec(module_name: str) -> bool:
     except (ModuleNotFoundError, ValueError):
         return False
 
+
 _HAS_AZURE = _safe_find_spec("azure")
-_HAS_AZURE_MONITOR_OPENTELEMETRY = _HAS_AZURE and (
-    _safe_find_spec("azure.monitor.opentelemetry")
-)
+_HAS_AZURE_MONITOR_OPENTELEMETRY = _HAS_AZURE and (_safe_find_spec("azure.monitor.opentelemetry"))
 if _HAS_AZURE_MONITOR_OPENTELEMETRY:
     from azure.monitor.opentelemetry import configure_azure_monitor as _configure_azure_monitor
 else:
     _configure_azure_monitor = None
 
-_HAS_OTEL_AZURE_EXPORTER = (
-    _safe_find_spec("opentelemetry.exporter.azuremonitor")
-)
+_HAS_OTEL_AZURE_EXPORTER = _safe_find_spec("opentelemetry.exporter.azuremonitor")
 if _HAS_OTEL_AZURE_EXPORTER:
     from opentelemetry.exporter.azuremonitor import (
         AzureMonitorLogExporter,
@@ -58,9 +55,7 @@ else:
     AzureMonitorMetricExporter = None
     AzureMonitorTraceExporter = None
 
-_HAS_AZURE_MONITOR_QUERY = _HAS_AZURE and (
-    _safe_find_spec("azure.monitor.query")
-)
+_HAS_AZURE_MONITOR_QUERY = _HAS_AZURE and (_safe_find_spec("azure.monitor.query"))
 if _HAS_AZURE_MONITOR_QUERY:
     from azure.monitor.query import LogsQueryClient, LogsQueryStatus, MetricsQueryClient
 else:
@@ -68,9 +63,7 @@ else:
     LogsQueryStatus = None
     MetricsQueryClient = None
 
-_HAS_ANOMALY_DETECTOR = _HAS_AZURE and (
-    _safe_find_spec("azure.ai.anomalydetector")
-)
+_HAS_ANOMALY_DETECTOR = _HAS_AZURE and (_safe_find_spec("azure.ai.anomalydetector"))
 if _HAS_ANOMALY_DETECTOR:
     from azure.ai.anomalydetector import AnomalyDetectorClient
     from azure.ai.anomalydetector.models import TimeSeriesPoint
@@ -224,9 +217,7 @@ class SystemHealthAgent(BaseAgent):
                 else os.getenv("SCALING_THRESHOLD_CPU", "0.8")
             ),
             "memory": float(
-                config.get(
-                    "scaling_threshold_memory", os.getenv("SCALING_THRESHOLD_MEMORY", "0.8")
-                )
+                config.get("scaling_threshold_memory", os.getenv("SCALING_THRESHOLD_MEMORY", "0.8"))
                 if config
                 else os.getenv("SCALING_THRESHOLD_MEMORY", "0.8")
             ),
@@ -408,7 +399,7 @@ class SystemHealthAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         return True
@@ -463,9 +454,7 @@ class SystemHealthAgent(BaseAgent):
             )
 
         elif action == "collect_platform_metrics":
-            return await self._collect_platform_metrics(
-                tenant_id, input_data.get("targets")
-            )
+            return await self._collect_platform_metrics(tenant_id, input_data.get("targets"))
 
         elif action == "collect_application_metrics":
             return await self._collect_application_metrics(
@@ -561,7 +550,7 @@ class SystemHealthAgent(BaseAgent):
 
         Returns collection confirmation.
         """
-        self.logger.info(f"Collecting metrics for service: {service_name}")
+        self.logger.info("Collecting metrics for service: %s", service_name)
         if self._kpi_handles:
             self._kpi_handles.requests.add(1, {"service": service_name, "tenant": tenant_id})
 
@@ -685,7 +674,7 @@ class SystemHealthAgent(BaseAgent):
 
         Returns health status.
         """
-        self.logger.info(f"Checking health: {service_name or 'all services'}")
+        self.logger.info("Checking health: %s", service_name or "all services")
 
         if service_name:
             # Check specific service
@@ -712,7 +701,7 @@ class SystemHealthAgent(BaseAgent):
         Returns alert ID and configuration.
         """
         alert_name = self._sanitize_text(alert_config.get("name", ""))
-        self.logger.info(f"Creating alert: {alert_name}")
+        self.logger.info("Creating alert: %s", alert_name)
 
         # Generate alert ID
         alert_id = await self._generate_alert_id()
@@ -753,7 +742,7 @@ class SystemHealthAgent(BaseAgent):
 
         Returns detected anomalies.
         """
-        self.logger.info(f"Detecting anomalies for service: {service_name}")
+        self.logger.info("Detecting anomalies for service: %s", service_name)
 
         # Get metrics for time range
         metrics = await self._get_service_metrics(service_name, time_range)
@@ -828,7 +817,7 @@ class SystemHealthAgent(BaseAgent):
         Returns incident ID.
         """
         incident_title = self._sanitize_text(incident_data.get("title", ""))
-        self.logger.info(f"Creating incident: {incident_title}")
+        self.logger.info("Creating incident: %s", incident_title)
 
         # Generate incident ID
         incident_id = await self._generate_incident_id()
@@ -869,7 +858,7 @@ class SystemHealthAgent(BaseAgent):
 
         Returns analysis results.
         """
-        self.logger.info(f"Analyzing root cause for incident: {incident_id}")
+        self.logger.info("Analyzing root cause for incident: %s", incident_id)
 
         incident = self.incidents.get(incident_id)
         if not incident:
@@ -952,7 +941,7 @@ class SystemHealthAgent(BaseAgent):
 
         Returns metric data.
         """
-        self.logger.info(f"Getting metrics: {service_name}.{metric_name}")
+        self.logger.info("Getting metrics: %s.%s", service_name, metric_name)
 
         # Query metrics
         metric_values = await self._query_metrics(service_name, metric_name, time_range)
@@ -981,8 +970,7 @@ class SystemHealthAgent(BaseAgent):
                     overall.setdefault(key, []).append(float(value))
 
         aggregate = {
-            key: statistics.mean(values) if values else 0.0
-            for key, values in overall.items()
+            key: statistics.mean(values) if values else 0.0 for key, values in overall.items()
         }
 
         return {
@@ -1091,7 +1079,7 @@ class SystemHealthAgent(BaseAgent):
 
         Returns scaling recommendations.
         """
-        self.logger.info(f"Getting capacity recommendations for: {service_name or 'all services'}")
+        self.logger.info("Getting capacity recommendations for: %s", service_name or "all services")
 
         # Analyze resource utilization trends
         utilization_trends = await self._analyze_utilization_trends(service_name)
@@ -1118,7 +1106,7 @@ class SystemHealthAgent(BaseAgent):
 
         Returns acknowledgment confirmation.
         """
-        self.logger.info(f"Acknowledging alert: {alert_id}")
+        self.logger.info("Acknowledging alert: %s", alert_id)
 
         alert = self.alerts.get(alert_id)
         if not alert:
@@ -1128,7 +1116,6 @@ class SystemHealthAgent(BaseAgent):
         alert["acknowledged_by"] = self._sanitize_text(acknowledged_by)
         alert["acknowledged_at"] = datetime.now(timezone.utc).isoformat()
         self.alert_store.upsert(tenant_id, alert_id, alert.copy())
-
 
         return {
             "alert_id": alert_id,
@@ -1145,7 +1132,7 @@ class SystemHealthAgent(BaseAgent):
 
         Returns resolution confirmation.
         """
-        self.logger.info(f"Resolving incident: {incident_id}")
+        self.logger.info("Resolving incident: %s", incident_id)
 
         incident = self.incidents.get(incident_id)
         if not incident:
@@ -1174,7 +1161,9 @@ class SystemHealthAgent(BaseAgent):
         }
 
     async def _initialize_azure_monitoring(self) -> None:
-        if _HAS_AZURE_MONITOR_QUERY and (self.monitor_workspace_id or self.app_insights_resource_id):
+        if _HAS_AZURE_MONITOR_QUERY and (
+            self.monitor_workspace_id or self.app_insights_resource_id
+        ):
             from azure.identity import DefaultAzureCredential
 
             credential = DefaultAzureCredential()
@@ -1303,9 +1292,7 @@ class SystemHealthAgent(BaseAgent):
                 "threshold": self.alert_threshold_error_rate,
                 "severity": "critical",
                 "notification_channels": [
-                    url
-                    for url in [self.pagerduty_webhook_url, self.opsgenie_webhook_url]
-                    if url
+                    url for url in [self.pagerduty_webhook_url, self.opsgenie_webhook_url] if url
                 ],
             },
             {
@@ -1314,9 +1301,7 @@ class SystemHealthAgent(BaseAgent):
                 "threshold": self.alert_threshold_response_time_ms,
                 "severity": "warning",
                 "notification_channels": [
-                    url
-                    for url in [self.pagerduty_webhook_url, self.opsgenie_webhook_url]
-                    if url
+                    url for url in [self.pagerduty_webhook_url, self.opsgenie_webhook_url] if url
                 ],
             },
         ]
@@ -1337,7 +1322,15 @@ class SystemHealthAgent(BaseAgent):
         while True:
             try:
                 await self._check_all_services_health()
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 self.logger.warning("Health probe failure", extra={"error": str(exc)})
             await asyncio.sleep(self.health_probe_interval_seconds)
 
@@ -1652,7 +1645,9 @@ class SystemHealthAgent(BaseAgent):
         async with httpx.AsyncClient(timeout=10) as client:
             await client.post(url, json=payload)
 
-    async def _trigger_scaling_actions(self, service_name: str, metrics_data: dict[str, Any]) -> None:
+    async def _trigger_scaling_actions(
+        self, service_name: str, metrics_data: dict[str, Any]
+    ) -> None:
         scaling_payload = {
             "service_name": service_name,
             "cpu": metrics_data.get("cpu_usage"),
@@ -1698,7 +1693,9 @@ class SystemHealthAgent(BaseAgent):
         job_name = f"scale-{service_name}-{uuid.uuid4().hex[:6]}"
         parameters = JobCreateParameters(
             runbook=RunbookAssociationProperty(name=self.automation_runbook_name),
-            parameters={key: str(value) for key, value in scaling_payload.items() if value is not None},
+            parameters={
+                key: str(value) for key, value in scaling_payload.items() if value is not None
+            },
         )
         await asyncio.to_thread(
             self._automation_client.job.create,
@@ -1712,7 +1709,9 @@ class SystemHealthAgent(BaseAgent):
         if not self.servicenow_instance_url:
             return
         payload = {
-            "short_description": incident.get("title") or incident.get("name") or "Monitoring incident",
+            "short_description": incident.get("title")
+            or incident.get("name")
+            or "Monitoring incident",
             "description": incident.get("description"),
             "severity": incident.get("severity"),
             "urgency": "1",
@@ -1786,9 +1785,7 @@ class SystemHealthAgent(BaseAgent):
             ]
             if len(series) < 12:
                 continue
-            result = await asyncio.to_thread(
-                client.detect_last_point, series=series
-            )
+            result = await asyncio.to_thread(client.detect_last_point, series=series)
             if result.is_anomaly:
                 anomalies.append(
                     {
@@ -1974,9 +1971,10 @@ class SystemHealthAgent(BaseAgent):
             (total_services - unhealthy_count) / total_services if total_services else 1.0
         )
         overall_status = system_status.get("overall_status", "unknown")
-        block_deployment = system_status.get("critical_alerts", 0) > 0 or system_status.get(
-            "critical_incidents", 0
-        ) > 0
+        block_deployment = (
+            system_status.get("critical_alerts", 0) > 0
+            or system_status.get("critical_incidents", 0) > 0
+        )
 
         return {
             "environment": environment,
@@ -2003,9 +2001,7 @@ class SystemHealthAgent(BaseAgent):
             timestamp = metric.get("timestamp")
             if timestamp:
                 parsed = (
-                    datetime.fromisoformat(timestamp)
-                    if isinstance(timestamp, str)
-                    else timestamp
+                    datetime.fromisoformat(timestamp) if isinstance(timestamp, str) else timestamp
                 )
                 if parsed < start_time or parsed > end_time:
                     continue
@@ -2068,11 +2064,7 @@ class SystemHealthAgent(BaseAgent):
             else:
                 normalized.append(metric)
 
-        if (
-            _HAS_ANOMALY_DETECTOR
-            and self.anomaly_detector_endpoint
-            and self.anomaly_detector_key
-        ):
+        if _HAS_ANOMALY_DETECTOR and self.anomaly_detector_endpoint and self.anomaly_detector_key:
             return await self._apply_azure_anomaly_detection(normalized)
 
         anomalies: list[dict[str, Any]] = []
@@ -2241,7 +2233,9 @@ class SystemHealthAgent(BaseAgent):
             if endpoint.get("name") or endpoint.get("service")
         ] or ["platform"]
 
-    def _extract_metric_series(self, records: list[dict[str, Any]], metric_name: str) -> list[float]:
+    def _extract_metric_series(
+        self, records: list[dict[str, Any]], metric_name: str
+    ) -> list[float]:
         values: list[float] = []
         for record in records:
             if isinstance(record.get("metrics"), dict):
@@ -2285,9 +2279,7 @@ class SystemHealthAgent(BaseAgent):
             timestamp = record.get("timestamp")
             if timestamp:
                 parsed = (
-                    datetime.fromisoformat(timestamp)
-                    if isinstance(timestamp, str)
-                    else timestamp
+                    datetime.fromisoformat(timestamp) if isinstance(timestamp, str) else timestamp
                 )
                 if parsed < start_time or parsed > end_time:
                     continue
@@ -2310,9 +2302,7 @@ class SystemHealthAgent(BaseAgent):
 
         return {"total_records": total_records, "services": summarized}
 
-    def _summarize_incidents(
-        self, tenant_id: str, time_range: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _summarize_incidents(self, tenant_id: str, time_range: dict[str, Any]) -> dict[str, Any]:
         start_time, end_time = self._parse_time_range(time_range)
         incidents = self.incident_store.list(tenant_id)
         filtered: list[dict[str, Any]] = []

@@ -57,7 +57,7 @@ try:
     from .mappers import map_from_mcp_response, map_to_mcp_params
 except ImportError:
     from mappers import map_from_mcp_response, map_to_mcp_params
-from secrets import fetch_keyvault_secret, resolve_secret
+from connector_secrets import fetch_keyvault_secret, resolve_secret
 
 DEFAULT_TOKEN_URL = "https://api.planview.com/oauth2/token"
 

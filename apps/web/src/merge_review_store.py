@@ -21,7 +21,9 @@ class MergeReviewStore:
             return [case for case in cases if case.status == status]
         return cases
 
-    def update_decision(self, case_id: str, decision_payload: MergeDecision) -> MergeReviewCase | None:
+    def update_decision(
+        self, case_id: str, decision_payload: MergeDecision
+    ) -> MergeReviewCase | None:
         store = self._load()
         cases_raw = store.get("cases", [])
         for index, case_raw in enumerate(cases_raw):

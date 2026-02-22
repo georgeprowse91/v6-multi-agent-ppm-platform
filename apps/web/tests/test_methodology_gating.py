@@ -39,19 +39,14 @@ def test_prereq_blocks_activity_until_complete_for_wbs_ids():
 
     access = evaluate_activity_access(methodology_map, state, release_strategy)
     assert access["allowed"] is False
-    assert access["missing_prereqs"] == [
-        "0.5.5-sprint-retrospective-and-improvement"
-    ]
+    assert access["missing_prereqs"] == ["0.5.5-sprint-retrospective-and-improvement"]
 
 
 def test_next_required_activity_returns_wbs_prereq():
     methodology_map = get_methodology_map("adaptive")
     state = build_default_state("tenant-a", "demo-1")
     state.current_activity_id = "0.5.2-build-test-within-sprint"
-    assert (
-        next_required_activity(methodology_map, state)
-        == "0.5.1-sprint-iteration-planning"
-    )
+    assert next_required_activity(methodology_map, state) == "0.5.1-sprint-iteration-planning"
 
 
 def test_stage_progress_calculation_with_wbs_stage_id():
@@ -71,7 +66,4 @@ def test_methodology_aliases_resolve_to_new_maps():
     assert get_methodology_map("adaptive")["id"] == adaptive["id"]
     assert get_methodology_map("predictive")["id"] == predictive["id"]
     assert get_methodology_map("adaptive")["stages"][0]["id"] == adaptive["stages"][0]["id"]
-    assert (
-        get_methodology_map("predictive")["stages"][0]["id"]
-        == predictive["stages"][0]["id"]
-    )
+    assert get_methodology_map("predictive")["stages"][0]["id"] == predictive["stages"][0]["id"]

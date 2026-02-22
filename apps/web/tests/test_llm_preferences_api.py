@@ -31,7 +31,12 @@ def test_preferences_resolution_order(client):
     )
     client.post(
         "/v1/api/llm/preferences",
-        json={"scope": "project", "project_id": "proj-1", "provider": "anthropic", "model_id": "claude-3-5-haiku-latest"},
+        json={
+            "scope": "project",
+            "project_id": "proj-1",
+            "provider": "anthropic",
+            "model_id": "claude-3-5-haiku-latest",
+        },
     )
     client.post(
         "/v1/api/llm/preferences",
@@ -49,6 +54,11 @@ def test_project_defaults_are_rbac_gated(client, monkeypatch):
     monkeypatch.setenv("AUTH_DEV_ROLES", "TEAM_MEMBER")
     response = client.post(
         "/v1/api/llm/preferences",
-        json={"scope": "project", "project_id": "proj-1", "provider": "openai", "model_id": "gpt-4o-mini"},
+        json={
+            "scope": "project",
+            "project_id": "proj-1",
+            "provider": "openai",
+            "model_id": "gpt-4o-mini",
+        },
     )
     assert response.status_code == 403

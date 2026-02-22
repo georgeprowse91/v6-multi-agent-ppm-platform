@@ -19,8 +19,7 @@ from agents.common.connector_integration import (
     DatabaseStorageService,
     DocumentationPublishingService,
 )
-from agents.runtime import BaseAgent
-from agents.runtime import get_event_bus
+from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 
 
@@ -182,7 +181,7 @@ class ReleaseDeploymentAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "plan_release":
@@ -358,7 +357,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns release ID and schedule.
         """
-        self.logger.info(f"Planning release: {release_data.get('name')}")
+        self.logger.info("Planning release: %s", release_data.get("name"))
 
         # Generate release ID
         release_id = await self._generate_release_id()
@@ -467,7 +466,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns readiness assessment and recommendations.
         """
-        self.logger.info(f"Assessing readiness for release: {release_id}")
+        self.logger.info("Assessing readiness for release: %s", release_id)
 
         release = self.releases.get(release_id)
         if not release:
@@ -520,9 +519,7 @@ class ReleaseDeploymentAgent(BaseAgent):
             "assessed_at": datetime.now(timezone.utc).isoformat(),
         }
         self.readiness_assessments[assessment_id] = assessment_record
-        await self.db_service.store(
-            "readiness_assessments", assessment_id, assessment_record
-        )
+        await self.db_service.store("readiness_assessments", assessment_id, assessment_record)
         await self._publish_event(
             "deployment.readiness_assessed",
             {
@@ -561,7 +558,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns deployment plan ID and workflow.
         """
-        self.logger.info(f"Creating deployment plan for release: {release_id}")
+        self.logger.info("Creating deployment plan for release: %s", release_id)
 
         release = self.releases.get(release_id)
         if not release:
@@ -634,7 +631,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns deployment status and progress.
         """
-        self.logger.info(f"Executing deployment: {deployment_plan_id}")
+        self.logger.info("Executing deployment: %s", deployment_plan_id)
 
         deployment_plan = self.deployment_plans.get(deployment_plan_id)
         if not deployment_plan:
@@ -845,7 +842,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns rollback status.
         """
-        self.logger.info(f"Rolling back deployment: {deployment_plan_id}")
+        self.logger.info("Rolling back deployment: %s", deployment_plan_id)
 
         deployment_plan = self.deployment_plans.get(deployment_plan_id)
         if not deployment_plan:
@@ -902,7 +899,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns environment ID and details.
         """
-        self.logger.info(f"Managing environment: {environment_data.get('name')}")
+        self.logger.info("Managing environment: %s", environment_data.get("name"))
 
         # Generate environment ID
         env_id = await self._generate_environment_id()
@@ -941,7 +938,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns drift analysis.
         """
-        self.logger.info(f"Checking configuration drift for environment: {environment_id}")
+        self.logger.info("Checking configuration drift for environment: %s", environment_id)
 
         environment = self.environments_inventory.get(environment_id)
         if not environment:
@@ -975,7 +972,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns formatted release notes.
         """
-        self.logger.info(f"Generating release notes for: {release_id}")
+        self.logger.info("Generating release notes for: %s", release_id)
 
         release = self.releases.get(release_id)
         if not release:
@@ -1040,7 +1037,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns deployment KPIs.
         """
-        self.logger.info(f"Tracking deployment metrics for release: {release_id}")
+        self.logger.info("Tracking deployment metrics for release: %s", release_id)
 
         # Calculate deployment metrics
         metrics = {
@@ -1094,7 +1091,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns scheduled window and conflicts.
         """
-        self.logger.info(f"Scheduling deployment window for release: {release_id}")
+        self.logger.info("Scheduling deployment window for release: %s", release_id)
 
         release = self.releases.get(release_id)
         if not release:
@@ -1141,7 +1138,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns verification results.
         """
-        self.logger.info(f"Verifying post-deployment for: {deployment_plan_id}")
+        self.logger.info("Verifying post-deployment for: %s", deployment_plan_id)
 
         deployment_plan = self.deployment_plans.get(deployment_plan_id)
         if not deployment_plan:
@@ -1207,7 +1204,7 @@ class ReleaseDeploymentAgent(BaseAgent):
 
         Returns comprehensive status information.
         """
-        self.logger.info(f"Getting release status: {release_id}")
+        self.logger.info("Getting release status: %s", release_id)
 
         release = self.releases.get(release_id)
         if not release:
@@ -1728,7 +1725,9 @@ Known Issues:
         if not self.deployment_plans:
             return 1.0
         total = len(self.deployment_plans)
-        success = sum(1 for plan in self.deployment_plans.values() if plan.get("status") == "Completed")
+        success = sum(
+            1 for plan in self.deployment_plans.values() if plan.get("status") == "Completed"
+        )
         return success / total if total else 0.0
 
     async def _calculate_rollback_rate(self) -> float:
@@ -1944,7 +1943,9 @@ Known Issues:
                 {
                     "start_time": window_start.isoformat(),
                     "duration_hours": self.deployment_window_hours,
-                    "end_time": (window_start + timedelta(hours=self.deployment_window_hours)).isoformat(),
+                    "end_time": (
+                        window_start + timedelta(hours=self.deployment_window_hours)
+                    ).isoformat(),
                 }
             )
 
@@ -2046,9 +2047,7 @@ Known Issues:
         if self.configuration_management_client and hasattr(
             self.configuration_management_client, "get_business_calendar"
         ):
-            response = await self.configuration_management_client.get_business_calendar(
-                environment
-            )
+            response = await self.configuration_management_client.get_business_calendar(environment)
             return cast(dict[str, Any], response)
         return {"blackout": False, "notes": "No blackout window"}
 
@@ -2108,7 +2107,9 @@ Known Issues:
         self, deployment_plan: dict[str, Any], rollback_steps: list[dict[str, Any]]
     ) -> dict[str, Any]:
         deployment_plan_id = deployment_plan.get("deployment_plan_id")
-        artifacts = self.deployment_artifacts.get(deployment_plan_id, []) if deployment_plan_id else []
+        artifacts = (
+            self.deployment_artifacts.get(deployment_plan_id, []) if deployment_plan_id else []
+        )
         previous_release = deployment_plan.get("previous_release") or deployment_plan.get(
             "rollback_release"
         )
@@ -2130,7 +2131,9 @@ Known Issues:
         self.rollback_scripts_path.mkdir(parents=True, exist_ok=True)
         deployment_plan_id = rollback_plan.get("deployment_plan_id") or str(uuid.uuid4())
         script_path = self.rollback_scripts_path / f"rollback_{deployment_plan_id}.sh"
-        artifact_ids = [artifact.get("artifact_id") for artifact in rollback_plan.get("artifacts", [])]
+        artifact_ids = [
+            artifact.get("artifact_id") for artifact in rollback_plan.get("artifacts", [])
+        ]
         script_contents = "\n".join(
             [
                 "#!/bin/bash",
@@ -2206,7 +2209,10 @@ Known Issues:
                 reservation = {"reservation_id": str(uuid.uuid4()), "status": "reserved"}
         else:
             for allocation in self.environment_allocations.values():
-                if allocation.get("environment") == environment and allocation.get("status") == "reserved":
+                if (
+                    allocation.get("environment") == environment
+                    and allocation.get("status") == "reserved"
+                ):
                     return None
             reservation = {"reservation_id": str(uuid.uuid4()), "status": "reserved"}
 
@@ -2222,7 +2228,9 @@ Known Issues:
             "status": "reserved",
         }
         self.environment_allocations[allocation["allocation_id"]] = allocation
-        await self.db_service.store("environment_allocations", allocation["allocation_id"], allocation)
+        await self.db_service.store(
+            "environment_allocations", allocation["allocation_id"], allocation
+        )
         await self._publish_event(
             "environment.reserved",
             {
@@ -2238,8 +2246,7 @@ Known Issues:
         self, release_id: str, deployment_plan: dict[str, Any]
     ) -> None:
         if any(
-            allocation.get("release_id") == release_id
-            and allocation.get("status") == "reserved"
+            allocation.get("release_id") == release_id and allocation.get("status") == "reserved"
             for allocation in self.environment_allocations.values()
         ):
             return
@@ -2268,7 +2275,9 @@ Known Issues:
             self.environment_reservation_client, "release"
         ):
             await self.environment_reservation_client.release(allocation)
-        await self.db_service.store("environment_allocations", allocation["allocation_id"], allocation)
+        await self.db_service.store(
+            "environment_allocations", allocation["allocation_id"], allocation
+        )
         await self._publish_event(
             "environment.released",
             {

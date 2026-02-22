@@ -5,14 +5,14 @@ from typing import Any
 
 from fastapi.responses import JSONResponse
 
-
 try:  # pragma: no cover - exercised in runtime environments with slowapi installed
     from slowapi import Limiter, _rate_limit_exceeded_handler
     from slowapi.errors import RateLimitExceeded
     from slowapi.middleware import SlowAPIMiddleware
     from slowapi.util import get_remote_address
 except ModuleNotFoundError:  # pragma: no cover - fallback used in restricted local envs
-    class RateLimitExceeded(Exception):
+
+    class RateLimitExceeded(Exception):  # noqa: N818
         """Fallback exception type when slowapi is unavailable."""
 
     class Limiter:

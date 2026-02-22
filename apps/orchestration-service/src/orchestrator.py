@@ -14,18 +14,18 @@ from uuid import uuid4
 
 import httpx
 import structlog
-from persistence import OrchestrationStateStore, WorkflowState, build_state_store, make_state_key
-from pydantic import ValidationError
-from workflow_client import WorkflowClient
-
-from agents.runtime import AgentContext, AgentResponse, AgentResponseMetadata, BaseAgent
-from agents.runtime.src.models import ReadinessReport, ReadinessSeverity
 from observability.metrics import (
     agent_request_count,
     agent_request_latency,
     build_business_workflow_metrics,
 )
 from observability.tracing import inject_trace_headers
+from persistence import OrchestrationStateStore, WorkflowState, build_state_store, make_state_key
+from pydantic import ValidationError
+from workflow_client import WorkflowClient
+
+from agents.runtime import AgentContext, AgentResponse, AgentResponseMetadata, BaseAgent
+from agents.runtime.src.models import ReadinessReport, ReadinessSeverity
 from tools.runtime_paths import bootstrap_runtime_paths
 
 if TYPE_CHECKING:
@@ -35,7 +35,9 @@ logger = logging.getLogger(__name__)
 MAX_AGENT_CONCURRENCY = int(os.getenv("MAX_AGENT_CONCURRENCY", "5"))
 AGENT_CALL_TIMEOUT = float(os.getenv("AGENT_CALL_TIMEOUT", "30.0"))
 DEMO_QUERY_TRIGGER = "full platform demo"
-READINESS_FAILURE_MODE = os.getenv("ORCHESTRATOR_READINESS_FAILURE_MODE", "quarantine").strip().lower()
+READINESS_FAILURE_MODE = (
+    os.getenv("ORCHESTRATOR_READINESS_FAILURE_MODE", "quarantine").strip().lower()
+)
 DEFAULT_POLICY_BUNDLE_PATH = (
     Path(__file__).resolve().parents[1] / "policies" / "bundles" / "default-policy-bundle.yaml"
 )
@@ -119,7 +121,11 @@ class AgentOrchestrator:
             response_orchestrator.agent_registry = self.agents
 
         self.initialized = True
-        logger.info("Orchestrator initialized with %s agents", len(self.agents), extra={"agent_count": len(self.agents)})
+        logger.info(
+            "Orchestrator initialized with %s agents",
+            len(self.agents),
+            extra={"agent_count": len(self.agents)},
+        )
 
     async def _initialize_and_register_agent(self, agent: BaseAgent) -> None:
         await agent.initialize()
@@ -324,7 +330,7 @@ class AgentOrchestrator:
                         policy_reasons=None,
                     ),
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 outcome = "error"
                 duration = time.monotonic() - start
                 logger.error(
@@ -626,7 +632,7 @@ class AgentOrchestrator:
             {
                 "query": query,
                 "context": {**request_context, "correlation_id": correlation_id},
-            }
+            },
         )
 
         if not intent_response.success:
@@ -658,7 +664,7 @@ class AgentOrchestrator:
                 "parameters": parameters,
                 "query": query,
                 "context": {**request_context, "correlation_id": correlation_id},
-            }
+            },
         )
         payload = orchestration_response.model_dump()
         self._record_orchestrator_business_metrics(
@@ -775,7 +781,7 @@ class AgentOrchestrator:
         async def _cleanup_agent(agent_id: str, agent: BaseAgent) -> None:
             try:
                 await asyncio.wait_for(agent.cleanup(), timeout=10.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Agent %s cleanup timed out", agent_id)
             except Exception as e:
                 logger.error("Error cleaning up agent %s: %s", agent_id, str(e))

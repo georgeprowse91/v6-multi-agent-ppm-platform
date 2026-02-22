@@ -1,0 +1,12 @@
+{
+  "employee_id": "hr-1",
+  "name": "Riley",
+  "role": "Analyst",
+  "skills": [
+    "sql"
+  ],
+  "status": "Inactive",
+  "source_system": "workday",
+  "_id": "hr-1",
+  "_updated_at": "2026-02-22T06:02:11.911434+00:00"
+}

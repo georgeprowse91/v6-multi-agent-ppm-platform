@@ -53,8 +53,7 @@ class ScimStore:
 
     def _ensure_schema(self) -> None:
         with self._connect() as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS users (
                     id TEXT PRIMARY KEY,
                     tenant_id TEXT NOT NULL,
@@ -67,14 +66,12 @@ class ScimStore:
                     updated_at TEXT NOT NULL,
                     UNIQUE(tenant_id, user_name)
                 )
-                """
-            )
+                """)
 
     def ping(self) -> None:
         with self._connect() as conn:
             conn.execute("SELECT 1")
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS groups (
                     id TEXT PRIMARY KEY,
                     tenant_id TEXT NOT NULL,
@@ -83,10 +80,8 @@ class ScimStore:
                     updated_at TEXT NOT NULL,
                     UNIQUE(tenant_id, display_name)
                 )
-                """
-            )
-            conn.execute(
-                """
+                """)
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS group_members (
                     tenant_id TEXT NOT NULL,
                     group_id TEXT NOT NULL,
@@ -95,8 +90,7 @@ class ScimStore:
                     FOREIGN KEY(group_id) REFERENCES groups(id) ON DELETE CASCADE,
                     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
                 )
-                """
-            )
+                """)
 
     def create_user(
         self,

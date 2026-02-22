@@ -3,14 +3,19 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-
 from llm.types import LLMProviderError, LLMResponse
 
 
 class GoogleProvider:
     provider = "google"
 
-    def __init__(self, *, api_key: str, base_url: str = "https://generativelanguage.googleapis.com/v1beta", timeout: float = 10.0) -> None:
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        base_url: str = "https://generativelanguage.googleapis.com/v1beta",
+        timeout: float = 10.0,
+    ) -> None:
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
@@ -39,7 +44,9 @@ class GoogleProvider:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(url, json=payload)
         except httpx.TimeoutException as exc:
-            raise LLMProviderError("Google request timed out", retryable=True, provider=self.provider) from exc
+            raise LLMProviderError(
+                "Google request timed out", retryable=True, provider=self.provider
+            ) from exc
         if response.status_code >= 400:
             raise LLMProviderError(
                 f"Google request failed status={response.status_code}",

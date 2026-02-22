@@ -32,7 +32,6 @@ from fastapi.responses import (
     FileResponse,
     JSONResponse,
     RedirectResponse,
-    Response,
 )
 from fastapi.staticfiles import StaticFiles
 from jwt import InvalidTokenError
@@ -46,7 +45,15 @@ LLM_ROOT = REPO_ROOT / "packages" / "llm" / "src"
 FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
 COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
 EVENT_BUS_ROOT = REPO_ROOT / "packages" / "event-bus" / "src"
-for root in (REPO_ROOT, OBSERVABILITY_ROOT, SECURITY_ROOT, LLM_ROOT, FEATURE_FLAGS_ROOT, COMMON_ROOT, EVENT_BUS_ROOT):
+for root in (
+    REPO_ROOT,
+    OBSERVABILITY_ROOT,
+    SECURITY_ROOT,
+    LLM_ROOT,
+    FEATURE_FLAGS_ROOT,
+    COMMON_ROOT,
+    EVENT_BUS_ROOT,
+):
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
 
@@ -86,6 +93,7 @@ from intake_store import IntakeStore  # noqa: E402
 from knowledge_store import KnowledgeStore  # noqa: E402
 from lineage_proxy import LineageServiceClient  # noqa: E402
 from llm.client import LLMGateway, LLMProviderError  # noqa: E402
+from llm_preferences_store import LLMPreferencesStore  # noqa: E402
 from merge_review_models import MergeDecision, MergeReviewCase  # noqa: E402
 from merge_review_store import MergeReviewStore  # noqa: E402
 from methodologies import (  # noqa: E402
@@ -245,13 +253,10 @@ api_router = APIRouter(prefix="/v1")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 if FRONTEND_DIST_DIR.exists():
     app.mount("/app", StaticFiles(directory=FRONTEND_DIST_DIR, html=True), name="frontend")
-configure_tracing("web-ui")
-configure_metrics("web-ui")
-app.add_middleware(TraceMiddleware, service_name="web-ui")
-app.add_middleware(RequestMetricsMiddleware, service_name="web-ui")
 apply_api_governance(app, service_name="web")
 
 knowledge_store: KnowledgeStore | None = None
+llm_preferences_store = LLMPreferencesStore(LLM_PREFERENCES_PATH)
 workspace_state_store = WorkspaceStateStore(WORKSPACE_STATE_PATH)
 timeline_store = TimelineStore(TIMELINES_PATH)
 spreadsheet_store = SpreadsheetStore(SPREADSHEETS_PATH)
@@ -310,8 +315,6 @@ class IntakeExtractionResponse(BaseModel):
     entities: dict[str, IntakeExtractionEntity] = Field(default_factory=dict)
 
 
-
-
 class IntakeAssistantRequest(BaseModel):
     step_id: Literal["sponsor", "business", "success", "attachments"]
     step_index: int = Field(ge=0, le=3)
@@ -325,6 +328,7 @@ class IntakeAssistantResponse(BaseModel):
     questions: list[str] = Field(default_factory=list)
     proposals: dict[str, str] = Field(default_factory=dict)
     apply_hints: list[str] = Field(default_factory=list)
+
 
 class RoleDefinition(BaseModel):
     id: str
@@ -600,7 +604,6 @@ class RuntimeApprovalDecisionRequest(BaseModel):
     notes: str | None = None
 
 
-
 class SorPreviewRequest(BaseModel):
     methodology_id: str
     stage_id: str
@@ -747,9 +750,7 @@ class TemplateApplyResponse(BaseModel):
 
 def _autonomous_deliverables_enabled() -> bool:
     environment = os.getenv("ENVIRONMENT", "dev")
-    return is_feature_enabled(
-        "autonomous_deliverables", environment=environment, default=False
-    )
+    return is_feature_enabled("autonomous_deliverables", environment=environment, default=False)
 
 
 class DocumentVersionRequest(BaseModel):
@@ -938,8 +939,12 @@ def _can_manage_llm(request: Request, session: dict[str, Any]) -> bool:
     return bool({"config.manage", "llm.manage"}.intersection(permissions))
 
 
-def _resolve_llm_selection(tenant_id: str, project_id: str | None, user_id: str | None) -> tuple[str, str]:
-    preference = llm_preferences_store.get_preferences(tenant_id=tenant_id, project_id=project_id, user_id=user_id)
+def _resolve_llm_selection(
+    tenant_id: str, project_id: str | None, user_id: str | None
+) -> tuple[str, str]:
+    preference = llm_preferences_store.get_preferences(
+        tenant_id=tenant_id, project_id=project_id, user_id=user_id
+    )
     models = get_enabled_models(demo_mode=_demo_mode_enabled())
     if not models:
         raise HTTPException(status_code=503, detail="No enabled models")
@@ -949,7 +954,9 @@ def _resolve_llm_selection(tenant_id: str, project_id: str | None, user_id: str 
     available = {(item.provider, item.model_id) for item in models}
     if (selected_provider, selected_model) in available:
         return selected_provider, selected_model
-    tenant_pref = llm_preferences_store.get_preferences(tenant_id=tenant_id, project_id=None, user_id=None)
+    tenant_pref = llm_preferences_store.get_preferences(
+        tenant_id=tenant_id, project_id=None, user_id=None
+    )
     tenant_provider = str(tenant_pref.get("provider") or "")
     tenant_model = str(tenant_pref.get("model_id") or "")
     if (tenant_provider, tenant_model) in available:
@@ -1087,9 +1094,9 @@ def _load_demo_dashboard_payload(filename: str) -> dict[str, Any] | None:
     return None
 
 
-
-
-def _dashboard_demo_payload_or_default(filename: str, default_payload: dict[str, Any]) -> dict[str, Any]:
+def _dashboard_demo_payload_or_default(
+    filename: str, default_payload: dict[str, Any]
+) -> dict[str, Any]:
     payload = _load_demo_dashboard_payload(filename)
     if isinstance(payload, dict):
         return payload
@@ -1966,9 +1973,9 @@ def _fallback_suggestions(
             AssistantSuggestion(
                 id=f"continue-{payload.activity_id}",
                 label=f"Continue {payload.activity_name}",
-            category="create",
-            priority="high",
-            icon="navigation.next",
+                category="create",
+                priority="high",
+                icon="navigation.next",
                 action_type="open_activity",
                 payload={"type": "open_activity", "activityId": payload.activity_id},
                 description="Resume work on the current activity.",
@@ -1982,9 +1989,9 @@ def _fallback_suggestions(
             AssistantSuggestion(
                 id=f"next-{next_activity_id}",
                 label=f"Open {next_activity.get('name', 'next activity')}",
-            category="navigate",
-            priority="medium",
-            icon="ai.suggestion",
+                category="navigate",
+                priority="medium",
+                icon="ai.suggestion",
                 action_type="open_activity",
                 payload={"type": "open_activity", "activityId": next_activity_id},
                 description="Move to the next required activity.",
@@ -1995,9 +2002,9 @@ def _fallback_suggestions(
         AssistantSuggestion(
             id="open-dashboard",
             label="View project dashboard",
-        category="analyse",
-        priority="low",
-        icon="artifact.dashboard",
+            category="analyse",
+            priority="low",
+            icon="artifact.dashboard",
             action_type="open_dashboard",
             payload={"type": "open_dashboard"},
             description="Review project health and metrics.",
@@ -2043,8 +2050,14 @@ async def _llm_suggestions(
         indent=2,
     )
 
-    provider, model_id = (payload.provider, payload.model_id) if payload.provider and payload.model_id else _resolve_llm_selection(tenant_id, payload.project_id, user_id)
-    response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt, provider=provider, model_id=model_id)
+    provider, model_id = (
+        (payload.provider, payload.model_id)
+        if payload.provider and payload.model_id
+        else _resolve_llm_selection(tenant_id, payload.project_id, user_id)
+    )
+    response = await llm.complete(
+        system_prompt=system_prompt, user_prompt=user_prompt, provider=provider, model_id=model_id
+    )
     try:
         data = json.loads(response.content)
     except json.JSONDecodeError as exc:
@@ -2318,9 +2331,7 @@ def _list_roles() -> list[RoleDefinition]:
 
 def _list_role_assignments() -> list[RoleAssignment]:
     payload = _load_roles_payload()
-    return [
-        RoleAssignment.model_validate(item) for item in payload.get("assignments", [])
-    ]
+    return [RoleAssignment.model_validate(item) for item in payload.get("assignments", [])]
 
 
 def _role_ids_for_user(user_id: str) -> set[str]:
@@ -2581,9 +2592,7 @@ def _build_methodology_editor_payload(methodology_id: str) -> MethodologyEditorP
 
 
 def _validate_methodology_prereqs(stages: list[MethodologyStageEditor]) -> None:
-    activity_ids = {
-        activity.id for stage in stages for activity in stage.activities if activity.id
-    }
+    activity_ids = {activity.id for stage in stages for activity in stage.activities if activity.id}
     invalid: list[str] = []
     for stage in stages:
         for activity in stage.activities:
@@ -2668,7 +2677,9 @@ def _build_activity_summary(
     )
 
 
-def _find_activity_by_id(activities: list[dict[str, Any]], activity_id: str) -> dict[str, Any] | None:
+def _find_activity_by_id(
+    activities: list[dict[str, Any]], activity_id: str
+) -> dict[str, Any] | None:
     for activity in activities:
         if activity.get("id") == activity_id:
             return activity
@@ -2873,12 +2884,18 @@ async def run_methodology_node_action(
             resource_type="workspace",
             resource_id=workspace_id,
             outcome="success",
-            metadata={"stage_id": stage_id, "activity_id": activity_id, "correlation_id": correlation_id},
+            metadata={
+                "stage_id": stage_id,
+                "activity_id": activity_id,
+                "correlation_id": correlation_id,
+            },
         )
     )
 
-    escalation_rules = resolution_contract.get("assistant", {}).get("response_contract", {}).get(
-        "escalation_rules", []
+    escalation_rules = (
+        resolution_contract.get("assistant", {})
+        .get("response_contract", {})
+        .get("escalation_rules", [])
     )
     needs_human_review = (
         resolution_contract.get("agent_workflow", {}).get("human_review_required", False)
@@ -2905,7 +2922,13 @@ async def run_methodology_node_action(
                 "requested_at": datetime.now(tz=timezone.utc).isoformat(),
                 "requested_by": actor_id,
                 "notes": user_input.get("notes"),
-                "history": [{"action": "requested", "actor": actor_id, "timestamp": datetime.now(tz=timezone.utc).isoformat()}],
+                "history": [
+                    {
+                        "action": "requested",
+                        "actor": actor_id,
+                        "timestamp": datetime.now(tz=timezone.utc).isoformat(),
+                    }
+                ],
             },
         )
         get_audit_log_store().record_event(
@@ -2927,8 +2950,12 @@ async def run_methodology_node_action(
             "resolution_contract": resolution_contract,
             "assistant_response": {
                 "intent_id": resolution_contract["assistant"]["intent_id"],
-                "output_format": resolution_contract["assistant"]["response_contract"]["output_format"],
-                "validation_checklist": resolution_contract["assistant"]["response_contract"]["validation_checklist"],
+                "output_format": resolution_contract["assistant"]["response_contract"][
+                    "output_format"
+                ],
+                "validation_checklist": resolution_contract["assistant"]["response_contract"][
+                    "validation_checklist"
+                ],
                 "content": "Human review is required before this lifecycle action can proceed.",
             },
             "artifacts_created": [],
@@ -3034,7 +3061,11 @@ async def run_methodology_node_action(
             )
         else:
             connector_operations.append(
-                {"connector_binding": {"destinations": destinations}, "side_effects": ["publish_external"], "status": "submitted_to_sor"}
+                {
+                    "connector_binding": {"destinations": destinations},
+                    "side_effects": ["publish_external"],
+                    "status": "submitted_to_sor",
+                }
             )
 
     output_format = resolution_contract["assistant"]["response_contract"]["output_format"]
@@ -3071,11 +3102,15 @@ async def run_methodology_node_action(
         "assistant_response": {
             "intent_id": resolution_contract["assistant"]["intent_id"],
             "output_format": output_format,
-            "validation_checklist": resolution_contract["assistant"]["response_contract"]["validation_checklist"],
+            "validation_checklist": resolution_contract["assistant"]["response_contract"][
+                "validation_checklist"
+            ],
             "content": assistant_content,
         },
         "artifacts_created": [artifact_ref] if lifecycle_event == "generate" else [],
-        "artifacts_updated": [artifact_ref] if lifecycle_event in {"update", "review", "approve", "publish"} else [],
+        "artifacts_updated": (
+            [artifact_ref] if lifecycle_event in {"update", "review", "approve", "publish"} else []
+        ),
         "connector_operations": connector_operations,
         "sor_preview": {"sources": sor_sources, "preview_rows": sor_preview},
         "workflow_trace": {
@@ -3327,7 +3362,11 @@ async def upsert_role_assignment(payload: RoleAssignment) -> RoleAssignment:
         RoleAssignment.model_validate(item) for item in roles_payload.get("assignments", [])
     ]
     existing_index = next(
-        (idx for idx, assignment in enumerate(assignments) if assignment.user_id == payload.user_id),
+        (
+            idx
+            for idx, assignment in enumerate(assignments)
+            if assignment.user_id == payload.user_id
+        ),
         None,
     )
     if existing_index is None:
@@ -3558,10 +3597,14 @@ async def approvals_feed() -> dict[str, Any]:
 
 
 @api_router.get("/api/methodology/runtime/approvals")
-async def get_runtime_approvals(workspace_id: str, request: Request, status: str = "pending") -> dict[str, Any]:
+async def get_runtime_approvals(
+    workspace_id: str, request: Request, status: str = "pending"
+) -> dict[str, Any]:
     session = _require_session(request)
     tenant_id = session["tenant_id"]
-    items = runtime_lifecycle_store.list_approvals(tenant_id=tenant_id, workspace_id=workspace_id, status=status)
+    items = runtime_lifecycle_store.list_approvals(
+        tenant_id=tenant_id, workspace_id=workspace_id, status=status
+    )
     if _demo_mode_enabled() and not items and status == "pending":
         items = [
             {
@@ -3582,7 +3625,9 @@ async def get_runtime_approvals(workspace_id: str, request: Request, status: str
 
 
 @api_router.post("/api/methodology/runtime/approvals/{approval_id}/decision")
-async def decide_runtime_approval(approval_id: str, payload: RuntimeApprovalDecisionRequest, request: Request) -> dict[str, Any]:
+async def decide_runtime_approval(
+    approval_id: str, payload: RuntimeApprovalDecisionRequest, request: Request
+) -> dict[str, Any]:
     session = _require_session(request)
     tenant_id = session["tenant_id"]
     actor_id = session.get("subject") or "ui-user"
@@ -3754,11 +3799,31 @@ async def ui_migration_map() -> dict[str, Any]:
             "notes": "Legacy UI has been fully retired; compatibility is redirect-only.",
         },
         "routes": [
-            {"legacy": "/v1/approvals", "spa": "/app/approvals", "notes": "Approval inbox moved into SPA workflow area."},
-            {"legacy": "/v1/workflow-monitoring", "spa": "/app/workflows/monitoring", "notes": "Monitoring now relies on SPA route with live updates."},
-            {"legacy": "/v1/document-search", "spa": "/app/knowledge/documents", "notes": "Knowledge document search consolidated in SPA."},
-            {"legacy": "/v1/lessons-learned", "spa": "/app/knowledge/lessons", "notes": "Lessons page moved to knowledge section."},
-            {"legacy": "/v1/audit-log", "spa": "/app/admin/audit", "notes": "Admin audit access requires admin role in SPA."},
+            {
+                "legacy": "/v1/approvals",
+                "spa": "/app/approvals",
+                "notes": "Approval inbox moved into SPA workflow area.",
+            },
+            {
+                "legacy": "/v1/workflow-monitoring",
+                "spa": "/app/workflows/monitoring",
+                "notes": "Monitoring now relies on SPA route with live updates.",
+            },
+            {
+                "legacy": "/v1/document-search",
+                "spa": "/app/knowledge/documents",
+                "notes": "Knowledge document search consolidated in SPA.",
+            },
+            {
+                "legacy": "/v1/lessons-learned",
+                "spa": "/app/knowledge/lessons",
+                "notes": "Lessons page moved to knowledge section.",
+            },
+            {
+                "legacy": "/v1/audit-log",
+                "spa": "/app/admin/audit",
+                "notes": "Admin audit access requires admin role in SPA.",
+            },
         ],
         "compatibility": {
             "api_endpoints": "Preserved under /v1/api/* and /v1/workflows/*.",
@@ -3922,8 +3987,6 @@ async def update_methodology_editor(
     return _build_methodology_editor_payload(payload.methodology_id)
 
 
-
-
 def _load_sor_fixtures() -> dict[str, Any]:
     if SOR_FIXTURES_PATH.exists():
         return json.loads(SOR_FIXTURES_PATH.read_text(encoding="utf-8"))
@@ -3968,7 +4031,9 @@ async def get_methodology_runtime_actions(
     }
 
 
-@api_router.get("/api/methodology/runtime/resolve", response_model=MethodologyRuntimeResolveResponse)
+@api_router.get(
+    "/api/methodology/runtime/resolve", response_model=MethodologyRuntimeResolveResponse
+)
 async def get_methodology_runtime_resolve(
     methodology_id: str,
     stage_id: str,
@@ -3987,10 +4052,6 @@ async def get_methodology_runtime_resolve(
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return MethodologyRuntimeResolveResponse(resolution_contract=resolution_contract)
-
-
-
-
 
 
 @api_router.post("/api/methodology/runtime/sor/read", response_model=SorPreviewResponse)
@@ -4212,8 +4273,6 @@ async def extract_intake_document(
     return response
 
 
-
-
 def _load_intake_assistant_prompt(step_id: str) -> dict[str, Any]:
     prompt_path = INTAKE_ASSISTANT_PROMPTS.get(step_id)
     if not prompt_path or not prompt_path.exists():
@@ -4280,7 +4339,9 @@ def _build_intake_assistant_response(payload: IntakeAssistantRequest) -> IntakeA
 
     for field in proposals:
         if _non_empty(form_state.get(field)):
-            apply_hints.append(f"{field}: confirmation required because the field already contains a value.")
+            apply_hints.append(
+                f"{field}: confirmation required because the field already contains a value."
+            )
         else:
             apply_hints.append(f"{field}: safe to apply directly (field is empty).")
 
@@ -4298,6 +4359,7 @@ def _build_intake_assistant_response(payload: IntakeAssistantRequest) -> IntakeA
 @api_router.post("/api/intake/assistant", response_model=IntakeAssistantResponse)
 def intake_assistant(payload: IntakeAssistantRequest) -> IntakeAssistantResponse:
     return _build_intake_assistant_response(payload)
+
 
 @api_router.get("/api/intake", response_model=list[IntakeRequest])
 def list_intake_requests(status: str | None = None) -> list[IntakeRequest]:
@@ -4525,7 +4587,9 @@ async def update_workspace_selection(
     return _build_workspace_response(state)
 
 
-@api_router.post("/api/workspace/{project_id}/activity-completion", response_model=WorkspaceStateResponse)
+@api_router.post(
+    "/api/workspace/{project_id}/activity-completion", response_model=WorkspaceStateResponse
+)
 @permission_required("portfolio.view")
 async def update_activity_completion(
     project_id: str, payload: ActivityCompletionUpdate, request: Request
@@ -4578,13 +4642,19 @@ async def instantiate_template(
         classification = context.get("classification") or template.defaults.classification
         retention_days = int(context.get("retention_days") or template.defaults.retention_days)
         payload_model = template.payload
-        name, unresolved = render_template_value_with_unresolved(payload_model.name_template, context)
+        name, unresolved = render_template_value_with_unresolved(
+            payload_model.name_template, context
+        )
         advisories.update(unresolved)
-        content, unresolved = render_template_value_with_unresolved(payload_model.content_template, context)
+        content, unresolved = render_template_value_with_unresolved(
+            payload_model.content_template, context
+        )
         advisories.update(unresolved)
         metadata = {}
         if payload_model.metadata_template:
-            metadata, unresolved = render_template_value_with_unresolved(payload_model.metadata_template, context)
+            metadata, unresolved = render_template_value_with_unresolved(
+                payload_model.metadata_template, context
+            )
             advisories.update(unresolved)
         headers = build_forward_headers(request, session)
         response = await _document_client().create_document(
@@ -4606,8 +4676,7 @@ async def instantiate_template(
         combined_advisories = [*upstream_advisories]
         if advisories:
             combined_advisories.append(
-                "Unresolved placeholders left unchanged: "
-                + ", ".join(sorted(advisories))
+                "Unresolved placeholders left unchanged: " + ", ".join(sorted(advisories))
             )
         return TemplateInstantiateResponse(
             created_type=TemplateType.document,
@@ -4618,7 +4687,9 @@ async def instantiate_template(
     if template.type == TemplateType.spreadsheet:
         advisories: set[str] = set()
         payload_model = template.payload
-        sheet_name, unresolved = render_template_value_with_unresolved(payload_model.sheet_name_template, context)
+        sheet_name, unresolved = render_template_value_with_unresolved(
+            payload_model.sheet_name_template, context
+        )
         advisories.update(unresolved)
         columns = [
             ColumnCreate(name=column.name, type=column.type, required=column.required)
@@ -4654,8 +4725,7 @@ async def instantiate_template(
         response_advisories = None
         if advisories:
             response_advisories = [
-                "Unresolved placeholders left unchanged: "
-                + ", ".join(sorted(advisories))
+                "Unresolved placeholders left unchanged: " + ", ".join(sorted(advisories))
             ]
         return TemplateInstantiateResponse(
             created_type=TemplateType.spreadsheet,
@@ -4676,8 +4746,6 @@ async def list_agent_registry(request: Request) -> JSONResponse:
         extra={"tenant_id": tenant_id, "project_id": None, "agent_id": None},
     )
     return JSONResponse(status_code=200, content=[entry.model_dump() for entry in registry])
-
-
 
 
 @api_router.get("/api/agent-gallery/agents/{agent_id}", response_model=AgentProfileResponse)
@@ -4723,7 +4791,10 @@ async def get_agent_profile(agent_id: str, request: Request) -> AgentProfileResp
             ],
         )
 
-        for endpoint in [*mapping.connector_binding.sources, *mapping.connector_binding.destinations]:
+        for endpoint in [
+            *mapping.connector_binding.sources,
+            *mapping.connector_binding.destinations,
+        ]:
             key = (endpoint.connector_type, endpoint.system)
             connector_rows[key] = {
                 "connector_type": endpoint.connector_type,
@@ -4760,7 +4831,9 @@ async def get_agent_profile(agent_id: str, request: Request) -> AgentProfileResp
         inputs=["workspace_context", "template_context", "user_input"],
         outputs=entry.outputs,
         templates_touched=list(template_rows.values()),
-        connectors_used=sorted(connector_rows.values(), key=lambda item: f"{item['connector_type']}::{item['system']}"),
+        connectors_used=sorted(
+            connector_rows.values(), key=lambda item: f"{item['connector_type']}::{item['system']}"
+        ),
         methodology_nodes_supported=[
             {
                 "methodology_id": methodology_id,
@@ -4769,14 +4842,20 @@ async def get_agent_profile(agent_id: str, request: Request) -> AgentProfileResp
                 "task_id": task_id,
                 "lifecycle_event": lifecycle_event,
             }
-            for methodology_id, stage_id, activity_id, task_id, lifecycle_event in sorted(methodology_nodes)
+            for methodology_id, stage_id, activity_id, task_id, lifecycle_event in sorted(
+                methodology_nodes
+            )
         ],
         run_modes=sorted(run_modes),
     )
 
 
-@api_router.post("/api/agent-gallery/agents/{agent_id}/run-preview", response_model=AgentPreviewRunResponse)
-async def run_agent_preview(agent_id: str, payload: AgentPreviewRunRequest, request: Request) -> AgentPreviewRunResponse:
+@api_router.post(
+    "/api/agent-gallery/agents/{agent_id}/run-preview", response_model=AgentPreviewRunResponse
+)
+async def run_agent_preview(
+    agent_id: str, payload: AgentPreviewRunRequest, request: Request
+) -> AgentPreviewRunResponse:
     session = _require_session(request)
     tenant_id = _tenant_id_from_request(request, session)
     registry = load_agent_registry()
@@ -4789,7 +4868,8 @@ async def run_agent_preview(agent_id: str, payload: AgentPreviewRunRequest, requ
             mapping
             for mapping in runtime_registry.mappings
             if agent_id in mapping.resolution.agent_workflow.agent_ids
-            and mapping.key.lifecycle_event in {"generate", "update", "review", "approve", "publish"}
+            and mapping.key.lifecycle_event
+            in {"generate", "update", "review", "approve", "publish"}
         ),
         None,
     )
@@ -4798,7 +4878,9 @@ async def run_agent_preview(agent_id: str, payload: AgentPreviewRunRequest, requ
 
     methodology_id = payload.methodology_id or matching_runtime.key.methodology_id
     stage_id = payload.stage_id or matching_runtime.key.stage_id
-    activity_id = payload.activity_id if payload.activity_id is not None else matching_runtime.key.activity_id
+    activity_id = (
+        payload.activity_id if payload.activity_id is not None else matching_runtime.key.activity_id
+    )
     task_id = payload.task_id if payload.task_id is not None else matching_runtime.key.task_id
 
     user_input = dict(payload.user_input)
@@ -4959,22 +5041,25 @@ async def reset_project_agent_settings(project_id: str, request: Request) -> JSO
     )
 
 
-
-
 @api_router.get("/api/llm/models")
 async def list_llm_models(request: Request) -> JSONResponse:
     _require_session(request)
     models = get_enabled_models(demo_mode=_demo_mode_enabled())
-    return JSONResponse(status_code=200, content={"models": [
-        {
-            "provider": item.provider,
-            "model_id": item.model_id,
-            "display_name": item.display_name,
-            "capabilities": list(item.capabilities),
-            "allow_in_demo": item.allow_in_demo,
-        }
-        for item in models
-    ]})
+    return JSONResponse(
+        status_code=200,
+        content={
+            "models": [
+                {
+                    "provider": item.provider,
+                    "model_id": item.model_id,
+                    "display_name": item.display_name,
+                    "capabilities": list(item.capabilities),
+                    "allow_in_demo": item.allow_in_demo,
+                }
+                for item in models
+            ]
+        },
+    )
 
 
 @api_router.get("/api/llm/preferences")
@@ -4988,7 +5073,9 @@ async def get_llm_preferences(request: Request, project_id: str | None = None) -
 
 
 @api_router.post("/api/llm/preferences", response_model=LLMPreferenceResponse)
-async def set_llm_preferences(payload: LLMPreferenceRequest, request: Request) -> LLMPreferenceResponse:
+async def set_llm_preferences(
+    payload: LLMPreferenceRequest, request: Request
+) -> LLMPreferenceResponse:
     session = _require_session(request)
     tenant_id = _tenant_id_from_request(request, session)
     if not tenant_id:
@@ -5005,6 +5092,7 @@ async def set_llm_preferences(payload: LLMPreferenceRequest, request: Request) -
         model_id=payload.model_id,
     )
     return LLMPreferenceResponse(**preference)
+
 
 @api_router.post("/api/assistant/send")
 async def send_assistant_message(payload: AssistantSendRequest, request: Request) -> JSONResponse:
@@ -5132,7 +5220,11 @@ async def assistant_query(
                     return AssistantQueryResponse(
                         query=query_text,
                         summary=str(data.get("summary", "")),
-                        items=[str(item) for item in data.get("items", []) if isinstance(item, (str, int, float))],
+                        items=[
+                            str(item)
+                            for item in data.get("items", [])
+                            if isinstance(item, (str, int, float))
+                        ],
                     )
             except Exception:  # noqa: BLE001
                 logger.exception("LLM assistant query failed for query: %s", query_text[:100])
@@ -5165,7 +5257,9 @@ async def assistant_query(
     return AssistantQueryResponse(query=query_text, summary=summary, items=[])
 
 
-@api_router.get("/api/assistant/demo-conversations/{scenario}", response_model=DemoConversationResponse)
+@api_router.get(
+    "/api/assistant/demo-conversations/{scenario}", response_model=DemoConversationResponse
+)
 async def assistant_demo_conversation(scenario: str, request: Request) -> DemoConversationResponse:
     _require_session(request)
 
@@ -5213,7 +5307,9 @@ async def generate_assistant_suggestions(
     suggestions: list[AssistantSuggestion] = []
     generated_by = "heuristic"
     try:
-        suggestions = await _llm_suggestions(payload, context, methodology_map, tenant_id=tenant_id, user_id=session.get("subject"))
+        suggestions = await _llm_suggestions(
+            payload, context, methodology_map, tenant_id=tenant_id, user_id=session.get("subject")
+        )
         if suggestions:
             generated_by = "llm"
     except (LLMProviderError, ValueError):
@@ -5465,7 +5561,9 @@ async def get_schedule(project_id: str, request: Request) -> ScheduleResponse:
 async def get_dependency_map(program_id: str, request: Request) -> DependencyMapResponse:
     _require_session(request)
     if _demo_mode_enabled():
-        payload = _load_demo_dashboard_payload(f"dependency-map-{program_id}.json") or _load_demo_dashboard_payload("dependency-map.json")
+        payload = _load_demo_dashboard_payload(
+            f"dependency-map-{program_id}.json"
+        ) or _load_demo_dashboard_payload("dependency-map.json")
         if payload:
             return DependencyMapResponse(**payload)
     return _mock_dependency_map(program_id)
@@ -5475,7 +5573,9 @@ async def get_dependency_map(program_id: str, request: Request) -> DependencyMap
 async def get_program_roadmap(program_id: str, request: Request) -> ProgramRoadmapResponse:
     _require_session(request)
     if _demo_mode_enabled():
-        payload = _load_demo_dashboard_payload(f"program-roadmap-{program_id}.json") or _load_demo_dashboard_payload("program-roadmap.json")
+        payload = _load_demo_dashboard_payload(
+            f"program-roadmap-{program_id}.json"
+        ) or _load_demo_dashboard_payload("program-roadmap.json")
         if payload:
             return ProgramRoadmapResponse(**payload)
     return _mock_program_roadmap(program_id)
@@ -6104,9 +6204,11 @@ async def search_global(
         "approval",
         "workflow",
     ]
-    project_id_set = {
-        entry.strip() for entry in project_ids.split(",") if entry.strip()
-    } if project_ids else None
+    project_id_set = (
+        {entry.strip() for entry in project_ids.split(",") if entry.strip()}
+        if project_ids
+        else None
+    )
     resolved_query = (q or query or "").strip()
     if _demo_mode_enabled():
         demo_payload = _load_demo_search_payload("global-search.json")
@@ -6169,7 +6271,8 @@ async def search_global(
                             "summary": _highlight_query(resolved_query, summary),
                         }.items()
                         if value
-                    } or None,
+                    }
+                    or None,
                     payload={
                         "projectId": project.id,
                         "name": project.name,
@@ -6219,7 +6322,8 @@ async def search_global(
                             "summary": _highlight_query(resolved_query, summary),
                         }.items()
                         if value
-                    } or None,
+                    }
+                    or None,
                     payload=approval,
                 )
             )
@@ -6230,8 +6334,7 @@ async def search_global(
             workflows = workflow_payload.get("runs", [])
         else:
             workflows = [
-                workflow.model_dump()
-                for workflow in workflow_definition_store.list_summaries()
+                workflow.model_dump() for workflow in workflow_definition_store.list_summaries()
             ]
         for index, workflow in enumerate(workflows):
             title = workflow.get("name") or workflow.get("title") or "Workflow"
@@ -6252,7 +6355,12 @@ async def search_global(
                 continue
             results.append(
                 SearchResult(
-                    id=str(workflow.get("workflow_id") or workflow.get("run_id") or workflow.get("id") or f"workflow-{index}"),
+                    id=str(
+                        workflow.get("workflow_id")
+                        or workflow.get("run_id")
+                        or workflow.get("id")
+                        or f"workflow-{index}"
+                    ),
                     type="workflow",
                     title=title,
                     summary=summary,
@@ -6264,7 +6372,8 @@ async def search_global(
                             "summary": _highlight_query(resolved_query, summary),
                         }.items()
                         if value
-                    } or None,
+                    }
+                    or None,
                     payload=workflow,
                 )
             )
@@ -6396,8 +6505,14 @@ async def create_dashboard_what_if(
         for metric in baseline_payload.get("metrics", []):
             name = str(metric.get("name", ""))
             normalized = float(metric.get("normalized", 0.0))
-            boost = float(payload.adjustments.get(name, 0.0)) if isinstance(payload.adjustments, dict) else 0.0
-            adjusted_metrics.append({**metric, "normalized": max(0.0, min(1.0, round(normalized + boost, 3)))})
+            boost = (
+                float(payload.adjustments.get(name, 0.0))
+                if isinstance(payload.adjustments, dict)
+                else 0.0
+            )
+            adjusted_metrics.append(
+                {**metric, "normalized": max(0.0, min(1.0, round(normalized + boost, 3)))}
+            )
         return JSONResponse(
             content={
                 "project_id": project_id,
@@ -6494,8 +6609,6 @@ async def get_dashboard_narrative(project_id: str, request: Request) -> Response
     return JSONResponse(status_code=response.status_code, content=response.json())
 
 
-
-
 @api_router.get("/api/dashboard/{project_id}/risks")
 @permission_required("analytics.view")
 async def get_dashboard_risks(project_id: str, request: Request) -> Response:
@@ -6512,7 +6625,12 @@ async def get_dashboard_risks(project_id: str, request: Request) -> Response:
             "project_id": project_id,
             "items": [
                 {"id": "risk-1", "title": "Scope volatility", "severity": "High", "owner": "PMO"},
-                {"id": "risk-2", "title": "Vendor lead-time", "severity": "Medium", "owner": "Procurement"},
+                {
+                    "id": "risk-2",
+                    "title": "Vendor lead-time",
+                    "severity": "Medium",
+                    "owner": "Procurement",
+                },
             ],
         }
     )
@@ -6533,11 +6651,22 @@ async def get_dashboard_issues(project_id: str, request: Request) -> Response:
         content={
             "project_id": project_id,
             "items": [
-                {"id": "issue-1", "title": "Approval queue delay", "status": "Open", "owner": "Governance"},
-                {"id": "issue-2", "title": "Test environment outage", "status": "Mitigating", "owner": "Platform"},
+                {
+                    "id": "issue-1",
+                    "title": "Approval queue delay",
+                    "status": "Open",
+                    "owner": "Governance",
+                },
+                {
+                    "id": "issue-2",
+                    "title": "Test environment outage",
+                    "status": "Mitigating",
+                    "owner": "Platform",
+                },
             ],
         }
     )
+
 
 @api_router.get("/api/dashboard/{project_id}/aggregations")
 @permission_required("analytics.view")
@@ -6546,7 +6675,12 @@ async def get_dashboard_aggregations(project_id: str, request: Request) -> Respo
         return JSONResponse(
             content=_dashboard_demo_payload_or_default(
                 "project-dashboard-aggregations.json",
-                {"project_id": project_id, "computed_at": datetime.now(timezone.utc).isoformat(), "artifacts": [], "warnings": []},
+                {
+                    "project_id": project_id,
+                    "computed_at": datetime.now(timezone.utc).isoformat(),
+                    "artifacts": [],
+                    "warnings": [],
+                },
             )
         )
     if not _unified_dashboards_enabled():
@@ -6808,7 +6942,6 @@ async def export_audit_evidence(request: Request) -> Response:
     )
 
 
-
 def _load_store(path: Path, default: dict[str, Any]) -> dict[str, Any]:
     payload = _load_json(path, default) if path.exists() else default
     if not isinstance(payload, dict):
@@ -6826,7 +6959,13 @@ def _audit_record(request: Request, action: str, details: dict[str, Any]) -> Non
             roles=list(_roles_from_request(request, session)),
             action=action,
             resource_type=details.get("resource", "enterprise"),
-            resource_id=str(details.get("resource_id") or details.get("demand_id") or details.get("scenario_id") or details.get("pack_id") or "n/a"),
+            resource_id=str(
+                details.get("resource_id")
+                or details.get("demand_id")
+                or details.get("scenario_id")
+                or details.get("pack_id")
+                or "n/a"
+            ),
             outcome="success",
             metadata=details,
         )
@@ -6840,8 +6979,8 @@ def _ensure_notifications(payload: dict[str, Any], tenant_id: str) -> list[dict[
     return payload["notifications"]
 
 
-@api_router.get('/api/portfolio/{portfolio_id}/demand')
-@permission_required('portfolio.view')
+@api_router.get("/api/portfolio/{portfolio_id}/demand")
+@permission_required("portfolio.view")
 async def list_portfolio_demand(portfolio_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
     store = _load_store(DEMAND_STORE_PATH, {"items": []})
@@ -6849,9 +6988,11 @@ async def list_portfolio_demand(portfolio_id: str, request: Request) -> dict[str
     return {"items": items}
 
 
-@api_router.post('/api/portfolio/{portfolio_id}/demand')
-@permission_required('config.manage')
-async def create_portfolio_demand(portfolio_id: str, payload: dict[str, Any], request: Request) -> dict[str, Any]:
+@api_router.post("/api/portfolio/{portfolio_id}/demand")
+@permission_required("config.manage")
+async def create_portfolio_demand(
+    portfolio_id: str, payload: dict[str, Any], request: Request
+) -> dict[str, Any]:
     _require_session(request)
     store = _load_store(DEMAND_STORE_PATH, {"items": []})
     demand_id = payload.get("id") or f"dem-{uuid4().hex[:10]}"
@@ -6859,450 +7000,638 @@ async def create_portfolio_demand(portfolio_id: str, payload: dict[str, Any], re
     row.setdefault("status", "intake")
     store.setdefault("items", []).append(row)
     _write_json(DEMAND_STORE_PATH, store)
-    _audit_record(request, "portfolio.demand.create", {"resource": "demand", "portfolio_id": portfolio_id, "demand_id": demand_id})
+    _audit_record(
+        request,
+        "portfolio.demand.create",
+        {"resource": "demand", "portfolio_id": portfolio_id, "demand_id": demand_id},
+    )
     return row
 
 
-@api_router.patch('/api/portfolio/{portfolio_id}/demand/{demand_id}')
-@permission_required('config.manage')
-async def patch_portfolio_demand(portfolio_id: str, demand_id: str, payload: dict[str, Any], request: Request) -> dict[str, Any]:
+@api_router.patch("/api/portfolio/{portfolio_id}/demand/{demand_id}")
+@permission_required("config.manage")
+async def patch_portfolio_demand(
+    portfolio_id: str, demand_id: str, payload: dict[str, Any], request: Request
+) -> dict[str, Any]:
     _require_session(request)
     store = _load_store(DEMAND_STORE_PATH, {"items": []})
     for row in store.get("items", []):
         if row.get("portfolio_id") == portfolio_id and row.get("id") == demand_id:
             row.update(payload)
             _write_json(DEMAND_STORE_PATH, store)
-            _audit_record(request, "portfolio.demand.update", {"resource": "demand", "portfolio_id": portfolio_id, "demand_id": demand_id})
+            _audit_record(
+                request,
+                "portfolio.demand.update",
+                {"resource": "demand", "portfolio_id": portfolio_id, "demand_id": demand_id},
+            )
             return row
-    raise HTTPException(status_code=404, detail='Demand not found')
+    raise HTTPException(status_code=404, detail="Demand not found")
 
 
-@api_router.post('/api/portfolio/{portfolio_id}/prioritisation/score')
-@permission_required('portfolio.view')
+@api_router.post("/api/portfolio/{portfolio_id}/prioritisation/score")
+@permission_required("portfolio.view")
 async def score_prioritisation(portfolio_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
     demand = _load_store(DEMAND_STORE_PATH, {"items": []}).get("items", [])
-    model = _load_store(PRIORITISATION_STORE_PATH, {"weights": {"value": 0.5, "effort": 0.2, "risk": 0.3}, "runs": []})
+    model = _load_store(
+        PRIORITISATION_STORE_PATH,
+        {"weights": {"value": 0.5, "effort": 0.2, "risk": 0.3}, "runs": []},
+    )
     weights = model.get("weights", {"value": 0.5, "effort": 0.2, "risk": 0.3})
-    rows=[]
+    rows = []
     for item in demand:
-        if item.get('portfolio_id')!=portfolio_id:
+        if item.get("portfolio_id") != portfolio_id:
             continue
-        value=float(item.get('value',5))
-        effort=float(item.get('effort',5))
-        risk=float(item.get('risk',5))
-        score=round(value*weights.get('value',0.5)+(10-effort)*weights.get('effort',0.2)+(10-risk)*weights.get('risk',0.3),3)
-        rows.append({**item,'score':score})
-    rows.sort(key=lambda x:x['score'], reverse=True)
-    run={"id":f"run-{uuid4().hex[:8]}","portfolio_id":portfolio_id,"generated_at":datetime.now(timezone.utc).isoformat(),"results":rows}
-    model.setdefault('runs',[]).append(run)
+        value = float(item.get("value", 5))
+        effort = float(item.get("effort", 5))
+        risk = float(item.get("risk", 5))
+        score = round(
+            value * weights.get("value", 0.5)
+            + (10 - effort) * weights.get("effort", 0.2)
+            + (10 - risk) * weights.get("risk", 0.3),
+            3,
+        )
+        rows.append({**item, "score": score})
+    rows.sort(key=lambda x: x["score"], reverse=True)
+    run = {
+        "id": f"run-{uuid4().hex[:8]}",
+        "portfolio_id": portfolio_id,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "results": rows,
+    }
+    model.setdefault("runs", []).append(run)
     _write_json(PRIORITISATION_STORE_PATH, model)
     return run
 
 
-@api_router.get('/api/portfolio/{portfolio_id}/capacity')
-@permission_required('portfolio.view')
+@api_router.get("/api/portfolio/{portfolio_id}/capacity")
+@permission_required("portfolio.view")
 async def get_capacity(portfolio_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(CAPACITY_STORE_PATH,{"entries":[]})
-    return {"entries":[e for e in store.get('entries',[]) if e.get('portfolio_id')==portfolio_id]}
+    store = _load_store(CAPACITY_STORE_PATH, {"entries": []})
+    return {
+        "entries": [e for e in store.get("entries", []) if e.get("portfolio_id") == portfolio_id]
+    }
 
 
-@api_router.post('/api/portfolio/{portfolio_id}/capacity')
-@permission_required('config.manage')
-async def upsert_capacity(portfolio_id: str, payload: dict[str, Any], request: Request) -> dict[str, Any]:
+@api_router.post("/api/portfolio/{portfolio_id}/capacity")
+@permission_required("config.manage")
+async def upsert_capacity(
+    portfolio_id: str, payload: dict[str, Any], request: Request
+) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(CAPACITY_STORE_PATH,{"entries":[]})
-    entry={"id":payload.get('id') or f"cap-{uuid4().hex[:8]}","portfolio_id":portfolio_id,**payload}
-    entries=[e for e in store.get('entries',[]) if e.get('id')!=entry['id']]
+    store = _load_store(CAPACITY_STORE_PATH, {"entries": []})
+    entry = {
+        "id": payload.get("id") or f"cap-{uuid4().hex[:8]}",
+        "portfolio_id": portfolio_id,
+        **payload,
+    }
+    entries = [e for e in store.get("entries", []) if e.get("id") != entry["id"]]
     entries.append(entry)
-    store['entries']=entries
-    _write_json(CAPACITY_STORE_PATH,store)
+    store["entries"] = entries
+    _write_json(CAPACITY_STORE_PATH, store)
     return entry
 
 
-@api_router.post('/api/portfolio/{portfolio_id}/scenarios/run')
-@permission_required('portfolio.view')
-async def run_scenarios(portfolio_id: str, payload: dict[str, Any], request: Request) -> dict[str, Any]:
+@api_router.post("/api/portfolio/{portfolio_id}/scenarios/run")
+@permission_required("portfolio.view")
+async def run_scenarios(
+    portfolio_id: str, payload: dict[str, Any], request: Request
+) -> dict[str, Any]:
     _require_session(request)
-    name=payload.get('name','scenario')
-    demand=_load_store(DEMAND_STORE_PATH,{"items":[]}).get('items',[])
-    selected=[d for d in demand if d.get('portfolio_id')==portfolio_id][: payload.get('limit',10)]
-    score=round(sum(float(d.get('value',5))-float(d.get('effort',5))*0.3 for d in selected),3)
-    budget=round(sum(float(d.get('cost',100)) for d in selected),2)
-    record={"id":payload.get('id') or f"scn-{uuid4().hex[:8]}","portfolio_id":portfolio_id,"name":name,"value_score":score,"budget":budget,"selected_ids":[d.get('id') for d in selected],"generated_at":datetime.now(timezone.utc).isoformat(),"published":False}
-    store=_load_store(SCENARIOS_STORE_PATH,{"scenarios":[],"published_decisions":[]})
-    store.setdefault('scenarios',[]).append(record)
-    _write_json(SCENARIOS_STORE_PATH,store)
+    name = payload.get("name", "scenario")
+    demand = _load_store(DEMAND_STORE_PATH, {"items": []}).get("items", [])
+    selected = [d for d in demand if d.get("portfolio_id") == portfolio_id][
+        : payload.get("limit", 10)
+    ]
+    score = round(
+        sum(float(d.get("value", 5)) - float(d.get("effort", 5)) * 0.3 for d in selected), 3
+    )
+    budget = round(sum(float(d.get("cost", 100)) for d in selected), 2)
+    record = {
+        "id": payload.get("id") or f"scn-{uuid4().hex[:8]}",
+        "portfolio_id": portfolio_id,
+        "name": name,
+        "value_score": score,
+        "budget": budget,
+        "selected_ids": [d.get("id") for d in selected],
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "published": False,
+    }
+    store = _load_store(SCENARIOS_STORE_PATH, {"scenarios": [], "published_decisions": []})
+    store.setdefault("scenarios", []).append(record)
+    _write_json(SCENARIOS_STORE_PATH, store)
     return record
 
 
-@api_router.get('/api/portfolio/{portfolio_id}/scenarios/compare')
-@permission_required('portfolio.view')
+@api_router.get("/api/portfolio/{portfolio_id}/scenarios/compare")
+@permission_required("portfolio.view")
 async def compare_scenarios(portfolio_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(SCENARIOS_STORE_PATH,{"scenarios":[]})
-    rows=[s for s in store.get('scenarios',[]) if s.get('portfolio_id')==portfolio_id]
-    rows.sort(key=lambda s:s.get('value_score',0), reverse=True)
+    store = _load_store(SCENARIOS_STORE_PATH, {"scenarios": []})
+    rows = [s for s in store.get("scenarios", []) if s.get("portfolio_id") == portfolio_id]
+    rows.sort(key=lambda s: s.get("value_score", 0), reverse=True)
     return {"scenarios": rows}
 
 
-@api_router.post('/api/portfolio/{portfolio_id}/scenarios/{scenario_id}/publish')
-@permission_required('intake.approve')
-async def publish_scenario_decision(portfolio_id: str, scenario_id: str, request: Request) -> dict[str, Any]:
-    session=_require_session(request)
-    store=_load_store(SCENARIOS_STORE_PATH,{"scenarios":[],"published_decisions":[]})
-    target=None
-    for row in store.get('scenarios',[]):
-        if row.get('portfolio_id')==portfolio_id and row.get('id')==scenario_id:
-            row['published']=True
-            target=row
+@api_router.post("/api/portfolio/{portfolio_id}/scenarios/{scenario_id}/publish")
+@permission_required("intake.approve")
+async def publish_scenario_decision(
+    portfolio_id: str, scenario_id: str, request: Request
+) -> dict[str, Any]:
+    session = _require_session(request)
+    store = _load_store(SCENARIOS_STORE_PATH, {"scenarios": [], "published_decisions": []})
+    target = None
+    for row in store.get("scenarios", []):
+        if row.get("portfolio_id") == portfolio_id and row.get("id") == scenario_id:
+            row["published"] = True
+            target = row
             break
     if target is None:
-        raise HTTPException(status_code=404, detail='Scenario not found')
-    decision={"portfolio_id":portfolio_id,"scenario_id":scenario_id,"published_at":datetime.now(timezone.utc).isoformat()}
-    store.setdefault('published_decisions',[]).append(decision)
-    _write_json(SCENARIOS_STORE_PATH,store)
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    decision = {
+        "portfolio_id": portfolio_id,
+        "scenario_id": scenario_id,
+        "published_at": datetime.now(timezone.utc).isoformat(),
+    }
+    store.setdefault("published_decisions", []).append(decision)
+    _write_json(SCENARIOS_STORE_PATH, store)
     if _demo_mode_enabled():
-        demo_outbox.push("sor_publish", {"tenant_id": session.get("tenant_id") or "demo-tenant", "resource": "scenario_decision", **decision})
-    _audit_record(request, 'portfolio.scenario.publish', {"resource":"scenario","portfolio_id":portfolio_id,"scenario_id":scenario_id})
-    return {"status":"published","decision":decision}
+        demo_outbox.push(
+            "sor_publish",
+            {
+                "tenant_id": session.get("tenant_id") or "demo-tenant",
+                "resource": "scenario_decision",
+                **decision,
+            },
+        )
+    _audit_record(
+        request,
+        "portfolio.scenario.publish",
+        {"resource": "scenario", "portfolio_id": portfolio_id, "scenario_id": scenario_id},
+    )
+    return {"status": "published", "decision": decision}
 
 
-
-@api_router.get('/api/finance/budgets')
-@permission_required('portfolio.view')
+@api_router.get("/api/finance/budgets")
+@permission_required("portfolio.view")
 async def list_finance_budgets(workspace_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(STORAGE_DIR / 'finance_budget.json', {"budgets": []})
-    rows=[b for b in store.get('budgets',[]) if b.get('workspace_id')==workspace_id]
-    return {"budgets":rows}
+    store = _load_store(STORAGE_DIR / "finance_budget.json", {"budgets": []})
+    rows = [b for b in store.get("budgets", []) if b.get("workspace_id") == workspace_id]
+    return {"budgets": rows}
 
 
-@api_router.post('/api/finance/budgets')
-@permission_required('config.manage')
+@api_router.post("/api/finance/budgets")
+@permission_required("config.manage")
 async def create_finance_budget(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     _require_session(request)
-    path=STORAGE_DIR / 'finance_budget.json'
-    store=_load_store(path,{"budgets":[]})
-    prior=[b for b in store.get('budgets',[]) if b.get('workspace_id')==payload.get('workspace_id')]
-    version=len(prior)+1
-    row={"id":f"bud-{uuid4().hex[:8]}","version":version,**payload}
+    path = STORAGE_DIR / "finance_budget.json"
+    store = _load_store(path, {"budgets": []})
+    prior = [
+        b for b in store.get("budgets", []) if b.get("workspace_id") == payload.get("workspace_id")
+    ]
+    version = len(prior) + 1
+    row = {"id": f"bud-{uuid4().hex[:8]}", "version": version, **payload}
     if prior:
-        row['diff']={k: row.get('amounts',{}).get(k,0)-prior[-1].get('amounts',{}).get(k,0) for k in set(row.get('amounts',{})) | set(prior[-1].get('amounts',{}))}
+        row["diff"] = {
+            k: row.get("amounts", {}).get(k, 0) - prior[-1].get("amounts", {}).get(k, 0)
+            for k in set(row.get("amounts", {})) | set(prior[-1].get("amounts", {}))
+        }
     else:
-        row['diff']={}
-    store.setdefault('budgets',[]).append(row)
-    _write_json(path,store)
+        row["diff"] = {}
+    store.setdefault("budgets", []).append(row)
+    _write_json(path, store)
     return row
 
 
-@api_router.post('/api/finance/change-requests')
-@permission_required('portfolio.view')
+@api_router.post("/api/finance/change-requests")
+@permission_required("portfolio.view")
 async def submit_change_request(payload: dict[str, Any], request: Request) -> dict[str, Any]:
-    session=_require_session(request)
-    path=STORAGE_DIR / 'finance_change_requests.json'
-    store=_load_store(path,{"change_requests":[]})
-    row={"id":f"cr-{uuid4().hex[:8]}","status":"submitted","submitted_by":session.get('subject','user'),"submitted_at":datetime.now(timezone.utc).isoformat(),**payload}
-    store.setdefault('change_requests',[]).append(row)
-    _write_json(path,store)
+    session = _require_session(request)
+    path = STORAGE_DIR / "finance_change_requests.json"
+    store = _load_store(path, {"change_requests": []})
+    row = {
+        "id": f"cr-{uuid4().hex[:8]}",
+        "status": "submitted",
+        "submitted_by": session.get("subject", "user"),
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
+        **payload,
+    }
+    store.setdefault("change_requests", []).append(row)
+    _write_json(path, store)
     return row
 
 
-@api_router.post('/api/finance/change-requests/{request_id}/decision')
-@permission_required('intake.approve')
-async def decide_change_request(request_id: str, payload: dict[str, Any], request: Request) -> dict[str, Any]:
+@api_router.post("/api/finance/change-requests/{request_id}/decision")
+@permission_required("intake.approve")
+async def decide_change_request(
+    request_id: str, payload: dict[str, Any], request: Request
+) -> dict[str, Any]:
     _require_session(request)
-    path=STORAGE_DIR / 'finance_change_requests.json'
-    store=_load_store(path,{"change_requests":[]})
-    for row in store.get('change_requests',[]):
-        if row.get('id')==request_id:
-            if payload.get('decision') not in {'approve','reject'}:
-                raise HTTPException(status_code=400, detail='decision must be approve|reject')
-            row['status']='approved' if payload.get('decision')=='approve' else 'rejected'
-            row['decision_at']=datetime.now(timezone.utc).isoformat()
-            _write_json(path,store)
+    path = STORAGE_DIR / "finance_change_requests.json"
+    store = _load_store(path, {"change_requests": []})
+    for row in store.get("change_requests", []):
+        if row.get("id") == request_id:
+            if payload.get("decision") not in {"approve", "reject"}:
+                raise HTTPException(status_code=400, detail="decision must be approve|reject")
+            row["status"] = "approved" if payload.get("decision") == "approve" else "rejected"
+            row["decision_at"] = datetime.now(timezone.utc).isoformat()
+            _write_json(path, store)
             return row
-    raise HTTPException(status_code=404, detail='Change request not found')
+    raise HTTPException(status_code=404, detail="Change request not found")
 
 
-@api_router.get('/api/finance/evidence/export')
-@permission_required('audit.view')
+@api_router.get("/api/finance/evidence/export")
+@permission_required("audit.view")
 async def export_finance_evidence(workspace_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    budgets=_load_store(STORAGE_DIR / 'finance_budget.json',{"budgets":[]}).get('budgets',[])
-    changes=_load_store(STORAGE_DIR / 'finance_change_requests.json',{"change_requests":[]}).get('change_requests',[])
-    artifacts={"workspace_id":workspace_id,"budgets":[b for b in budgets if b.get('workspace_id')==workspace_id],"change_requests":[c for c in changes if c.get('workspace_id')==workspace_id],"approvals":_approval_payload().get('approvals',[])}
+    budgets = _load_store(STORAGE_DIR / "finance_budget.json", {"budgets": []}).get("budgets", [])
+    changes = _load_store(
+        STORAGE_DIR / "finance_change_requests.json", {"change_requests": []}
+    ).get("change_requests", [])
+    artifacts = {
+        "workspace_id": workspace_id,
+        "budgets": [b for b in budgets if b.get("workspace_id") == workspace_id],
+        "change_requests": [c for c in changes if c.get("workspace_id") == workspace_id],
+        "approvals": _approval_payload().get("approvals", []),
+    }
     return artifacts
 
 
-@api_router.get('/api/agile/backlog')
-@permission_required('portfolio.view')
+@api_router.get("/api/agile/backlog")
+@permission_required("portfolio.view")
 async def agile_backlog(program_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(STORAGE_DIR / 'agile_backlog.json',{"items":[]})
-    return {"items":[i for i in store.get('items',[]) if i.get('program_id')==program_id]}
+    store = _load_store(STORAGE_DIR / "agile_backlog.json", {"items": []})
+    return {"items": [i for i in store.get("items", []) if i.get("program_id") == program_id]}
 
 
-@api_router.post('/api/agile/backlog')
-@permission_required('config.manage')
+@api_router.post("/api/agile/backlog")
+@permission_required("config.manage")
 async def agile_upsert_backlog(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     _require_session(request)
-    path=STORAGE_DIR / 'agile_backlog.json'
-    store=_load_store(path,{"items":[]})
-    row={"id":payload.get('id') or f"agl-{uuid4().hex[:8]}",**payload}
-    store['items']=[i for i in store.get('items',[]) if i.get('id')!=row['id']]
-    store['items'].append(row)
-    _write_json(path,store)
+    path = STORAGE_DIR / "agile_backlog.json"
+    store = _load_store(path, {"items": []})
+    row = {"id": payload.get("id") or f"agl-{uuid4().hex[:8]}", **payload}
+    store["items"] = [i for i in store.get("items", []) if i.get("id") != row["id"]]
+    store["items"].append(row)
+    _write_json(path, store)
     return row
 
 
-@api_router.post('/api/agile/pi/create')
-@permission_required('config.manage')
+@api_router.post("/api/agile/pi/create")
+@permission_required("config.manage")
 async def agile_create_pi(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     _require_session(request)
-    path=STORAGE_DIR / 'agile_pi.json'
-    store=_load_store(path,{"pis":[]})
-    row={"id":payload.get('id') or f"pi-{uuid4().hex[:8]}","iterations":payload.get('iterations',[]),"teams":payload.get('teams',[]),**payload}
-    store.setdefault('pis',[]).append(row)
-    _write_json(path,store)
+    path = STORAGE_DIR / "agile_pi.json"
+    store = _load_store(path, {"pis": []})
+    row = {
+        "id": payload.get("id") or f"pi-{uuid4().hex[:8]}",
+        "iterations": payload.get("iterations", []),
+        "teams": payload.get("teams", []),
+        **payload,
+    }
+    store.setdefault("pis", []).append(row)
+    _write_json(path, store)
     return row
 
 
-@api_router.get('/api/agile/predictability')
-@permission_required('analytics.view')
+@api_router.get("/api/agile/predictability")
+@permission_required("analytics.view")
 async def agile_predictability(program_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    backlog=_load_store(STORAGE_DIR / 'agile_backlog.json',{"items":[]}).get('items',[])
-    rows=[r for r in backlog if r.get('program_id')==program_id]
-    planned=sum(float(r.get('planned_points',0)) for r in rows) or 1
-    achieved=sum(float(r.get('achieved_points',0)) for r in rows)
-    score=round(achieved/planned,3)
-    metrics={"program_id":program_id,"planned":planned,"achieved":achieved,"predictability":score}
-    path=STORAGE_DIR / 'agile_metrics.json'
-    store=_load_store(path,{"history":[]})
-    store.setdefault('history',[]).append({**metrics,"at":datetime.now(timezone.utc).isoformat()})
-    _write_json(path,store)
+    backlog = _load_store(STORAGE_DIR / "agile_backlog.json", {"items": []}).get("items", [])
+    rows = [r for r in backlog if r.get("program_id") == program_id]
+    planned = sum(float(r.get("planned_points", 0)) for r in rows) or 1
+    achieved = sum(float(r.get("achieved_points", 0)) for r in rows)
+    score = round(achieved / planned, 3)
+    metrics = {
+        "program_id": program_id,
+        "planned": planned,
+        "achieved": achieved,
+        "predictability": score,
+    }
+    path = STORAGE_DIR / "agile_metrics.json"
+    store = _load_store(path, {"history": []})
+    store.setdefault("history", []).append(
+        {**metrics, "at": datetime.now(timezone.utc).isoformat()}
+    )
+    _write_json(path, store)
     return metrics
 
 
-@api_router.get('/api/comments')
-@permission_required('portfolio.view')
+@api_router.get("/api/comments")
+@permission_required("portfolio.view")
 async def list_comments(workspace_id: str, artifact_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(COMMENTS_STORE_PATH,{"comments":[]})
-    return {"comments":[c for c in store.get('comments',[]) if c.get('workspace_id')==workspace_id and c.get('artifact_id')==artifact_id]}
+    store = _load_store(COMMENTS_STORE_PATH, {"comments": []})
+    return {
+        "comments": [
+            c
+            for c in store.get("comments", [])
+            if c.get("workspace_id") == workspace_id and c.get("artifact_id") == artifact_id
+        ]
+    }
 
 
-@api_router.post('/api/comments')
-@permission_required('portfolio.view')
+@api_router.post("/api/comments")
+@permission_required("portfolio.view")
 async def create_comment(payload: dict[str, Any], request: Request) -> dict[str, Any]:
-    session=_require_session(request)
-    store=_load_store(COMMENTS_STORE_PATH,{"comments":[]})
-    comment={"id":f"cmt-{uuid4().hex[:10]}","author":session.get('subject','user'),"created_at":datetime.now(timezone.utc).isoformat(),**payload}
-    store.setdefault('comments',[]).append(comment)
+    session = _require_session(request)
+    store = _load_store(COMMENTS_STORE_PATH, {"comments": []})
+    comment = {
+        "id": f"cmt-{uuid4().hex[:10]}",
+        "author": session.get("subject", "user"),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        **payload,
+    }
+    store.setdefault("comments", []).append(comment)
     _write_json(COMMENTS_STORE_PATH, store)
-    mentions=[part[1:] for part in str(payload.get('text','')).split() if part.startswith('@')]
+    mentions = [part[1:] for part in str(payload.get("text", "")).split() if part.startswith("@")]
     if mentions:
-        nstore=_load_store(NOTIFICATIONS_STORE_PATH,{"notifications":[]})
-        notifications=_ensure_notifications(nstore, session.get('tenant_id') or 'demo-tenant')
+        nstore = _load_store(NOTIFICATIONS_STORE_PATH, {"notifications": []})
+        notifications = _ensure_notifications(nstore, session.get("tenant_id") or "demo-tenant")
         for m in mentions:
-            notifications.append({"id":f"ntf-{uuid4().hex[:10]}","user_id":m,"message":f"Mentioned in comment {comment['id']}","read":False,"created_at":comment['created_at']})
-        _write_json(NOTIFICATIONS_STORE_PATH,nstore)
+            notifications.append(
+                {
+                    "id": f"ntf-{uuid4().hex[:10]}",
+                    "user_id": m,
+                    "message": f"Mentioned in comment {comment['id']}",
+                    "read": False,
+                    "created_at": comment["created_at"],
+                }
+            )
+        _write_json(NOTIFICATIONS_STORE_PATH, nstore)
     return comment
 
 
-@api_router.get('/api/notifications')
-@permission_required('portfolio.view')
+@api_router.get("/api/notifications")
+@permission_required("portfolio.view")
 async def list_notifications(request: Request) -> dict[str, Any]:
-    session=_require_session(request)
-    store=_load_store(NOTIFICATIONS_STORE_PATH,{"notifications":[]})
-    return {"notifications":store.get('notifications',[])}
+    _require_session(request)
+    store = _load_store(NOTIFICATIONS_STORE_PATH, {"notifications": []})
+    return {"notifications": store.get("notifications", [])}
 
 
-@api_router.post('/api/notifications/{notification_id}/read')
-@permission_required('portfolio.view')
+@api_router.post("/api/notifications/{notification_id}/read")
+@permission_required("portfolio.view")
 async def mark_notification_read(notification_id: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(NOTIFICATIONS_STORE_PATH,{"notifications":[]})
-    for n in store.get('notifications',[]):
-        if n.get('id')==notification_id:
-            n['read']=True
-            _write_json(NOTIFICATIONS_STORE_PATH,store)
+    store = _load_store(NOTIFICATIONS_STORE_PATH, {"notifications": []})
+    for n in store.get("notifications", []):
+        if n.get("id") == notification_id:
+            n["read"] = True
+            _write_json(NOTIFICATIONS_STORE_PATH, store)
             return n
-    raise HTTPException(status_code=404, detail='Notification not found')
+    raise HTTPException(status_code=404, detail="Notification not found")
 
 
-@api_router.post('/api/sync/diff')
-@permission_required('portfolio.view')
+@api_router.post("/api/sync/diff")
+@permission_required("portfolio.view")
 async def sync_diff(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     _require_session(request)
-    source=payload.get('source',[])
-    target=payload.get('target',[])
-    by_id={item['id']:item for item in target if isinstance(item,dict) and item.get('id')}
-    diffs=[]
-    conflicts=[]
+    source = payload.get("source", [])
+    target = payload.get("target", [])
+    by_id = {item["id"]: item for item in target if isinstance(item, dict) and item.get("id")}
+    diffs = []
+    conflicts = []
     for item in source:
-        if not isinstance(item,dict) or not item.get('id'):
+        if not isinstance(item, dict) or not item.get("id"):
             continue
-        t=by_id.get(item['id'])
+        t = by_id.get(item["id"])
         if not t:
-            diffs.append({"id":item['id'],"type":"create","incoming":item})
-        elif t!=item:
-            conflict={"id":item['id'],"incoming":item,"current":t,"status":"requires_decision"}
+            diffs.append({"id": item["id"], "type": "create", "incoming": item})
+        elif t != item:
+            conflict = {
+                "id": item["id"],
+                "incoming": item,
+                "current": t,
+                "status": "requires_decision",
+            }
             conflicts.append(conflict)
-            diffs.append({"id":item['id'],"type":"update","incoming":item,"current":t})
-    store=_load_store(SYNC_STORE_PATH,{"conflicts":[]})
-    store['conflicts']=conflicts
-    _write_json(SYNC_STORE_PATH,store)
-    return {"diffs":diffs,"conflicts":conflicts}
+            diffs.append({"id": item["id"], "type": "update", "incoming": item, "current": t})
+    store = _load_store(SYNC_STORE_PATH, {"conflicts": []})
+    store["conflicts"] = conflicts
+    _write_json(SYNC_STORE_PATH, store)
+    return {"diffs": diffs, "conflicts": conflicts}
 
 
-@api_router.get('/api/sync/conflicts')
-@permission_required('portfolio.view')
+@api_router.get("/api/sync/conflicts")
+@permission_required("portfolio.view")
 async def get_sync_conflicts(request: Request) -> dict[str, Any]:
     _require_session(request)
-    return _load_store(SYNC_STORE_PATH,{"conflicts":[]})
+    return _load_store(SYNC_STORE_PATH, {"conflicts": []})
 
 
-@api_router.post('/api/sync/conflicts/{conflict_id}/resolve')
-@permission_required('intake.approve')
-async def resolve_sync_conflict(conflict_id: str, payload: dict[str, Any], request: Request) -> dict[str, Any]:
+@api_router.post("/api/sync/conflicts/{conflict_id}/resolve")
+@permission_required("intake.approve")
+async def resolve_sync_conflict(
+    conflict_id: str, payload: dict[str, Any], request: Request
+) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(SYNC_STORE_PATH,{"conflicts":[]})
-    for c in store.get('conflicts',[]):
-        if c.get('id')==conflict_id:
-            decision=payload.get('decision')
-            if decision not in {'incoming','current'}:
-                raise HTTPException(status_code=400, detail='decision must be incoming|current')
-            c['status']='resolved'
-            c['resolution']=decision
-            _write_json(SYNC_STORE_PATH,store)
+    store = _load_store(SYNC_STORE_PATH, {"conflicts": []})
+    for c in store.get("conflicts", []):
+        if c.get("id") == conflict_id:
+            decision = payload.get("decision")
+            if decision not in {"incoming", "current"}:
+                raise HTTPException(status_code=400, detail="decision must be incoming|current")
+            c["status"] = "resolved"
+            c["resolution"] = decision
+            _write_json(SYNC_STORE_PATH, store)
             return c
-    raise HTTPException(status_code=404, detail='Conflict not found')
+    raise HTTPException(status_code=404, detail="Conflict not found")
 
 
-@api_router.post('/api/sync/publish')
-@permission_required('intake.approve')
+@api_router.post("/api/sync/publish")
+@permission_required("intake.approve")
 async def sync_publish(payload: dict[str, Any], request: Request) -> dict[str, Any]:
-    session=_require_session(request)
+    session = _require_session(request)
     if _demo_mode_enabled():
-        demo_outbox.push('sync_publish',{"tenant_id":session.get('tenant_id') or 'demo-tenant', **payload})
-    _audit_record(request,'sync.publish',{"resource":"sync","entity_type":payload.get('entity_type','unknown')})
-    return {"status":"queued","demo_mode":_demo_mode_enabled()}
+        demo_outbox.push(
+            "sync_publish", {"tenant_id": session.get("tenant_id") or "demo-tenant", **payload}
+        )
+    _audit_record(
+        request,
+        "sync.publish",
+        {"resource": "sync", "entity_type": payload.get("entity_type", "unknown")},
+    )
+    return {"status": "queued", "demo_mode": _demo_mode_enabled()}
 
 
-@api_router.post('/api/alerts/compute')
-@permission_required('analytics.view')
+@api_router.post("/api/alerts/compute")
+@permission_required("analytics.view")
 async def compute_alerts(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     _require_session(request)
-    seed=abs(hash(payload.get('workspace_id','demo'))) % 100
-    alerts=[
-        {"id":"schedule-slip","score":round((seed%37)/100+0.55,3),"type":"schedule_slip_risk"},
-        {"id":"budget-overrun","score":round((seed%29)/100+0.5,3),"type":"budget_overrun_risk"},
-        {"id":"gate-readiness","score":round((seed%23)/100+0.45,3),"type":"gate_readiness_risk"},
+    seed = abs(hash(payload.get("workspace_id", "demo"))) % 100
+    alerts = [
+        {
+            "id": "schedule-slip",
+            "score": round((seed % 37) / 100 + 0.55, 3),
+            "type": "schedule_slip_risk",
+        },
+        {
+            "id": "budget-overrun",
+            "score": round((seed % 29) / 100 + 0.5, 3),
+            "type": "budget_overrun_risk",
+        },
+        {
+            "id": "gate-readiness",
+            "score": round((seed % 23) / 100 + 0.45, 3),
+            "type": "gate_readiness_risk",
+        },
     ]
-    store=_load_store(ALERTS_STORE_PATH,{"history":[]})
-    store.setdefault('history',[]).append({"workspace_id":payload.get('workspace_id','demo'),"alerts":alerts,"generated_at":datetime.now(timezone.utc).isoformat()})
-    _write_json(ALERTS_STORE_PATH,store)
-    return {"alerts":alerts}
+    store = _load_store(ALERTS_STORE_PATH, {"history": []})
+    store.setdefault("history", []).append(
+        {
+            "workspace_id": payload.get("workspace_id", "demo"),
+            "alerts": alerts,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
+    _write_json(ALERTS_STORE_PATH, store)
+    return {"alerts": alerts}
 
 
-@api_router.post('/api/packs/{pack_type}/generate')
-@permission_required('analytics.view')
-async def generate_pack(pack_type: str, payload: dict[str, Any], request: Request) -> dict[str, Any]:
+@api_router.post("/api/packs/{pack_type}/generate")
+@permission_required("analytics.view")
+async def generate_pack(
+    pack_type: str, payload: dict[str, Any], request: Request
+) -> dict[str, Any]:
     _require_session(request)
-    if pack_type not in {'steering','evidence','comms'}:
-        raise HTTPException(status_code=400, detail='Unsupported pack type')
-    store=_load_store(PACKS_STORE_PATH,{"packs":[]})
-    artifact={"id":f"pack-{uuid4().hex[:8]}","pack_type":pack_type,"workspace_id":payload.get('workspace_id'),"title":f"{pack_type.title()} Pack","content":payload.get('content','Auto-generated pack'),'editable':True,"generated_at":datetime.now(timezone.utc).isoformat()}
-    store.setdefault('packs',[]).append(artifact)
-    _write_json(PACKS_STORE_PATH,store)
+    if pack_type not in {"steering", "evidence", "comms"}:
+        raise HTTPException(status_code=400, detail="Unsupported pack type")
+    store = _load_store(PACKS_STORE_PATH, {"packs": []})
+    artifact = {
+        "id": f"pack-{uuid4().hex[:8]}",
+        "pack_type": pack_type,
+        "workspace_id": payload.get("workspace_id"),
+        "title": f"{pack_type.title()} Pack",
+        "content": payload.get("content", "Auto-generated pack"),
+        "editable": True,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    store.setdefault("packs", []).append(artifact)
+    _write_json(PACKS_STORE_PATH, store)
     return artifact
 
 
-@api_router.post('/api/packs/{pack_id}/publish')
-@permission_required('intake.approve')
+@api_router.post("/api/packs/{pack_id}/publish")
+@permission_required("intake.approve")
 async def publish_pack(pack_id: str, request: Request) -> dict[str, Any]:
-    session=_require_session(request)
-    store=_load_store(PACKS_STORE_PATH,{"packs":[]})
-    for pack in store.get('packs',[]):
-        if pack.get('id')==pack_id:
-            pack['published_at']=datetime.now(timezone.utc).isoformat()
-            _write_json(PACKS_STORE_PATH,store)
+    session = _require_session(request)
+    store = _load_store(PACKS_STORE_PATH, {"packs": []})
+    for pack in store.get("packs", []):
+        if pack.get("id") == pack_id:
+            pack["published_at"] = datetime.now(timezone.utc).isoformat()
+            _write_json(PACKS_STORE_PATH, store)
             if _demo_mode_enabled():
-                demo_outbox.push('sor_publish',{"tenant_id":session.get('tenant_id') or 'demo-tenant',"resource":"pack","pack_id":pack_id})
-            _audit_record(request,'pack.publish',{"resource":"pack","pack_id":pack_id})
-            return {"status":"published","pack_id":pack_id}
-    raise HTTPException(status_code=404, detail='Pack not found')
+                demo_outbox.push(
+                    "sor_publish",
+                    {
+                        "tenant_id": session.get("tenant_id") or "demo-tenant",
+                        "resource": "pack",
+                        "pack_id": pack_id,
+                    },
+                )
+            _audit_record(request, "pack.publish", {"resource": "pack", "pack_id": pack_id})
+            return {"status": "published", "pack_id": pack_id}
+    raise HTTPException(status_code=404, detail="Pack not found")
 
 
-@api_router.get('/api/boards/config')
-@permission_required('portfolio.view')
+@api_router.get("/api/boards/config")
+@permission_required("portfolio.view")
 async def get_board_config(workspace_id: str, entity: str, request: Request) -> dict[str, Any]:
     _require_session(request)
-    store=_load_store(STORAGE_DIR / 'board_configs.json',{"configs":[]})
-    for cfg in store.get('configs',[]):
-        if cfg.get('workspace_id')==workspace_id and cfg.get('entity')==entity:
+    store = _load_store(STORAGE_DIR / "board_configs.json", {"configs": []})
+    for cfg in store.get("configs", []):
+        if cfg.get("workspace_id") == workspace_id and cfg.get("entity") == entity:
             return cfg
-    return {"workspace_id":workspace_id,"entity":entity,"view":"table","columns":[]}
+    return {"workspace_id": workspace_id, "entity": entity, "view": "table", "columns": []}
 
 
-@api_router.post('/api/boards/config')
-@permission_required('config.manage')
+@api_router.post("/api/boards/config")
+@permission_required("config.manage")
 async def save_board_config(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     _require_session(request)
-    path=STORAGE_DIR / 'board_configs.json'
-    store=_load_store(path,{"configs":[]})
-    configs=[c for c in store.get('configs',[]) if not (c.get('workspace_id')==payload.get('workspace_id') and c.get('entity')==payload.get('entity'))]
+    path = STORAGE_DIR / "board_configs.json"
+    store = _load_store(path, {"configs": []})
+    configs = [
+        c
+        for c in store.get("configs", [])
+        if not (
+            c.get("workspace_id") == payload.get("workspace_id")
+            and c.get("entity") == payload.get("entity")
+        )
+    ]
     configs.append(payload)
-    store['configs']=configs
-    _write_json(path,store)
+    store["configs"] = configs
+    _write_json(path, store)
     return payload
 
 
-@api_router.get('/api/automations')
-@permission_required('portfolio.view')
+@api_router.get("/api/automations")
+@permission_required("portfolio.view")
 async def list_automations(request: Request) -> dict[str, Any]:
     _require_session(request)
-    return _load_store(STORAGE_DIR / 'automations.json',{"automations":[],"history":[]})
+    return _load_store(STORAGE_DIR / "automations.json", {"automations": [], "history": []})
 
 
-@api_router.post('/api/automations')
-@permission_required('config.manage')
+@api_router.post("/api/automations")
+@permission_required("config.manage")
 async def create_automation(payload: dict[str, Any], request: Request) -> dict[str, Any]:
     _require_session(request)
-    path=STORAGE_DIR / 'automations.json'
-    store=_load_store(path,{"automations":[],"history":[]})
-    row={"id":payload.get('id') or f"auto-{uuid4().hex[:8]}","enabled":payload.get('enabled',True),**payload}
-    store.setdefault('automations',[]).append(row)
-    _write_json(path,store)
+    path = STORAGE_DIR / "automations.json"
+    store = _load_store(path, {"automations": [], "history": []})
+    row = {
+        "id": payload.get("id") or f"auto-{uuid4().hex[:8]}",
+        "enabled": payload.get("enabled", True),
+        **payload,
+    }
+    store.setdefault("automations", []).append(row)
+    _write_json(path, store)
     return row
 
 
-@api_router.post('/api/automations/{automation_id}/run')
-@permission_required('config.manage')
+@api_router.post("/api/automations/{automation_id}/run")
+@permission_required("config.manage")
 async def run_automation(automation_id: str, request: Request) -> dict[str, Any]:
-    session=_require_session(request)
-    path=STORAGE_DIR / 'automations.json'
-    store=_load_store(path,{"automations":[],"history":[]})
-    match=next((a for a in store.get('automations',[]) if a.get('id')==automation_id),None)
+    session = _require_session(request)
+    path = STORAGE_DIR / "automations.json"
+    store = _load_store(path, {"automations": [], "history": []})
+    match = next((a for a in store.get("automations", []) if a.get("id") == automation_id), None)
     if not match:
-        raise HTTPException(status_code=404, detail='Automation not found')
-    run={"id":f"run-{uuid4().hex[:8]}","automation_id":automation_id,"status":"completed","executed_at":datetime.now(timezone.utc).isoformat()}
-    store.setdefault('history',[]).append(run)
-    _write_json(path,store)
-    if match.get('action')=='notify':
-        nstore=_load_store(NOTIFICATIONS_STORE_PATH,{"notifications":[]})
-        _ensure_notifications(nstore, session.get('tenant_id') or 'demo-tenant').append({"id":f"ntf-{uuid4().hex[:8]}","user_id":"*","message":f"Automation {automation_id} executed","read":False,"created_at":run['executed_at']})
-        _write_json(NOTIFICATIONS_STORE_PATH,nstore)
-    _audit_record(request,'automation.run',{"resource":"automation","automation_id":automation_id})
+        raise HTTPException(status_code=404, detail="Automation not found")
+    run = {
+        "id": f"run-{uuid4().hex[:8]}",
+        "automation_id": automation_id,
+        "status": "completed",
+        "executed_at": datetime.now(timezone.utc).isoformat(),
+    }
+    store.setdefault("history", []).append(run)
+    _write_json(path, store)
+    if match.get("action") == "notify":
+        nstore = _load_store(NOTIFICATIONS_STORE_PATH, {"notifications": []})
+        _ensure_notifications(nstore, session.get("tenant_id") or "demo-tenant").append(
+            {
+                "id": f"ntf-{uuid4().hex[:8]}",
+                "user_id": "*",
+                "message": f"Automation {automation_id} executed",
+                "read": False,
+                "created_at": run["executed_at"],
+            }
+        )
+        _write_json(NOTIFICATIONS_STORE_PATH, nstore)
+    _audit_record(
+        request, "automation.run", {"resource": "automation", "automation_id": automation_id}
+    )
     return run
 
 
-
 @app.get("/api/portfolio-health")
-async def legacy_portfolio_health(request: Request, portfolio_id: str | None = None, project_id: str | None = None) -> Response:
+async def legacy_portfolio_health(
+    request: Request, portfolio_id: str | None = None, project_id: str | None = None
+) -> Response:
     if _demo_mode_enabled():
         fixture_path = REPO_ROOT / "examples" / "demo-scenarios" / "portfolio-health.json"
         if fixture_path.exists():
@@ -7311,7 +7640,9 @@ async def legacy_portfolio_health(request: Request, portfolio_id: str | None = N
 
 
 @app.get("/api/lifecycle-metrics")
-async def legacy_lifecycle_metrics(request: Request, portfolio_id: str | None = None, project_id: str | None = None) -> Response:
+async def legacy_lifecycle_metrics(
+    request: Request, portfolio_id: str | None = None, project_id: str | None = None
+) -> Response:
     if _demo_mode_enabled():
         fixture_path = REPO_ROOT / "examples" / "demo-scenarios" / "lifecycle-metrics.json"
         if fixture_path.exists():

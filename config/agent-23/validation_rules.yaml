@@ -1,0 +1,32 @@
+# Validation rules for data synchronisation agent (agent-23)
+
+project:
+  - field: id
+    type: string
+    required: true
+    min_length: 1
+  - field: name
+    type: string
+    required: true
+  - field: status
+    type: string
+    allowed_values: ["active", "completed", "on_hold", "cancelled", "planning"]
+
+resource:
+  - field: id
+    type: string
+    required: true
+  - field: name
+    type: string
+    required: true
+
+financial:
+  - field: budget
+    type: number
+    required: false
+    min: 0
+
+default:
+  - field: id
+    type: string
+    required: true

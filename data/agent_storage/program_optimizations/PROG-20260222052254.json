@@ -1,0 +1,41 @@
+{
+  "program_id": "PROG-20260222052254",
+  "optimized_schedule": {
+    "A": {
+      "start": "2025-12-23T00:00:00",
+      "end": "2026-12-22T00:00:00",
+      "duration_days": 364
+    }
+  },
+  "objective_score": 0.6233,
+  "objective_breakdown": {
+    "utilization": 1.0,
+    "cost": 0.1667,
+    "risk": 0.7,
+    "schedule": 1.0,
+    "alignment": 0.0,
+    "synergy": 0.0
+  },
+  "algorithm": "genetic_algorithm",
+  "constraints": {
+    "iterations": 2
+  },
+  "alignment_score": 0.0,
+  "alignment_scores": {
+    "A": 0.0
+  },
+  "synergy_savings": {
+    "shared_components": 0,
+    "vendor_consolidation": 0,
+    "infrastructure_sharing": 0,
+    "total": 0
+  },
+  "synergy_analysis": {
+    "shared_components": [],
+    "vendor_consolidation": [],
+    "infrastructure_synergies": []
+  },
+  "optimized_at": "2026-02-22T05:22:54.172030+00:00",
+  "_id": "PROG-20260222052254",
+  "_updated_at": "2026-02-22T05:22:54.172287+00:00"
+}

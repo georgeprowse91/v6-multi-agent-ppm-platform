@@ -1,5 +1,4 @@
 import pytest
-
 from approval_workflow_agent import ApprovalWorkflowAgent
 
 
@@ -45,7 +44,9 @@ async def test_delegated_approver_receives_notification_and_recorded(tmp_path):
     assert delegations[0]["delegate"] == "delegate-1"
 
     notifications = record["details"]["notifications"]
-    delegated_notification = next(item for item in notifications if item["assigned_approver"] == "delegate-1")
+    delegated_notification = next(
+        item for item in notifications if item["assigned_approver"] == "delegate-1"
+    )
     assert delegated_notification["to"] == "delegate-1"
     assert "on behalf of sponsor-1" in delegated_notification["body"]
 
@@ -92,7 +93,9 @@ async def test_delegate_direct_notification_flag_can_route_to_delegator(tmp_path
     record = agent.approval_store.get("tenant-delegation", result["approval_id"])
     assert record is not None
     notifications = record["details"]["notifications"]
-    delegated_notification = next(item for item in notifications if item["assigned_approver"] == "delegate-1")
+    delegated_notification = next(
+        item for item in notifications if item["assigned_approver"] == "delegate-1"
+    )
     assert delegated_notification["to"] == "sponsor-1"
 
     await agent.cleanup()

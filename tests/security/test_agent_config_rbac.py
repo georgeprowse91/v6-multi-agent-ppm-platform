@@ -29,8 +29,8 @@ def _client(monkeypatch, tmp_path: Path) -> TestClient:
     monkeypatch.setenv(
         "AGENT_CONFIG_DATABASE_URL", f"sqlite:///{tmp_path / 'agent_config_rbac.db'}"
     )
-    from api.main import app
     from agent_config_service import reset_store_instance
+    from api.main import app
 
     reset_store_instance()
     return TestClient(app)
@@ -38,9 +38,7 @@ def _client(monkeypatch, tmp_path: Path) -> TestClient:
 
 def test_agent_config_requires_auth(monkeypatch, tmp_path) -> None:
     client = _client(monkeypatch, tmp_path)
-    response = client.patch(
-        "/v1/agents/config/agent-01-intent-router", json={"enabled": False}
-    )
+    response = client.patch("/v1/agents/config/agent-01-intent-router", json={"enabled": False})
     assert response.status_code == 401
 
 

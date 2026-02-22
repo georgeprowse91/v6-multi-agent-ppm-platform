@@ -50,25 +50,50 @@ async def test_runtime_sequences_and_branches_with_events(tmp_path: Path) -> Non
     event_bus = FakeEventBus()
     agent_client = FakeAgentClient()
     store.ping()
-    runtime = WorkflowRuntime(store, FakeApprovalAgent(), agent_client=agent_client, event_bus=event_bus)
+    runtime = WorkflowRuntime(
+        store, FakeApprovalAgent(), agent_client=agent_client, event_bus=event_bus
+    )
 
     definition = {
         "steps": [
-            {"id": "start", "type": "task", "next": "route", "config": {"agent": "a1", "action": "begin"}},
+            {
+                "id": "start",
+                "type": "task",
+                "next": "route",
+                "config": {"agent": "a1", "action": "begin"},
+            },
             {
                 "id": "route",
                 "type": "decision",
                 "branches": [
                     {
-                        "condition": {"field": "$.payload.priority", "operator": "equals", "value": "high"},
+                        "condition": {
+                            "field": "$.payload.priority",
+                            "operator": "equals",
+                            "value": "high",
+                        },
                         "next": "vip",
                     }
                 ],
                 "default_next": "normal",
             },
-            {"id": "vip", "type": "task", "next": "finish", "config": {"agent": "a2", "action": "expedite"}},
-            {"id": "normal", "type": "task", "next": "finish", "config": {"agent": "a3", "action": "standard"}},
-            {"id": "finish", "type": "notification", "config": {"channel": "email", "template": "done"}},
+            {
+                "id": "vip",
+                "type": "task",
+                "next": "finish",
+                "config": {"agent": "a2", "action": "expedite"},
+            },
+            {
+                "id": "normal",
+                "type": "task",
+                "next": "finish",
+                "config": {"agent": "a3", "action": "standard"},
+            },
+            {
+                "id": "finish",
+                "type": "notification",
+                "config": {"channel": "email", "template": "done"},
+            },
         ]
     }
     instance = store.create("run-1", "wf-1", "tenant-1", payload={"priority": "high"})
@@ -89,7 +114,9 @@ async def test_runtime_parallel_join_and_failure_compensation(tmp_path: Path) ->
     event_bus = FakeEventBus()
     agent_client = FakeAgentClient()
     store.ping()
-    runtime = WorkflowRuntime(store, FakeApprovalAgent(), agent_client=agent_client, event_bus=event_bus)
+    runtime = WorkflowRuntime(
+        store, FakeApprovalAgent(), agent_client=agent_client, event_bus=event_bus
+    )
 
     definition = {
         "steps": [
@@ -106,9 +133,24 @@ async def test_runtime_parallel_join_and_failure_compensation(tmp_path: Path) ->
                 "branches": [{"next": "branch-a"}, {"next": "branch-b"}],
                 "join": "join",
             },
-            {"id": "branch-a", "type": "task", "next": None, "config": {"agent": "a", "action": "run"}},
-            {"id": "branch-b", "type": "task", "next": None, "config": {"agent": "b", "action": "run"}},
-            {"id": "join", "type": "task", "next": "broken", "config": {"agent": "joiner", "action": "combine"}},
+            {
+                "id": "branch-a",
+                "type": "task",
+                "next": None,
+                "config": {"agent": "a", "action": "run"},
+            },
+            {
+                "id": "branch-b",
+                "type": "task",
+                "next": None,
+                "config": {"agent": "b", "action": "run"},
+            },
+            {
+                "id": "join",
+                "type": "task",
+                "next": "broken",
+                "config": {"agent": "joiner", "action": "combine"},
+            },
             {"id": "broken", "type": "task", "config": {}},
         ]
     }

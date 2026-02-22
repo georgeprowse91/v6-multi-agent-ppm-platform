@@ -22,7 +22,7 @@ if str(SDK_PATH) not in sys.path:
 from base_connector import ConnectorCategory, ConnectorConfig
 from http_client import HttpClient, RetryConfig
 from rest_connector import RestConnector
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 
 DEFAULT_TWILIO_URL = "https://api.twilio.com/2010-04-01"
 

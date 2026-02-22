@@ -1,0 +1,12 @@
+{
+  "framework_id": "string",
+  "name": "string",
+  "description": "string",
+  "jurisdiction": "list[string]",
+  "industry": "list[string]",
+  "data_sensitivity": "list[string]",
+  "effective_date": "string",
+  "applicability_rules": "json",
+  "_id": "regulatory_frameworks",
+  "_updated_at": "2026-02-22T06:02:07.152560+00:00"
+}

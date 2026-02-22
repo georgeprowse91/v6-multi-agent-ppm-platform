@@ -7,8 +7,8 @@ from observability.metrics import (
     build_business_workflow_metrics,
     build_cost_metrics,
     build_kpi_handles,
-    build_mcp_fallback_metrics,
     build_mcp_client_metrics,
+    build_mcp_fallback_metrics,
     configure_metrics,
 )
 from observability.telemetry import (

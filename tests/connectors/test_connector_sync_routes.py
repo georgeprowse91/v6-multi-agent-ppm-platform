@@ -6,9 +6,9 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
@@ -27,9 +27,7 @@ def _load_router(connector_id: str):  # noqa: ANN001
     )
     connectors_pkg.__path__ = [str(CONNECTORS_ROOT)]
     connector_pkg_name = f"integrations.connectors.{connector_id}"
-    connector_pkg = sys.modules.setdefault(
-        connector_pkg_name, types.ModuleType(connector_pkg_name)
-    )
+    connector_pkg = sys.modules.setdefault(connector_pkg_name, types.ModuleType(connector_pkg_name))
     connector_pkg.__path__ = [str(CONNECTORS_ROOT / connector_id)]
     src_pkg_name = f"{connector_pkg_name}.src"
     src_pkg = sys.modules.setdefault(src_pkg_name, types.ModuleType(src_pkg_name))

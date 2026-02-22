@@ -17,8 +17,8 @@ OBSERVABILITY_ROOT = Path(__file__).resolve().parents[3] / "packages" / "observa
 if str(OBSERVABILITY_ROOT) not in sys.path:
     sys.path.insert(0, str(OBSERVABILITY_ROOT))
 
-from observability.tracing import get_trace_id, start_agent_span  # noqa: E402
 from observability.metrics import build_agent_execution_metrics, build_cost_metrics  # noqa: E402
+from observability.tracing import get_trace_id, start_agent_span  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
 
 from agents.runtime.src.agent_catalog import get_catalog_id  # noqa: E402
@@ -36,9 +36,9 @@ from agents.runtime.src.policy import (  # noqa: E402
     evaluate_policy_bundle,
     load_default_policy_bundle,
 )
-from packages.memory_client import MemoryClient  # noqa: E402
-from packages.llm.prompt_sanitizer import detect_injection, sanitize_prompt  # noqa: E402
 from packages.feedback.feedback_models import Feedback  # noqa: E402
+from packages.llm.prompt_sanitizer import detect_injection, sanitize_prompt  # noqa: E402
+from packages.memory_client import MemoryClient  # noqa: E402
 from services.feedback_service import FeedbackService  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -150,7 +150,11 @@ class BaseAgent(ABC):
         if required_schema_keys:
             schemas_loaded = isinstance(schema_payload, dict)
             missing_schemas = (
-                sorted(key for key in required_schema_keys if not schemas_loaded or key not in schema_payload)
+                sorted(
+                    key
+                    for key in required_schema_keys
+                    if not schemas_loaded or key not in schema_payload
+                )
                 if required_schema_keys
                 else []
             )
@@ -171,13 +175,19 @@ class BaseAgent(ABC):
                     ),
                     metadata={
                         "required_schema_keys": list(required_schema_keys),
-                        "loaded_schema_keys": sorted(schema_payload.keys()) if isinstance(schema_payload, dict) else [],
+                        "loaded_schema_keys": (
+                            sorted(schema_payload.keys())
+                            if isinstance(schema_payload, dict)
+                            else []
+                        ),
                     },
                 )
             )
 
         blocking_failures = [
-            check for check in checks if not check.passed and check.severity == ReadinessSeverity.critical
+            check
+            for check in checks
+            if not check.passed and check.severity == ReadinessSeverity.critical
         ]
         return ReadinessReport(
             agent_id=self.agent_id,
@@ -466,7 +476,11 @@ class BaseAgent(ABC):
             )
 
             # Avoid leaking internal details in non-development environments
-            error_message = str(e) if os.getenv("ENVIRONMENT", "development") == "development" else e.__class__.__name__
+            error_message = (
+                str(e)
+                if os.getenv("ENVIRONMENT", "development") == "development"
+                else e.__class__.__name__
+            )
 
             response = AgentResponse(
                 success=False,
@@ -557,7 +571,9 @@ class BaseAgent(ABC):
             },
         )
 
-    def _apply_prompt_sanitization(self, input_data: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    def _apply_prompt_sanitization(
+        self, input_data: dict[str, Any]
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         candidate_keys = self.get_config(
             "prompt_fields",
             ["prompt", "user_prompt", "query", "message", "input"],

@@ -1,0 +1,16 @@
+{
+  "log_id": "SYNCLOG-4",
+  "tenant_id": "tenant-sync",
+  "entity_type": "project",
+  "source_system": "jira",
+  "status": "duplicate",
+  "mode": "single",
+  "started_at": "2026-02-22T05:18:31.342793+00:00",
+  "finished_at": "2026-02-22T05:18:31.343235+00:00",
+  "master_id": null,
+  "details": {
+    "reason": "Duplicate record discarded"
+  },
+  "_id": "SYNCLOG-4",
+  "_updated_at": "2026-02-22T05:18:31.343436+00:00"
+}

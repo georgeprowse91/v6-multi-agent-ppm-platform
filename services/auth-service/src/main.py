@@ -215,7 +215,9 @@ async def _resolve_logout_endpoint() -> str | None:
     return None
 
 
-def _client_credentials(request_client_id: str | None, request_client_secret: str | None) -> tuple[str, str | None]:
+def _client_credentials(
+    request_client_id: str | None, request_client_secret: str | None
+) -> tuple[str, str | None]:
     client_id = request_client_id or _get_env("AUTH_CLIENT_ID")
     if not client_id:
         raise HTTPException(status_code=500, detail="Auth client ID not configured")

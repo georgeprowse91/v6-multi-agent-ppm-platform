@@ -7,7 +7,6 @@ if str(SRC_DIR) not in sys.path:
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from routes import assistant
 
 

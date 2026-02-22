@@ -127,9 +127,9 @@ async def health(request: Request, response: Response) -> HealthResponse:
     orchestrator = request.app.state.orchestrator
     dependencies = {
         "orchestrator": "ok" if orchestrator.initialized else "down",
-        "leader_elector": "ok"
-        if getattr(app.state, "leader_elector", None) is not None
-        else "down",
+        "leader_elector": (
+            "ok" if getattr(app.state, "leader_elector", None) is not None else "down"
+        ),
     }
     status = "ok" if all(value == "ok" for value in dependencies.values()) else "degraded"
     if status != "ok":
@@ -281,7 +281,9 @@ async def upload_workflow(
 
 
 @api_router.post("/plans/{plan_id}/approve", response_model=PlanApprovalResponse)
-async def approve_plan(plan_id: str, payload: PlanApprovalRequest, request: Request) -> PlanApprovalResponse:
+async def approve_plan(
+    plan_id: str, payload: PlanApprovalRequest, request: Request
+) -> PlanApprovalResponse:
     auth = request.state.auth
     orchestrator = request.app.state.orchestrator
     response = await orchestrator.approve_plan(

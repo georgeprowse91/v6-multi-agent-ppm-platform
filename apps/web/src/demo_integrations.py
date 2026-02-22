@@ -38,7 +38,13 @@ class DemoOutbox:
         data[bucket] = values
         self._write(data)
 
-    def record_audit_event(self, action: str, resource_type: str, resource_id: str, metadata: dict[str, Any] | None = None) -> None:
+    def record_audit_event(
+        self,
+        action: str,
+        resource_type: str,
+        resource_id: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         """Emit an audit event to the demo outbox so that demo publish/write
         operations are auditable without touching external audit stores."""
         event: dict[str, Any] = {
@@ -71,7 +77,9 @@ class DemoDocumentServiceClient:
     def __init__(self, outbox: DemoOutbox) -> None:
         self._outbox = outbox
 
-    async def create_document(self, payload: dict[str, Any], headers: dict[str, str]) -> httpx.Response:
+    async def create_document(
+        self, payload: dict[str, Any], headers: dict[str, str]
+    ) -> httpx.Response:
         doc_id = payload.get("document_id") or f"demo-doc-{uuid4()}"
         item = {
             "document_id": doc_id,
@@ -91,7 +99,9 @@ class DemoDocumentServiceClient:
 
     async def list_documents(self, headers: dict[str, str]) -> httpx.Response:
         tenant_id = headers.get("X-Tenant-ID", "demo-tenant")
-        docs = [item for item in self._outbox.read("documents") if item.get("tenant_id") == tenant_id]
+        docs = [
+            item for item in self._outbox.read("documents") if item.get("tenant_id") == tenant_id
+        ]
         return _json_response(docs)
 
     async def get_document(self, document_id: str, headers: dict[str, str]) -> httpx.Response:
@@ -106,7 +116,9 @@ class DemoDataServiceClient:
     def __init__(self, outbox: DemoOutbox) -> None:
         self._outbox = outbox
 
-    async def store_entity(self, schema_name: str, payload: dict[str, Any], headers: dict[str, str]) -> httpx.Response:
+    async def store_entity(
+        self, schema_name: str, payload: dict[str, Any], headers: dict[str, str]
+    ) -> httpx.Response:
         entity_id = f"demo-{schema_name}-{uuid4().hex[:8]}"
         entity = {
             "id": entity_id,
@@ -125,21 +137,35 @@ class DemoDataServiceClient:
 
 class DemoAnalyticsServiceClient:
     async def get_project_health(self, project_id: str, headers: dict[str, str]) -> httpx.Response:
-        return _json_response({"project_id": project_id, "status": "green", "spi": 0.96, "cpi": 1.01})
+        return _json_response(
+            {"project_id": project_id, "status": "green", "spi": 0.96, "cpi": 1.01}
+        )
 
     async def get_project_trends(self, project_id: str, headers: dict[str, str]) -> httpx.Response:
-        return _json_response({"project_id": project_id, "trend": [{"period": "2026-W05", "health": "green"}]})
+        return _json_response(
+            {"project_id": project_id, "trend": [{"period": "2026-W05", "health": "green"}]}
+        )
 
-    async def request_what_if(self, project_id: str, payload: dict[str, Any], headers: dict[str, str]) -> httpx.Response:
-        return _json_response({"project_id": project_id, "scenario": payload, "outcome": "demo-simulated"})
+    async def request_what_if(
+        self, project_id: str, payload: dict[str, Any], headers: dict[str, str]
+    ) -> httpx.Response:
+        return _json_response(
+            {"project_id": project_id, "scenario": payload, "outcome": "demo-simulated"}
+        )
 
     async def get_project_kpis(self, project_id: str, headers: dict[str, str]) -> httpx.Response:
-        return _json_response({"project_id": project_id, "kpis": [{"label": "Burn", "value": "72%"}]})
+        return _json_response(
+            {"project_id": project_id, "kpis": [{"label": "Burn", "value": "72%"}]}
+        )
 
-    async def get_project_narrative(self, project_id: str, headers: dict[str, str]) -> httpx.Response:
+    async def get_project_narrative(
+        self, project_id: str, headers: dict[str, str]
+    ) -> httpx.Response:
         return _json_response({"project_id": project_id, "narrative": "Demo narrative."})
 
-    async def get_project_aggregations(self, project_id: str, headers: dict[str, str]) -> httpx.Response:
+    async def get_project_aggregations(
+        self, project_id: str, headers: dict[str, str]
+    ) -> httpx.Response:
         return _json_response({"project_id": project_id, "aggregations": []})
 
     async def get_powerbi_report(self, report_type: str, headers: dict[str, str]) -> httpx.Response:
@@ -152,10 +178,14 @@ class DemoConnectorHubClient:
 
     async def list_connectors(self, headers: dict[str, str]) -> httpx.Response:
         tenant_id = headers.get("X-Tenant-ID", "demo-tenant")
-        items = [item for item in self._outbox.read("connectors") if item.get("tenant_id") == tenant_id]
+        items = [
+            item for item in self._outbox.read("connectors") if item.get("tenant_id") == tenant_id
+        ]
         return _json_response(items)
 
-    async def create_connector(self, payload: dict[str, Any], headers: dict[str, str]) -> httpx.Response:
+    async def create_connector(
+        self, payload: dict[str, Any], headers: dict[str, str]
+    ) -> httpx.Response:
         tenant_id = headers.get("X-Tenant-ID", "demo-tenant")
         connector_id = f"demo-connector-{uuid4().hex[:8]}"
         connector = {
@@ -172,16 +202,22 @@ class DemoConnectorHubClient:
         )
         return _json_response(connector, status_code=201)
 
-    async def update_connector(self, connector_id: str, payload: dict[str, Any], headers: dict[str, str]) -> httpx.Response:
+    async def update_connector(
+        self, connector_id: str, payload: dict[str, Any], headers: dict[str, str]
+    ) -> httpx.Response:
         tenant_id = headers.get("X-Tenant-ID", "demo-tenant")
         connectors = self._outbox.read("connectors")
         for index, item in enumerate(connectors):
             if item.get("connector_id") == connector_id and item.get("tenant_id") == tenant_id:
                 connectors[index] = {**item, **payload}
                 self._outbox.write_bucket("connectors", connectors)
-                self._outbox.append("connector_updates", {"connector_id": connector_id, "payload": payload})
+                self._outbox.append(
+                    "connector_updates", {"connector_id": connector_id, "payload": payload}
+                )
                 return _json_response(connectors[index])
         return _json_response({"detail": "Not found"}, status_code=404)
 
-    async def get_connector_health(self, connector_id: str, headers: dict[str, str]) -> httpx.Response:
+    async def get_connector_health(
+        self, connector_id: str, headers: dict[str, str]
+    ) -> httpx.Response:
         return _json_response({"connector_id": connector_id, "healthy": True, "mode": "demo"})

@@ -126,7 +126,10 @@ def stage_progress(
     if not stage:
         return {"complete_count": 0, "total_count": 0, "percent": 0.0}
 
-    activities = [activity for activity, _stage in _iter_activity_tree(stage.get("activities", []) or [], stage)]
+    activities = [
+        activity
+        for activity, _stage in _iter_activity_tree(stage.get("activities", []) or [], stage)
+    ]
     total_count = len(activities)
     complete_count = sum(
         1 for activity in activities if state.activity_completion.get(activity["id"], False)

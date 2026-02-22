@@ -7,7 +7,16 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, FastAPI, HTTPException, Query, Request, Response, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    FastAPI,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -21,8 +30,6 @@ from observability.metrics import RequestMetricsMiddleware, configure_metrics  #
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
 from security.api_governance import apply_api_governance, version_response_payload  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
-
-from packages.version import API_VERSION  # noqa: E402
 from storage import (  # noqa: E402
     HistoryRecord,
     ParticipantRecord,
@@ -31,6 +38,8 @@ from storage import (  # noqa: E402
     build_backend,
     now_iso,
 )
+
+from packages.version import API_VERSION  # noqa: E402
 
 logger = logging.getLogger("realtime-coedit-service")
 logging.basicConfig(level=logging.INFO)
@@ -182,7 +191,9 @@ def create_app() -> FastAPI:
         return version_response_payload("realtime-coedit-service")
 
     @api_router.post("/sessions", response_model=SessionResponse)
-    async def start_session(request: SessionCreateRequest, http_request: Request) -> SessionResponse:
+    async def start_session(
+        request: SessionCreateRequest, http_request: Request
+    ) -> SessionResponse:
         session_id = str(uuid4())
         created_at = now_iso()
         tenant_id = http_request.state.auth.tenant_id
@@ -226,7 +237,9 @@ def create_app() -> FastAPI:
         return SessionStopResponse(session_id=session_id, status="stopped", stopped_at=now_iso())
 
     @api_router.post("/sessions/{session_id}/persist", response_model=PersistResponse)
-    async def persist_session(session_id: str, request: PersistRequest, http_request: Request) -> PersistResponse:
+    async def persist_session(
+        session_id: str, request: PersistRequest, http_request: Request
+    ) -> PersistResponse:
         session = await backend.get(session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
@@ -372,7 +385,11 @@ def create_app() -> FastAPI:
                     {
                         "type": "presence_update",
                         "participants": [
-                            {"user_id": p.user_id, "user_name": p.user_name, "joined_at": p.joined_at}
+                            {
+                                "user_id": p.user_id,
+                                "user_name": p.user_name,
+                                "joined_at": p.joined_at,
+                            }
                             for p in session.participants.values()
                         ],
                     },

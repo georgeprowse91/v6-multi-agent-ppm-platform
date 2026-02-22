@@ -1,0 +1,85 @@
+{
+  "tenant-sync": {
+    "RETRY-c99d4095-4d9d-42b3-9591-f750ead631fb": {
+      "retry_id": "RETRY-c99d4095-4d9d-42b3-9591-f750ead631fb",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-22T05:09:30.081803+00:00"
+    },
+    "RETRY-0bae2edf-a054-44cc-9799-c4a1c62c7086": {
+      "retry_id": "RETRY-0bae2edf-a054-44cc-9799-c4a1c62c7086",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "data": {
+        "id": "proj-dup",
+        "name": "Duplicated"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-22T05:09:30.862912+00:00"
+    },
+    "RETRY-1542223e-c108-4e4f-abfb-7c05363968d0": {
+      "retry_id": "RETRY-1542223e-c108-4e4f-abfb-7c05363968d0",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-22T05:09:54.313325+00:00"
+    },
+    "RETRY-a32459cc-4342-4f20-a804-3fc87d2d3b51": {
+      "retry_id": "RETRY-a32459cc-4342-4f20-a804-3fc87d2d3b51",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "data": {
+        "id": "proj-dup",
+        "name": "Duplicated"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-22T05:09:54.995853+00:00"
+    },
+    "RETRY-1ca8e33b-b63d-4546-a034-9e6137c6cbb9": {
+      "retry_id": "RETRY-1ca8e33b-b63d-4546-a034-9e6137c6cbb9",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-22T05:10:08.950055+00:00"
+    },
+    "RETRY-f5b70b8e-2b68-4c3b-b7c1-dbd6277f8c4f": {
+      "retry_id": "RETRY-f5b70b8e-2b68-4c3b-b7c1-dbd6277f8c4f",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "data": {
+        "id": "proj-dup",
+        "name": "Duplicated"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-22T05:10:20.236483+00:00"
+    }
+  }
+}

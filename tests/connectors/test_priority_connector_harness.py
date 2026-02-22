@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
 import httpx
@@ -23,18 +22,23 @@ from asana_connector import AsanaConnector
 from azure_devops_connector import AzureDevOpsConnector
 from base_connector import ConnectorCategory, ConnectorConfig
 from confluence_connector import ConfluenceConnector
-from integrations.connectors.salesforce.src.main import (
-    SalesforceConfig,
-    _fetch_projects as salesforce_fetch_projects,
-    _request_with_refresh as salesforce_request_with_refresh,
-)
-from integrations.connectors.salesforce.src import router as salesforce_router
-from integrations.connectors.sdk.src.auth import OAuthToken
-from integrations.connectors.sdk.src.http_client import HttpClient, HttpClientError
-from integrations.connectors.sdk.src.sync_router import OutboundSyncRequest
 from monday_connector import MondayConnector
 from rest_connector import RestConnector
 from servicenow_grc_connector import ServiceNowGrcConnector
+
+from integrations.connectors.salesforce.src import router as salesforce_router
+from integrations.connectors.salesforce.src.main import (
+    SalesforceConfig,
+)
+from integrations.connectors.salesforce.src.main import (
+    _fetch_projects as salesforce_fetch_projects,
+)
+from integrations.connectors.salesforce.src.main import (
+    _request_with_refresh as salesforce_request_with_refresh,
+)
+from integrations.connectors.sdk.src.auth import OAuthToken
+from integrations.connectors.sdk.src.http_client import HttpClient
+from integrations.connectors.sdk.src.sync_router import OutboundSyncRequest
 
 
 @dataclass
@@ -125,7 +129,9 @@ PRIORITY_CONNECTOR_CASES = [
 ]
 
 
-def _build_connector(case: ConnectorHarnessCase, monkeypatch: pytest.MonkeyPatch, transport: Any) -> Any:
+def _build_connector(
+    case: ConnectorHarnessCase, monkeypatch: pytest.MonkeyPatch, transport: Any
+) -> Any:
     for key, value in case.env_vars.items():
         monkeypatch.setenv(key, value)
     config = ConnectorConfig(
@@ -145,17 +151,29 @@ def test_connector_contract_checklist(case: ConnectorHarnessCase) -> None:
 
 
 @pytest.mark.parametrize("case", PRIORITY_CONNECTOR_CASES)
-def test_authentication_success_and_failure(case: ConnectorHarnessCase, monkeypatch: pytest.MonkeyPatch) -> None:
-    ok_transport = SequenceTransport({("GET", case.auth_path): httpx.Response(200, json=build_items_payload(case.items_path, [{"id": "1"}]))})
+def test_authentication_success_and_failure(
+    case: ConnectorHarnessCase, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ok_transport = SequenceTransport(
+        {
+            ("GET", case.auth_path): httpx.Response(
+                200, json=build_items_payload(case.items_path, [{"id": "1"}])
+            )
+        }
+    )
     connector = _build_connector(case, monkeypatch, ok_transport.transport)
     assert connector.authenticate() is True
 
-    fail_transport = SequenceTransport({("GET", case.auth_path): httpx.Response(401, json={"error": "unauthorized"})})
+    fail_transport = SequenceTransport(
+        {("GET", case.auth_path): httpx.Response(401, json={"error": "unauthorized"})}
+    )
     connector = _build_connector(case, monkeypatch, fail_transport.transport)
     assert connector.authenticate() is False
 
 
-def test_oauth_token_refresh_behavior_for_priority_connectors(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_oauth_token_refresh_behavior_for_priority_connectors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     case = next(item for item in PRIORITY_CONNECTOR_CASES if item.connector_id == "servicenow")
     responses = {
         ("GET", case.read_path): [
@@ -166,7 +184,12 @@ def test_oauth_token_refresh_behavior_for_priority_connectors(monkeypatch: pytes
     seq = SequenceTransport(responses)
     for key, value in case.env_vars.items():
         monkeypatch.setenv(key, value)
-    config = ConnectorConfig(connector_id="servicenow", name="servicenow", category=case.category, instance_url="https://api.example.com")
+    config = ConnectorConfig(
+        connector_id="servicenow",
+        name="servicenow",
+        category=case.category,
+        instance_url="https://api.example.com",
+    )
     token_manager = DummyTokenManager()
     connector = ServiceNowGrcConnector(config, transport=seq.transport, token_manager=token_manager)
 
@@ -177,22 +200,34 @@ def test_oauth_token_refresh_behavior_for_priority_connectors(monkeypatch: pytes
 
 
 @pytest.mark.parametrize("case", PRIORITY_CONNECTOR_CASES)
-def test_fetch_transform_and_malformed_payload(case: ConnectorHarnessCase, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_fetch_transform_and_malformed_payload(
+    case: ConnectorHarnessCase, monkeypatch: pytest.MonkeyPatch
+) -> None:
     expected = [{"id": "p1", "name": "Alpha"}]
-    seq = SequenceTransport({
-        ("GET", case.auth_path): httpx.Response(200, json=build_items_payload(case.items_path, [{"id": "ok"}])),
-        ("GET", case.read_path): httpx.Response(200, json=build_items_payload(case.items_path, expected)),
-    })
+    seq = SequenceTransport(
+        {
+            ("GET", case.auth_path): httpx.Response(
+                200, json=build_items_payload(case.items_path, [{"id": "ok"}])
+            ),
+            ("GET", case.read_path): httpx.Response(
+                200, json=build_items_payload(case.items_path, expected)
+            ),
+        }
+    )
     connector = _build_connector(case, monkeypatch, seq.transport)
     if case.connector_id == "asana":
         assert RestConnector.read(connector, case.read_resource) == expected
     else:
         assert connector.read(case.read_resource) == expected
 
-    malformed = SequenceTransport({
-        ("GET", case.auth_path): httpx.Response(200, json=build_items_payload(case.items_path, [{"id": "ok"}])),
-        ("GET", case.read_path): httpx.Response(200, json={"unexpected": "shape"}),
-    })
+    malformed = SequenceTransport(
+        {
+            ("GET", case.auth_path): httpx.Response(
+                200, json=build_items_payload(case.items_path, [{"id": "ok"}])
+            ),
+            ("GET", case.read_path): httpx.Response(200, json={"unexpected": "shape"}),
+        }
+    )
     connector = _build_connector(case, monkeypatch, malformed.transport)
     if case.connector_id == "asana":
         assert RestConnector.read(connector, case.read_resource) == []
@@ -203,7 +238,9 @@ def test_fetch_transform_and_malformed_payload(case: ConnectorHarnessCase, monke
 @pytest.mark.parametrize("status", [403, 429])
 def test_http_error_status_handling(status: int, monkeypatch: pytest.MonkeyPatch) -> None:
     case = PRIORITY_CONNECTOR_CASES[0]
-    seq = SequenceTransport({("GET", case.auth_path): httpx.Response(status, json={"error": "blocked"})})
+    seq = SequenceTransport(
+        {("GET", case.auth_path): httpx.Response(status, json={"error": "blocked"})}
+    )
     connector = _build_connector(case, monkeypatch, seq.transport)
     assert connector.authenticate() is False
 
@@ -224,7 +261,9 @@ def test_transient_network_failure_retries(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 @pytest.mark.parametrize("case", PRIORITY_CONNECTOR_CASES)
-def test_outbound_write_and_idempotency(case: ConnectorHarnessCase, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_outbound_write_and_idempotency(
+    case: ConnectorHarnessCase, monkeypatch: pytest.MonkeyPatch
+) -> None:
     posted_payloads: list[list[dict[str, Any]]] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -248,7 +287,9 @@ def test_outbound_write_and_idempotency(case: ConnectorHarnessCase, monkeypatch:
     assert response == posted_payloads[0]
 
 
-def test_salesforce_token_refresh_fetch_mapping_and_outbound_contract(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_salesforce_token_refresh_fetch_mapping_and_outbound_contract(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     calls = {"token_refresh": 0}
 
     class Token:
@@ -267,7 +308,9 @@ def test_salesforce_token_refresh_fetch_mapping_and_outbound_contract(monkeypatc
         auth = request.headers.get("Authorization")
         if auth == "Bearer expired":
             return httpx.Response(401, json={"error": "expired"})
-        return httpx.Response(200, json={"records": [{"Id": "001", "Name": "SF Project", "Status__c": "Active"}]})
+        return httpx.Response(
+            200, json={"records": [{"Id": "001", "Name": "SF Project", "Status__c": "Active"}]}
+        )
 
     config = SalesforceConfig(
         instance_url="https://salesforce.example.com",
@@ -278,9 +321,15 @@ def test_salesforce_token_refresh_fetch_mapping_and_outbound_contract(monkeypatc
         rate_limit_per_minute=120,
     )
     token_mgr = Token()
-    client = HttpClient(base_url=config.instance_url, headers={"Accept": "application/json"}, transport=httpx.MockTransport(handler))
+    client = HttpClient(
+        base_url=config.instance_url,
+        headers={"Accept": "application/json"},
+        transport=httpx.MockTransport(handler),
+    )
 
-    response = salesforce_request_with_refresh(client, token_mgr, "GET", "/services/data/v57.0/sobjects/Project__c")
+    response = salesforce_request_with_refresh(
+        client, token_mgr, "GET", "/services/data/v57.0/sobjects/Project__c"
+    )
     assert response.status_code == 200
     assert calls["token_refresh"] == 1
 
@@ -297,14 +346,23 @@ def test_salesforce_token_refresh_fetch_mapping_and_outbound_contract(monkeypatc
         }
     ]
 
-    monkeypatch.setattr(salesforce_router, "map_records", lambda *_args, **_kwargs: [{"id": "1", "name": "x"}])
+    monkeypatch.setattr(
+        salesforce_router, "map_records", lambda *_args, **_kwargs: [{"id": "1", "name": "x"}]
+    )
 
     outbound = salesforce_router.sync_outbound(
-        OutboundSyncRequest(tenant_id="tenant-a", records=[{"id": "1", "name": "x"}], include_schema=False, live=False)
+        OutboundSyncRequest(
+            tenant_id="tenant-a",
+            records=[{"id": "1", "name": "x"}],
+            include_schema=False,
+            live=False,
+        )
     )
     assert outbound["status"] == "dry_run"
 
     with pytest.raises(HTTPException):
         salesforce_router.sync_outbound(
-            OutboundSyncRequest(tenant_id="tenant-a", records=[{"id": "1"}], include_schema=False, live=True)
+            OutboundSyncRequest(
+                tenant_id="tenant-a", records=[{"id": "1"}], include_schema=False, live=True
+            )
         )

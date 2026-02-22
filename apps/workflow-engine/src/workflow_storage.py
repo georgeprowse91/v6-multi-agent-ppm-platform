@@ -4,11 +4,12 @@ import json
 import os
 import shutil
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Iterator, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 try:
     import psycopg2
@@ -121,7 +122,9 @@ class WorkflowInstanceRepository(Protocol):
 
 @runtime_checkable
 class WorkflowEventRepository(Protocol):
-    def add_event(self, run_id: str, status: str, message: str, step_id: str | None = None) -> WorkflowEvent: ...
+    def add_event(
+        self, run_id: str, status: str, message: str, step_id: str | None = None
+    ) -> WorkflowEvent: ...
 
 
 @runtime_checkable
@@ -196,7 +199,7 @@ class WorkflowStore:
         self._ensure_schema()
 
     @classmethod
-    def from_selection(cls, selection: WorkflowStorageSelection) -> "WorkflowStore":
+    def from_selection(cls, selection: WorkflowStorageSelection) -> WorkflowStore:
         return cls(db_path=selection.db_path, connection_url=selection.connection_url)
 
     def _connect(self) -> Any:
@@ -290,7 +293,15 @@ class WorkflowStore:
             updated_at=now,
         )
         with self._transaction() as conn:
-            row = self._fetchone(conn, "SELECT workflow_id, created_at FROM workflow_definitions WHERE workflow_id = %s" if self.backend == "postgresql" else "SELECT workflow_id, created_at FROM workflow_definitions WHERE workflow_id = ?", (workflow_id,))
+            row = self._fetchone(
+                conn,
+                (
+                    "SELECT workflow_id, created_at FROM workflow_definitions WHERE workflow_id = %s"
+                    if self.backend == "postgresql"
+                    else "SELECT workflow_id, created_at FROM workflow_definitions WHERE workflow_id = ?"
+                ),
+                (workflow_id,),
+            )
             if row:
                 created_at = row[1]
                 self._execute(
@@ -336,9 +347,11 @@ class WorkflowStore:
         with self._connect() as conn:
             row = self._fetchone(
                 conn,
-                "SELECT workflow_id, name, version, owner, description, definition, created_at, updated_at FROM workflow_definitions WHERE workflow_id = %s"
-                if self.backend == "postgresql"
-                else "SELECT workflow_id, name, version, owner, description, definition, created_at, updated_at FROM workflow_definitions WHERE workflow_id = ?",
+                (
+                    "SELECT workflow_id, name, version, owner, description, definition, created_at, updated_at FROM workflow_definitions WHERE workflow_id = %s"
+                    if self.backend == "postgresql"
+                    else "SELECT workflow_id, name, version, owner, description, definition, created_at, updated_at FROM workflow_definitions WHERE workflow_id = ?"
+                ),
                 (workflow_id,),
             )
             if not row:
@@ -358,9 +371,11 @@ class WorkflowStore:
         with self._transaction() as conn:
             self._execute(
                 conn,
-                "DELETE FROM workflow_definitions WHERE workflow_id = %s"
-                if self.backend == "postgresql"
-                else "DELETE FROM workflow_definitions WHERE workflow_id = ?",
+                (
+                    "DELETE FROM workflow_definitions WHERE workflow_id = %s"
+                    if self.backend == "postgresql"
+                    else "DELETE FROM workflow_definitions WHERE workflow_id = ?"
+                ),
                 (workflow_id,),
             )
 
@@ -398,9 +413,11 @@ class WorkflowStore:
             if idempotency_key:
                 existing = self._fetchone(
                     conn,
-                    "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE idempotency_key = %s"
-                    if self.backend == "postgresql"
-                    else "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE idempotency_key = ?",
+                    (
+                        "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE idempotency_key = %s"
+                        if self.backend == "postgresql"
+                        else "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE idempotency_key = ?"
+                    ),
                     (idempotency_key,),
                 )
                 if existing:
@@ -437,13 +454,17 @@ class WorkflowStore:
             )
         return instance
 
-    def update_status(self, run_id: str, status: str, current_step_id: str | None = None) -> WorkflowInstance | None:
+    def update_status(
+        self, run_id: str, status: str, current_step_id: str | None = None
+    ) -> WorkflowInstance | None:
         with self._transaction() as conn:
             row = self._fetchone(
                 conn,
-                "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE run_id = %s FOR UPDATE"
-                if self.backend == "postgresql"
-                else "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE run_id = ?",
+                (
+                    "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE run_id = %s FOR UPDATE"
+                    if self.backend == "postgresql"
+                    else "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE run_id = ?"
+                ),
                 (run_id,),
             )
             if not row:
@@ -466,9 +487,11 @@ class WorkflowStore:
         with self._connect() as conn:
             row = self._fetchone(
                 conn,
-                "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE run_id = %s"
-                if self.backend == "postgresql"
-                else "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE run_id = ?",
+                (
+                    "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE run_id = %s"
+                    if self.backend == "postgresql"
+                    else "SELECT run_id, workflow_id, tenant_id, status, payload, current_step_id, idempotency_key, created_at, updated_at FROM workflow_instances WHERE run_id = ?"
+                ),
                 (run_id,),
             )
             return self._instance_from_row(row) if row else None
@@ -498,7 +521,9 @@ class WorkflowStore:
             updated_at=row[8],
         )
 
-    def upsert_step_state(self, run_id: str, step_id: str, status: str, attempts: int, output: dict[str, Any]) -> WorkflowStepState:
+    def upsert_step_state(
+        self, run_id: str, step_id: str, status: str, attempts: int, output: dict[str, Any]
+    ) -> WorkflowStepState:
         now = _now()
         with self._transaction() as conn:
             existing = self._fetchone(
@@ -516,7 +541,16 @@ class WorkflowStore:
                     "UPDATE workflow_step_runs SET status = {p}, attempts = {p}, started_at = {p}, completed_at = {p}, error = {p}, output = {p} WHERE run_id = {p} AND step_id = {p}".replace(
                         "{p}", "%s" if self.backend == "postgresql" else "?"
                     ),
-                    (status, attempts, started_at, completed_at, existing[6], json.dumps(output), run_id, step_id),
+                    (
+                        status,
+                        attempts,
+                        started_at,
+                        completed_at,
+                        existing[6],
+                        json.dumps(output),
+                        run_id,
+                        step_id,
+                    ),
                 )
             else:
                 self._execute(
@@ -524,7 +558,16 @@ class WorkflowStore:
                     "INSERT INTO workflow_step_runs (run_id, step_id, status, attempts, started_at, completed_at, error, output) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})".replace(
                         "{p}", "%s" if self.backend == "postgresql" else "?"
                     ),
-                    (run_id, step_id, status, attempts, now, now if status in {"completed", "failed"} else None, None, json.dumps(output)),
+                    (
+                        run_id,
+                        step_id,
+                        status,
+                        attempts,
+                        now,
+                        now if status in {"completed", "failed"} else None,
+                        None,
+                        json.dumps(output),
+                    ),
                 )
         state = self.get_step_state(run_id, step_id)
         if not state:
@@ -591,18 +634,29 @@ class WorkflowStore:
             for row in rows
         ]
 
-    def add_event(self, run_id: str, status: str, message: str, step_id: str | None = None) -> WorkflowEvent:
+    def add_event(
+        self, run_id: str, status: str, message: str, step_id: str | None = None
+    ) -> WorkflowEvent:
         created_at = _now()
         event_id = f"event_{run_id}_{status}_{created_at}"
         with self._transaction() as conn:
             self._execute(
                 conn,
-                "INSERT OR IGNORE INTO workflow_events (event_id, run_id, step_id, status, message, created_at) VALUES (?, ?, ?, ?, ?, ?)"
-                if self.backend == "sqlite"
-                else "INSERT INTO workflow_events (event_id, run_id, step_id, status, message, created_at) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (event_id) DO NOTHING",
+                (
+                    "INSERT OR IGNORE INTO workflow_events (event_id, run_id, step_id, status, message, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+                    if self.backend == "sqlite"
+                    else "INSERT INTO workflow_events (event_id, run_id, step_id, status, message, created_at) VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (event_id) DO NOTHING"
+                ),
                 (event_id, run_id, step_id, status, message, created_at),
             )
-        return WorkflowEvent(event_id=event_id, run_id=run_id, step_id=step_id, status=status, message=message, created_at=created_at)
+        return WorkflowEvent(
+            event_id=event_id,
+            run_id=run_id,
+            step_id=step_id,
+            status=status,
+            message=message,
+            created_at=created_at,
+        )
 
     def list_events(self, run_id: str) -> list[WorkflowEvent]:
         with self._connect() as conn:
@@ -613,7 +667,12 @@ class WorkflowStore:
                 ),
                 (run_id,),
             )
-        return [WorkflowEvent(event_id=r[0], run_id=r[1], step_id=r[2], status=r[3], message=r[4], created_at=r[5]) for r in rows]
+        return [
+            WorkflowEvent(
+                event_id=r[0], run_id=r[1], step_id=r[2], status=r[3], message=r[4], created_at=r[5]
+            )
+            for r in rows
+        ]
 
     def upsert_approval(
         self,
@@ -631,15 +690,26 @@ class WorkflowStore:
         with self._transaction() as conn:
             existing = self._fetchone(
                 conn,
-                "SELECT approval_id, run_id, step_id, tenant_id, status, created_at, updated_at, decision, approver_id, comments, metadata FROM workflow_approvals WHERE approval_id = %s FOR UPDATE"
-                if self.backend == "postgresql"
-                else "SELECT approval_id, run_id, step_id, tenant_id, status, created_at, updated_at, decision, approver_id, comments, metadata FROM workflow_approvals WHERE approval_id = ?",
+                (
+                    "SELECT approval_id, run_id, step_id, tenant_id, status, created_at, updated_at, decision, approver_id, comments, metadata FROM workflow_approvals WHERE approval_id = %s FOR UPDATE"
+                    if self.backend == "postgresql"
+                    else "SELECT approval_id, run_id, step_id, tenant_id, status, created_at, updated_at, decision, approver_id, comments, metadata FROM workflow_approvals WHERE approval_id = ?"
+                ),
                 (approval_id,),
             )
             if existing and existing[4] != "pending" and status != existing[4]:
                 return WorkflowApproval(
-                    approval_id=existing[0], run_id=existing[1], step_id=existing[2], tenant_id=existing[3], status=existing[4],
-                    created_at=existing[5], updated_at=existing[6], decision=existing[7], approver_id=existing[8], comments=existing[9], metadata=json.loads(existing[10])
+                    approval_id=existing[0],
+                    run_id=existing[1],
+                    step_id=existing[2],
+                    tenant_id=existing[3],
+                    status=existing[4],
+                    created_at=existing[5],
+                    updated_at=existing[6],
+                    decision=existing[7],
+                    approver_id=existing[8],
+                    comments=existing[9],
+                    metadata=json.loads(existing[10]),
                 )
             if existing:
                 self._execute(
@@ -647,7 +717,15 @@ class WorkflowStore:
                     "UPDATE workflow_approvals SET status = {p}, updated_at = {p}, decision = {p}, approver_id = {p}, comments = {p}, metadata = {p} WHERE approval_id = {p}".replace(
                         "{p}", "%s" if self.backend == "postgresql" else "?"
                     ),
-                    (status, now, decision, approver_id, comments, json.dumps(metadata), approval_id),
+                    (
+                        status,
+                        now,
+                        decision,
+                        approver_id,
+                        comments,
+                        json.dumps(metadata),
+                        approval_id,
+                    ),
                 )
             else:
                 self._execute(
@@ -655,7 +733,19 @@ class WorkflowStore:
                     "INSERT INTO workflow_approvals (approval_id, run_id, step_id, tenant_id, status, created_at, updated_at, decision, approver_id, comments, metadata) VALUES ({p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p}, {p})".replace(
                         "{p}", "%s" if self.backend == "postgresql" else "?"
                     ),
-                    (approval_id, run_id, step_id, tenant_id, status, now, now, decision, approver_id, comments, json.dumps(metadata)),
+                    (
+                        approval_id,
+                        run_id,
+                        step_id,
+                        tenant_id,
+                        status,
+                        now,
+                        now,
+                        decision,
+                        approver_id,
+                        comments,
+                        json.dumps(metadata),
+                    ),
                 )
         approval = self.get_approval(approval_id)
         if not approval:
@@ -674,8 +764,17 @@ class WorkflowStore:
             if not row:
                 return None
             return WorkflowApproval(
-                approval_id=row[0], run_id=row[1], step_id=row[2], tenant_id=row[3], status=row[4], created_at=row[5], updated_at=row[6],
-                decision=row[7], approver_id=row[8], comments=row[9], metadata=json.loads(row[10])
+                approval_id=row[0],
+                run_id=row[1],
+                step_id=row[2],
+                tenant_id=row[3],
+                status=row[4],
+                created_at=row[5],
+                updated_at=row[6],
+                decision=row[7],
+                approver_id=row[8],
+                comments=row[9],
+                metadata=json.loads(row[10]),
             )
 
     def list_approvals(self, tenant_id: str, status: str | None = None) -> list[WorkflowApproval]:
@@ -691,9 +790,19 @@ class WorkflowStore:
             rows = self._fetchall(conn, query, tuple(params))
         return [
             WorkflowApproval(
-                approval_id=row[0], run_id=row[1], step_id=row[2], tenant_id=row[3], status=row[4], created_at=row[5], updated_at=row[6],
-                decision=row[7], approver_id=row[8], comments=row[9], metadata=json.loads(row[10])
-            ) for row in rows
+                approval_id=row[0],
+                run_id=row[1],
+                step_id=row[2],
+                tenant_id=row[3],
+                status=row[4],
+                created_at=row[5],
+                updated_at=row[6],
+                decision=row[7],
+                approver_id=row[8],
+                comments=row[9],
+                metadata=json.loads(row[10]),
+            )
+            for row in rows
         ]
 
     def find_approval_for_step(self, run_id: str, step_id: str) -> WorkflowApproval | None:
@@ -708,8 +817,17 @@ class WorkflowStore:
             if not row:
                 return None
             return WorkflowApproval(
-                approval_id=row[0], run_id=row[1], step_id=row[2], tenant_id=row[3], status=row[4], created_at=row[5], updated_at=row[6],
-                decision=row[7], approver_id=row[8], comments=row[9], metadata=json.loads(row[10])
+                approval_id=row[0],
+                run_id=row[1],
+                step_id=row[2],
+                tenant_id=row[3],
+                status=row[4],
+                created_at=row[5],
+                updated_at=row[6],
+                decision=row[7],
+                approver_id=row[8],
+                comments=row[9],
+                metadata=json.loads(row[10]),
             )
 
     def add_journal_entry(
@@ -732,9 +850,20 @@ class WorkflowStore:
                 ),
                 (journal_id, run_id, step_id, phase, status, attempt, json.dumps(payload), now),
             )
-        return WorkflowJournalEntry(journal_id=journal_id, run_id=run_id, step_id=step_id, phase=phase, status=status, attempt=attempt, details=payload, created_at=now)
+        return WorkflowJournalEntry(
+            journal_id=journal_id,
+            run_id=run_id,
+            step_id=step_id,
+            phase=phase,
+            status=status,
+            attempt=attempt,
+            details=payload,
+            created_at=now,
+        )
 
-    def list_journal_entries(self, run_id: str, phase: str | None = None, step_id: str | None = None) -> list[WorkflowJournalEntry]:
+    def list_journal_entries(
+        self, run_id: str, phase: str | None = None, step_id: str | None = None
+    ) -> list[WorkflowJournalEntry]:
         params: list[Any] = [run_id]
         query = "SELECT journal_id, run_id, step_id, phase, status, attempt, details, created_at FROM workflow_state_journal WHERE run_id = {p}".replace(
             "{p}", "%s" if self.backend == "postgresql" else "?"
@@ -748,7 +877,19 @@ class WorkflowStore:
         query += " ORDER BY created_at ASC"
         with self._connect() as conn:
             rows = self._fetchall(conn, query, tuple(params))
-        return [WorkflowJournalEntry(journal_id=r[0], run_id=r[1], step_id=r[2], phase=r[3], status=r[4], attempt=r[5], details=json.loads(r[6]), created_at=r[7]) for r in rows]
+        return [
+            WorkflowJournalEntry(
+                journal_id=r[0],
+                run_id=r[1],
+                step_id=r[2],
+                phase=r[3],
+                status=r[4],
+                attempt=r[5],
+                details=json.loads(r[6]),
+                created_at=r[7],
+            )
+            for r in rows
+        ]
 
     def backup(self, backup_path: Path) -> Path:
         if self.backend != "sqlite":
@@ -767,12 +908,18 @@ class WorkflowStore:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=keep_days)).isoformat()
         with self._transaction() as conn:
             if self.backend == "sqlite":
-                events_deleted = conn.execute("DELETE FROM workflow_events WHERE created_at < ?", (cutoff,)).rowcount
-                journal_deleted = conn.execute("DELETE FROM workflow_state_journal WHERE created_at < ?", (cutoff,)).rowcount
+                events_deleted = conn.execute(
+                    "DELETE FROM workflow_events WHERE created_at < ?", (cutoff,)
+                ).rowcount
+                journal_deleted = conn.execute(
+                    "DELETE FROM workflow_state_journal WHERE created_at < ?", (cutoff,)
+                ).rowcount
             else:
                 with conn.cursor() as cur:
                     cur.execute("DELETE FROM workflow_events WHERE created_at < %s", (cutoff,))
                     events_deleted = cur.rowcount
-                    cur.execute("DELETE FROM workflow_state_journal WHERE created_at < %s", (cutoff,))
+                    cur.execute(
+                        "DELETE FROM workflow_state_journal WHERE created_at < %s", (cutoff,)
+                    )
                     journal_deleted = cur.rowcount
         return {"workflow_events": events_deleted, "workflow_state_journal": journal_deleted}

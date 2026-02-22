@@ -95,12 +95,15 @@ class ReadinessScoringModel:
         return {
             "scope_complexity": float(project_data.get("scope_complexity", 0.5)),
             "resource_readiness": float(
-                project_data.get("resource_readiness", health_metrics.get("resource", {}).get("score", 0.5))
+                project_data.get(
+                    "resource_readiness", health_metrics.get("resource", {}).get("score", 0.5)
+                )
             ),
             "risk_profile": float(health_metrics.get("risk", {}).get("score", 0.5)),
             "quality_metrics": float(health_metrics.get("quality", {}).get("score", 0.5)),
             "criteria_ratio": float(
-                sum(1 for c in (criteria_status or []) if c.get("met")) / max(len(criteria_status or []), 1)
+                sum(1 for c in (criteria_status or []) if c.get("met"))
+                / max(len(criteria_status or []), 1)
             ),
         }
 
@@ -124,8 +127,13 @@ class ReadinessScoringModel:
     ) -> float | None:
         if not self.ai_model_id:
             return None
-        weight = float(features.get("resource_readiness", 0.5) + features.get("quality_metrics", 0.5)) / 2
-        complexity = float(features.get("scope_complexity", 0.5) + features.get("risk_profile", 0.5)) / 2
+        weight = (
+            float(features.get("resource_readiness", 0.5) + features.get("quality_metrics", 0.5))
+            / 2
+        )
+        complexity = (
+            float(features.get("scope_complexity", 0.5) + features.get("risk_profile", 0.5)) / 2
+        )
         return service.predict(self.ai_model_id, {"weight": weight, "complexity": complexity})
 
     def _aggregate_readiness_signal(self, features: dict[str, Any]) -> float:
@@ -136,7 +144,13 @@ class ReadinessScoringModel:
         criteria_ratio = float(features.get("criteria_ratio", 0.0))
         return max(
             min(
-                (resource_ready + quality + (1 - scope_complexity) + (1 - risk_profile) + criteria_ratio)
+                (
+                    resource_ready
+                    + quality
+                    + (1 - scope_complexity)
+                    + (1 - risk_profile)
+                    + criteria_ratio
+                )
                 / 5,
                 1.0,
             ),

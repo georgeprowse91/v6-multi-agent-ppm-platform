@@ -21,8 +21,8 @@ from pathlib import Path
 from typing import Any, cast
 
 import yaml
-
 from data_quality.rules import evaluate_quality_rules
+
 try:
     from events import ResourceAllocationCreatedEvent
 except Exception:
@@ -51,7 +51,7 @@ class ResourceCapacityRepository:
         self.CapacityAllocationRecord = None
         if database_url:
             from sqlalchemy import JSON, Float, String, create_engine, select
-            from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
+            from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
             class Base(DeclarativeBase):
                 pass
@@ -386,9 +386,7 @@ class AzureSearchClient:
             params={"api-version": "2023-07-01-Preview"},
             json={
                 "search": query_text,
-                "vectorQueries": [
-                    {"vector": query_vector, "fields": "embedding", "k": top_k}
-                ],
+                "vectorQueries": [{"vector": query_vector, "fields": "embedding", "k": top_k}],
                 "select": "resource_id,skills,role,availability,cost_rate",
             },
             timeout=30,
@@ -398,7 +396,9 @@ class AzureSearchClient:
 
 
 class TimeSeriesForecaster:
-    def __init__(self, *, automl_endpoint: str | None = None, automl_api_key: str | None = None) -> None:
+    def __init__(
+        self, *, automl_endpoint: str | None = None, automl_api_key: str | None = None
+    ) -> None:
         self.automl_endpoint = automl_endpoint
         self.automl_api_key = automl_api_key
 
@@ -428,9 +428,19 @@ class TimeSeriesForecaster:
 
     def _forecast_with_prophet(self, series: list[float], periods: int) -> list[float] | None:
         try:
-            from prophet import Prophet
             import pandas as pd
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            from prophet import Prophet
+        except (
+            ImportError,
+            ModuleNotFoundError,
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return None
         if len(series) < 2:
             return None
@@ -467,7 +477,15 @@ class TimeSeriesForecaster:
             forecasts = data.get("forecast")
             if isinstance(forecasts, list):
                 return [float(value) for value in forecasts]
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return None
         return None
 
@@ -523,6 +541,7 @@ class AIMLForecastClient:
             return [float(value) for value in forecast]
         return None
 
+
 class EventPublisher:
     def __init__(self, connection_string: str | None, queue_name: str | None) -> None:
         self.connection_string = connection_string
@@ -536,9 +555,7 @@ class EventPublisher:
             return
         from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
-        with ServiceBusClient.from_connection_string(
-            cast(str, self.connection_string)
-        ) as client:
+        with ServiceBusClient.from_connection_string(cast(str, self.connection_string)) as client:
             sender = client.get_queue_sender(queue_name=cast(str, self.queue_name))
             with sender:
                 message = ServiceBusMessage(json.dumps({"event": event_name, "payload": payload}))
@@ -582,7 +599,15 @@ class NotificationService:
         if self.acs_connection_string and self.acs_sender:
             try:
                 from azure.communication.email import EmailClient
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 raise RuntimeError(
                     "Azure Communication Services email client unavailable."
                 ) from exc
@@ -624,9 +649,7 @@ class LearningManagementClient:
     def fetch_training_records(self, resource_ids: list[str]) -> list[dict[str, Any]]:
         records: list[dict[str, Any]] = []
         if self.training_records:
-            record_index = {
-                record.get("resource_id"): record for record in self.training_records
-            }
+            record_index = {record.get("resource_id"): record for record in self.training_records}
             for resource_id in resource_ids:
                 if resource_id in record_index:
                     records.append(record_index[resource_id])
@@ -725,7 +748,9 @@ class SimpleAnalyticsClient:
     def __init__(self) -> None:
         self.metrics: list[tuple[str, float, dict[str, Any]]] = []
 
-    def record_metric(self, name: str, value: float, metadata: dict[str, Any] | None = None) -> None:
+    def record_metric(
+        self, name: str, value: float, metadata: dict[str, Any] | None = None
+    ) -> None:
         self.metrics.append((name, value, metadata or {}))
 
 
@@ -764,7 +789,11 @@ class ResourceCapacityAgent(BaseAgent):
         self.risk_adjustments_path = (
             Path(config.get("risk_adjustments_path"))
             if config and config.get("risk_adjustments_path")
-            else Path(__file__).resolve().parents[4] / "ops" / "config" / "agents" / "risk_adjustments.yaml"
+            else Path(__file__).resolve().parents[4]
+            / "ops"
+            / "config"
+            / "agents"
+            / "risk_adjustments.yaml"
         )
         self.risk_adjustments = self._load_risk_adjustments_config()
         self.scenario_engine = ScenarioEngine()
@@ -776,9 +805,7 @@ class ResourceCapacityAgent(BaseAgent):
             if config
             else {"skills": 0.6, "availability": 0.2, "cost": 0.1, "performance": 0.1}
         )
-        self.default_working_hours_per_day = (
-            config.get("working_hours_per_day", 8) if config else 8
-        )
+        self.default_working_hours_per_day = config.get("working_hours_per_day", 8) if config else 8
         self.default_working_days = (
             config.get("working_days", [0, 1, 2, 3, 4]) if config else [0, 1, 2, 3, 4]
         )
@@ -901,9 +928,7 @@ class ResourceCapacityAgent(BaseAgent):
         azure_tenant_id = os.getenv("AZURE_TENANT_ID")
         azure_client_secret = os.getenv("AZURE_CLIENT_SECRET")
         if azure_client_id and azure_tenant_id and azure_client_secret:
-            self.graph_client = AzureADClient(
-                azure_client_id, azure_tenant_id, azure_client_secret
-            )
+            self.graph_client = AzureADClient(azure_client_id, azure_tenant_id, azure_client_secret)
         self.embedding_client = EmbeddingClient(
             os.getenv("AZURE_OPENAI_ENDPOINT"),
             os.getenv("AZURE_OPENAI_API_KEY"),
@@ -929,9 +954,7 @@ class ResourceCapacityAgent(BaseAgent):
         await self._sync_training_records()
         await self._refresh_capacity_allocations()
 
-        self.logger.info(
-            "Using local calendar storage for working hours and leave tracking"
-        )
+        self.logger.info("Using local calendar storage for working hours and leave tracking")
 
         self.logger.info("Resource & Capacity Management Agent initialized")
         self._subscribe_to_events()
@@ -963,7 +986,7 @@ class ResourceCapacityAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "add_resource":
@@ -971,7 +994,7 @@ class ResourceCapacityAgent(BaseAgent):
             required_fields = ["resource_id", "name", "role"]
             for field in required_fields:
                 if field not in resource_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
         elif action == "update_resource":
             resource_data = input_data.get("resource", {})
@@ -990,7 +1013,7 @@ class ResourceCapacityAgent(BaseAgent):
             required_fields = ["project_id", "required_skills", "start_date", "end_date"]
             for field in required_fields:
                 if field not in request_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         return True
@@ -1044,9 +1067,7 @@ class ResourceCapacityAgent(BaseAgent):
             return await self._add_resource(input_data.get("resource", {}), tenant_id=tenant_id)
 
         elif action == "update_resource":
-            return await self._update_resource(
-                input_data.get("resource", {}), tenant_id=tenant_id
-            )
+            return await self._update_resource(input_data.get("resource", {}), tenant_id=tenant_id)
 
         elif action == "delete_resource":
             resource_id = input_data.get("resource_id")
@@ -1185,7 +1206,7 @@ class ResourceCapacityAgent(BaseAgent):
         await self._index_skills()
         await self._publish_resource_event("resource.added", resource_profile)
 
-        self.logger.info(f"Added resource: {resource_id}")
+        self.logger.info("Added resource: %s", resource_id)
 
         return {
             "resource_id": resource_id,
@@ -1247,9 +1268,7 @@ class ResourceCapacityAgent(BaseAgent):
                 },
             )
         if self.redis_client:
-            self.redis_client.set(
-                f"resource_schedule:{resource_id}", json.dumps(schedule), ex=3600
-            )
+            self.redis_client.set(f"resource_schedule:{resource_id}", json.dumps(schedule), ex=3600)
 
     async def _request_resource(
         self, request_data: dict[str, Any], *, tenant_id: str
@@ -1324,7 +1343,7 @@ class ResourceCapacityAgent(BaseAgent):
         await self._publish_resource_event("resource.request.created", request)
         await self._notify_requester(request)
 
-        self.logger.info(f"Created resource request: {request_id}")
+        self.logger.info("Created resource request: %s", request_id)
 
         return {
             "request_id": request_id,
@@ -1347,7 +1366,7 @@ class ResourceCapacityAgent(BaseAgent):
 
         Returns approval status and allocation if approved.
         """
-        self.logger.info(f"Processing approval for request: {request_id}")
+        self.logger.info("Processing approval for request: %s", request_id)
 
         request = self.demand_requests.get(request_id)
         if not request:
@@ -1538,9 +1557,7 @@ class ResourceCapacityAgent(BaseAgent):
                 resource = self.resource_pool.get(resource_id, {})
                 if not resource_id:
                     continue
-                performance_score = await self._get_performance_score(
-                    resource_id, project_context
-                )
+                performance_score = await self._get_performance_score(resource_id, project_context)
                 semantic_score = float(result.get("@search.score", 0.0))
                 combined_score = (semantic_score * 0.6) + (performance_score * 0.4)
                 if combined_score >= self.skill_matching_threshold:
@@ -1565,12 +1582,8 @@ class ResourceCapacityAgent(BaseAgent):
                 resource_id = match["resource_id"]
                 resource_skills = " ".join(match.get("skills", []))
                 resource_embedding = embedding_client.get_embedding(resource_skills)
-                semantic_similarity = self._cosine_similarity(
-                    query_embedding, resource_embedding
-                )
-                performance_score = await self._get_performance_score(
-                    resource_id, project_context
-                )
+                semantic_similarity = self._cosine_similarity(query_embedding, resource_embedding)
+                performance_score = await self._get_performance_score(resource_id, project_context)
                 combined_score = (
                     match["weighted_score"] * 0.5
                     + semantic_similarity * 0.3
@@ -1612,9 +1625,7 @@ class ResourceCapacityAgent(BaseAgent):
 
         history_months = int(filters.get("history_months", 6))
         tenant_id = filters.get("tenant_id") or self.default_tenant_id
-        cache_key = (
-            f"capacity_forecast:{tenant_id}:{history_months}:{self.forecast_horizon_months}"
-        )
+        cache_key = f"capacity_forecast:{tenant_id}:{history_months}:{self.forecast_horizon_months}"
         if self.redis_client:
             cached = self.redis_client.get(cache_key)
             if cached:
@@ -1648,9 +1659,7 @@ class ResourceCapacityAgent(BaseAgent):
                 automl_endpoint=os.getenv("AZURE_AUTOML_ENDPOINT"),
                 automl_api_key=os.getenv("AZURE_AUTOML_API_KEY"),
             )
-            capacity_forecast = forecaster.forecast(
-                capacity_series, self.forecast_horizon_months
-            )
+            capacity_forecast = forecaster.forecast(capacity_series, self.forecast_horizon_months)
             demand_forecast = forecaster.forecast(demand_series, self.forecast_horizon_months)
         future_capacity = self._adjust_capacity_forecast(capacity_forecast)
         future_demand = self._adjust_demand_forecast(demand_forecast)
@@ -1858,7 +1867,7 @@ class ResourceCapacityAgent(BaseAgent):
             )
             await self._publish_resource_event("resource.allocation.created", allocation)
 
-            self.logger.info(f"Created allocation: {allocation_id}")
+            self.logger.info("Created allocation: %s", allocation_id)
 
             return allocation
         finally:
@@ -1872,7 +1881,7 @@ class ResourceCapacityAgent(BaseAgent):
 
         Returns availability calendar.
         """
-        self.logger.info(f"Getting availability for resource: {resource_id}")
+        self.logger.info("Getting availability for resource: %s", resource_id)
 
         resource = self.resource_pool.get(resource_id)
         if not resource:
@@ -1933,7 +1942,9 @@ class ResourceCapacityAgent(BaseAgent):
         utilization_data = []
 
         for resource_id, resource in self.resource_pool.items():
-            utilization = await self._calculate_resource_utilization(resource_id, filters.get("risk_data"))
+            utilization = await self._calculate_resource_utilization(
+                resource_id, filters.get("risk_data")
+            )
             utilization_data.append(
                 {
                     "resource_id": resource_id,
@@ -2107,15 +2118,21 @@ class ResourceCapacityAgent(BaseAgent):
                 "allocation_percentage": allocation.get("allocation_percentage", 0),
             },
         )
-        await self.event_bus.publish(
-            "resource.allocation.created", event.model_dump(mode="json")
-        )
+        await self.event_bus.publish("resource.allocation.created", event.model_dump(mode="json"))
 
     async def _publish_resource_event(self, event_name: str, payload: dict[str, Any]) -> None:
         await self.event_bus.publish(event_name, payload)
         try:
             self.event_publisher.publish(event_name, payload)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Service bus publish failed", extra={"error": str(exc)})
 
     async def _notify_requester(self, request: dict[str, Any]) -> None:
@@ -2126,7 +2143,15 @@ class ResourceCapacityAgent(BaseAgent):
         content = f"Request status: {request.get('status')}"
         try:
             self.notification_service.send_email(requester, subject, content)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Failed to send requester notification", extra={"error": str(exc)})
 
     async def _notify_project_manager(self, request: dict[str, Any]) -> None:
@@ -2137,7 +2162,15 @@ class ResourceCapacityAgent(BaseAgent):
         content = f"Allocated resource: {request.get('allocated_resource')}"
         try:
             self.notification_service.send_email(manager, subject, content)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Failed to send manager notification", extra={"error": str(exc)})
 
     def _subscribe_to_events(self) -> None:
@@ -2147,10 +2180,20 @@ class ResourceCapacityAgent(BaseAgent):
         def _handle_approval_decision(payload: dict[str, Any]) -> None:
             asyncio.create_task(self._process_approval_decision(payload))
 
+        if not self.event_bus or not hasattr(self.event_bus, "subscribe"):
+            return
         try:
             self.event_bus.subscribe("schedule.changed", _handle_schedule_change)
             self.event_bus.subscribe("approval.decision", _handle_approval_decision)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Failed to subscribe to schedule events", extra={"error": str(exc)})
 
     async def _sync_hr_systems(self) -> None:
@@ -2209,9 +2252,7 @@ class ResourceCapacityAgent(BaseAgent):
             if not existing:
                 self.resource_pool[resource_id] = resource_profile
                 await self._store_canonical_profile(resource_id, profile, resource_profile)
-                self.resource_store.upsert(
-                    self.default_tenant_id, resource_id, resource_profile
-                )
+                self.resource_store.upsert(self.default_tenant_id, resource_id, resource_profile)
                 await self._publish_resource_event("resource.added", resource_profile)
             else:
                 if self._has_resource_changed(existing, resource_profile):
@@ -2239,15 +2280,27 @@ class ResourceCapacityAgent(BaseAgent):
             try:
                 if self.calendar_service:
                     busy_events = self.calendar_service.get_availability(
-                        user_id, datetime.now(timezone.utc), datetime.now(timezone.utc) + timedelta(days=30)
+                        user_id,
+                        datetime.now(timezone.utc),
+                        datetime.now(timezone.utc) + timedelta(days=30),
                     )
                 else:
                     busy_events = self.graph_client.get_calendar_availability(
-                        user_id, datetime.now(timezone.utc), datetime.now(timezone.utc) + timedelta(days=30)
+                        user_id,
+                        datetime.now(timezone.utc),
+                        datetime.now(timezone.utc) + timedelta(days=30),
                     )
                 busy_count = len([event for event in busy_events if event.get("showAs") != "free"])
                 availability = max(0.0, 1.0 - min(busy_count / 20, 1.0))
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ):
                 availability = 1.0
             profiles.append(
                 {
@@ -2266,9 +2319,20 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _fetch_workday_profiles(self) -> list[dict[str, Any]]:
         try:
-            from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
+            from integrations.connectors.sdk.src.base_connector import (
+                ConnectorCategory,
+                ConnectorConfig,
+            )
             from integrations.connectors.workday.src.workday_connector import WorkdayConnector
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return []
         try:
             config = ConnectorConfig(
@@ -2290,17 +2354,36 @@ class ResourceCapacityAgent(BaseAgent):
                     }
                 )
             return profiles
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Workday sync failed", extra={"error": str(exc)})
             return []
 
     async def _fetch_sap_profiles(self) -> list[dict[str, Any]]:
         try:
-            from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
             from integrations.connectors.sap_successfactors.src.sap_successfactors_connector import (
                 SapSuccessFactorsConnector,
             )
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            from integrations.connectors.sdk.src.base_connector import (
+                ConnectorCategory,
+                ConnectorConfig,
+            )
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return []
         try:
             config = ConnectorConfig(
@@ -2322,7 +2405,15 @@ class ResourceCapacityAgent(BaseAgent):
                     }
                 )
             return profiles
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("SAP SuccessFactors sync failed", extra={"error": str(exc)})
             return []
 
@@ -2424,9 +2515,20 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _fetch_planview_allocations(self) -> list[dict[str, Any]]:
         try:
-            from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig
             from integrations.connectors.planview.src.planview_connector import PlanviewConnector
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+            from integrations.connectors.sdk.src.base_connector import (
+                ConnectorCategory,
+                ConnectorConfig,
+            )
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return []
         try:
             config = ConnectorConfig(
@@ -2454,7 +2556,15 @@ class ResourceCapacityAgent(BaseAgent):
                     }
                 )
             return allocations
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Planview allocation sync failed", extra={"error": str(exc)})
             return []
 
@@ -2477,8 +2587,7 @@ class ResourceCapacityAgent(BaseAgent):
             for item in data:
                 allocations.append(
                     {
-                        "allocation_id": item.get("tempoWorklogId")
-                        or f"tempo-{uuid.uuid4().hex}",
+                        "allocation_id": item.get("tempoWorklogId") or f"tempo-{uuid.uuid4().hex}",
                         "resource_id": item.get("author", {}).get("accountId"),
                         "project_id": item.get("issue", {}).get("projectId"),
                         "start_date": item.get("startDate"),
@@ -2492,7 +2601,15 @@ class ResourceCapacityAgent(BaseAgent):
                     }
                 )
             return allocations
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Tempo allocation sync failed", extra={"error": str(exc)})
             return []
 
@@ -2556,7 +2673,15 @@ class ResourceCapacityAgent(BaseAgent):
                 timeout=30,
             )
             response.raise_for_status()
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Azure ML model registration failed", extra={"error": str(exc)})
 
     async def _acquire_lock(self, key: str, ttl_seconds: int = 10) -> bool:
@@ -2930,8 +3055,7 @@ class ResourceCapacityAgent(BaseAgent):
             - baseline.get("average_utilization", 0),
             "resource_count_difference": scenario.get("resource_count", 0)
             - baseline.get("resource_count", 0),
-            "cost_difference": scenario.get("cost_impact", 0)
-            - baseline.get("cost_impact", 0),
+            "cost_difference": scenario.get("cost_impact", 0) - baseline.get("cost_impact", 0),
             "schedule_difference": scenario.get("schedule_impact", 0)
             - baseline.get("schedule_impact", 0),
         }
@@ -3102,10 +3226,9 @@ class ResourceCapacityAgent(BaseAgent):
             if alloc.get("status") != "Active":
                 continue
             risk_level = self._resolve_allocation_risk_level(alloc, risk_data)
-            total_allocation += (
-                float(alloc.get("allocation_percentage", 0) or 0)
-                * self._risk_load_factor(risk_level)
-            )
+            total_allocation += float(
+                alloc.get("allocation_percentage", 0) or 0
+            ) * self._risk_load_factor(risk_level)
 
         return cast(float, total_allocation / 100)  # type: ignore
 
@@ -3158,9 +3281,7 @@ class ResourceCapacityAgent(BaseAgent):
                 return str(item.get("risk_level", project_risk)).lower()
         return project_risk
 
-    def _build_risk_capacity_recommendations(
-        self, risk_data: dict[str, Any] | None
-    ) -> list[str]:
+    def _build_risk_capacity_recommendations(self, risk_data: dict[str, Any] | None) -> list[str]:
         if not risk_data:
             return []
         project_level = str(risk_data.get("project_risk_level", "low")).lower()
@@ -3383,9 +3504,7 @@ class ResourceCapacityAgent(BaseAgent):
         resource["certifications"] = list(
             {*(resource.get("certifications", []) or []), *certifications}
         )
-        resource["skills"] = list(
-            {*(resource.get("skills", []) or []), *skills}
-        )
+        resource["skills"] = list({*(resource.get("skills", []) or []), *skills})
         if self.db_service:
             await self.db_service.store(
                 "resource_training",
@@ -3486,8 +3605,7 @@ class ResourceCapacityAgent(BaseAgent):
             seasonality = self._seasonality_multiplier(index)
             adjusted_value = max(
                 0.0,
-                (value * (1 - attrition_rate) * seasonality * uplift)
-                - training_adjustments[index],
+                (value * (1 - attrition_rate) * seasonality * uplift) - training_adjustments[index],
             )
             adjusted.append({"month": index + 1, "capacity": adjusted_value})
         return adjusted
@@ -3565,9 +3683,7 @@ class ResourceCapacityAgent(BaseAgent):
             if source in {"azure_ad", "workday", "sap_successfactors"}:
                 await self._deactivate_resource(resource_id, reason="missing_from_hr_sync")
 
-    def _has_resource_changed(
-        self, existing: dict[str, Any], updated: dict[str, Any]
-    ) -> bool:
+    def _has_resource_changed(self, existing: dict[str, Any], updated: dict[str, Any]) -> bool:
         fields = [
             "name",
             "role",
@@ -3584,9 +3700,7 @@ class ResourceCapacityAgent(BaseAgent):
                 return True
         return False
 
-    async def _forecast_capacity_for_scenario(
-        self, scenario: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _forecast_capacity_for_scenario(self, scenario: dict[str, Any]) -> dict[str, Any]:
         history_months = 6
         capacity_series, demand_series = await self._build_capacity_demand_history(history_months)
         scope_multiplier = float(scenario.get("scope_multiplier", 1.0))
@@ -3594,8 +3708,7 @@ class ResourceCapacityAgent(BaseAgent):
         resource_count = int(scenario.get("resource_count", len(self.resource_pool)))
         base_count = len(self.resource_pool) or 1
         adjusted_capacity_series = [
-            value * (resource_count / base_count) * capacity_multiplier
-            for value in capacity_series
+            value * (resource_count / base_count) * capacity_multiplier for value in capacity_series
         ]
         adjusted_demand_series = [value * scope_multiplier for value in demand_series]
         forecaster = TimeSeriesForecaster(
@@ -3605,9 +3718,7 @@ class ResourceCapacityAgent(BaseAgent):
         capacity_forecast = forecaster.forecast(
             adjusted_capacity_series, self.forecast_horizon_months
         )
-        demand_forecast = forecaster.forecast(
-            adjusted_demand_series, self.forecast_horizon_months
-        )
+        demand_forecast = forecaster.forecast(adjusted_demand_series, self.forecast_horizon_months)
         return {
             "future_capacity": [
                 {"month": index + 1, "capacity": max(0.0, value)}
@@ -3622,9 +3733,9 @@ class ResourceCapacityAgent(BaseAgent):
     def _average_cost_rate(self) -> float:
         if not self.resource_pool:
             return 0.0
-        return sum(float(resource.get("cost_rate", 0.0)) for resource in self.resource_pool.values()) / len(
-            self.resource_pool
-        )
+        return sum(
+            float(resource.get("cost_rate", 0.0)) for resource in self.resource_pool.values()
+        ) / len(self.resource_pool)
 
     async def cleanup(self) -> None:
         """Cleanup resources."""
@@ -3632,7 +3743,15 @@ class ResourceCapacityAgent(BaseAgent):
         if self.redis_client:
             try:
                 self.redis_client.close()
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 self.logger.warning("Failed to close Redis client", extra={"error": str(exc)})
         if self.db_service:
             try:
@@ -3641,7 +3760,15 @@ class ResourceCapacityAgent(BaseAgent):
                     f"resource-capacity-cleanup-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
                     {"status": "cleanup", "timestamp": datetime.now(timezone.utc).isoformat()},
                 )
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
                 self.logger.warning("Failed to flush events", extra={"error": str(exc)})
         self.repository.close()
 

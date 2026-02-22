@@ -4,11 +4,12 @@ import json
 import os
 import shutil
 import sqlite3
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Iterator, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 try:
     import psycopg2
@@ -101,7 +102,7 @@ class DocumentSessionStore:
         self._initialize()
 
     @classmethod
-    def from_selection(cls, selection: DocumentSessionStorageSelection) -> "DocumentSessionStore":
+    def from_selection(cls, selection: DocumentSessionStorageSelection) -> DocumentSessionStore:
         return cls(db_path=selection.db_path, connection_url=selection.connection_url)
 
     def _connect(self) -> Any:
@@ -198,13 +199,17 @@ class DocumentSessionStore:
     def get_session(self, session_id: str) -> dict[str, Any] | None:
         with self._connect() as conn:
             if self._backend == "sqlite":
-                row = conn.execute("SELECT * FROM document_sessions WHERE session_id = ?", (session_id,)).fetchone()
+                row = conn.execute(
+                    "SELECT * FROM document_sessions WHERE session_id = ?", (session_id,)
+                ).fetchone()
                 if row is None:
                     return None
                 data = dict(row)
             else:
                 with conn.cursor() as cur:
-                    cur.execute("SELECT * FROM document_sessions WHERE session_id = %s", (session_id,))
+                    cur.execute(
+                        "SELECT * FROM document_sessions WHERE session_id = %s", (session_id,)
+                    )
                     row = cur.fetchone()
                     if row is None:
                         return None
@@ -218,7 +223,11 @@ class DocumentSessionStore:
             "started_by": data["started_by"],
             "started_at": data["started_at"],
             "updated_at": data["updated_at"],
-            "collaborators": json.loads(data["collaborators_json"]) if isinstance(data["collaborators_json"], str) else data["collaborators_json"],
+            "collaborators": (
+                json.loads(data["collaborators_json"])
+                if isinstance(data["collaborators_json"], str)
+                else data["collaborators_json"]
+            ),
             "content": data["content"],
             "version": data["version"],
         }
@@ -226,13 +235,18 @@ class DocumentSessionStore:
     def update_session(self, session_id: str, **changes: Any) -> dict[str, Any] | None:
         with self._transaction() as conn:
             if self._backend == "sqlite":
-                row = conn.execute("SELECT * FROM document_sessions WHERE session_id = ?", (session_id,)).fetchone()
+                row = conn.execute(
+                    "SELECT * FROM document_sessions WHERE session_id = ?", (session_id,)
+                ).fetchone()
                 if row is None:
                     return None
                 existing = dict(row)
             else:
                 with conn.cursor() as cur:
-                    cur.execute("SELECT * FROM document_sessions WHERE session_id = %s FOR UPDATE", (session_id,))
+                    cur.execute(
+                        "SELECT * FROM document_sessions WHERE session_id = %s FOR UPDATE",
+                        (session_id,),
+                    )
                     row = cur.fetchone()
                     if row is None:
                         return None
@@ -246,7 +260,11 @@ class DocumentSessionStore:
                 "started_by": existing["started_by"],
                 "started_at": existing["started_at"],
                 "updated_at": existing["updated_at"],
-                "collaborators": json.loads(existing["collaborators_json"]) if isinstance(existing["collaborators_json"], str) else existing["collaborators_json"],
+                "collaborators": (
+                    json.loads(existing["collaborators_json"])
+                    if isinstance(existing["collaborators_json"], str)
+                    else existing["collaborators_json"]
+                ),
                 "content": existing["content"],
                 "version": existing["version"],
             }
@@ -315,7 +333,15 @@ class DocumentSessionStore:
                         document_id, version, content, persisted_at, persisted_by, summary, metadata_json
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (document_id, version, content, persisted_at, persisted_by, summary, json.dumps(metadata or {})),
+                    (
+                        document_id,
+                        version,
+                        content,
+                        persisted_at,
+                        persisted_by,
+                        summary,
+                        json.dumps(metadata or {}),
+                    ),
                 )
             else:
                 with conn.cursor() as cur:
@@ -326,7 +352,15 @@ class DocumentSessionStore:
                         ) VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb)
                         ON CONFLICT (document_id, version) DO NOTHING
                         """,
-                        (document_id, version, content, persisted_at, persisted_by, summary, json.dumps(metadata or {})),
+                        (
+                            document_id,
+                            version,
+                            content,
+                            persisted_at,
+                            persisted_by,
+                            summary,
+                            json.dumps(metadata or {}),
+                        ),
                     )
 
     def backup(self, backup_path: Path) -> Path:
@@ -346,7 +380,9 @@ class DocumentSessionStore:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=keep_days)).isoformat()
         with self._transaction() as conn:
             if self._backend == "sqlite":
-                deleted = conn.execute("DELETE FROM document_versions WHERE persisted_at < ?", (cutoff,)).rowcount
+                deleted = conn.execute(
+                    "DELETE FROM document_versions WHERE persisted_at < ?", (cutoff,)
+                ).rowcount
             else:
                 with conn.cursor() as cur:
                     cur.execute("DELETE FROM document_versions WHERE persisted_at < %s", (cutoff,))

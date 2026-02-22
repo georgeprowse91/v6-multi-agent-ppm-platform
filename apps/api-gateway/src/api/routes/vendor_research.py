@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, ValidationError
 
 router = APIRouter()
@@ -25,9 +25,7 @@ class VendorResearchResponse(BaseModel):
 
 
 @router.post("/vendors/{vendor_id}/research", response_model=VendorResearchResponse)
-async def research_vendor(
-    vendor_id: str, request: VendorResearchRequest
-) -> VendorResearchResponse:
+async def research_vendor(vendor_id: str, request: VendorResearchRequest) -> VendorResearchResponse:
     """Trigger external vendor research using the Vendor & Procurement agent."""
     orchestrator = request.app.state.orchestrator
 

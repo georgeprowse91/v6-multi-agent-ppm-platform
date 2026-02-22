@@ -1,0 +1,25 @@
+{
+  "rfp_id": "RFP-20260222043149",
+  "request_id": "PR-20260222043149",
+  "title": "New SaaS tools",
+  "content": "RFP Title: New SaaS tools\nCategory: services\nScope: New SaaS tools\nRequirements: SOC2, SSO\nTemplate Sections:\n- Overview\n- Pricing\n",
+  "requirements": [
+    "SOC2",
+    "SSO"
+  ],
+  "evaluation_criteria": {},
+  "submission_deadline": null,
+  "invited_vendors": [],
+  "proposals_received": [],
+  "status": "Published",
+  "created_at": "2026-02-22T04:31:49.807406+00:00",
+  "document": {
+    "document_id": "DOC-20260222043149",
+    "title": "RFP RFP-20260222043149: New SaaS tools",
+    "url": "/sites/default/Documents/Procurement/RFPs/RFP RFP-20260222043149: New SaaS tools",
+    "status": "published_mock",
+    "published_at": "2026-02-22T04:31:49.807547+00:00"
+  },
+  "_id": "RFP-20260222043149",
+  "_updated_at": "2026-02-22T04:31:49.807780+00:00"
+}

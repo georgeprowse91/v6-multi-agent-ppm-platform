@@ -790,9 +790,7 @@ async def get_kpi_trends(project_id: str, request: Request) -> KpiTrendResponse:
         snapshot = await kpi_engine.compute_kpis(project_id, tenant_id)
         snapshots = metrics_store.list_recent_snapshots(tenant_id, project_id, limit=6)
         if not snapshots:
-            snapshots = [
-                metrics_store.add_snapshot(tenant_id, project_id, snapshot.metrics)
-            ]
+            snapshots = [metrics_store.add_snapshot(tenant_id, project_id, snapshot.metrics)]
     trends = compute_kpi_trends(
         project_id=project_id,
         tenant_id=tenant_id,
@@ -1157,10 +1155,7 @@ async def _build_artifact_aggregations(
         {"schema": "requirement", "label": "Requirements"},
     ]
     responses = await asyncio.gather(
-        *[
-            data_client.list_entities(config["schema"], tenant_id)
-            for config in schema_configs
-        ],
+        *[data_client.list_entities(config["schema"], tenant_id) for config in schema_configs],
         return_exceptions=True,
     )
     aggregated: list[AggregatedArtifactMetric] = []
@@ -1244,9 +1239,7 @@ async def ingest_predictive_alerts(
     return accepted
 
 
-@api_router.get(
-    "/api/analytics/predictive-alerts", response_model=list[PredictiveAlertResponse]
-)
+@api_router.get("/api/analytics/predictive-alerts", response_model=list[PredictiveAlertResponse])
 async def list_predictive_alerts(
     project_id: str, request: Request, limit: int = Query(20, ge=1, le=200)
 ) -> list[PredictiveAlertResponse]:

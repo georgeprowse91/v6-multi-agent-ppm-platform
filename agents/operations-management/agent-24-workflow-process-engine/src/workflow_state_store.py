@@ -212,6 +212,12 @@ class DatabaseWorkflowStateStore:
         self.session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
             self.engine, expire_on_commit=False
         )
+        # In-memory fallback for offline/stub environments where the DB is a no-op
+        self._mem_definitions: dict[str, dict[str, Any]] = {}
+        self._mem_instances: dict[str, dict[str, Any]] = {}
+        self._mem_tasks: dict[str, dict[str, Any]] = {}
+        self._mem_subscriptions: dict[str, dict[str, Any]] = {}
+        self._mem_events: list[dict[str, Any]] = []
 
     async def initialize(self) -> None:
         async with self.engine.begin() as connection:
@@ -227,12 +233,13 @@ class DatabaseWorkflowStateStore:
             )
             row = result.fetchone()
         if not row:
-            return None
+            return self._mem_definitions.get(f"{tenant_id}:{workflow_id}")
         return dict(row.definition)
 
     async def save_definition(
         self, tenant_id: str, workflow_id: str, definition: dict[str, Any]
     ) -> None:
+        self._mem_definitions[f"{tenant_id}:{workflow_id}"] = definition.copy()
         async with self.session_factory() as session:
             async with session.begin():
                 existing = await session.execute(
@@ -282,12 +289,13 @@ class DatabaseWorkflowStateStore:
             )
             row = result.fetchone()
         if not row:
-            return None
+            return self._mem_instances.get(f"{tenant_id}:{instance_id}")
         return dict(row.payload)
 
     async def save_instance(
         self, tenant_id: str, instance_id: str, instance: dict[str, Any]
     ) -> None:
+        self._mem_instances[f"{tenant_id}:{instance_id}"] = instance.copy()
         async with self.session_factory() as session:
             async with session.begin():
                 existing = await session.execute(
@@ -332,7 +340,10 @@ class DatabaseWorkflowStateStore:
                 )
             )
             rows = result.fetchall()
-        return [dict(row.payload) for row in rows]
+        if rows:
+            return [dict(row.payload) for row in rows]
+        prefix = f"{tenant_id}:"
+        return [v for k, v in self._mem_instances.items() if k.startswith(prefix)]
 
     async def get_task(self, tenant_id: str, task_id: str) -> dict[str, Any] | None:
         async with self.session_factory() as session:
@@ -344,10 +355,11 @@ class DatabaseWorkflowStateStore:
             )
             row = result.fetchone()
         if not row:
-            return None
+            return self._mem_tasks.get(f"{tenant_id}:{task_id}")
         return dict(row.payload)
 
     async def save_task(self, tenant_id: str, task_id: str, task: dict[str, Any]) -> None:
+        self._mem_tasks[f"{tenant_id}:{task_id}"] = task.copy()
         async with self.session_factory() as session:
             async with session.begin():
                 existing = await session.execute(
@@ -401,11 +413,20 @@ class DatabaseWorkflowStateStore:
                 statement = statement.where(WORKFLOW_TASK_TABLE.c.status == status)
             result = await session.execute(statement)
             rows = result.fetchall()
-        return [dict(row.payload) for row in rows]
+        if rows:
+            return [dict(row.payload) for row in rows]
+        prefix = f"{tenant_id}:"
+        tasks = [v for k, v in self._mem_tasks.items() if k.startswith(prefix)]
+        if assignee:
+            tasks = [t for t in tasks if t.get("assignee") == assignee]
+        if status:
+            tasks = [t for t in tasks if t.get("status") == status]
+        return tasks
 
     async def save_subscription(
         self, tenant_id: str, subscription_id: str, subscription: dict[str, Any]
     ) -> None:
+        self._mem_subscriptions[f"{tenant_id}:{subscription_id}"] = subscription.copy()
         async with self.session_factory() as session:
             async with session.begin():
                 existing = await session.execute(
@@ -454,21 +475,28 @@ class DatabaseWorkflowStateStore:
                 statement = statement.where(WORKFLOW_SUBSCRIPTION_TABLE.c.event_type == event_type)
             result = await session.execute(statement)
             rows = result.fetchall()
-        subscriptions = []
-        for row in rows:
-            subscriptions.append(
-                {
-                    "subscription_id": row.subscription_id,
-                    "workflow_id": row.workflow_id,
-                    "event_type": row.event_type,
-                    "action": row.action,
-                    "task_id": row.task_id,
-                    "criteria": row.criteria or {},
-                }
-            )
-        return subscriptions
+        if rows:
+            subscriptions = []
+            for row in rows:
+                subscriptions.append(
+                    {
+                        "subscription_id": row.subscription_id,
+                        "workflow_id": row.workflow_id,
+                        "event_type": row.event_type,
+                        "action": row.action,
+                        "task_id": row.task_id,
+                        "criteria": row.criteria or {},
+                    }
+                )
+            return subscriptions
+        prefix = f"{tenant_id}:"
+        subs = [v for k, v in self._mem_subscriptions.items() if k.startswith(prefix)]
+        if event_type:
+            subs = [s for s in subs if s.get("event_type") == event_type]
+        return subs
 
     async def save_event(self, tenant_id: str, event_id: str, event: dict[str, Any]) -> None:
+        self._mem_events.append({"tenant_id": tenant_id, "event_id": event_id, **event.copy()})
         async with self.session_factory() as session:
             async with session.begin():
                 await session.execute(
@@ -486,7 +514,9 @@ class DatabaseWorkflowStateStore:
                 select(WORKFLOW_EVENT_TABLE).where(WORKFLOW_EVENT_TABLE.c.tenant_id == tenant_id)
             )
             rows = result.fetchall()
-        return [dict(row.payload) for row in rows]
+        if rows:
+            return [dict(row.payload) for row in rows]
+        return [e for e in self._mem_events if e.get("tenant_id") == tenant_id]
 
 
 def build_workflow_state_store(config: dict[str, Any] | None = None) -> WorkflowStateStore:

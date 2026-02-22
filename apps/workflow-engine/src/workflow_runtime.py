@@ -8,9 +8,8 @@ import httpx
 from agent_client import AgentClient
 from approval_workflow_agent import ApprovalWorkflowAgent
 from circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitBreakerRegistry
-from workflow_storage import WorkflowApproval, WorkflowInstance, WorkflowStore
-
 from observability.metrics import build_business_workflow_metrics
+from workflow_storage import WorkflowApproval, WorkflowInstance, WorkflowStore
 
 try:
     from event_bus import get_event_bus
@@ -237,9 +236,7 @@ class WorkflowRuntime:
         step = step_map.get(step_id)
         if not step:
             self.store.update_status(instance.run_id, "failed", step_id)
-            self.store.add_event(
-                instance.run_id, "failed", f"Unknown step {step_id}", step_id
-            )
+            self.store.add_event(instance.run_id, "failed", f"Unknown step {step_id}", step_id)
             await self._publish_event(
                 "workflow.failed",
                 {
@@ -292,7 +289,9 @@ class WorkflowRuntime:
                         "reason": f"Parallel step {step_id} missing branches or join",
                     },
                 )
-                return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
+                return self.StepExecutionResult(
+                    self._require_instance(instance.run_id), "failed", None
+                )
 
             self.store.upsert_step_state(
                 instance.run_id,
@@ -475,7 +474,9 @@ class WorkflowRuntime:
                     f"Agent client not configured for step {step_id}",
                     step_id,
                 )
-                await self._fail_and_compensate(instance, definition, actor, step_id, reason="agent_client_missing")
+                await self._fail_and_compensate(
+                    instance, definition, actor, step_id, reason="agent_client_missing"
+                )
                 await self._publish_event(
                     "workflow.failed",
                     {
@@ -485,7 +486,9 @@ class WorkflowRuntime:
                         "reason": f"Agent client not configured for step {step_id}",
                     },
                 )
-                return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
+                return self.StepExecutionResult(
+                    self._require_instance(instance.run_id), "failed", None
+                )
             if not agent_id or not action:
                 self.store.upsert_step_state(
                     instance.run_id, step_id, "failed", attempts, step_output
@@ -500,7 +503,9 @@ class WorkflowRuntime:
                     f"Task step {step_id} missing agent/action",
                     step_id,
                 )
-                await self._fail_and_compensate(instance, definition, actor, step_id, reason="agent_config_missing")
+                await self._fail_and_compensate(
+                    instance, definition, actor, step_id, reason="agent_config_missing"
+                )
                 await self._publish_event(
                     "workflow.failed",
                     {
@@ -510,7 +515,9 @@ class WorkflowRuntime:
                         "reason": f"Task step {step_id} missing agent/action",
                     },
                 )
-                return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
+                return self.StepExecutionResult(
+                    self._require_instance(instance.run_id), "failed", None
+                )
             resolved_config = {
                 key: self._resolve_reference(value, instance.payload)
                 for key, value in agent_config.items()
@@ -562,7 +569,9 @@ class WorkflowRuntime:
                 self.store.add_event(
                     instance.run_id, "failed", f"API step {step_id} missing endpoint", step_id
                 )
-                await self._fail_and_compensate(instance, definition, actor, step_id, reason="api_missing_endpoint")
+                await self._fail_and_compensate(
+                    instance, definition, actor, step_id, reason="api_missing_endpoint"
+                )
                 await self._publish_event(
                     "workflow.failed",
                     {
@@ -572,7 +581,9 @@ class WorkflowRuntime:
                         "reason": f"API step {step_id} missing endpoint",
                     },
                 )
-                return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
+                return self.StepExecutionResult(
+                    self._require_instance(instance.run_id), "failed", None
+                )
             method = str(config.get("method", "POST")).upper()
             headers = config.get("headers", {})
             body = config.get("payload", {})
@@ -633,11 +644,11 @@ class WorkflowRuntime:
                     "tenant_id": instance.tenant_id,
                 },
             )
-            return self.StepExecutionResult(self._require_instance(instance.run_id), "completed", None)
+            return self.StepExecutionResult(
+                self._require_instance(instance.run_id), "completed", None
+            )
 
-        self.store.upsert_step_state(
-            instance.run_id, step_id, "completed", attempts, step_output
-        )
+        self.store.upsert_step_state(instance.run_id, step_id, "completed", attempts, step_output)
         self._register_compensable_step(instance, step, step_id, attempts)
         self.store.add_event(
             instance.run_id,
@@ -704,7 +715,9 @@ class WorkflowRuntime:
                     f"Circuit opened for step {step_id} after failure",
                     step_id,
                 )
-                return self.StepExecutionResult(self._require_instance(instance.run_id), "paused", None)
+                return self.StepExecutionResult(
+                    self._require_instance(instance.run_id), "paused", None
+                )
         if attempts < max_attempts:
             self.store.upsert_step_state(
                 instance.run_id, step_id, "retrying", attempts, step_output
@@ -732,7 +745,9 @@ class WorkflowRuntime:
             f"Step {step_id} failed after retries",
             step_id,
         )
-        await self._fail_and_compensate(instance, definition, actor, step_id, reason="retries_exhausted")
+        await self._fail_and_compensate(
+            instance, definition, actor, step_id, reason="retries_exhausted"
+        )
         return self.StepExecutionResult(self._require_instance(instance.run_id), "failed", None)
 
     def _maybe_trigger_parallel_join(
@@ -750,11 +765,7 @@ class WorkflowRuntime:
         join_step_id = parallel_step.get("join")
         if not join_step_id:
             return next_step_id
-        completed = [
-            self.store.get_step_state(run_id, branch)
-            for branch in branch_ids
-            if branch
-        ]
+        completed = [self.store.get_step_state(run_id, branch) for branch in branch_ids if branch]
         if all(state and state.status == "completed" for state in completed):
             return self._as_optional_str(join_step_id)
         self.store.update_status(run_id, "waiting_parallel", parallel_step.get("id"))
@@ -1144,7 +1155,10 @@ class WorkflowRuntime:
         return True
 
     async def inspect_compensation(self, run_id: str) -> list[dict[str, Any]]:
-        return [entry.__dict__ for entry in self.store.list_journal_entries(run_id, phase="compensation")]
+        return [
+            entry.__dict__
+            for entry in self.store.list_journal_entries(run_id, phase="compensation")
+        ]
 
     async def retry_compensation(
         self,

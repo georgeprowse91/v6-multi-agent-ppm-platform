@@ -1,0 +1,14 @@
+{
+  "risk_id": "RISK-20260222050323",
+  "quantitative_impact": {
+    "schedule_impact_days": 1.6,
+    "cost_impact": 8000.0,
+    "baseline_duration_days": 100.0,
+    "baseline_cost": 1000000.0,
+    "probability": 0.4,
+    "impact_factor": 0.4
+  },
+  "assessed_at": "2026-02-22T05:03:23.958637+00:00",
+  "_id": "RISK-20260222050323-2026-02-22T05:03:23.958637+00:00",
+  "_updated_at": "2026-02-22T05:03:23.960050+00:00"
+}

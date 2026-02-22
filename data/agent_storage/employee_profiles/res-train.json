@@ -1,0 +1,19 @@
+{
+  "resource_id": "res-train",
+  "name": "Kai",
+  "role": "Engineer",
+  "skills": [],
+  "location": "Remote",
+  "cost_rate": 0.0,
+  "certifications": [],
+  "availability": 1.0,
+  "team_memberships": [],
+  "created_at": "2026-02-22T06:02:11.945062+00:00",
+  "status": "Active",
+  "training": {},
+  "training_load": 0.0,
+  "employee_id": "res-train",
+  "source_system": "agent",
+  "_id": "res-train",
+  "_updated_at": "2026-02-22T06:02:11.947359+00:00"
+}

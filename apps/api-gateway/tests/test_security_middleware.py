@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import json
 from types import SimpleNamespace
 
 import pytest
+from api.middleware import security
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.testclient import TestClient
-
-from api.middleware import security
 
 
 @pytest.mark.anyio
@@ -26,6 +24,7 @@ async def test_auth_tenant_middleware_missing_headers_returns_401():
         "server": ("testserver", 80),
         "client": ("testclient", 50000),
     }
+
     async def _receive():
         return {"type": "http.request", "body": b"", "more_body": False}
 
@@ -72,6 +71,7 @@ async def test_auth_tenant_middleware_deny_allow_matrix(monkeypatch):
         "client": ("testclient", 50000),
     }
     monkeypatch.setattr(security, "_evaluate_rbac", _allow)
+
     async def _receive_allow():
         return {"type": "http.request", "body": b"", "more_body": False}
 
@@ -80,6 +80,7 @@ async def test_auth_tenant_middleware_deny_allow_matrix(monkeypatch):
 
     deny_scope = dict(allow_scope)
     monkeypatch.setattr(security, "_evaluate_rbac", _deny)
+
     async def _receive_deny():
         return {"type": "http.request", "body": b"", "more_body": False}
 

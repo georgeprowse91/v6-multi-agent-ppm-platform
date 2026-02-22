@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-
 REPO_ROOT = Path(__file__).resolve().parents[4]
 AGENT_SRC = Path(__file__).resolve().parents[1] / "src"
 sys.path.extend([str(REPO_ROOT), str(AGENT_SRC)])
@@ -40,7 +39,9 @@ def _build_event(
     }
 
 
-def _build_agent(tmp_path: Path, knowledge_agent: DummyKnowledgeAgent | None = None) -> ProcessMiningAgent:
+def _build_agent(
+    tmp_path: Path, knowledge_agent: DummyKnowledgeAgent | None = None
+) -> ProcessMiningAgent:
     return ProcessMiningAgent(
         config={
             "event_log_store_path": tmp_path / "event_logs.json",
@@ -85,9 +86,7 @@ async def test_process_discovery_generates_models(tmp_path: Path) -> None:
         _build_event("approve", base_time + timedelta(hours=2), "case-1"),
         _build_event("deploy", base_time + timedelta(hours=4), "case-1"),
     ]
-    await agent.process(
-        {"action": "ingest_event_log", "tenant_id": "tenant-1", "events": events}
-    )
+    await agent.process({"action": "ingest_event_log", "tenant_id": "tenant-1", "events": events})
 
     result = await agent.process(
         {"action": "discover_process", "tenant_id": "tenant-1", "process_id": "process-1"}
@@ -108,9 +107,7 @@ async def test_conformance_checks_detect_deviations(tmp_path: Path) -> None:
         _build_event("unexpected", base_time + timedelta(hours=1), "case-1"),
         _build_event("finish", base_time + timedelta(hours=2), "case-1"),
     ]
-    await agent.process(
-        {"action": "ingest_event_log", "tenant_id": "tenant-1", "events": events}
-    )
+    await agent.process({"action": "ingest_event_log", "tenant_id": "tenant-1", "events": events})
 
     expected_model = {
         "activities": ["start", "finish"],
@@ -140,9 +137,7 @@ async def test_recommendations_publish_to_knowledge_agent(tmp_path: Path) -> Non
         _build_event("review", base_time + timedelta(hours=5), "case-1"),
         _build_event("finish", base_time + timedelta(hours=9), "case-1"),
     ]
-    await agent.process(
-        {"action": "ingest_event_log", "tenant_id": "tenant-1", "events": events}
-    )
+    await agent.process({"action": "ingest_event_log", "tenant_id": "tenant-1", "events": events})
 
     insights = await agent.process(
         {"action": "get_process_insights", "tenant_id": "tenant-1", "process_id": "process-1"}

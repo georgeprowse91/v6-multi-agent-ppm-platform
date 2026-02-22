@@ -1,0 +1,11 @@
+{
+  "trigger_id": "TRG-4f43c3dc",
+  "risk_id": "RISK-20260222052356",
+  "type": "threshold",
+  "threshold": 5,
+  "current_value": 6,
+  "status": "monitoring",
+  "created_at": "2026-02-22T05:23:56.418625+00:00",
+  "_id": "TRG-4f43c3dc",
+  "_updated_at": "2026-02-22T05:23:56.418836+00:00"
+}

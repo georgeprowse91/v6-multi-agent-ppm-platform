@@ -1,0 +1,45 @@
+{
+  "deployment_plan_id": "DEPLOY-20260222052909",
+  "timestamp": "2026-02-22T05:29:10.002953+00:00",
+  "payload": {
+    "pipelines": [],
+    "steps": [
+      {
+        "step": 1,
+        "action": "Backup database",
+        "estimated_minutes": 15
+      },
+      {
+        "step": 2,
+        "action": "Stop application",
+        "estimated_minutes": 5
+      },
+      {
+        "step": 3,
+        "action": "Deploy artifacts",
+        "estimated_minutes": 20
+      },
+      {
+        "step": 4,
+        "action": "Run database migrations",
+        "estimated_minutes": 10
+      },
+      {
+        "step": 5,
+        "action": "Start application",
+        "estimated_minutes": 5
+      },
+      {
+        "step": 6,
+        "action": "Verify deployment",
+        "estimated_minutes": 10
+      }
+    ],
+    "orchestration": {
+      "orchestration_id": "7ad8eea1-d014-4f0d-bb5f-323efb33243b",
+      "status": "completed"
+    }
+  },
+  "_id": "DEPLOY-20260222052909",
+  "_updated_at": "2026-02-22T05:29:10.003328+00:00"
+}

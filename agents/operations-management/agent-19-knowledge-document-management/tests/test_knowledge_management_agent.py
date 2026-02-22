@@ -262,7 +262,9 @@ async def test_generate_excerpts_handles_very_short_and_very_long_content(tmp_pa
 
 
 @pytest.mark.anyio
-async def test_entity_extraction_returns_normalized_entities_for_quality_targets(tmp_path: Path) -> None:
+async def test_entity_extraction_returns_normalized_entities_for_quality_targets(
+    tmp_path: Path,
+) -> None:
     agent = build_agent_with_entity_backend(tmp_path, "fallback")
     await agent.initialize()
 

@@ -1,0 +1,78 @@
+{
+  "program_id": "PROG-20260222043145",
+  "optimized_schedule": {
+    "P1": {
+      "start": "2026-01-01T00:00:00",
+      "end": "2026-12-31T00:00:00",
+      "duration_days": 364
+    },
+    "P2": {
+      "start": "2026-01-01T00:00:00",
+      "end": "2026-12-31T00:00:00",
+      "duration_days": 364
+    }
+  },
+  "objective_score": 0.7567,
+  "objective_breakdown": {
+    "utilization": 1.0,
+    "cost": 0.1667,
+    "risk": 0.7,
+    "schedule": 1.0,
+    "alignment": 0.8333,
+    "synergy": 1.0
+  },
+  "algorithm": "mixed_integer",
+  "constraints": {
+    "iterations": 4,
+    "optimization_method": "mixed_integer"
+  },
+  "alignment_score": 0.8333333333333333,
+  "alignment_scores": {
+    "P1": 1.0,
+    "P2": 0.6666666666666666
+  },
+  "synergy_savings": {
+    "shared_components": 12000.0,
+    "vendor_consolidation": 8000.0,
+    "infrastructure_sharing": 6000.0,
+    "total": 26000.0
+  },
+  "synergy_analysis": {
+    "shared_components": [
+      {
+        "projects": [
+          "P1",
+          "P2"
+        ],
+        "similarity": 0.3333333333333333,
+        "overlap_terms": [
+          "crm",
+          "data"
+        ]
+      }
+    ],
+    "vendor_consolidation": [
+      {
+        "projects": [
+          "P1",
+          "P2"
+        ],
+        "opportunity": "Consolidate vendors",
+        "similarity": 0.3333333333333333
+      }
+    ],
+    "infrastructure_synergies": [
+      {
+        "projects": [
+          "P1",
+          "P2"
+        ],
+        "opportunity": "Share infrastructure",
+        "similarity": 0.3333333333333333
+      }
+    ]
+  },
+  "optimized_at": "2026-02-22T04:31:45.635542+00:00",
+  "_id": "PROG-20260222043145",
+  "_updated_at": "2026-02-22T04:31:45.635740+00:00"
+}

@@ -288,7 +288,7 @@ class ConnectorConfig:
             if isinstance(data.get("mcp_scopes"), list)
             else _split_mcp_scopes(data.get("mcp_scope", ""))
         )
-        mcp_scope = data.get("mcp_scope", "") or " ".join(mcp_scopes)
+        mcp_scope = data.get("mcp_scope", "") or " ".join(mcp_scopes or [])
         tool_map = data.get("tool_map") or data.get("mcp_tool_map", {})
         try:
             category = ConnectorCategory(data["category"])
@@ -319,7 +319,7 @@ class ConnectorConfig:
             mcp_client_id=data.get("mcp_client_id", ""),
             mcp_client_secret=data.get("mcp_client_secret", ""),
             mcp_scope=mcp_scope,
-            mcp_scopes=mcp_scopes,
+            mcp_scopes=list(mcp_scopes) if mcp_scopes else [],
             mcp_api_key=data.get("mcp_api_key", ""),
             mcp_api_key_header=data.get("mcp_api_key_header", ""),
             mcp_oauth_token=data.get("mcp_oauth_token", ""),
@@ -461,7 +461,7 @@ class BaseConnector(ABC):
             "number": (int, float),
             "boolean": bool,
         }
-        if expected_type in type_checks and not isinstance(payload, type_checks[expected_type]):
+        if expected_type in type_checks and not isinstance(payload, type_checks[expected_type]):  # type: ignore[arg-type]
             raise ConnectorSchemaValidationError(
                 f"Expected type '{expected_type}' but got '{type(payload).__name__}'"
             )
@@ -539,7 +539,7 @@ class BaseConnector(ABC):
             response = self._resilience.execute(_operation)
             self._last_call_cost_usd = self.estimate_call_cost(endpoint, payload, response)
             self._telemetry.sync_total.add(1, {**attributes, "result": "success"})
-            return response
+            return dict(response)
         except Exception as exc:  # noqa: BLE001
             self._telemetry.sync_total.add(1, {**attributes, "result": "failure"})
             raise ConnectorCallFailedError(
@@ -573,9 +573,9 @@ class BaseConnector(ABC):
             model_pricing = self._pricing.get("llm_models", {}).get(model, {})
             input_per_1k = float(model_pricing.get("input_per_1k_tokens_usd", 0.0))
             output_per_1k = float(model_pricing.get("output_per_1k_tokens_usd", 0.0))
-            prompt_tokens = float(usage.get("prompt_tokens", usage.get("request_tokens", 0.0)))
+            prompt_tokens = float(usage.get("prompt_tokens", usage.get("request_tokens", 0.0)) or 0.0)
             completion_tokens = float(
-                usage.get("completion_tokens", usage.get("response_tokens", 0.0))
+                usage.get("completion_tokens", usage.get("response_tokens", 0.0)) or 0.0
             )
             cost += (prompt_tokens / 1000.0) * input_per_1k
             cost += (completion_tokens / 1000.0) * output_per_1k
@@ -698,12 +698,12 @@ class ConnectorConfigStore:
 
     def _encrypt(self, data: str) -> str:
         if self._fernet:
-            return self._fernet.encrypt(data.encode()).decode()
+            return str(self._fernet.encrypt(data.encode()).decode())
         return data
 
     def _decrypt(self, data: str) -> str:
         if self._fernet:
-            return self._fernet.decrypt(data.encode()).decode()
+            return str(self._fernet.decrypt(data.encode()).decode())
         return data
 
     def _load_all(self) -> dict[str, dict[str, Any]]:
@@ -712,7 +712,7 @@ class ConnectorConfigStore:
         content = self.storage_path.read_text()
         if self._fernet:
             content = self._decrypt(content)
-        return json.loads(content)
+        return dict(json.loads(content))
 
     def _save_all(self, configs: dict[str, dict[str, Any]]) -> None:
         content = json.dumps(configs, indent=2, default=str)
@@ -771,7 +771,7 @@ class ConnectorConfigStore:
         try:
             from connector_registry import get_connector_definition
         except Exception:  # pragma: no cover - defensive
-            get_connector_definition = None  # type: ignore[assignment]
+            get_connector_definition = None
 
         definition = get_connector_definition(connector_id) if get_connector_definition else None
         system = definition.system if definition else None

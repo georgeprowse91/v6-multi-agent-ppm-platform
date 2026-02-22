@@ -439,9 +439,7 @@ async def test_budget_checks_use_financial_client(tmp_path):
     agent = VendorProcurementAgent(
         config={
             "vendor_store_path": tmp_path / "vendors.json",
-            "financial_config": {
-                "budget_data": {"project-1": {"total": 5000, "committed": 1000}}
-            },
+            "financial_config": {"budget_data": {"project-1": {"total": 5000, "committed": 1000}}},
         }
     )
     await agent.initialize()

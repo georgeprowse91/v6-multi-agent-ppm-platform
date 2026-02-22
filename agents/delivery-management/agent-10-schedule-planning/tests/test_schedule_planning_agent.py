@@ -16,7 +16,9 @@ class DummyEventBus:
 
 
 class StubResourceCapacityAgent:
-    def __init__(self, responses: dict[str, object] | None = None, raise_for: set[str] | None = None):
+    def __init__(
+        self, responses: dict[str, object] | None = None, raise_for: set[str] | None = None
+    ):
         self.responses = responses or {}
         self.raise_for = raise_for or set()
         self.calls: list[dict[str, object]] = []
@@ -33,11 +35,7 @@ def _load_agent_class() -> type:
     repo_root = REPO_ROOT
     sys.path.append(
         str(
-            repo_root
-            / "agents"
-            / "operations-management"
-            / "agent-17-change-configuration"
-            / "src"
+            repo_root / "agents" / "operations-management" / "agent-17-change-configuration" / "src"
         ),
     )
     sys.path.append(str(repo_root / "packages" / "contracts" / "src"))
@@ -51,8 +49,8 @@ def _load_agent_class() -> type:
 
 @pytest.mark.anyio
 async def test_create_schedule_and_syncs(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
-    agent = SchedulePlanningAgent(
+    agent_class = _load_agent_class()
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
@@ -96,8 +94,8 @@ async def test_create_schedule_and_syncs(tmp_path: Path) -> None:
 
 @pytest.mark.anyio
 async def test_duration_estimation_uses_ml(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
-    agent = SchedulePlanningAgent(
+    agent_class = _load_agent_class()
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
@@ -116,8 +114,8 @@ async def test_duration_estimation_uses_ml(tmp_path: Path) -> None:
 
 @pytest.mark.anyio
 async def test_databricks_monte_carlo(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
-    agent = SchedulePlanningAgent(
+    agent_class = _load_agent_class()
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
@@ -141,10 +139,10 @@ async def test_databricks_monte_carlo(tmp_path: Path) -> None:
 
 @pytest.mark.anyio
 async def test_event_publishing_and_persistence(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
+    agent_class = _load_agent_class()
     provider = InMemoryEventBusProvider()
     event_bus = EventBusClient(provider=provider)
-    agent = SchedulePlanningAgent(
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
@@ -180,8 +178,8 @@ async def test_event_publishing_and_persistence(tmp_path: Path) -> None:
 
 @pytest.mark.anyio
 async def test_resource_leveling_rcpsp(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
-    agent = SchedulePlanningAgent(
+    agent_class = _load_agent_class()
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
@@ -205,7 +203,7 @@ async def test_resource_leveling_rcpsp(tmp_path: Path) -> None:
 
 @pytest.mark.anyio
 async def test_get_resource_availability_uses_external_capacity_calendar(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
+    agent_class = _load_agent_class()
     stub = StubResourceCapacityAgent(
         responses={
             "dev-1": {
@@ -218,7 +216,7 @@ async def test_get_resource_availability_uses_external_capacity_calendar(tmp_pat
             }
         }
     )
-    agent = SchedulePlanningAgent(
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
@@ -241,8 +239,8 @@ async def test_get_resource_availability_uses_external_capacity_calendar(tmp_pat
 
 @pytest.mark.anyio
 async def test_get_resource_availability_fallback_without_external_agent(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
-    agent = SchedulePlanningAgent(
+    agent_class = _load_agent_class()
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
@@ -263,7 +261,7 @@ async def test_get_resource_availability_fallback_without_external_agent(tmp_pat
 
 @pytest.mark.anyio
 async def test_get_resource_availability_handles_malformed_and_exception(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
+    agent_class = _load_agent_class()
     stub = StubResourceCapacityAgent(
         responses={
             "dev-3": {"resource_id": "dev-3", "availability_by_day": "bad"},
@@ -271,7 +269,7 @@ async def test_get_resource_availability_handles_malformed_and_exception(tmp_pat
         },
         raise_for={"dev-5"},
     )
-    agent = SchedulePlanningAgent(
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),
@@ -298,8 +296,8 @@ async def test_get_resource_availability_handles_malformed_and_exception(tmp_pat
 
 @pytest.mark.anyio
 async def test_resource_leveling_respects_period_availability(tmp_path: Path) -> None:
-    SchedulePlanningAgent = _load_agent_class()
-    agent = SchedulePlanningAgent(
+    agent_class = _load_agent_class()
+    agent = agent_class(
         config={
             "schedule_store_path": str(tmp_path / "schedules.json"),
             "schedule_baseline_store_path": str(tmp_path / "baselines.json"),

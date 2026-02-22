@@ -30,15 +30,13 @@ class MemoryService:
             path = Path(sqlite_path)
             path.parent.mkdir(parents=True, exist_ok=True)
             self._conn = sqlite3.connect(path, check_same_thread=False)
-            self._conn.execute(
-                """
+            self._conn.execute("""
                 CREATE TABLE IF NOT EXISTS memory_context (
                     memory_key TEXT PRIMARY KEY,
                     data TEXT NOT NULL,
                     expires_at REAL
                 )
-                """
-            )
+                """)
             self._conn.commit()
         elif backend != "memory":
             raise ValueError("backend must be 'memory' or 'sqlite'")
@@ -89,7 +87,8 @@ class MemoryService:
             if self._is_expired(expires_at):
                 self.delete_context(key)
                 return None
-            return json.loads(payload)
+            result: dict[str, Any] = json.loads(payload)
+            return result
 
     def delete_context(self, key: str) -> None:
         with self._lock:

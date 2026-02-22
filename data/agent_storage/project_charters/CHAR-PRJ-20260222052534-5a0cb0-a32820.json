@@ -1,0 +1,45 @@
+{
+  "tenant_id": "tenant-a",
+  "charter": {
+    "charter_id": "CHAR-PRJ-20260222052534-5a0cb0-a32820",
+    "project_id": "PRJ-20260222052534-5a0cb0",
+    "title": "Project Atlas",
+    "project_type": "delivery",
+    "methodology": "hybrid",
+    "created_at": "2026-02-22T05:25:34.771445+00:00",
+    "created_by": "pm-1",
+    "status": "Draft",
+    "template": "template_delivery_hybrid",
+    "document": {
+      "executive_summary": "This project charter establishes Project Atlas. Define scope",
+      "objectives": [
+        "Deliver project on time and within budget",
+        "Meet stakeholder expectations",
+        "Achieve defined success criteria"
+      ],
+      "scope_overview": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "high_level_requirements": [],
+      "stakeholders": [],
+      "governance_structure": {
+        "sponsor": "Unassigned",
+        "project_manager": "Unassigned",
+        "steering_committee": [],
+        "reporting_frequency": "weekly"
+      },
+      "success_criteria": [
+        "Project completed within approved budget",
+        "All deliverables meet quality standards",
+        "Stakeholder satisfaction > 80%"
+      ],
+      "assumptions": [],
+      "constraints": []
+    },
+    "version": "1.0"
+  },
+  "_id": "CHAR-PRJ-20260222052534-5a0cb0-a32820",
+  "_updated_at": "2026-02-22T05:25:34.772376+00:00"
+}

@@ -1,0 +1,20 @@
+{
+  "ci_id": "CI-20260222041503",
+  "name": "api",
+  "type": "service",
+  "version": "1.0",
+  "owner": null,
+  "status": "active",
+  "project_id": null,
+  "relationships": [
+    {
+      "target_ci_id": "CI-20260222041503",
+      "relationship_type": "depends_on"
+    }
+  ],
+  "attributes": {},
+  "created_at": "2026-02-22T04:15:03.571223+00:00",
+  "last_modified": "2026-02-22T04:15:03.571232+00:00",
+  "_id": "CI-20260222041503",
+  "_updated_at": "2026-02-22T04:15:03.571967+00:00"
+}

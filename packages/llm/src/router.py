@@ -12,7 +12,8 @@ from providers.openai_provider import OpenAIProvider
 try:
     from security.secrets import resolve_secret
 except Exception:  # pragma: no cover - package standalone mode
-    def resolve_secret(value: str | None) -> str | None:  # type: ignore[no-redef]
+
+    def resolve_secret(value: str | None) -> str | None:  # noqa: F811
         return value
 
 
@@ -51,24 +52,48 @@ class LLMRouter:
     def default_selection(self) -> tuple[str, str]:
         models = get_enabled_models(demo_mode=self.demo_mode)
         if not models:
-            raise LLMProviderError("No enabled LLM models are configured", retryable=False, provider="router")
+            raise LLMProviderError(
+                "No enabled LLM models are configured", retryable=False, provider="router"
+            )
         selected = models[0]
         return selected.provider, selected.model_id
 
-    def _build_adapter(self, provider: str):
+    def _build_adapter(self, provider: str) -> AnthropicProvider | GoogleProvider | OpenAIProvider:
         if provider == "openai":
             api_key = resolve_secret(os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY"))
             if not api_key:
-                raise LLMProviderError("OpenAI API key is not configured", retryable=False, provider=provider)
-            return OpenAIProvider(api_key=api_key, base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"), timeout=self.timeout)
+                raise LLMProviderError(
+                    "OpenAI API key is not configured", retryable=False, provider=provider
+                )
+            return OpenAIProvider(
+                api_key=api_key,
+                base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+                timeout=self.timeout,
+            )
         if provider == "anthropic":
             api_key = resolve_secret(os.getenv("ANTHROPIC_API_KEY"))
             if not api_key:
-                raise LLMProviderError("Anthropic API key is not configured", retryable=False, provider=provider)
-            return AnthropicProvider(api_key=api_key, base_url=os.getenv("ANTHROPIC_BASE_URL", "https://api.anthropic.com/v1"), timeout=self.timeout)
+                raise LLMProviderError(
+                    "Anthropic API key is not configured", retryable=False, provider=provider
+                )
+            return AnthropicProvider(
+                api_key=api_key,
+                base_url=os.getenv("ANTHROPIC_BASE_URL", "https://api.anthropic.com/v1"),
+                timeout=self.timeout,
+            )
         if provider == "google":
             api_key = resolve_secret(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
             if not api_key:
-                raise LLMProviderError("Google API key is not configured", retryable=False, provider=provider)
-            return GoogleProvider(api_key=api_key, base_url=os.getenv("GOOGLE_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"), timeout=self.timeout)
-        raise LLMProviderError(f"Unsupported provider: {provider}", retryable=False, provider=provider)
+                raise LLMProviderError(
+                    "Google API key is not configured", retryable=False, provider=provider
+                )
+            return GoogleProvider(
+                api_key=api_key,
+                base_url=os.getenv(
+                    "GOOGLE_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"
+                ),
+                timeout=self.timeout,
+            )
+        raise LLMProviderError(
+            f"Unsupported provider: {provider}", retryable=False, provider=provider
+        )

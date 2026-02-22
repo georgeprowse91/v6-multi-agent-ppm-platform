@@ -35,7 +35,9 @@ def is_dependency_degraded(dependency: str) -> bool:
     return _normalize_flag_key(dependency) in _DEPENDENCY_DEGRADED
 
 
-def should_use_degraded_mode(feature: str, dependency: str, *, environment: str | None = None) -> bool:
+def should_use_degraded_mode(
+    feature: str, dependency: str, *, environment: str | None = None
+) -> bool:
     if is_feature_enabled(feature, environment=environment, default=False):
         return True
     return is_dependency_degraded(dependency)
@@ -129,7 +131,9 @@ def is_mcp_feature_enabled(
     resolved_environment = environment or os.getenv("ENVIRONMENT") or None
 
     if project_id:
-        project_flag = get_flag_state(mcp_project_flag(project_id), environment=resolved_environment)
+        project_flag = get_flag_state(
+            mcp_project_flag(project_id), environment=resolved_environment
+        )
         if project_flag is not None:
             return project_flag
 

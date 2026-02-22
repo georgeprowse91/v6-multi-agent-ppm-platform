@@ -11,9 +11,8 @@ import jwt
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from fastapi import HTTPException, Request
 from jwt import InvalidTokenError
-from starlette.middleware.base import BaseHTTPMiddleware
-
 from security.errors import error_payload
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger("auth-service")
 
@@ -56,9 +55,7 @@ def _load_config() -> AuthConfig:
         tenant_claim=os.getenv("AUTH_TENANT_CLAIM")
         or os.getenv("IDENTITY_TENANT_CLAIM")
         or "tenant_id",
-        roles_claim=os.getenv("AUTH_ROLES_CLAIM")
-        or os.getenv("IDENTITY_ROLES_CLAIM")
-        or "roles",
+        roles_claim=os.getenv("AUTH_ROLES_CLAIM") or os.getenv("IDENTITY_ROLES_CLAIM") or "roles",
     )
 
 
@@ -196,7 +193,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
             from fastapi.responses import JSONResponse
 
             message = exc.detail if isinstance(exc.detail, str) else "Request failed"
-            payload = error_payload(message=message, code=f"http_{exc.status_code}", details=exc.detail)
+            payload = error_payload(
+                message=message, code=f"http_{exc.status_code}", details=exc.detail
+            )
             return JSONResponse(status_code=exc.status_code, content=payload)
         request.state.auth = auth_context
         return await call_next(request)

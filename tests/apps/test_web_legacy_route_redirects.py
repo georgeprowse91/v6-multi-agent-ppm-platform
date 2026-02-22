@@ -48,4 +48,7 @@ def test_migration_map_reports_redirect_compatibility() -> None:
         "legacy_ui_retired": True,
         "notes": "Legacy UI has been fully retired; compatibility is redirect-only.",
     }
-    assert payload["compatibility"]["legacy_html"] == "Legacy HTML compatibility removed; routes redirect to SPA."
+    assert (
+        payload["compatibility"]["legacy_html"]
+        == "Legacy HTML compatibility removed; routes redirect to SPA."
+    )

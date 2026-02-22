@@ -3,15 +3,14 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Protocol
 
-from sqlalchemy.exc import IntegrityError
-
 from sqlalchemy import JSON, Column, DateTime, Integer, MetaData, String, Table, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 

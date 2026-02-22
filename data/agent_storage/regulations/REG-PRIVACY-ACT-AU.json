@@ -1,0 +1,27 @@
+{
+  "name": "Privacy Act 1988 (Cth)",
+  "description": "Australian Privacy Act 1988 including the Australian Privacy Principles (APPs).",
+  "jurisdiction": [
+    "au"
+  ],
+  "industry": [],
+  "data_sensitivity": [
+    "high"
+  ],
+  "effective_date": "1988-12-21",
+  "related_controls": [],
+  "applicability_rules": {
+    "applies_to_all": false,
+    "jurisdiction_filter": [
+      "au"
+    ],
+    "industry_filter": [],
+    "data_sensitivity_filter": [
+      "high"
+    ]
+  },
+  "regulation_id": "REG-PRIVACY-ACT-AU",
+  "created_at": "2026-02-22T06:02:07.148527+00:00",
+  "_id": "REG-PRIVACY-ACT-AU",
+  "_updated_at": "2026-02-22T06:02:07.148825+00:00"
+}

@@ -1,0 +1,78 @@
+{
+  "event_id": "vendor.onboarded-1ced0b00-386c-4e82-9d4d-ee1aa427bf69",
+  "event_type": "vendor.onboarded",
+  "entity_id": "VND-20260222033508",
+  "payload": {
+    "vendor": {
+      "vendor_id": "VND-20260222033508",
+      "legal_name": "Evergreen Systems",
+      "tax_id": null,
+      "contact_email": "vendor@example.com",
+      "contact_phone": null,
+      "address": {},
+      "category": "software",
+      "certifications": [],
+      "diversity_classification": null,
+      "classification": "internal",
+      "risk_score": 50.0,
+      "compliance_checks": {
+        "sanctions_check": "Pass",
+        "anti_corruption_check": "Pass",
+        "credit_check": "Pass",
+        "watchlist_hits": [],
+        "sources": []
+      },
+      "compliance_status": "pending",
+      "status": "pending",
+      "created_at": "2026-02-22T03:35:08.715294+00:00",
+      "created_by": "system",
+      "performance_metrics": {
+        "total_contracts": 0,
+        "total_spend": 0,
+        "on_time_delivery_rate": 0,
+        "quality_rating": 0,
+        "compliance_rating": 0
+      },
+      "_id": "VND-20260222033508",
+      "_updated_at": "2026-02-22T03:35:08.716393+00:00"
+    },
+    "connector_results": [
+      {
+        "connector": "sap_ariba",
+        "status": "skipped",
+        "method": "sync_vendor",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "coupa",
+        "status": "skipped",
+        "method": "sync_vendor",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "oracle_procurement",
+        "status": "skipped",
+        "method": "sync_vendor",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "dynamics_365",
+        "status": "skipped",
+        "method": "sync_vendor",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "erp_ap",
+        "status": "skipped",
+        "method": "sync_vendor",
+        "detail": "Connector not available or method not supported."
+      }
+    ]
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "a0b27bdc-1c4d-4513-bb18-fac5adcafecb",
+  "actor_id": "system",
+  "timestamp": "2026-02-22T03:35:08.716790+00:00",
+  "_id": "vendor.onboarded-1ced0b00-386c-4e82-9d4d-ee1aa427bf69",
+  "_updated_at": "2026-02-22T03:35:08.718449+00:00"
+}

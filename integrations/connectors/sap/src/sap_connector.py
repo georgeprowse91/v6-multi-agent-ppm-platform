@@ -22,7 +22,7 @@ if str(SDK_PATH) not in sys.path:
 from base_connector import ConnectorCategory, ConnectorConfig
 from http_client import HttpClient, RetryConfig
 from rest_connector import BasicAuthRestConnector
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 from mcp_client import MCPClient, MCPClientError
 try:
     from .mappers import map_from_mcp_response, map_to_mcp_params

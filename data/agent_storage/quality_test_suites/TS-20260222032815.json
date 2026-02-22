@@ -1,0 +1,13 @@
+{
+  "suite_id": "TS-20260222032815",
+  "project_id": "project-1",
+  "name": "GHA suite",
+  "description": null,
+  "test_case_ids": [
+    "TC-20260222032815"
+  ],
+  "test_environment": null,
+  "created_at": "2026-02-22T03:28:15.015895+00:00",
+  "_id": "TS-20260222032815",
+  "_updated_at": "2026-02-22T03:28:15.016201+00:00"
+}

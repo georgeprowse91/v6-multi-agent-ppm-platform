@@ -116,9 +116,7 @@ async def test_loop_workflow_iterations(tmp_path) -> None:
             },
         ],
     }
-    instance = store.create(
-        "run-loop", "workflow-loop", "tenant-1", payload={"status": "open"}
-    )
+    instance = store.create("run-loop", "workflow-loop", "tenant-1", payload={"status": "open"})
 
     result = await runtime.start(instance, definition, actor={"id": "user-1"})
 

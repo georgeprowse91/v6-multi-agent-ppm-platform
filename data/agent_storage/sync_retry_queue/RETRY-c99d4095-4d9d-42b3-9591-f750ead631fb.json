@@ -1,0 +1,16 @@
+{
+  "retry_id": "RETRY-c99d4095-4d9d-42b3-9591-f750ead631fb",
+  "tenant_id": "tenant-sync",
+  "entity_type": "project",
+  "source_system": "sap",
+  "data": {
+    "id": "proj-2",
+    "name": "Gemini",
+    "email": "owner@example.com"
+  },
+  "reason": "validation_failed",
+  "attempts": 0,
+  "queued_at": "2026-02-22T05:09:30.081803+00:00",
+  "_id": "RETRY-c99d4095-4d9d-42b3-9591-f750ead631fb",
+  "_updated_at": "2026-02-22T05:09:30.082627+00:00"
+}

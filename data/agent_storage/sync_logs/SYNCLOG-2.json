@@ -1,0 +1,16 @@
+{
+  "log_id": "SYNCLOG-2",
+  "tenant_id": "tenant-sync",
+  "entity_type": "project",
+  "source_system": "jira",
+  "status": "success",
+  "mode": "single",
+  "started_at": "2026-02-22T05:18:31.379333+00:00",
+  "finished_at": "2026-02-22T05:18:31.394339+00:00",
+  "master_id": "MASTER-PROJECT-20260222051831",
+  "details": {
+    "action": "created"
+  },
+  "_id": "SYNCLOG-2",
+  "_updated_at": "2026-02-22T05:18:31.394646+00:00"
+}

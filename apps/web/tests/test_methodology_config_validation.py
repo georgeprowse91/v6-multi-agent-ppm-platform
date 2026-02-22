@@ -16,14 +16,18 @@ from methodologies import _load_methodology_map  # noqa: E402
 def _walk_nodes(nodes, seen_ids, methodology_id):
     for node in nodes:
         assert node.get("id"), f"{methodology_id}: node missing `id`"
-        assert node.get("title"), f"{methodology_id}:{node.get('id', '<unknown>')}: node missing `title`"
+        assert node.get(
+            "title"
+        ), f"{methodology_id}:{node.get('id', '<unknown>')}: node missing `title`"
         assert node.get("order") is not None, f"{methodology_id}:{node['id']}: node missing `order`"
         assert node["id"] not in seen_ids, f"{methodology_id}: duplicate node id `{node['id']}`"
         seen_ids.add(node["id"])
         children = node.get("children", [])
         if children:
             orders = [child["order"] for child in children]
-            assert orders == sorted(orders), f"{methodology_id}:{node['id']}: children are not stably ordered"
+            assert orders == sorted(
+                orders
+            ), f"{methodology_id}:{node['id']}: children are not stably ordered"
             _walk_nodes(children, seen_ids, methodology_id)
 
 
@@ -63,14 +67,14 @@ def test_loaded_methodologies_have_non_empty_stages_and_unique_activity_ids():
             activities = stage.get("activities", [])
             assert activities, f"{methodology_id}:{stage.get('id')}: expected non-empty activities"
             stage_orders = [activity["order"] for activity in activities]
-            assert stage_orders == sorted(stage_orders), (
-                f"{methodology_id}:{stage.get('id')}: activities are not stably ordered"
-            )
+            assert stage_orders == sorted(
+                stage_orders
+            ), f"{methodology_id}:{stage.get('id')}: activities are not stably ordered"
             activity_ids.extend(activity["id"] for activity in activities)
 
-        assert len(activity_ids) == len(set(activity_ids)), (
-            f"{methodology_id}: duplicate activity ids found in normalized map"
-        )
+        assert len(activity_ids) == len(
+            set(activity_ids)
+        ), f"{methodology_id}: duplicate activity ids found in normalized map"
 
 
 def test_gates_reference_existing_wbs():
@@ -93,4 +97,6 @@ def test_gates_reference_existing_wbs():
             continue
         gates = (yaml.safe_load(gates_file.read_text()) or {}).get("gates", [])
         for gate in gates:
-            assert gate["associated_wbs"] in wbs, f"{methodology_id}:{gate['id']} invalid associated_wbs"
+            assert (
+                gate["associated_wbs"] in wbs
+            ), f"{methodology_id}:{gate['id']} invalid associated_wbs"

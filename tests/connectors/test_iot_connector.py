@@ -78,7 +78,7 @@ def test_iot_read_sensor_data() -> None:
     transport = _build_transport(
         {
             ("GET", "/health"): (200, {"status": "ok"}),
-            ("GET", "/sensors/data"): (200, {"items": [{"id": "reading-1"}] }),
+            ("GET", "/sensors/data"): (200, {"items": [{"id": "reading-1"}]}),
         }
     )
     config = ConnectorConfig(

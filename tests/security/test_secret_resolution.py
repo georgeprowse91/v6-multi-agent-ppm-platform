@@ -57,13 +57,17 @@ def test_resolve_file_reference_rejects_symlink_escape(
         resolve_secret("file:link")
 
 
-def test_resolve_file_reference_rejects_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_file_reference_rejects_missing_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("SECRETS_FILE_ROOT", str(tmp_path))
     with pytest.raises(SecretResolutionError):
         resolve_secret("file:not-found")
 
 
-def test_resolve_file_reference_rejects_non_file_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_file_reference_rejects_non_file_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     non_file = tmp_path / "dir"
     non_file.mkdir()
     monkeypatch.setenv("SECRETS_FILE_ROOT", str(tmp_path))

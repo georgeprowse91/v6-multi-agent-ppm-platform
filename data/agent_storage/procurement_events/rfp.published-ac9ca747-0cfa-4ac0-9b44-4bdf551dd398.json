@@ -1,0 +1,71 @@
+{
+  "event_id": "rfp.published-ac9ca747-0cfa-4ac0-9b44-4bdf551dd398",
+  "event_type": "rfp.published",
+  "entity_id": "RFP-20260222041513",
+  "payload": {
+    "rfp": {
+      "rfp_id": "RFP-20260222041513",
+      "request_id": "PR-20260222041513",
+      "title": "New SaaS tools",
+      "content": "RFP Title: New SaaS tools\nCategory: services\nScope: New SaaS tools\nRequirements: SOC2, SSO\nTemplate Sections:\n- Overview\n- Pricing\n",
+      "requirements": [
+        "SOC2",
+        "SSO"
+      ],
+      "evaluation_criteria": {},
+      "submission_deadline": null,
+      "invited_vendors": [],
+      "proposals_received": [],
+      "status": "Published",
+      "created_at": "2026-02-22T04:15:13.080763+00:00",
+      "document": {
+        "document_id": "DOC-20260222041513",
+        "title": "RFP RFP-20260222041513: New SaaS tools",
+        "url": "/sites/default/Documents/Procurement/RFPs/RFP RFP-20260222041513: New SaaS tools",
+        "status": "published_mock",
+        "published_at": "2026-02-22T04:15:13.080923+00:00"
+      },
+      "_id": "RFP-20260222041513",
+      "_updated_at": "2026-02-22T04:15:13.081228+00:00"
+    },
+    "connector_results": [
+      {
+        "connector": "sap_ariba",
+        "status": "skipped",
+        "method": "publish_rfp",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "coupa",
+        "status": "skipped",
+        "method": "publish_rfp",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "oracle_procurement",
+        "status": "skipped",
+        "method": "publish_rfp",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "dynamics_365",
+        "status": "skipped",
+        "method": "publish_rfp",
+        "detail": "Connector not available or method not supported."
+      },
+      {
+        "connector": "erp_ap",
+        "status": "skipped",
+        "method": "publish_rfp",
+        "detail": "Connector not available or method not supported."
+      }
+    ],
+    "request_id": "PR-20260222041513"
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "22d83c4e-da29-469a-ad3a-b0a4e471d1b6",
+  "actor_id": "system",
+  "timestamp": "2026-02-22T04:15:13.081658+00:00",
+  "_id": "rfp.published-ac9ca747-0cfa-4ac0-9b44-4bdf551dd398",
+  "_updated_at": "2026-02-22T04:15:13.082570+00:00"
+}

@@ -21,7 +21,9 @@ class _MockResponse:
 
 
 class _MockAsyncClient:
-    def __init__(self, payload_factory: Callable[[str], dict[str, object]], calls: list[str], *args, **kwargs) -> None:
+    def __init__(
+        self, payload_factory: Callable[[str], dict[str, object]], calls: list[str], *args, **kwargs
+    ) -> None:
         self._payload_factory = payload_factory
         self._calls = calls
 
@@ -32,8 +34,9 @@ class _MockAsyncClient:
         return None
 
     async def get(self, url: str):
+        response = _MockResponse(self._payload_factory(url))
         self._calls.append(url)
-        return _MockResponse(self._payload_factory(url))
+        return response
 
 
 @pytest.fixture(autouse=True)
@@ -54,7 +57,9 @@ async def test_oidc_cache_hit_reuses_cached_entry(monkeypatch) -> None:
     monkeypatch.setattr(
         auth.httpx,
         "AsyncClient",
-        lambda *args, **kwargs: _MockAsyncClient(lambda _url: {"jwks_uri": "https://jwks-1"}, calls, *args, **kwargs),
+        lambda *args, **kwargs: _MockAsyncClient(
+            lambda _url: {"jwks_uri": "https://jwks-1"}, calls, *args, **kwargs
+        ),
     )
 
     first = await auth._load_oidc_config("https://issuer/.well-known/openid-configuration")

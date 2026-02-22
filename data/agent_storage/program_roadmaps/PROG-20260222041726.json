@@ -1,0 +1,62 @@
+{
+  "program_id": "PROG-20260222041726",
+  "milestones": [
+    {
+      "project_id": "A",
+      "milestone": "Start",
+      "date": "2026-01-01"
+    },
+    {
+      "project_id": "A",
+      "milestone": "Finish",
+      "date": "2026-12-31"
+    },
+    {
+      "project_id": "B",
+      "milestone": "Start",
+      "date": "2026-01-01"
+    },
+    {
+      "project_id": "B",
+      "milestone": "Finish",
+      "date": "2026-12-31"
+    }
+  ],
+  "dependencies": [
+    {
+      "predecessor": "A",
+      "successor": "B",
+      "type": "schedule_overlap",
+      "overlap_days": 365,
+      "overlap_window": {
+        "start": "2026-01-01",
+        "end": "2026-12-31"
+      }
+    },
+    {
+      "predecessor": "A",
+      "successor": "B",
+      "type": "finish_to_start"
+    }
+  ],
+  "critical_path": [
+    "A",
+    "B"
+  ],
+  "project_timelines": {
+    "A": {
+      "start": "2026-01-01",
+      "end": "2026-12-31"
+    },
+    "B": {
+      "start": "2026-01-01",
+      "end": "2026-12-31"
+    }
+  },
+  "resource_allocations": {},
+  "start_date": "2026-02-22T04:17:26.656166+00:00",
+  "end_date": "2026-02-22T04:17:26.656178+00:00",
+  "generated_at": "2026-02-22T04:17:26.656181+00:00",
+  "_id": "PROG-20260222041726",
+  "_updated_at": "2026-02-22T04:17:26.657626+00:00"
+}

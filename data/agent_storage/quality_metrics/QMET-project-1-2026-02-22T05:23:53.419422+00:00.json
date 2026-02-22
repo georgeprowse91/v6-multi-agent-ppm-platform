@@ -1,0 +1,55 @@
+{
+  "project_id": "project-1",
+  "total_defects": 1,
+  "open_defects": 1,
+  "critical_defects": 0,
+  "defect_density": 0.08333333333333333,
+  "defect_density_per_function_point": 0.016666666666666666,
+  "code_size_metrics": {
+    "loc": 12000,
+    "function_points": 60
+  },
+  "test_coverage_pct": 85.0,
+  "coverage_snapshot": {
+    "coverage_pct": 85.0,
+    "source": "mock",
+    "captured_at": "2026-02-22T05:23:53.417792+00:00"
+  },
+  "coverage_trend": {
+    "trend": "stable",
+    "data_points": 0
+  },
+  "pass_rate_pct": 0.0,
+  "mean_time_to_resolution_hours": 0.0,
+  "quality_score": 34.0,
+  "defect_prediction_model": {
+    "project_id": "project-1",
+    "model_version": "v20260222052353",
+    "training_status": "completed",
+    "trained_at": "2026-02-22T05:23:53.417841+00:00",
+    "features": [
+      "defect_density",
+      "coverage_pct",
+      "pass_rate"
+    ],
+    "_id": "project-1-v20260222052353",
+    "_updated_at": "2026-02-22T05:23:53.418159+00:00"
+  },
+  "defect_subsystem_model": {
+    "project_id": "project-1",
+    "model_version": "subsystem-20260222052353",
+    "trained_at": "2026-02-22T05:23:53.418728+00:00",
+    "subsystem_distribution": {
+      "billing": 1
+    },
+    "_id": "project-1-subsystem-20260222052353",
+    "_updated_at": "2026-02-22T05:23:53.419017+00:00"
+  },
+  "improvement_recommendations": [
+    "Stabilize flaky tests and improve pass rate above 90%.",
+    "Prioritize refactoring in billing (defects: 1)"
+  ],
+  "calculated_at": "2026-02-22T05:23:53.419422+00:00",
+  "_id": "QMET-project-1-2026-02-22T05:23:53.419422+00:00",
+  "_updated_at": "2026-02-22T05:23:53.419695+00:00"
+}

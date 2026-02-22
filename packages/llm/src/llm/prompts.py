@@ -74,7 +74,9 @@ class PromptRegistry:
                     return candidate
             raise KeyError("Prompt version not found")
 
-        filtered = [c for c in candidates if environment is None or environment in c.environment_tags]
+        filtered = [
+            c for c in candidates if environment is None or environment in c.environment_tags
+        ]
         if not filtered:
             raise KeyError("Prompt not found")
         return max(filtered, key=lambda item: item.version)
@@ -117,7 +119,9 @@ class PromptRegistry:
         self._save(data)
         return record
 
-    def update_prompt(self, name: str, *, content: str | None = None, **kwargs: Any) -> PromptVersion:
+    def update_prompt(
+        self, name: str, *, content: str | None = None, **kwargs: Any
+    ) -> PromptVersion:
         latest = self.get_prompt(name)
         metadata = asdict(latest.metadata)
         metadata.update({k: v for k, v in kwargs.items() if k in metadata and v is not None})
@@ -164,7 +168,9 @@ class PromptRegistry:
     def list_flagged_prompts(self) -> list[PromptVersion]:
         return [p for p in self.list_prompts() if p.metadata.flagged]
 
-    def render_prompt(self, name: str, variables: dict[str, Any], *, version: int | None = None) -> str:
+    def render_prompt(
+        self, name: str, variables: dict[str, Any], *, version: int | None = None
+    ) -> str:
         prompt = self.get_prompt(name, version=version)
         payload = {**prompt.metadata.defaults, **variables}
         required = set(prompt.metadata.required_variables)
@@ -205,7 +211,7 @@ class PromptRegistry:
         return payload
 
     def _load(self) -> dict[str, Any]:
-        return json.loads(self.registry_path.read_text())
+        return dict(json.loads(self.registry_path.read_text()))
 
     def _save(self, payload: dict[str, Any]) -> None:
         self.registry_path.write_text(json.dumps(payload, indent=2))

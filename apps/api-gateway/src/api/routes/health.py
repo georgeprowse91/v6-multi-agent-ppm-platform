@@ -48,7 +48,9 @@ async def readiness_check(request: Request) -> dict[str, Any]:
     registry = getattr(request.app.state, "bootstrap_registry", None)
     if registry is not None:
         component_status = registry.readiness(request.app)
-        checks = {name: bool(payload.get("ready", False)) for name, payload in component_status.items()}
+        checks = {
+            name: bool(payload.get("ready", False)) for name, payload in component_status.items()
+        }
         all_ready = all(
             bool(payload.get("ready", False))
             for payload in component_status.values()
@@ -63,7 +65,9 @@ async def readiness_check(request: Request) -> dict[str, Any]:
             "orchestrator": orchestrator is not None and orchestrator.initialized,
             "leader": leader_ready,
         }
-        component_status = {name: {"ready": ready, "required": True} for name, ready in checks.items()}
+        component_status = {
+            name: {"ready": ready, "required": True} for name, ready in checks.items()
+        }
         all_ready = all(checks.values())
 
     if not all_ready:

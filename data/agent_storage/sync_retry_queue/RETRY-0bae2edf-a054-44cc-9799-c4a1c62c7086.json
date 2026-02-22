@@ -1,0 +1,15 @@
+{
+  "retry_id": "RETRY-0bae2edf-a054-44cc-9799-c4a1c62c7086",
+  "tenant_id": "tenant-sync",
+  "entity_type": "project",
+  "source_system": "jira",
+  "data": {
+    "id": "proj-dup",
+    "name": "Duplicated"
+  },
+  "reason": "validation_failed",
+  "attempts": 0,
+  "queued_at": "2026-02-22T05:09:30.862912+00:00",
+  "_id": "RETRY-0bae2edf-a054-44cc-9799-c4a1c62c7086",
+  "_updated_at": "2026-02-22T05:09:30.863503+00:00"
+}

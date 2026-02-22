@@ -98,6 +98,7 @@ class ComplianceEvaluationResponse(BaseModel):
     sanitized_payload: dict[str, Any]
     masked_fields: list[str]
 
+
 app = FastAPI(title="Policy Engine", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
@@ -171,16 +172,26 @@ def _sample_policy_evaluation_probe() -> None:
 async def _check_data_service_reachability() -> dict[str, str]:
     data_service_url = os.getenv("DATA_SERVICE_URL")
     if not data_service_url:
-        return _build_check("ok", "info", "No DATA_SERVICE_URL configured; external reachability optional.")
+        return _build_check(
+            "ok", "info", "No DATA_SERVICE_URL configured; external reachability optional."
+        )
     if os.getenv("POLICY_ENGINE_REQUIRE_DATA_SERVICE", "false").lower() not in {"1", "true", "yes"}:
-        return _build_check("ok", "info", "Data service check is optional unless POLICY_ENGINE_REQUIRE_DATA_SERVICE=true.")
+        return _build_check(
+            "ok",
+            "info",
+            "Data service check is optional unless POLICY_ENGINE_REQUIRE_DATA_SERVICE=true.",
+        )
     try:
         async with httpx.AsyncClient(base_url=data_service_url.rstrip("/"), timeout=5.0) as client:
             response = await client.get("/readyz")
             response.raise_for_status()
         return _build_check("ok", "info", "")
     except httpx.HTTPError:
-        return _build_check("down", "critical", "Verify DATA_SERVICE_URL connectivity and restore data-service readiness.")
+        return _build_check(
+            "down",
+            "critical",
+            "Verify DATA_SERVICE_URL connectivity and restore data-service readiness.",
+        )
 
 
 def _update_readiness_metrics(status: str) -> tuple[str | None, str | None]:
@@ -193,7 +204,9 @@ def _update_readiness_metrics(status: str) -> tuple[str | None, str | None]:
     if status == "ok" and previous != "ok":
         degraded_since = state.get("degraded_since")
         if degraded_since:
-            READINESS_MTTR_SECONDS.record((now - degraded_since).total_seconds(), {"service.name": "policy-engine"})
+            READINESS_MTTR_SECONDS.record(
+                (now - degraded_since).total_seconds(), {"service.name": "policy-engine"}
+            )
         state["recovered_at"] = now
         state["degraded_since"] = None
         READINESS_RECOVERY_TOTAL.add(1, {"service.name": "policy-engine"})
@@ -223,7 +236,9 @@ def _to_response(checks: dict[str, dict[str, str]], status_code: int) -> JSONRes
         degraded_since=degraded_since,
         recovered_at=recovered_at,
     )
-    return JSONResponse(status_code=status_code if status != "ok" else 200, content=payload.model_dump())
+    return JSONResponse(
+        status_code=status_code if status != "ok" else 200, content=payload.model_dump()
+    )
 
 
 @app.get("/livez", response_model=HealthResponse)
@@ -480,8 +495,6 @@ async def evaluate_rbac(request: RBACEvaluationRequest) -> RBACEvaluationRespons
     return RBACEvaluationResponse(decision=decision, reasons=reasons)
 
 
-
-
 @api_router.post("/compliance/evaluate", response_model=ComplianceEvaluationResponse)
 async def evaluate_compliance(request: ComplianceEvaluationRequest) -> ComplianceEvaluationResponse:
     decision = evaluate_compliance_controls(
@@ -498,6 +511,8 @@ async def evaluate_compliance(request: ComplianceEvaluationRequest) -> Complianc
         sanitized_payload=decision.sanitized_payload,
         masked_fields=list(decision.masked_fields),
     )
+
+
 @api_router.post("/abac/evaluate", response_model=ABACEvaluationResponse)
 async def evaluate_abac(request: ABACEvaluationRequest) -> ABACEvaluationResponse:
     policy_cfg = _load_abac_config()

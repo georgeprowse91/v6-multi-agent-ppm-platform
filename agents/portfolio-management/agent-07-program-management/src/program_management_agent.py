@@ -20,13 +20,13 @@ from itertools import combinations
 from pathlib import Path
 from typing import Any
 
-from events import ProgramCreatedEvent, ProgramRoadmapUpdatedEvent
 from llm.client import LLMGateway
 from observability.tracing import get_trace_id
 
 from agents.common.connector_integration import DatabaseStorageService
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
+from events import ProgramCreatedEvent, ProgramRoadmapUpdatedEvent
 
 
 class ProgramManagementAgent(BaseAgent):
@@ -139,9 +139,7 @@ class ProgramManagementAgent(BaseAgent):
         self.quality_agent = config.get("quality_agent") if config else None
         self.approval_agent = config.get("approval_agent") if config else None
         self.approval_agent_config = config.get("approval_agent_config", {}) if config else {}
-        self.approval_agent_enabled = (
-            config.get("approval_agent_enabled", True) if config else True
-        )
+        self.approval_agent_enabled = config.get("approval_agent_enabled", True) if config else True
         self.schedule_ids = config.get("schedule_ids", {}) if config else {}
         self.business_case_ids = config.get("business_case_ids", {}) if config else {}
         self.health_actions = config.get("health_actions", {}) if config else {}
@@ -208,7 +206,7 @@ class ProgramManagementAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "create_program":
@@ -221,7 +219,7 @@ class ProgramManagementAgent(BaseAgent):
             ]
             for field in required_fields:
                 if field not in program_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         elif action in [
@@ -408,7 +406,7 @@ class ProgramManagementAgent(BaseAgent):
             await self.db_service.store("programs", program_id, program)
         await self._sync_work_management_mappings(program_id, program)
 
-        self.logger.info(f"Created program: {program_id}")
+        self.logger.info("Created program: %s", program_id)
 
         await self._publish_program_created(
             program,
@@ -432,7 +430,7 @@ class ProgramManagementAgent(BaseAgent):
 
         Returns roadmap with milestones, dependencies, and timelines.
         """
-        self.logger.info(f"Generating roadmap for program: {program_id}")
+        self.logger.info("Generating roadmap for program: %s", program_id)
 
         program = self.program_store.get(tenant_id, program_id)
         if not program:
@@ -499,7 +497,7 @@ class ProgramManagementAgent(BaseAgent):
 
         Returns dependency graph and critical paths.
         """
-        self.logger.info(f"Tracking dependencies for program: {program_id}")
+        self.logger.info("Tracking dependencies for program: %s", program_id)
 
         program = self.program_store.get(tenant_id, program_id)
         if not program:
@@ -559,7 +557,7 @@ class ProgramManagementAgent(BaseAgent):
 
         Returns consolidated benefits and realized value.
         """
-        self.logger.info(f"Aggregating benefits for program: {program_id}")
+        self.logger.info("Aggregating benefits for program: %s", program_id)
 
         program = self.program_store.get(tenant_id, program_id)
         if not program:
@@ -611,7 +609,7 @@ class ProgramManagementAgent(BaseAgent):
 
         Returns resource allocation recommendations and conflict resolution.
         """
-        self.logger.info(f"Coordinating resources for program: {program_id}")
+        self.logger.info("Coordinating resources for program: %s", program_id)
 
         program = self.program_store.get(tenant_id, program_id)
         if not program:
@@ -646,7 +644,7 @@ class ProgramManagementAgent(BaseAgent):
 
         Returns synergies with potential cost savings and efficiency gains.
         """
-        self.logger.info(f"Identifying synergies for program: {program_id}")
+        self.logger.info("Identifying synergies for program: %s", program_id)
 
         program = self.program_store.get(tenant_id, program_id)
         if not program:
@@ -663,7 +661,9 @@ class ProgramManagementAgent(BaseAgent):
         infrastructure_synergies = synergy_analysis.get("infrastructure_synergies", [])
 
         # Calculate potential savings
-        project_costs = await self._estimate_project_costs(constituent_projects, tenant_id=tenant_id)
+        project_costs = await self._estimate_project_costs(
+            constituent_projects, tenant_id=tenant_id
+        )
         cost_savings = await self._calculate_synergy_savings(
             shared_components, vendor_synergies, infrastructure_synergies, project_costs
         )
@@ -720,7 +720,7 @@ class ProgramManagementAgent(BaseAgent):
 
         Returns impact assessment and mitigation options.
         """
-        self.logger.info(f"Analyzing change impact for program: {program_id}")
+        self.logger.info("Analyzing change impact for program: %s", program_id)
 
         program = self.program_store.get(tenant_id, program_id)
         if not program:
@@ -766,7 +766,7 @@ class ProgramManagementAgent(BaseAgent):
 
         Returns health metrics and recommendations.
         """
-        self.logger.info(f"Calculating program health for: {program_id}")
+        self.logger.info("Calculating program health for: %s", program_id)
 
         program = self.program_store.get(tenant_id, program_id)
         if not program:
@@ -1027,12 +1027,14 @@ class ProgramManagementAgent(BaseAgent):
             )
 
         for project_a, project_b in combinations(project_ids, 2):
-            if (project_a, project_b) not in overlap_pairs and (project_b, project_a) not in overlap_pairs:
+            if (project_a, project_b) not in overlap_pairs and (
+                project_b,
+                project_a,
+            ) not in overlap_pairs:
                 continue
-            resource_overlap = (
-                resource_overlap_map.get((project_a, project_b))
-                or resource_overlap_map.get((project_b, project_a))
-            )
+            resource_overlap = resource_overlap_map.get(
+                (project_a, project_b)
+            ) or resource_overlap_map.get((project_b, project_a))
             if not resource_overlap:
                 continue
             schedule_a = schedules.get(project_a, {})
@@ -1106,13 +1108,9 @@ class ProgramManagementAgent(BaseAgent):
             start = schedule.get("start")
             end = schedule.get("end")
             if start:
-                milestones.append(
-                    {"project_id": project_id, "milestone": "Start", "date": start}
-                )
+                milestones.append({"project_id": project_id, "milestone": "Start", "date": start})
             if end:
-                milestones.append(
-                    {"project_id": project_id, "milestone": "Finish", "date": end}
-                )
+                milestones.append({"project_id": project_id, "milestone": "Finish", "date": end})
         return milestones
 
     async def _calculate_program_start(self, schedules: dict[str, Any]) -> str:
@@ -1205,7 +1203,9 @@ class ProgramManagementAgent(BaseAgent):
             resources = []
             for item in allocation:
                 if isinstance(item, dict):
-                    resources.append(str(item.get("resource_id") or item.get("name") or item.get("role")))
+                    resources.append(
+                        str(item.get("resource_id") or item.get("name") or item.get("role"))
+                    )
                 else:
                     resources.append(str(item))
             return resources
@@ -1506,7 +1506,7 @@ class ProgramManagementAgent(BaseAgent):
         shared_components = []
         vendor_synergies = []
         infrastructure_synergies = []
-        for (idx_a, idx_b) in combinations(range(len(project_ids)), 2):
+        for idx_a, idx_b in combinations(range(len(project_ids)), 2):
             overlap = key_phrases[idx_a].intersection(key_phrases[idx_b])
             union = key_phrases[idx_a].union(key_phrases[idx_b])
             similarity = len(overlap) / len(union) if union else 0
@@ -1547,6 +1547,7 @@ class ProgramManagementAgent(BaseAgent):
         project_costs: dict[str, float],
     ) -> dict[str, float]:
         """Calculate potential cost savings from synergies."""
+
         def _pair_cost(pair: dict[str, Any]) -> float:
             projects = pair.get("projects", [])
             return sum(project_costs.get(project, 0) for project in projects)
@@ -1700,9 +1701,7 @@ class ProgramManagementAgent(BaseAgent):
         """Get risk health across projects."""
         action = self.health_actions.get("risk")
         if self.risk_agent and action and project_ids:
-            response = await self.risk_agent.process(
-                {"action": action, "project_ids": project_ids}
-            )
+            response = await self.risk_agent.process({"action": action, "project_ids": project_ids})
             return float(response.get("risk_health", 0.75))
         return 0.75
 
@@ -1833,9 +1832,7 @@ class ProgramManagementAgent(BaseAgent):
             duration = 0.0
             try:
                 if start and end:
-                    duration = (
-                        datetime.fromisoformat(end) - datetime.fromisoformat(start)
-                    ).days
+                    duration = (datetime.fromisoformat(end) - datetime.fromisoformat(start)).days
             except (TypeError, ValueError):
                 duration = 0.0
             durations[node] = max(duration, 0.0)
@@ -1903,7 +1900,7 @@ class ProgramManagementAgent(BaseAgent):
                 {"path": "/dependencies/*"},
                 {"path": "/*"},
             ],
-            "excludedPaths": [{"path": "/\"_etag\"/?"}],
+            "excludedPaths": [{"path": '/"_etag"/?'}],
         }
         self.dependency_container = await self.cosmos_database.create_container_if_not_exists(
             id="program_dependencies",
@@ -1934,7 +1931,15 @@ class ProgramManagementAgent(BaseAgent):
         model_name = ml_config.get("model_name", "program_health_model")
         try:
             self.health_model = Model(self.ml_workspace, name=model_name)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             await self._train_health_model(model_name=model_name)
 
     async def _initialize_llm(self) -> None:
@@ -1949,7 +1954,9 @@ class ProgramManagementAgent(BaseAgent):
         if self.planview_connector is None:
             planview_config = self.config.get("planview_config") if self.config else None
             if planview_config:
-                from integrations.connectors.planview.src.planview_connector import PlanviewConnector
+                from integrations.connectors.planview.src.planview_connector import (
+                    PlanviewConnector,
+                )
                 from integrations.connectors.sdk.src.base_connector import ConnectorConfig
 
                 self.planview_connector = PlanviewConnector(
@@ -1961,9 +1968,7 @@ class ProgramManagementAgent(BaseAgent):
                 from integrations.connectors.clarity.src.clarity_connector import ClarityConnector
                 from integrations.connectors.sdk.src.base_connector import ConnectorConfig
 
-                self.clarity_connector = ClarityConnector(
-                    ConnectorConfig.from_dict(clarity_config)
-                )
+                self.clarity_connector = ClarityConnector(ConnectorConfig.from_dict(clarity_config))
         self.jira_base_url = self.jira_base_url or os.getenv("JIRA_BASE_URL")
         self.jira_api_token = self.jira_api_token or os.getenv("JIRA_API_TOKEN")
         self.azure_devops_org_url = self.azure_devops_org_url or os.getenv("AZDO_ORG_URL")
@@ -2062,7 +2067,15 @@ class ProgramManagementAgent(BaseAgent):
             return await self.dependency_container.read_item(
                 item=program_id, partition_key=program_id
             )
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ):
             return {}
 
     async def _read_dependency_graph(self, program_id: str) -> dict[str, Any]:
@@ -2262,9 +2275,10 @@ class ProgramManagementAgent(BaseAgent):
         self, program_id: str, program: dict[str, Any]
     ) -> list[dict[str, Any]]:
         import base64
+
         import httpx
 
-        token = base64.b64encode(f":{self.azure_devops_pat}".encode("utf-8")).decode("utf-8")
+        token = base64.b64encode(f":{self.azure_devops_pat}".encode()).decode("utf-8")
         headers = {"Authorization": f"Basic {token}"}
         url = f"{self.azure_devops_org_url}/_apis/projects?api-version=7.0"
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -2360,7 +2374,9 @@ class ProgramManagementAgent(BaseAgent):
             "estimated_total_value": sum(item["estimated_value"] for item in priority_actions),
         }
 
-    async def _propose_synergy_mitigations(self, optimization: dict[str, Any]) -> list[dict[str, Any]]:
+    async def _propose_synergy_mitigations(
+        self, optimization: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         mitigations = []
         for action in optimization.get("priority_actions", []):
             mitigations.append(
@@ -2433,7 +2449,7 @@ class ProgramManagementAgent(BaseAgent):
         tenant_id: str,
         correlation_id: str,
     ) -> dict[str, Any]:
-        self.logger.info(f"Optimizing program schedule for: {program_id}")
+        self.logger.info("Optimizing program schedule for: %s", program_id)
 
         program = self.program_store.get(tenant_id, program_id)
         if not program:
@@ -2442,8 +2458,12 @@ class ProgramManagementAgent(BaseAgent):
         constituent_projects = program.get("constituent_projects", [])
         project_schedules = await self._get_project_schedules(constituent_projects)
         resource_allocations = await self._get_resource_allocations(constituent_projects)
-        project_costs = await self._estimate_project_costs(constituent_projects, tenant_id=tenant_id)
-        project_risks = await self._estimate_project_risks(constituent_projects, tenant_id=tenant_id)
+        project_costs = await self._estimate_project_costs(
+            constituent_projects, tenant_id=tenant_id
+        )
+        project_risks = await self._estimate_project_risks(
+            constituent_projects, tenant_id=tenant_id
+        )
         project_details = await self._get_project_details(constituent_projects)
         strategic_objectives = program.get("strategic_objectives", [])
 
@@ -2455,11 +2475,11 @@ class ProgramManagementAgent(BaseAgent):
         )
         synergy_analysis = await self.analyze_synergies(project_details)
         synergy_map = self._build_synergy_map(synergy_analysis)
-        alignment_scores = self._calculate_alignment_scores(
-            project_details, strategic_objectives
-        )
+        alignment_scores = self._calculate_alignment_scores(project_details, strategic_objectives)
         alignment_score = (
-            sum(alignment_scores.values()) / max(1, len(alignment_scores)) if alignment_scores else 0.0
+            sum(alignment_scores.values()) / max(1, len(alignment_scores))
+            if alignment_scores
+            else 0.0
         )
         synergy_savings = await self._calculate_synergy_savings(
             synergy_analysis.get("shared_components", []),
@@ -2614,7 +2634,9 @@ class ProgramManagementAgent(BaseAgent):
         default_start = datetime.now(timezone.utc)
         for idx, project_id in enumerate(project_ids):
             schedule = schedules.get(project_id, {})
-            start = self._parse_date(schedule.get("start")) or default_start + timedelta(days=30 * idx)
+            start = self._parse_date(schedule.get("start")) or default_start + timedelta(
+                days=30 * idx
+            )
             end = self._parse_date(schedule.get("end")) or start + timedelta(days=180)
             schedule_map[project_id] = {
                 "start": start,
@@ -2637,7 +2659,9 @@ class ProgramManagementAgent(BaseAgent):
     ) -> dict[str, float]:
         if not strategic_objectives:
             return {project_id: 0.7 for project_id in project_details}
-        objective_terms = self._extract_alignment_terms(" ".join(str(obj) for obj in strategic_objectives))
+        objective_terms = self._extract_alignment_terms(
+            " ".join(str(obj) for obj in strategic_objectives)
+        )
         if not objective_terms:
             return {project_id: 0.7 for project_id in project_details}
         scores: dict[str, float] = {}
@@ -2789,9 +2813,7 @@ class ProgramManagementAgent(BaseAgent):
                 child = {}
                 for project_id in base_schedule.keys():
                     child[project_id] = (
-                        parent_a.get(project_id)
-                        if rng.random() < 0.5
-                        else parent_b.get(project_id)
+                        parent_a.get(project_id) if rng.random() < 0.5 else parent_b.get(project_id)
                     )
                 child = self._mutate_schedule(
                     child, dependencies, rng=rng, max_shift_days=max_shift_days
@@ -2927,8 +2949,12 @@ class ProgramManagementAgent(BaseAgent):
             data_a = schedule[project_a]
             data_b = schedule[project_b]
             if data_a["start"] <= data_b["end"] and data_b["start"] <= data_a["end"]:
-                resources_a = set(self._flatten_resource_allocations(resource_allocations.get(project_a, {})))
-                resources_b = set(self._flatten_resource_allocations(resource_allocations.get(project_b, {})))
+                resources_a = set(
+                    self._flatten_resource_allocations(resource_allocations.get(project_a, {}))
+                )
+                resources_b = set(
+                    self._flatten_resource_allocations(resource_allocations.get(project_b, {}))
+                )
                 if resources_a.intersection(resources_b):
                     conflicts += 1
         return conflicts
@@ -2985,7 +3011,9 @@ class ProgramManagementAgent(BaseAgent):
         program.setdefault("decision_log", []).append(decision_entry)
         self.program_store.upsert(tenant_id, program_id, program)
         if self.db_service:
-            await self.db_service.store("program_decisions", decision_entry["decision_id"], decision_entry)
+            await self.db_service.store(
+                "program_decisions", decision_entry["decision_id"], decision_entry
+            )
 
         await self.event_bus.publish(
             "program.decision.recorded",

@@ -17,9 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 from data_quality.helpers import apply_rule_set, validate_against_schema
-from events import BusinessCaseCreatedEvent, InvestmentRecommendationEvent
 from feature_flags import is_feature_enabled
 from observability.tracing import get_trace_id
 
@@ -33,6 +31,7 @@ from agents.common.integration_services import (
 )
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
+from events import BusinessCaseCreatedEvent, InvestmentRecommendationEvent
 
 
 class BusinessCaseInvestmentAgent(BaseAgent):
@@ -68,9 +67,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             code.upper(): float(rate)
             for code, rate in self.financial_settings.get("currency_rates", {"AUD": 1.0}).items()
         }
-        self.simulation_iterations = int(
-            self.financial_settings.get("simulation_iterations", 1000)
-        )
+        self.simulation_iterations = int(self.financial_settings.get("simulation_iterations", 1000))
         self.sensitivity_variations = self.financial_settings.get(
             "sensitivity_variations", [-0.2, -0.1, 0.0, 0.1, 0.2]
         )
@@ -129,7 +126,9 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
     def _load_financial_settings(self, config: dict[str, Any]) -> dict[str, Any]:
         settings_path = Path(
-            config.get("business_case_settings_path", "ops/config/agents/business-case-settings.yaml")
+            config.get(
+                "business_case_settings_path", "ops/config/agents/business-case-settings.yaml"
+            )
         )
         defaults: dict[str, Any] = {
             "discount_rate": 0.10,
@@ -149,9 +148,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         if self.config and "autonomous_deliverables" in self.config:
             return bool(self.config.get("autonomous_deliverables"))
         environment = os.getenv("ENVIRONMENT", "dev")
-        return is_feature_enabled(
-            "autonomous_deliverables", environment=environment, default=False
-        )
+        return is_feature_enabled("autonomous_deliverables", environment=environment, default=False)
 
     def _serialize_business_case(self, business_case: dict[str, Any]) -> str:
         document = business_case.get("document", {})
@@ -234,7 +231,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "generate_business_case":
@@ -248,7 +245,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             ]
             for field in required_fields:
                 if field not in request_data:
-                    self.logger.warning(f"Missing required field: {field}")
+                    self.logger.warning("Missing required field: %s", field)
                     return False
 
         elif action == "calculate_roi":
@@ -398,7 +395,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         )
         self.vector_index.add(business_case_id, index_text, business_case)
 
-        self.logger.info(f"Generated business case: {business_case_id}")
+        self.logger.info("Generated business case: %s", business_case_id)
 
         await self.notification_service.send(
             {
@@ -419,9 +416,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         document_entities: list[dict[str, Any]] = []
         if self._autonomous_deliverables_enabled():
             document_entities.append(
-                self._build_document_entity(
-                    business_case, correlation_id=correlation_id
-                )
+                self._build_document_entity(business_case, correlation_id=correlation_id)
             )
 
         return {
@@ -443,7 +438,9 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
         costs = input_data.get("costs", {})
         benefits = input_data.get("benefits", {})
-        simulation_iterations = int(input_data.get("simulation_iterations", self.simulation_iterations))
+        simulation_iterations = int(
+            input_data.get("simulation_iterations", self.simulation_iterations)
+        )
 
         # Calculate Net Present Value (NPV)
         npv = await self._calculate_npv(costs, benefits)
@@ -491,7 +488,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
         Returns scenario comparison results.
         """
-        self.logger.info(f"Running scenario analysis for business case: {business_case_id}")
+        self.logger.info("Running scenario analysis for business case: %s", business_case_id)
 
         scenario_results: list[dict[str, Any]] = []
 
@@ -588,7 +585,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
 
         Returns recommendation (approve/defer/reject) with rationale.
         """
-        self.logger.info(f"Generating recommendation for business case: {business_case_id}")
+        self.logger.info("Generating recommendation for business case: %s", business_case_id)
 
         business_case = self.business_case_store.get(tenant_id, business_case_id)
         if not business_case:
@@ -655,19 +652,18 @@ class BusinessCaseInvestmentAgent(BaseAgent):
     async def _validate_roi_inputs(self, input_data: dict[str, Any]) -> bool:
         costs = input_data.get("costs", {})
         benefits = input_data.get("benefits", {})
-        simulation_iterations = int(input_data.get("simulation_iterations", self.simulation_iterations))
         roi_payload = {"roi": {"costs": costs, "benefits": benefits}}
 
         errors = validate_against_schema(self.roi_schema_path, roi_payload)
         if errors:
             for error in errors:
-                self.logger.warning(f"ROI schema error {error.path}: {error.message}")
+                self.logger.warning("ROI schema error %s: %s", error.path, error.message)
             return False
 
         result = apply_rule_set(self.roi_rule_set, roi_payload)
         if not result.is_valid:
             for issue in result.issues:
-                self.logger.warning(f"ROI data quality issue {issue.rule_id}: {issue.message}")
+                self.logger.warning("ROI data quality issue %s: %s", issue.rule_id, issue.message)
             return False
 
         return True
@@ -898,7 +894,9 @@ class BusinessCaseInvestmentAgent(BaseAgent):
         cash_flows = self._build_cash_flow(costs, benefits)
         return self.run_monte_carlo_simulation(cash_flows, simulations)
 
-    def run_monte_carlo_simulation(self, cash_flows: list[float], iterations: int) -> dict[str, float]:
+    def run_monte_carlo_simulation(
+        self, cash_flows: list[float], iterations: int
+    ) -> dict[str, float]:
         npv_results: list[float] = []
         for _ in range(iterations):
             simulated_flows = [random.gauss(flow, abs(flow) * 0.1 or 1.0) for flow in cash_flows]
@@ -918,7 +916,9 @@ class BusinessCaseInvestmentAgent(BaseAgent):
             "iterations": len(npv_results),
         }
 
-    def _run_sensitivity_analysis(self, costs: dict[str, Any], benefits: dict[str, Any]) -> list[dict[str, float | str]]:
+    def _run_sensitivity_analysis(
+        self, costs: dict[str, Any], benefits: dict[str, Any]
+    ) -> list[dict[str, float | str]]:
         base_cost = float(costs.get("total_cost", 0))
         base_benefit = float(benefits.get("total_benefits", 0))
         sensitivity_rows: list[dict[str, float | str]] = []

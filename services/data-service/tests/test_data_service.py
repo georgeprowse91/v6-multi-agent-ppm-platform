@@ -154,7 +154,9 @@ def test_readyz_degraded_when_scheduler_heartbeat_stale(monkeypatch, tmp_path) -
     with TestClient(module.app) as client:
         scheduler = module.get_retention_scheduler()
         assert scheduler is not None
-        scheduler._last_heartbeat_at = (datetime.now(timezone.utc) - timedelta(hours=4)).isoformat()  # noqa: SLF001
+        scheduler._last_heartbeat_at = (
+            datetime.now(timezone.utc) - timedelta(hours=4)
+        ).isoformat()  # noqa: SLF001
         response = client.get("/readyz")
         assert response.status_code == 503
         payload = response.json()

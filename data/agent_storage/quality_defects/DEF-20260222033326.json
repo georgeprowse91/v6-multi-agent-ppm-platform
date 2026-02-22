@@ -1,0 +1,49 @@
+{
+  "defect_id": "DEF-20260222033326",
+  "project_id": "project-1",
+  "summary": "Defect 2",
+  "description": null,
+  "severity": "medium",
+  "priority": "medium",
+  "category": "integration_failure",
+  "component": "api",
+  "test_case_id": null,
+  "steps_to_reproduce": [],
+  "expected_behavior": null,
+  "actual_behavior": null,
+  "environment": null,
+  "attachments": [],
+  "assigned_to": "unassigned",
+  "root_cause": "integration_issue",
+  "status": "Open",
+  "resolution": null,
+  "logged_at": "2026-02-22T03:33:26.989140+00:00",
+  "logged_by": "unknown",
+  "status_history": [
+    {
+      "status": "Open",
+      "timestamp": "2026-02-22T03:33:26.989143+00:00"
+    }
+  ],
+  "external": {
+    "jira_key": "JIRA-DEF-20260222033326",
+    "azure_work_item": "ADO-DEF-20260222033326"
+  },
+  "external_sync": {
+    "defect_id": "DEF-20260222033326",
+    "action": "create",
+    "jira": {
+      "status": "queued",
+      "key": "JIRA-DEF-20260222033326"
+    },
+    "azure_devops": {
+      "status": "queued",
+      "work_item": "ADO-DEF-20260222033326"
+    },
+    "synced_at": "2026-02-22T03:33:26.990303+00:00",
+    "_id": "DEF-20260222033326",
+    "_updated_at": "2026-02-22T03:33:26.990551+00:00"
+  },
+  "_id": "DEF-20260222033326",
+  "_updated_at": "2026-02-22T03:33:26.990917+00:00"
+}

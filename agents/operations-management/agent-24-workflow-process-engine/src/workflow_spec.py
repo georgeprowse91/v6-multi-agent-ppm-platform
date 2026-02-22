@@ -5,7 +5,6 @@ from typing import Any
 
 import yaml
 
-
 SUPPORTED_API_VERSION = "ppm.workflow/v1"
 
 
@@ -75,7 +74,9 @@ def parse_workflow_spec(payload: dict[str, Any]) -> ParsedWorkflow:
         transitions.extend(_parse_step_transitions(step, steps))
 
     dependencies = _build_dependencies(transitions)
-    return ParsedWorkflow(metadata=metadata, tasks=tasks, transitions=transitions, dependencies=dependencies)
+    return ParsedWorkflow(
+        metadata=metadata, tasks=tasks, transitions=transitions, dependencies=dependencies
+    )
 
 
 def _map_task_type(step_type: str, explicit_type: str | None) -> str:
@@ -97,7 +98,9 @@ def _normalize_retry(retry: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _parse_step_transitions(step: dict[str, Any], steps: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _parse_step_transitions(
+    step: dict[str, Any], steps: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     step_id = step.get("id")
     if not step_id:
         return []

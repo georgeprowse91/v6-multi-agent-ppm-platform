@@ -1,0 +1,53 @@
+{
+  "portfolio_id": "OPT-af7f3b3707fc44118cf2a3603f2dd653",
+  "decision_type": "optimization",
+  "details": {
+    "optimization_id": "OPT-af7f3b3707fc44118cf2a3603f2dd653",
+    "selected_projects": [
+      {
+        "project_id": "P1",
+        "project_name": "Strategic Data Platform",
+        "score": 0.67,
+        "cost": 400.0,
+        "expected_value": 1000.0,
+        "value": 470.00000000000006,
+        "category": "operations",
+        "resource_requirements": {},
+        "risk_score": 0.9,
+        "alignment_score": 0.7,
+        "roi_score": 0.5
+      }
+    ],
+    "total_projects": 1,
+    "total_cost": 400.0,
+    "total_value": 1000.0,
+    "budget_utilization": 0.6666666666666666,
+    "portfolio_metrics": {
+      "average_score": 0.67,
+      "average_roi": 0.5,
+      "total_npv": 1000.0,
+      "risk_profile": "balanced",
+      "strategic_coverage": 0.8
+    },
+    "constraints_applied": {
+      "budget_ceiling": 600,
+      "resource_capacity": {},
+      "optimization_method": "multi_objective",
+      "objective_weights": {
+        "value": 0.4,
+        "alignment": 0.3,
+        "roi": 0.2,
+        "risk": 0.1
+      },
+      "submit_for_approval": true
+    },
+    "optimization_method": "multi_objective",
+    "discount_rate": 0.08,
+    "optimized_at": "2026-02-22T03:33:25.807749+00:00",
+    "_id": "OPT-af7f3b3707fc44118cf2a3603f2dd653",
+    "_updated_at": "2026-02-22T03:33:25.807908+00:00"
+  },
+  "recorded_at": "2026-02-22T03:33:25.807749+00:00",
+  "_id": "OPT-af7f3b3707fc44118cf2a3603f2dd653",
+  "_updated_at": "2026-02-22T03:33:25.808388+00:00"
+}

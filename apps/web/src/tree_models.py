@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from enum import Enum
+from enum import StrEnum
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -19,7 +19,7 @@ def _strip_optional(value: str | None) -> str | None:
     return trimmed or None
 
 
-class NodeType(str, Enum):
+class NodeType(StrEnum):
     folder = "folder"
     document = "document"
     sheet = "sheet"

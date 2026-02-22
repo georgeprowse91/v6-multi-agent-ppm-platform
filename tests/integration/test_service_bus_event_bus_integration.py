@@ -25,7 +25,7 @@ class FakeReceiver:
         self.completed: list[FakeReceivedMessage] = []
         self.abandoned: list[FakeReceivedMessage] = []
 
-    async def __aenter__(self) -> "FakeReceiver":
+    async def __aenter__(self) -> FakeReceiver:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
@@ -46,7 +46,7 @@ class FakeReceiver:
 
 
 class FakeSender:
-    async def __aenter__(self) -> "FakeSender":
+    async def __aenter__(self) -> FakeSender:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
@@ -64,7 +64,7 @@ class FakeClient:
         self.sender = FakeSender()
         self.closed = False
 
-    async def __aenter__(self) -> "FakeClient":
+    async def __aenter__(self) -> FakeClient:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:

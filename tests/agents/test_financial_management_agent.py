@@ -176,7 +176,11 @@ async def test_financial_cost_classification_and_accruals(monkeypatch):
         ]
 
     async def _mock_budget(project_id, tenant_id):
-        return {"project_id": project_id, "total_amount": 1000, "cost_breakdown": {"contracts": 500}}
+        return {
+            "project_id": project_id,
+            "total_amount": 1000,
+            "cost_breakdown": {"contracts": 500},
+        }
 
     monkeypatch.setattr(agent, "_import_cost_transactions", _mock_transactions)
     monkeypatch.setattr(agent, "_get_budget_for_project", _mock_budget)

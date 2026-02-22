@@ -64,6 +64,7 @@ def test_approval_decision_is_race_safe_and_single_winner(tmp_path: Path) -> Non
     assert final is not None
     assert final.status in {"approved", "rejected"}
 
+
 def test_workflow_backup_restore_and_retention_hooks(tmp_path: Path) -> None:
     db_path = tmp_path / "workflows.db"
     store = WorkflowStore(db_path)

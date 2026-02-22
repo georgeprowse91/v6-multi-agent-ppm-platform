@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
-
 from dependencies import get_workspace_state_store
+from fastapi import APIRouter, Depends
 from web_services.workspace import WorkspaceService
 
 router = APIRouter(prefix="/v1/api/workspace", tags=["workspace"])

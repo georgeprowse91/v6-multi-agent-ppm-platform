@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from observability.metrics import RequestMetricsMiddleware
 from observability.telemetry import (
     REQUIRED_BUSINESS_METRICS,
@@ -10,6 +9,7 @@ from observability.telemetry import (
     REQUIRED_TELEMETRY_DIMENSIONS,
 )
 from observability.tracing import TraceMiddleware, configure_tracing, inject_trace_headers
+
 from ops.tools.observability_compliance_checks import check_service_observability_compliance
 
 
@@ -43,7 +43,9 @@ def test_trace_propagation_keeps_incoming_traceparent() -> None:
     async def healthz() -> dict[str, str]:
         return {"status": "ok"}
 
-    base_headers = inject_trace_headers({"X-Tenant-ID": "tenant-1"}, correlation_id="123e4567-e89b-12d3-a456-426614174000")
+    base_headers = inject_trace_headers(
+        {"X-Tenant-ID": "tenant-1"}, correlation_id="123e4567-e89b-12d3-a456-426614174000"
+    )
     # Trace header may be unavailable in minimal test runtime, but correlation tag must be propagated.
     assert base_headers["X-Correlation-ID"] == "123e4567-e89b-12d3-a456-426614174000"
 

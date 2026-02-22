@@ -1,0 +1,21 @@
+{
+  "resource_id": "res-ml",
+  "schedule": {
+    "resource_id": "res-ml",
+    "available_hours_per_day": 8,
+    "working_days": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "planned_leave": [],
+    "holidays": []
+  },
+  "availability": 1.0,
+  "tenant_id": "tenant-a",
+  "updated_at": "2026-02-22T06:02:12.075950+00:00",
+  "_id": "res-ml",
+  "_updated_at": "2026-02-22T06:02:12.076184+00:00"
+}

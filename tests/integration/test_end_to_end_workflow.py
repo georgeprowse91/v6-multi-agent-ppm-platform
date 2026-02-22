@@ -2,9 +2,7 @@ import sys
 import types
 
 import pytest
-
 from analytics_insights_agent import AnalyticsInsightsAgent
-from agents.common.integration_services import NotificationService
 from change_configuration_agent import ChangeConfigurationAgent
 from project_definition_agent import ProjectDefinitionAgent
 from quality_management_agent import QualityManagementAgent
@@ -12,6 +10,8 @@ from release_deployment_agent import ReleaseDeploymentAgent
 from resource_capacity_agent import ResourceCapacityAgent
 from risk_management_agent import RiskManagementAgent
 from schedule_planning_agent import SchedulePlanningAgent
+
+from agents.common.integration_services import NotificationService
 from tests.helpers.service_bus import build_test_event_bus
 
 if "requests" not in sys.modules:
@@ -78,7 +78,9 @@ async def test_end_to_end_project_lifecycle(tmp_path):
     event_bus = build_test_event_bus()
     observed_events: list[tuple[str, dict]] = []
 
-    event_bus.subscribe("risk.identified", lambda payload: observed_events.append(("risk.identified", payload)))
+    event_bus.subscribe(
+        "risk.identified", lambda payload: observed_events.append(("risk.identified", payload))
+    )
     event_bus.subscribe(
         "quality.test_case.created",
         lambda payload: observed_events.append(("quality.test_case.created", payload)),
@@ -294,7 +296,9 @@ async def test_release_readiness_failure_then_recovery_without_duplicate_side_ef
     """Ensure mid-workflow gate failure can recover without duplicate release side effects."""
     event_bus = build_test_event_bus()
     published_release_events: list[dict] = []
-    event_bus.subscribe("deployment.release_planned", lambda payload: published_release_events.append(payload))
+    event_bus.subscribe(
+        "deployment.release_planned", lambda payload: published_release_events.append(payload)
+    )
 
     quality_gate = FailingQualityGateMock()
     release_agent = ReleaseDeploymentAgent(

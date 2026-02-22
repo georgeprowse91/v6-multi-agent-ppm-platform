@@ -1,0 +1,12 @@
+{
+  "program_id": "PROG-20260222052039",
+  "status_type": "optimization",
+  "payload": {
+    "optimization_score": 0.7566700000000001,
+    "alignment_score": 0.8333333333333333,
+    "synergy_savings": 26000.0
+  },
+  "updated_at": "2026-02-22T05:20:39.027656+00:00",
+  "_id": "PROG-20260222052039:optimization:5fa56d95e5ec41a7a98c82bb0f3bb029",
+  "_updated_at": "2026-02-22T05:20:39.027901+00:00"
+}

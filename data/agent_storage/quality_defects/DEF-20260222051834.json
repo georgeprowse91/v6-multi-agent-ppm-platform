@@ -1,0 +1,49 @@
+{
+  "defect_id": "DEF-20260222051834",
+  "project_id": "project-1",
+  "summary": "Calculation bug",
+  "description": null,
+  "severity": "medium",
+  "priority": "medium",
+  "category": "code_defect",
+  "component": "billing",
+  "test_case_id": null,
+  "steps_to_reproduce": [],
+  "expected_behavior": null,
+  "actual_behavior": null,
+  "environment": null,
+  "attachments": [],
+  "assigned_to": "unassigned",
+  "root_cause": "code_defect",
+  "status": "Open",
+  "resolution": null,
+  "logged_at": "2026-02-22T05:18:34.127586+00:00",
+  "logged_by": "unknown",
+  "status_history": [
+    {
+      "status": "Open",
+      "timestamp": "2026-02-22T05:18:34.127593+00:00"
+    }
+  ],
+  "external": {
+    "jira_key": "JIRA-DEF-20260222051834",
+    "azure_work_item": "ADO-DEF-20260222051834"
+  },
+  "external_sync": {
+    "defect_id": "DEF-20260222051834",
+    "action": "create",
+    "jira": {
+      "status": "queued",
+      "key": "JIRA-DEF-20260222051834"
+    },
+    "azure_devops": {
+      "status": "queued",
+      "work_item": "ADO-DEF-20260222051834"
+    },
+    "synced_at": "2026-02-22T05:18:34.128729+00:00",
+    "_id": "DEF-20260222051834",
+    "_updated_at": "2026-02-22T05:18:34.128936+00:00"
+  },
+  "_id": "DEF-20260222051834",
+  "_updated_at": "2026-02-22T05:18:34.129454+00:00"
+}

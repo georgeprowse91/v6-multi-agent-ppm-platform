@@ -14,9 +14,7 @@ def test_list_agents():
     repo_root = Path(__file__).resolve().parents[2]
     module_path = repo_root / "apps" / "orchestration-service" / "src" / "main.py"
 
-    spec = importlib.util.spec_from_file_location(
-        "orchestration_service_main", module_path
-    )
+    spec = importlib.util.spec_from_file_location("orchestration_service_main", module_path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)

@@ -1,0 +1,50 @@
+{
+  "tenant-a": {
+    "proj-2": {
+      "transactions": [
+        {
+          "amount": 500,
+          "description": "vendor contract invoice",
+          "project_id": "proj-2",
+          "category": "contracts",
+          "classification_scores": {
+            "labor": 0.13877917893805083,
+            "overhead": 0.12392332718666761,
+            "materials": 0.12392332718666761,
+            "contracts": 0.2222287581099833,
+            "travel": 0.11111437905499164,
+            "software": 0.12392332718666761,
+            "other": 0.15610770233697133
+          },
+          "tax_rate": 0.07,
+          "tax_amount": 35.0,
+          "gross_amount": 535.0
+        },
+        {
+          "amount": 200,
+          "description": "flight and hotel",
+          "project_id": "proj-2",
+          "tax_region": "AU",
+          "category": "overhead",
+          "classification_scores": {
+            "labor": 0.0935873238830944,
+            "overhead": 0.1671382212639603,
+            "materials": 0.1671382212639603,
+            "contracts": 0.14986250041629592,
+            "travel": 0.14986250041629592,
+            "software": 0.1671382212639603,
+            "other": 0.1052730114924329
+          },
+          "tax_rate": 0.07,
+          "tax_amount": 14.000000000000002,
+          "gross_amount": 214.0
+        }
+      ],
+      "total_actual": 700,
+      "by_category": {
+        "contracts": 500,
+        "overhead": 200
+      }
+    }
+  }
+}

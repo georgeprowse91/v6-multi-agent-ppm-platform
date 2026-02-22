@@ -1,0 +1,23 @@
+{
+  "program_id": "PROG-20260222052948",
+  "name": "Resource Program",
+  "description": "Integration test",
+  "strategic_objectives": [
+    "Efficiency"
+  ],
+  "constituent_projects": [
+    "A"
+  ],
+  "methodology": "hybrid",
+  "created_at": "2026-02-22T05:29:48.905355+00:00",
+  "created_by": "unknown",
+  "status": "Planning",
+  "portfolio_id": "unknown",
+  "metadata": {
+    "project_count": 1,
+    "dependencies_identified": 0,
+    "synergies_found": 0
+  },
+  "_id": "PROG-20260222052948",
+  "_updated_at": "2026-02-22T05:29:48.906178+00:00"
+}

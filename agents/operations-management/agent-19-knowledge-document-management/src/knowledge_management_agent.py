@@ -12,17 +12,19 @@ import asyncio
 import json
 import os
 import re
-from collections.abc import Callable
 from collections import Counter
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from knowledge_db import KnowledgeDatabase
+
 from agents.common.connector_integration import (
     ConnectorCategory,
     ConnectorConfig,
-    DocumentMetadata,
     DocumentManagementService,
+    DocumentMetadata,
 )
 from agents.common.integration_services import (
     FaissBackedVectorSearchIndex,
@@ -36,8 +38,6 @@ from jsonschema import ValidationError
 from jsonschema import validate as jsonschema_validate
 from packages.llm.prompt_sanitizer import detect_injection, sanitize_prompt
 from prompt_registry import PromptRegistry
-
-from knowledge_db import KnowledgeDatabase
 
 try:
     from sentence_transformers import SentenceTransformer
@@ -91,7 +91,11 @@ class EntityExtractionPipeline:
     )
     PERSON_PATTERN = re.compile(r"\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b")
 
-    def __init__(self, backend: str = "auto", custom_extractor: Callable[[str], list[dict[str, Any]]] | None = None):
+    def __init__(
+        self,
+        backend: str = "auto",
+        custom_extractor: Callable[[str], list[dict[str, Any]]] | None = None,
+    ):
         self.backend = backend
         self.custom_extractor = custom_extractor
         self._nlp_model = None
@@ -152,7 +156,11 @@ class EntityExtractionPipeline:
         score: float,
     ) -> list[dict[str, Any]]:
         specs = [
-            (self.PROJECT_ID_PATTERN, "project_id", lambda value: value.upper().replace("PROJECT", "PRJ")),
+            (
+                self.PROJECT_ID_PATTERN,
+                "project_id",
+                lambda value: value.upper().replace("PROJECT", "PRJ"),
+            ),
             (self.DATE_PATTERN, "date", lambda value: value),
             (self.ORG_PATTERN, "organization", lambda value: value),
             (self.PERSON_PATTERN, "person", lambda value: value),
@@ -175,7 +183,9 @@ class EntityExtractionPipeline:
                 )
         return entities
 
-    def _normalize_entities(self, entities: list[dict[str, Any]], text: str) -> list[dict[str, Any]]:
+    def _normalize_entities(
+        self, entities: list[dict[str, Any]], text: str
+    ) -> list[dict[str, Any]]:
         normalized = []
         for entity in entities:
             raw_text = str(entity.get("text", "")).strip()
@@ -301,7 +311,9 @@ class KnowledgeManagementAgent(BaseAgent):
         self.document_management_service = DocumentManagementService(config)
         self.prompt_registry = PromptRegistry()
         self.summary_prompt_agent_id = (
-            config.get("summary_prompt_agent_id", "knowledge-agent") if config else "knowledge-agent"
+            config.get("summary_prompt_agent_id", "knowledge-agent")
+            if config
+            else "knowledge-agent"
         )
         self.summary_prompt_template = (
             config.get(
@@ -333,9 +345,11 @@ class KnowledgeManagementAgent(BaseAgent):
             self.vector_index = FaissBackedVectorSearchIndex(
                 self.embedding_service,
                 index_name="knowledge_agent",
-                config_path=Path(config.get("vector_store_config_path"))
-                if config and config.get("vector_store_config_path")
-                else None,
+                config_path=(
+                    Path(config.get("vector_store_config_path"))
+                    if config and config.get("vector_store_config_path")
+                    else None
+                ),
             )
         else:
             self.vector_index = VectorSearchIndex(self.embedding_service)
@@ -352,9 +366,13 @@ class KnowledgeManagementAgent(BaseAgent):
         self._confluence_connector = None
         self.integration_clients = config.get("integration_clients", {}) if config else {}
         self.integration_status: dict[str, bool] = {}
-        self.async_processing_enabled = config.get("async_processing_enabled", True) if config else True
+        self.async_processing_enabled = (
+            config.get("async_processing_enabled", True) if config else True
+        )
         self.github_extensions = (
-            config.get("github_extensions", [".md", ".txt", ".rst"]) if config else [".md", ".txt", ".rst"]
+            config.get("github_extensions", [".md", ".txt", ".rst"])
+            if config
+            else [".md", ".txt", ".rst"]
         )
         self.ingestion_max_files = config.get("ingestion_max_files", 200) if config else 200
 
@@ -421,7 +439,7 @@ class KnowledgeManagementAgent(BaseAgent):
         ]
 
         if action not in valid_actions:
-            self.logger.warning(f"Invalid action: {action}")
+            self.logger.warning("Invalid action: %s", action)
             return False
 
         if action == "upload_document":
@@ -612,7 +630,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns document ID and metadata.
         """
-        self.logger.info(f"Uploading document: {document_data.get('title')}")
+        self.logger.info("Uploading document: %s", document_data.get("title"))
 
         # Generate document ID
         document_id = await self._generate_document_id()
@@ -794,8 +812,16 @@ class KnowledgeManagementAgent(BaseAgent):
         tenant_id = payload.get("tenant_id") or "default"
         try:
             await self._ingest_agent_output(tenant_id, payload)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
-            self.logger.warning(f"Failed to ingest cognitive summary: {exc}")
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
+            self.logger.warning("Failed to ingest cognitive summary: %s", exc)
 
     async def _ingest_agent_outputs(self, source: dict[str, Any]) -> list[dict[str, Any]]:
         documents = []
@@ -805,7 +831,9 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _build_agent_output_document(self, payload: dict[str, Any]) -> dict[str, Any]:
         source_agent = payload.get("source_agent") or payload.get("agent_id") or "agent"
-        title = payload.get("title") or payload.get("summary_title") or f"Summary from {source_agent}"
+        title = (
+            payload.get("title") or payload.get("summary_title") or f"Summary from {source_agent}"
+        )
         content = payload.get("summary") or payload.get("content") or payload.get("details", "")
         tags = payload.get("tags") or []
         tags.extend(["agent_summary", source_agent])
@@ -831,8 +859,16 @@ class KnowledgeManagementAgent(BaseAgent):
             try:
                 records = connector.read("pages", filters=source.get("filters"))
                 documents.extend(records)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
-                self.logger.warning(f"Confluence crawl failed: {exc}")
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:
+                self.logger.warning("Confluence crawl failed: %s", exc)
             return documents
 
         connector = self._get_confluence_connector()
@@ -842,8 +878,16 @@ class KnowledgeManagementAgent(BaseAgent):
         try:
             records = connector.read("pages", filters=source.get("filters"))
             documents.extend(records)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
-            self.logger.warning(f"Confluence crawl failed: {exc}")
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
+            self.logger.warning("Confluence crawl failed: %s", exc)
         return documents
 
     async def _crawl_sharepoint(self, source: dict[str, Any]) -> list[dict[str, Any]]:
@@ -909,7 +953,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns ranked search results.
         """
-        self.logger.info(f"Searching documents: {query}")
+        self.logger.info("Searching documents: %s", query)
 
         # Perform semantic search
         search_results = await self._semantic_search(query, filters, access_context, tenant_id)
@@ -935,7 +979,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns full document.
         """
-        self.logger.info(f"Retrieving document: {document_id}")
+        self.logger.info("Retrieving document: %s", document_id)
 
         document = self._load_document(tenant_id, document_id)
         if not document:
@@ -990,7 +1034,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns updated document version.
         """
-        self.logger.info(f"Updating document: {document_id}")
+        self.logger.info("Updating document: %s", document_id)
 
         document = self._load_document(tenant_id, document_id)
         if not document:
@@ -1072,7 +1116,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns deletion confirmation.
         """
-        self.logger.info(f"Deleting document: {document_id}")
+        self.logger.info("Deleting document: %s", document_id)
 
         document = self._load_document(tenant_id, document_id)
         if not document:
@@ -1105,7 +1149,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns classification and tags.
         """
-        self.logger.info(f"Classifying document: {document_id}")
+        self.logger.info("Classifying document: %s", document_id)
 
         document = self._load_document(tenant_id, document_id)
         if not document:
@@ -1146,7 +1190,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns generated summary.
         """
-        self.logger.info(f"Summarizing document: {document_id}")
+        self.logger.info("Summarizing document: %s", document_id)
 
         document = self._load_document(tenant_id, document_id)
         if not document:
@@ -1181,7 +1225,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns extracted entities.
         """
-        self.logger.info(f"Extracting entities from document: {document_id}")
+        self.logger.info("Extracting entities from document: %s", document_id)
 
         document = self._load_document(tenant_id, document_id)
         if not document:
@@ -1215,7 +1259,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns graph structure.
         """
-        self.logger.info(f"Building knowledge graph for document: {document_id}")
+        self.logger.info("Building knowledge graph for document: %s", document_id)
 
         document = self._load_document(tenant_id, document_id)
         if not document:
@@ -1247,7 +1291,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns lesson ID and categorization.
         """
-        self.logger.info(f"Capturing lesson learned: {lesson_data.get('title')}")
+        self.logger.info("Capturing lesson learned: %s", lesson_data.get("title"))
 
         # Generate lesson ID
         lesson_id = await self._generate_lesson_id()
@@ -1288,7 +1332,9 @@ class KnowledgeManagementAgent(BaseAgent):
             f"{lesson.get('title', '')} {lesson.get('description', '')}",
             {"lesson_id": lesson_id, "category": lesson.get("category")},
         )
-        await self._publish_event("lesson.captured", {"lesson_id": lesson_id, "tenant_id": "shared"})
+        await self._publish_event(
+            "lesson.captured", {"lesson_id": lesson_id, "tenant_id": "shared"}
+        )
 
         return {
             "lesson_id": lesson_id,
@@ -1357,7 +1403,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns access statistics.
         """
-        self.logger.info(f"Tracking access for document: {document_id}")
+        self.logger.info("Tracking access for document: %s", document_id)
 
         document = self._load_document(tenant_id, document_id)
         if not document:
@@ -1372,7 +1418,11 @@ class KnowledgeManagementAgent(BaseAgent):
         }
         access_trend = "stable"
         if len(interactions) >= 2:
-            access_trend = "increasing" if interactions[-1]["created_at"] > interactions[0]["created_at"] else "stable"
+            access_trend = (
+                "increasing"
+                if interactions[-1]["created_at"] > interactions[0]["created_at"]
+                else "stable"
+            )
         access_stats = {
             "total_accesses": document.get("accessed_count", 0),
             "last_accessed": document.get("last_accessed_at"),
@@ -1390,7 +1440,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
         Returns version list.
         """
-        self.logger.info(f"Retrieving version history for document: {document_id}")
+        self.logger.info("Retrieving version history for document: %s", document_id)
 
         if document_id not in self.document_versions:
             raise ValueError(f"Document not found: {document_id}")
@@ -1491,8 +1541,8 @@ class KnowledgeManagementAgent(BaseAgent):
             "approved_at": datetime.now(timezone.utc).isoformat(),
         }
         self.document_approvals.setdefault(document_id, []).append(record)
-        document["status"] = "approved" if record["status"] == "approved" else document.get(
-            "status", "draft"
+        document["status"] = (
+            "approved" if record["status"] == "approved" else document.get("status", "draft")
         )
         self.document_store.upsert(tenant_id, document_id, document.copy())
         self.knowledge_db.upsert_document(document)
@@ -1500,9 +1550,7 @@ class KnowledgeManagementAgent(BaseAgent):
         await self._publish_event("knowledge.document.approved", record)
         return {"document_id": document_id, "approval": record}
 
-    async def _link_documents(
-        self, links: list[dict[str, Any]], tenant_id: str
-    ) -> dict[str, Any]:
+    async def _link_documents(self, links: list[dict[str, Any]], tenant_id: str) -> dict[str, Any]:
         """Link related documents in the knowledge graph."""
         created_links: list[dict[str, Any]] = []
         for link in links:
@@ -1518,14 +1566,22 @@ class KnowledgeManagementAgent(BaseAgent):
             source_node = self._graph_document_id(source_id)
             target_node = self._graph_document_id(target_id)
             self._register_graph_node(
-                source_node, "document", {"title": source.get("title"), "doc_type": source.get("type")}
+                source_node,
+                "document",
+                {"title": source.get("title"), "doc_type": source.get("type")},
             )
             self._register_graph_node(
-                target_node, "document", {"title": target.get("title"), "doc_type": target.get("type")}
+                target_node,
+                "document",
+                {"title": target.get("title"), "doc_type": target.get("type")},
             )
             self._register_graph_edge(source_node, target_node, relation)
             created_links.append(
-                {"source_document_id": source_id, "target_document_id": target_id, "relation": relation}
+                {
+                    "source_document_id": source_id,
+                    "target_document_id": target_id,
+                    "relation": relation,
+                }
             )
 
         if created_links:
@@ -1563,18 +1619,21 @@ class KnowledgeManagementAgent(BaseAgent):
 
     async def _generate_document_id(self) -> str:
         """Generate unique document ID."""
+        import uuid
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-        return f"DOC-{timestamp}"
+        return f"DOC-{timestamp}-{uuid.uuid4().hex[:8]}"
 
     async def _generate_lesson_id(self) -> str:
         """Generate unique lesson ID."""
+        import uuid
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-        return f"LESSON-{timestamp}"
+        return f"LESSON-{timestamp}-{uuid.uuid4().hex[:8]}"
 
     async def _generate_ingestion_id(self) -> str:
         """Generate unique ingestion ID."""
+        import uuid
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-        return f"INGEST-{timestamp}"
+        return f"INGEST-{timestamp}-{uuid.uuid4().hex[:8]}"
 
     def _train_classifier_seed(self) -> None:
         """Train classifier with seed samples for bootstrapping."""
@@ -1788,9 +1847,7 @@ class KnowledgeManagementAgent(BaseAgent):
 
     def _extract_risks(self, content: str) -> list[str]:
         keywords = [
-            token.strip(".,:;")
-            for token in content.split()
-            if token.lower().startswith("risk")
+            token.strip(".,:;") for token in content.split() if token.lower().startswith("risk")
         ]
         return keywords[:5]
 
@@ -1815,8 +1872,16 @@ class KnowledgeManagementAgent(BaseAgent):
             )
             self._confluence_connector = ConfluenceConnector(connector_config)
             return self._confluence_connector
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
-            self.logger.warning(f"Failed to initialize Confluence connector: {exc}")
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
+            self.logger.warning("Failed to initialize Confluence connector: %s", exc)
             return None
 
     def _scan_repository(self, repo_path: Path, source: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1865,7 +1930,9 @@ class KnowledgeManagementAgent(BaseAgent):
     def _graph_decision_id(self, decision: str) -> str:
         return f"decision:{decision}"
 
-    def _register_graph_node(self, node_id: str, node_type: str, attributes: dict[str, Any]) -> None:
+    def _register_graph_node(
+        self, node_id: str, node_type: str, attributes: dict[str, Any]
+    ) -> None:
         if node_id not in self.graph_nodes:
             self.graph_nodes[node_id] = {"type": node_type, "attributes": attributes}
         else:
@@ -1909,8 +1976,16 @@ class KnowledgeManagementAgent(BaseAgent):
             return
         try:
             await self.event_bus.publish(topic, payload)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
-            self.logger.warning(f"Failed to publish event {topic}: {exc}")
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
+            self.logger.warning("Failed to publish event %s: %s", topic, exc)
 
     def _register_integrations(self) -> None:
         self.integration_status = {
@@ -2175,7 +2250,9 @@ class KnowledgeManagementAgent(BaseAgent):
         """Create concise summary using LLM/prompt registry with prompt-injection sanitisation."""
         sanitized_text = sanitize_prompt(text)
         if detect_injection(text):
-            self.logger.warning("Potential prompt injection detected in summary input; sanitized text used")
+            self.logger.warning(
+                "Potential prompt injection detected in summary input; sanitized text used"
+            )
 
         prompt_template = self._load_summary_prompt_template()
         prompt = prompt_template.format(text=sanitized_text, token_limit=self.summary_token_limit)

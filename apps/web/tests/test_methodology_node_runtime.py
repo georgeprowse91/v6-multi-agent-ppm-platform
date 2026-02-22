@@ -9,9 +9,9 @@ if str(SRC_DIR) not in sys.path:
 
 from methodology_node_runtime import (  # noqa: E402
     RuntimeRegistry,
+    _validate_registry,
     load_methodology_node_runtime_registry,
     resolve_runtime,
-    _validate_registry,
 )
 
 

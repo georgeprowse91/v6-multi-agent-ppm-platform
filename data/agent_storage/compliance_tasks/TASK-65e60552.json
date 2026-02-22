@@ -1,0 +1,16 @@
+{
+  "task_id": "TASK-65e60552",
+  "tenant_id": "tenant-c",
+  "title": "Review regulatory update: Health Data Privacy Act",
+  "description": "New privacy rules for healthcare data.",
+  "regulation": "Health Data Privacy Act",
+  "effective_date": "2025-01-01",
+  "assigned_to": [
+    "compliance@example.com"
+  ],
+  "status": "open",
+  "created_at": "2026-02-22T05:25:30.751286+00:00",
+  "source_url": "https://example.com/regulation",
+  "_id": "TASK-65e60552",
+  "_updated_at": "2026-02-22T05:25:30.751533+00:00"
+}

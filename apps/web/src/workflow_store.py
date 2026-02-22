@@ -19,10 +19,7 @@ class WorkflowDefinitionStore:
     def list_definitions(self) -> list[WorkflowDefinitionRecord]:
         payload = self._load()
         workflows = payload.get("workflows", {})
-        records = [
-            WorkflowDefinitionRecord.model_validate(record)
-            for record in workflows.values()
-        ]
+        records = [WorkflowDefinitionRecord.model_validate(record) for record in workflows.values()]
         return sorted(records, key=lambda record: record.name.lower())
 
     def list_summaries(self) -> list[WorkflowDefinitionSummary]:

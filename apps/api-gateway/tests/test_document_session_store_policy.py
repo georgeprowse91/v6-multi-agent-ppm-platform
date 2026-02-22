@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from api.document_session_store import resolve_document_session_storage
 
 

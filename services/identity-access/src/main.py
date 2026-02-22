@@ -122,9 +122,11 @@ scim_store = ScimStore(Path(os.getenv("SCIM_DB_PATH", DEFAULT_SCIM_DB_PATH)))
 
 @app.middleware("http")
 async def auth_tenant_middleware(request: Request, call_next):
-    if request.url.path in {"/healthz", "/version", "/v1/auth/validate"} or request.url.path.startswith(
-        "/v1/scim/"
-    ):
+    if request.url.path in {
+        "/healthz",
+        "/version",
+        "/v1/auth/validate",
+    } or request.url.path.startswith("/v1/scim/"):
         return await call_next(request)
     if request.url.path.startswith("/v1/auth/saml/"):
         return await call_next(request)

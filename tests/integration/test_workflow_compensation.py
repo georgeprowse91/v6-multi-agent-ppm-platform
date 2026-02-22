@@ -162,6 +162,8 @@ async def test_resume_after_crash_retries_failed_compensation(tmp_path: Path) ->
     recovered = await runtime.retry_compensation(instance, definition, {"id": "recovery-actor"})
 
     assert recovered.status == "failed"
-    compensation = store.list_journal_entries(instance.run_id, phase="compensation", step_id="step-a")
+    compensation = store.list_journal_entries(
+        instance.run_id, phase="compensation", step_id="step-a"
+    )
     assert any(entry.status == "failed" for entry in compensation)
     assert any(entry.status == "completed" for entry in compensation)

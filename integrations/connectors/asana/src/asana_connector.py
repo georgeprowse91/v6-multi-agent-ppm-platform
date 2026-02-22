@@ -24,7 +24,7 @@ from base_connector import ConnectorCategory, ConnectorConfig
 from http_client import HttpClient, RetryConfig
 from mcp_client import MCPClient, MCPClientError
 from rest_connector import RestConnector
-from secrets import resolve_secret
+from connector_secrets import resolve_secret
 
 DEFAULT_ASANA_URL = "https://app.asana.com/api/1.0"
 

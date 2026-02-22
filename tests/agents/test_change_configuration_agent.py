@@ -1,5 +1,4 @@
 import pytest
-
 from change_configuration_agent import ChangeConfigurationAgent, ImpactTrainingSample
 
 

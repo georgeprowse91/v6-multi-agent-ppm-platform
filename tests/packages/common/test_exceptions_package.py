@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from common.exceptions import (
     EXCEPTION_STATUS_MAP,
     AgentError,
@@ -36,7 +35,9 @@ from common.exceptions import (
         (ConnectorError, 500),
     ],
 )
-def test_exception_hierarchy_and_status_map_invariants(exc_type: type[PPMPlatformError], expected_status: int) -> None:
+def test_exception_hierarchy_and_status_map_invariants(
+    exc_type: type[PPMPlatformError], expected_status: int
+) -> None:
     assert issubclass(exc_type, PPMPlatformError)
     assert exc_type.status_code == expected_status
     assert EXCEPTION_STATUS_MAP[exc_type] == expected_status
@@ -49,7 +50,9 @@ def test_every_custom_exception_is_mapped() -> None:
 
 
 @pytest.mark.parametrize("exc_type", list(EXCEPTION_STATUS_MAP))
-def test_exception_to_http_status_uses_exception_type_status(exc_type: type[PPMPlatformError]) -> None:
+def test_exception_to_http_status_uses_exception_type_status(
+    exc_type: type[PPMPlatformError],
+) -> None:
     exc = exc_type("failure")
     assert exception_to_http_status(exc) == exc_type.status_code
 

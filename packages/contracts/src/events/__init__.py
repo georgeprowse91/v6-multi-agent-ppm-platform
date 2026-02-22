@@ -34,6 +34,8 @@ from .definitions import (  # noqa: F401
     ScheduleBaselineLockedPayload,
     ScheduleDelayEvent,
     ScheduleDelayPayload,
+    ScopeChangeEvent,
+    ScopeChangePayload,
     WbsCreatedEvent,
     WbsCreatedPayload,
 )
@@ -72,6 +74,8 @@ __all__ = [
     "ScheduleBaselineLockedPayload",
     "ScheduleDelayEvent",
     "ScheduleDelayPayload",
+    "ScopeChangeEvent",
+    "ScopeChangePayload",
     "WbsCreatedEvent",
     "WbsCreatedPayload",
 ]

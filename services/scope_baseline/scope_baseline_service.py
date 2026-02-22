@@ -6,7 +6,6 @@ import sqlite3
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 
 def _db_path() -> Path:
@@ -22,8 +21,7 @@ def _connect() -> sqlite3.Connection:
     db = _db_path()
     db.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db)
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS scope_baselines (
             baseline_id TEXT PRIMARY KEY,
             project_id TEXT NOT NULL,
@@ -32,8 +30,7 @@ def _connect() -> sqlite3.Connection:
             created_at TEXT NOT NULL,
             data TEXT NOT NULL
         )
-        """
-    )
+        """)
     conn.commit()
     return conn
 
@@ -42,7 +39,9 @@ def create_baseline(project_id: str, baseline_data: dict) -> str:
     """Persist a scope baseline and return its baseline ID."""
     baseline_id = baseline_data.get("baseline_id") or f"BL-{project_id}-{uuid.uuid4().hex[:8]}"
     created_at = baseline_data.get("timestamp") or baseline_data.get("created_at")
-    timestamp = created_at if isinstance(created_at, str) else datetime.now(timezone.utc).isoformat()
+    timestamp = (
+        created_at if isinstance(created_at, str) else datetime.now(timezone.utc).isoformat()
+    )
 
     payload = (
         baseline_id,
