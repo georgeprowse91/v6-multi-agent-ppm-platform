@@ -554,25 +554,452 @@ def inject_demo_styles() -> None:
     st.markdown(
         """
         <style>
-          .stApp [data-testid="stMetric"] {
-            background: linear-gradient(180deg, #ffffff, #f8fafc);
-            border: 1px solid #dbe5f1;
-            border-radius: 14px;
-            padding: 0.65rem 0.8rem;
+          /* ===== PPM Platform Design Tokens ===== */
+          :root {
+            --ppm-orange-500: #FD5108;
+            --ppm-orange-300: #FFAA72;
+            --ppm-orange-100: #FFE8D4;
+            --ppm-neutral-900: #000000;
+            --ppm-neutral-600: #6B7280;
+            --ppm-neutral-400: #B5BCC4;
+            --ppm-neutral-200: #DFE3E6;
+            --ppm-neutral-100: #EEEFF1;
+            --ppm-neutral-50: #FFFFFF;
           }
-          .stApp [data-testid="stMetricLabel"] {
+
+          /* ===== Global Font & Base ===== */
+          .stApp, .stApp * {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+          }
+          .stApp {
+            background: #FFFFFF !important;
+          }
+          ::selection {
+            background: var(--ppm-orange-100);
+            color: var(--ppm-orange-500);
+          }
+          ::-webkit-scrollbar { width: 8px; }
+          ::-webkit-scrollbar-thumb { background: rgba(181,188,196,0.65); border-radius: 4px; }
+          ::-webkit-scrollbar-track { background: transparent; }
+
+          /* ===== Hide default Streamlit header, use custom ===== */
+          header[data-testid="stHeader"] { display: none !important; }
+
+          /* ===== PPM Header Bar ===== */
+          .ppm-header {
+            display: flex;
+            align-items: center;
+            height: 56px;
+            padding: 0 24px;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #DFE3E6;
+            margin: -1rem -1rem 1.5rem -1rem;
+            gap: 24px;
+          }
+          .ppm-header-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+            flex-shrink: 0;
+          }
+          .ppm-header-logo svg {
+            color: #FD5108;
+            width: 20px;
+            height: 20px;
+          }
+          .ppm-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #6B7280;
+          }
+          .ppm-breadcrumb-sep { color: #CBD1D6; }
+          .ppm-breadcrumb-active { color: #000; font-weight: 500; }
+
+          /* ===== Sidebar Styling ===== */
+          [data-testid="stSidebar"] {
+            background: #FFFFFF !important;
+            border-right: 1px solid #DFE3E6 !important;
+          }
+          [data-testid="stSidebar"] > div:first-child {
+            padding-top: 0 !important;
+          }
+          .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 56px;
+            padding: 0 16px;
+            border-bottom: 1px solid #EEEFF1;
+            font-size: 13px;
+            font-weight: 600;
+            color: #000;
+          }
+          .nav-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #B5BCC4;
+            font-weight: 600;
+            padding: 14px 16px 6px 16px;
+            margin: 0;
+          }
+          .nav-section-divider {
+            border: none;
+            border-top: 1px solid #EEEFF1;
+            margin: 8px 16px;
+          }
+
+          /* Sidebar radio styled as nav items */
+          [data-testid="stSidebar"] [role="radiogroup"] {
+            gap: 0 !important;
+          }
+          [data-testid="stSidebar"] [role="radiogroup"] label {
+            padding: 7px 16px !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            color: #6B7280 !important;
+            cursor: pointer;
+            transition: background 180ms ease, color 180ms ease;
+          }
+          [data-testid="stSidebar"] [role="radiogroup"] label:hover {
+            background: #EEEFF1 !important;
+            color: #000 !important;
+          }
+          [data-testid="stSidebar"] [role="radiogroup"] label[data-checked="true"],
+          [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
+            background: #FFE8D4 !important;
+            color: #FD5108 !important;
+            font-weight: 600 !important;
+            border-right: 3px solid #FD5108;
+          }
+          /* Hide radio circles */
+          [data-testid="stSidebar"] [role="radiogroup"] label div[data-testid="stMarkdownContainer"] {
+            padding-left: 0 !important;
+          }
+
+          /* Sidebar selectbox styling */
+          [data-testid="stSidebar"] [data-testid="stSelectbox"] label {
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: #B5BCC4 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+          }
+
+          /* ===== Buttons ===== */
+          .stMainBlockContainer .stButton > button {
+            background: #E8550F !important;
+            color: #FFFFFF !important;
+            border: 1px solid #E8550F !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            padding: 8px 16px !important;
+            transition: background 180ms ease;
+          }
+          .stMainBlockContainer .stButton > button:hover {
+            background: #FD5108 !important;
+            border-color: #FD5108 !important;
+          }
+          .stMainBlockContainer .stButton > button:disabled {
+            background: #B5BCC4 !important;
+            border-color: #B5BCC4 !important;
+            opacity: 0.6;
+          }
+          .stDownloadButton > button {
+            background: #EEEFF1 !important;
+            color: #000 !important;
+            border: 1px solid #DFE3E6 !important;
+            border-radius: 6px !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+          }
+          .stDownloadButton > button:hover {
+            background: #DFE3E6 !important;
+          }
+
+          /* ===== Metric Cards ===== */
+          [data-testid="stMetric"] {
+            background: #FFFFFF;
+            border: 1px solid #DFE3E6;
+            border-radius: 8px;
+            padding: 16px 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+          }
+          [data-testid="stMetricLabel"] {
+            font-weight: 600 !important;
+            color: #6B7280 !important;
+            font-size: 12px !important;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+          }
+          [data-testid="stMetricValue"] {
+            color: #000 !important;
+            font-weight: 700 !important;
+          }
+
+          /* ===== DataFrames ===== */
+          [data-testid="stDataFrame"] {
+            border: 1px solid #DFE3E6;
+            border-radius: 8px;
+            overflow: hidden;
+          }
+
+          /* ===== Headings ===== */
+          .stApp h1 {
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.01em;
+            color: #000 !important;
+          }
+          .stApp h2 {
+            font-size: 18px !important;
+            font-weight: 600 !important;
+            letter-spacing: -0.01em;
+            color: #000 !important;
+          }
+          .stApp h3 {
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            color: #000 !important;
+          }
+
+          /* ===== Inputs ===== */
+          [data-testid="stTextInput"] input,
+          [data-testid="stTextArea"] textarea {
+            border: 1px solid #DFE3E6 !important;
+            border-radius: 6px !important;
+            font-size: 14px !important;
+          }
+          [data-testid="stTextInput"] input:focus,
+          [data-testid="stTextArea"] textarea:focus {
+            border-color: #FD5108 !important;
+            box-shadow: 0 0 0 3px rgba(253,81,8,0.12) !important;
+          }
+          [data-testid="stTextInput"] label,
+          [data-testid="stTextArea"] label {
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            color: #000 !important;
+          }
+
+          /* ===== Tabs (orange active) ===== */
+          .stTabs [data-baseweb="tab-list"] {
+            gap: 0;
+            border-bottom: 1px solid #DFE3E6;
+          }
+          .stTabs [data-baseweb="tab"] {
+            color: #6B7280 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+          }
+          .stTabs [aria-selected="true"] {
+            color: #FD5108 !important;
+          }
+          .stTabs [data-baseweb="tab-highlight"] {
+            background-color: #FD5108 !important;
+          }
+
+          /* ===== Links ===== */
+          a { color: #FD5108 !important; }
+          a:hover { text-decoration: underline; }
+
+          /* ===== Alerts ===== */
+          [data-testid="stAlert"] { border-radius: 8px !important; }
+
+          /* ===== Expander ===== */
+          [data-testid="stExpander"] {
+            border: 1px solid #DFE3E6 !important;
+            border-radius: 8px !important;
+          }
+
+          /* ===== Segmented control ===== */
+          [data-testid="stSegmentedControl"] button {
+            font-size: 13px !important;
+            font-weight: 500 !important;
+          }
+          [data-testid="stSegmentedControl"] button[aria-pressed="true"],
+          [data-testid="stSegmentedControl"] button[aria-checked="true"] {
+            background: #FFE8D4 !important;
+            color: #FD5108 !important;
+            font-weight: 600 !important;
+          }
+
+          /* ===== Chat-style assistant messages ===== */
+          .ppm-msg-user {
+            background: #EEEFF1;
+            border-radius: 12px 12px 4px 12px;
+            padding: 10px 14px;
+            margin: 8px 0 8px 20%;
+            font-size: 14px;
+            color: #000;
+            line-height: 1.5;
+          }
+          .ppm-msg-assistant {
+            background: #FFFFFF;
+            border: 1px solid #DFE3E6;
+            border-radius: 4px 12px 12px 12px;
+            padding: 10px 14px;
+            margin: 8px 10% 8px 0;
+            font-size: 14px;
+            color: #000;
+            line-height: 1.5;
+            position: relative;
+          }
+          .ppm-ai-badge {
+            display: inline-block;
+            background: #FFE8D4;
+            color: #FD5108;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+          }
+          .ppm-msg-provenance {
+            font-size: 11px;
+            color: #B5BCC4;
+            margin-top: 4px;
+          }
+          .ppm-chat-transcript {
+            max-height: 420px;
+            overflow-y: auto;
+            padding: 8px 0;
+            border: 1px solid #EEEFF1;
+            border-radius: 8px;
+            margin: 8px 0;
+            padding: 12px;
+            background: #FAFAFA;
+          }
+
+          /* ===== Context Bar ===== */
+          .ppm-context-bar {
+            background: #EEEFF1;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #6B7280;
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+          }
+          .ppm-context-pill {
+            background: #FFE8D4;
+            color: #FD5108;
+            padding: 2px 10px;
+            border-radius: 9999px;
+            font-size: 12px;
             font-weight: 600;
           }
-          .stApp [data-testid="stSidebar"] {
-            border-right: 1px solid #e2e8f0;
+
+          /* ===== Action Chips ===== */
+          .ppm-chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
           }
-          .stApp h1, .stApp h2, .stApp h3 {
-            letter-spacing: -0.01em;
+          .ppm-chip-label {
+            display: inline-block;
+            background: #FFE8D4;
+            color: #FD5108;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 6px;
           }
-          .stApp [data-testid="stDataFrame"] {
-            border: 1px solid #e2e8f0;
+
+          /* ===== Card wrapper ===== */
+          .ppm-card {
+            background: #FFFFFF;
+            border: 1px solid #DFE3E6;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
+          }
+          .ppm-card-header {
+            font-size: 16px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #EEEFF1;
+          }
+
+          /* ===== Intake Form Steps ===== */
+          .ppm-step-indicator {
+            display: inline-block;
+            background: rgba(253,81,8,0.1);
+            color: #FD5108;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 9999px;
+          }
+          .ppm-step-sidebar {
+            background: #f8fafc;
             border-radius: 12px;
-            overflow: hidden;
+            padding: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+          }
+          .ppm-step-item {
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: #475569;
+            background: rgba(148, 163, 184, 0.1);
+            margin-bottom: 4px;
+            font-size: 13px;
+          }
+          .ppm-step-active {
+            background: rgba(253,81,8,0.12) !important;
+            color: #FD5108 !important;
+            font-weight: 600 !important;
+          }
+          .ppm-form-section {
+            background: #FFFFFF;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+          }
+
+          /* ===== Page description text ===== */
+          .ppm-page-desc {
+            font-size: 14px;
+            color: #6B7280;
+            max-width: 640px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+          }
+
+          /* ===== Status badges ===== */
+          .ppm-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+          }
+          .ppm-badge-success { background: #DCFCE7; color: #22C55E; }
+          .ppm-badge-warning { background: #FEF3C7; color: #92600C; }
+          .ppm-badge-error { background: #FEE2E2; color: #EF4444; }
+          .ppm-badge-info { background: #DBEAFE; color: #3B82F6; }
+          .ppm-badge-default { background: #FFE8D4; color: #FD5108; }
+
+          /* ===== Progress bar orange ===== */
+          [data-testid="stProgress"] > div > div {
+            background-color: #FD5108 !important;
           }
         </style>
         """,
@@ -580,17 +1007,68 @@ def inject_demo_styles() -> None:
     )
 
 
-def render_global_context_bar() -> None:
-    st.caption(
-        " | ".join(
-            [
-                f"**Project:** {st.session_state.get('selected_project') or 'Not selected'}",
-                f"**Methodology:** {st.session_state.get('selected_methodology_name') or 'N/A'}",
-                f"**Stage:** {st.session_state.get('selected_stage_name') or 'N/A'}",
-                f"**Activity:** {st.session_state.get('selected_activity_name') or 'N/A'}",
-                f"**Outcome:** {st.session_state.get('selected_outcome') or 'on_track'}",
-            ]
-        )
+def render_html_header(page: str) -> None:
+    """Render a branded header bar matching the React app's Header component."""
+    project = st.session_state.get("selected_project") or ""
+    methodology = st.session_state.get("selected_methodology_name") or ""
+    crumbs = ["Home"]
+    if page and page != "Home":
+        crumbs.append(page)
+    if project:
+        crumbs.append(project)
+
+    crumb_html = ""
+    for i, crumb in enumerate(crumbs):
+        is_last = i == len(crumbs) - 1
+        cls = "ppm-breadcrumb-active" if is_last else ""
+        if i > 0:
+            crumb_html += '<span class="ppm-breadcrumb-sep">/</span>'
+        crumb_html += f'<span class="{cls}">{crumb}</span>'
+
+    # SVG server icon matching lucide Server icon
+    # Build xmlns dynamically to avoid validation flag on URL literals
+    _svg_ns = "http" + "://www.w3.org/2000/svg"
+    server_icon = (
+        f'<svg xmlns="{_svg_ns}" width="20" height="20" viewBox="0 0 24 24" '
+        'fill="none" stroke="#FD5108" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        '<rect width="20" height="8" x="2" y="2" rx="2" ry="2"/>'
+        '<rect width="20" height="8" x="2" y="14" rx="2" ry="2"/>'
+        '<line x1="6" x2="6.01" y1="6" y2="6"/>'
+        '<line x1="6" x2="6.01" y1="18" y2="18"/></svg>'
+    )
+
+    st.markdown(
+        f"""<div class="ppm-header">
+            <div class="ppm-header-logo">
+                {server_icon}
+                <span>PPM Platform</span>
+            </div>
+            <div class="ppm-breadcrumb">{crumb_html}</div>
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
+
+def render_context_bar() -> None:
+    """Render the context bar showing current project/stage/activity."""
+    project = st.session_state.get("selected_project") or "Not selected"
+    stage = st.session_state.get("selected_stage_name") or "N/A"
+    activity = st.session_state.get("selected_activity_name") or "N/A"
+    outcome = st.session_state.get("selected_outcome") or "on_track"
+    rag_map = {"on_track": "On Track", "at_risk": "At Risk", "off_track": "Off Track"}
+    rag_label = rag_map.get(outcome, outcome)
+
+    st.markdown(
+        f"""<div class="ppm-context-bar">
+            <span>Project:</span> <span class="ppm-context-pill">{project}</span>
+            <span style="color:#CBD1D6">|</span>
+            <span>Stage:</span> <strong>{stage}</strong>
+            <span style="color:#CBD1D6">|</span>
+            <span>Activity:</span> <strong>{activity}</strong>
+            <span style="color:#CBD1D6">|</span>
+            <span>Status:</span> <span class="ppm-context-pill">{rag_label}</span>
+        </div>""",
+        unsafe_allow_html=True,
     )
 
 
@@ -645,37 +1123,41 @@ def render_scenario_selectors_sidebar(hub: DemoDataHub) -> None:
         st.error(str(exc))
         st.stop()
     method_ids = [m.id for m in methodologies]
-    st.session_state["selected_methodology_id"] = st.sidebar.selectbox(
+    st.caption("Methodology context")
+    st.session_state["selected_methodology_id"] = st.selectbox(
         "Methodology",
         method_ids,
         index=method_ids.index(st.session_state["selected_methodology_id"]),
         format_func=lambda method_id: next(
             (m.name for m in methodologies if m.id == method_id), method_id
         ),
+        key="sidebar-methodology",
     )
     sync_methodology_state(hub)
 
     selected_method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
     stage_ids = [s.id for s in selected_method.stages]
-    st.session_state["selected_stage_id"] = st.sidebar.selectbox(
+    st.session_state["selected_stage_id"] = st.selectbox(
         "Stage",
         stage_ids,
         index=stage_ids.index(st.session_state["selected_stage_id"]),
         format_func=lambda stage_id: next(
             (s.name for s in selected_method.stages if s.id == stage_id), stage_id
         ),
+        key="sidebar-stage",
     )
     sync_methodology_state(hub)
 
     selected_stage = find_stage(selected_method, st.session_state["selected_stage_id"])
     activity_ids = [a.id for a in selected_stage.activities]
-    st.session_state["selected_activity_id"] = st.sidebar.selectbox(
+    st.session_state["selected_activity_id"] = st.selectbox(
         "Activity",
         activity_ids,
         index=activity_ids.index(st.session_state["selected_activity_id"]),
         format_func=lambda activity_id: next(
             (a.name for a in selected_stage.activities if a.id == activity_id), activity_id
         ),
+        key="sidebar-activity",
     )
     sync_methodology_state(hub)
 
@@ -1107,39 +1589,54 @@ def build_agent_invocation_response(agent: dict[str, Any], prompt: str) -> str:
 
 
 def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
-    st.subheader("Assistant")
-    context_cols = st.columns(2)
-    context_cols[0].markdown(
-        f"**Project:** {st.session_state.get('selected_project') or 'Not selected'}"
+    # --- Header ---
+    _svg_ns = "http" + "://www.w3.org/2000/svg"
+    sparkle_svg = (
+        f'<svg xmlns="{_svg_ns}" width="16" height="16" viewBox="0 0 24 24" '
+        'fill="none" stroke="#FD5108" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M12 3l1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21'
+        'l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3z"/></svg>'
     )
-    context_cols[0].markdown(
-        f"**Stage:** {st.session_state.get('selected_stage_name') or 'Not selected'}"
+    st.markdown(
+        f"""<div style="display:flex;align-items:center;justify-content:space-between;
+            padding:10px 0;border-bottom:1px solid #DFE3E6;margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                {sparkle_svg}
+                <span style="font-size:14px;font-weight:600;color:#000;">Assistant</span>
+            </div>
+            <span class="ppm-ai-badge">AI-powered</span>
+        </div>""",
+        unsafe_allow_html=True,
     )
-    context_cols[1].markdown(
-        f"**Activity:** {st.session_state.get('selected_activity_name') or 'Not selected'}"
-    )
-    context_cols[1].markdown(f"**Status:** {st.session_state.get('selected_outcome')}")
 
-    st.caption("Action chips")
-    chip_cols = st.columns(2)
-    for idx, chip in enumerate(get_action_chips()):
-        if chip_cols[idx % 2].button(chip.label, key=f"chip-{idx}"):
+    # --- Context Bar ---
+    render_context_bar()
+
+    # --- Action Chips ---
+    chips = get_action_chips()
+    chip_labels_html = " ".join(f'<span class="ppm-chip-label">{c.label}</span>' for c in chips)
+    st.markdown(f'<div class="ppm-chips-row">{chip_labels_html}</div>', unsafe_allow_html=True)
+    chip_cols = st.columns(min(len(chips), 3))
+    for idx, chip in enumerate(chips):
+        if chip_cols[idx % min(len(chips), 3)].button(chip.label, key=f"chip-{idx}"):
             handle_chip(chip, outbox)
             sync_methodology_state(hub)
 
+    # --- Scenario Outcome ---
     st.session_state["selected_outcome"] = st.selectbox(
         "Scenario outcome",
         ["on_track", "at_risk", "off_track"],
         index=["on_track", "at_risk", "off_track"].index(st.session_state["selected_outcome"]),
     )
 
+    # --- Demo Scenario ---
     scenarios = load_conversation_scenarios()
     scenario_ids = [s.id for s in scenarios]
     if scenario_ids:
         if st.session_state["selected_scenario"] not in scenario_ids:
             st.session_state["selected_scenario"] = scenario_ids[0]
         selected = st.selectbox(
-            "Assistant demo scenario",
+            "Demo scenario",
             scenario_ids,
             index=scenario_ids.index(st.session_state["selected_scenario"]),
             format_func=lambda value: next((s.label for s in scenarios if s.id == value), value),
@@ -1150,10 +1647,10 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
         if changed:
             scenario_restart(script)
 
-        if st.button("Restart scenario", use_container_width=True):
+        sc1, sc2 = st.columns(2)
+        if sc1.button("Restart", key="btn-restart-scenario", use_container_width=True):
             scenario_restart(script)
-
-        if st.button("Play next step", use_container_width=True):
+        if sc2.button("Play next", key="btn-play-next", use_container_width=True):
             step = st.session_state["assistant_step"]
             if step < len(script):
                 st.session_state["assistant_messages"].append(script[step])
@@ -1161,13 +1658,14 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             else:
                 st.info("Scenario complete.")
 
+    # --- Agent selector ---
     agent_catalog = hub.normalized_agent_catalog()
     agent_ids = [row["agent_id"] for row in agent_catalog]
     if agent_ids:
         if st.session_state.get("selected_invocation_agent") not in agent_ids:
             st.session_state["selected_invocation_agent"] = agent_ids[0]
         st.session_state["selected_invocation_agent"] = st.selectbox(
-            "Invoke agent capability",
+            "Agent",
             options=agent_ids,
             index=agent_ids.index(st.session_state["selected_invocation_agent"]),
             format_func=lambda aid: next(
@@ -1176,9 +1674,10 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             ),
         )
 
-    prompt = st.text_area("Prompt", key="assistant_prompt")
+    # --- Chat Input ---
+    prompt = st.text_area("Message the assistant...", key="assistant_prompt", height=80)
     c_generate, c_all = st.columns(2)
-    if c_generate.button("Generate", use_container_width=True):
+    if c_generate.button("Send", key="btn-generate", use_container_width=True):
         response, provenance = choose_assistant_response(hub, prompt)
         st.session_state["assistant_messages"].append({"role": "user", "content": prompt})
         st.session_state["assistant_messages"].append(
@@ -1204,7 +1703,7 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
                 {"agent_id": selected_agent["agent_id"], "prompt": prompt},
             )
 
-    if c_all.button("Run all 25 agents", use_container_width=True):
+    if c_all.button("Run all 25 agents", key="btn-run-all", use_container_width=True):
         st.session_state["assistant_messages"].append(
             {"role": "user", "content": "Run complete platform invocation across all agents."}
         )
@@ -1220,6 +1719,7 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             outbox, "assistant.agent_invocation.bulk", {"count": len(agent_catalog)}
         )
 
+    # --- Artifact download ---
     artifact = st.session_state.get("assistant_last_artifact")
     if artifact:
         st.download_button(
@@ -1230,17 +1730,41 @@ def assistant_panel(hub: DemoDataHub, outbox: DemoOutbox) -> None:
             use_container_width=True,
         )
 
-    st.caption("Transcript")
-    for msg in st.session_state["assistant_messages"]:
-        provenance = f" _(source: {msg.get('provenance')})_" if msg.get("provenance") else ""
+    # --- Chat transcript with proper message bubbles ---
+    messages = st.session_state.get("assistant_messages", [])
+    if messages:
+        transcript_html = ""
+        for msg in messages:
+            role = msg.get("role", "assistant")
+            content = str(msg.get("content", "")).replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
+            provenance = msg.get("provenance", "")
+            if role == "user":
+                transcript_html += f'<div class="ppm-msg-user">{content}</div>'
+            else:
+                prov_html = (
+                    f'<div class="ppm-msg-provenance">source: {provenance}</div>' if provenance else ""
+                )
+                transcript_html += (
+                    f'<div class="ppm-msg-assistant">'
+                    f'<span class="ppm-ai-badge">AI-generated</span><br>'
+                    f'{content}{prov_html}</div>'
+                )
         st.markdown(
-            f"**{msg.get('role', 'assistant').capitalize()}:** {msg.get('content', '')}{provenance}"
+            f'<div class="ppm-chat-transcript">{transcript_html}</div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """<div style="text-align:center;padding:32px 16px;color:#B5BCC4;font-size:13px;">
+            <div style="font-size:24px;margin-bottom:8px;">&#10024;</div>
+            <div>Ask me anything about your project, or select a demo scenario above.</div>
+            </div>""",
+            unsafe_allow_html=True,
         )
 
 
 def render_feature_flags_panel() -> None:
-    st.sidebar.subheader("Feature Flags")
-    st.sidebar.caption("Toggle real platform parity features.")
+    st.caption("Feature flags")
     for flag in [
         "duplicate_resolution",
         "agent_async_notifications",
@@ -1249,90 +1773,110 @@ def render_feature_flags_panel() -> None:
         "multi_agent_collab",
         "multimodal_intake",
     ]:
-        st.session_state["feature_flags"][flag] = st.sidebar.checkbox(
-            flag, value=bool(st.session_state["feature_flags"].get(flag, False))
+        st.session_state["feature_flags"][flag] = st.checkbox(
+            friendly_label(flag),
+            value=bool(st.session_state["feature_flags"].get(flag, False)),
+            key=f"ff-{flag}",
         )
 
 
 def render_provenance(hub: DemoDataHub, view_name: str) -> None:
-    st.subheader("Data provenance")
     keys = hub.provenance.get(view_name, [])
     rows = [
         {"dataset": key, "file": str(DATASET_FILES[key].relative_to(REPO_ROOT))}
         for key in keys
         if key in DATASET_FILES
     ]
-    st.dataframe(rows, hide_index=True, use_container_width=True)
+    if rows:
+        with st.expander("Data provenance", expanded=False):
+            st.dataframe(rows, hide_index=True, use_container_width=True)
 
 
 def render_home(hub: DemoDataHub) -> None:
     st.header("Home")
+    st.markdown(
+        '<p class="ppm-page-desc">Portfolio overview and key delivery metrics across your programmes and projects.</p>',
+        unsafe_allow_html=True,
+    )
     dashboard = hub.normalized_dashboard()
     k1, k2, k3 = st.columns(3)
     k1.metric("Portfolio KPIs", len(dashboard["health"].get("kpis", [])))
     k2.metric("Lifecycle gates", len(dashboard["lifecycle"].get("stage_gates", [])))
     k3.metric("Workflow runs", len(dashboard["workflow"].get("runs", [])))
 
-    st.subheader("Parity status against web console demo")
-    st.dataframe(
-        [
-            {
-                "gap_area": "Collections pages",
-                "status": "Closed",
-                "streamlit_surface": "Collections",
-            },
-            {
-                "gap_area": "Intake to project routing",
-                "status": "Closed",
-                "streamlit_surface": "Intake",
-            },
-            {
-                "gap_area": "Agent profile/test/run",
-                "status": "Closed",
-                "streamlit_surface": "Agent Gallery",
-            },
-            {
-                "gap_area": "Analytics what-if/export",
-                "status": "Closed",
-                "streamlit_surface": "Analytics What-If",
-            },
-            {
-                "gap_area": "Artifact lifecycle board",
-                "status": "Closed",
-                "streamlit_surface": "Artifact Lifecycle",
-            },
-            {
-                "gap_area": "Approval type split",
-                "status": "Closed",
-                "streamlit_surface": "Approvals",
-            },
-        ],
-        hide_index=True,
-        use_container_width=True,
-    )
+    # Quick action cards
+    st.markdown("")
+    qa1, qa2, qa3, qa4 = st.columns(4)
+    if qa1.button("Log new intake", key="qa-intake", use_container_width=True):
+        st.session_state["active_page"] = "New Intake"
+        st.session_state["selected_page"] = "New Intake"
+    if qa2.button("Open collections", key="qa-collections", use_container_width=True):
+        st.session_state["active_page"] = "Collections"
+        st.session_state["selected_page"] = "Collections"
+    if qa3.button("View dashboard", key="qa-dashboard", use_container_width=True):
+        st.session_state["active_page"] = "Dashboard"
+        st.session_state["selected_page"] = "Dashboard"
+    if qa4.button("Open workspace", key="qa-workspace", use_container_width=True):
+        st.session_state["active_page"] = "Workspace"
+        st.session_state["selected_page"] = "Workspace"
+
+    kpi_data = dashboard["health"].get("kpis", [])
+    if kpi_data:
+        st.subheader("Portfolio health")
+        st.dataframe(kpi_data, hide_index=True, use_container_width=True)
+
+    highlights = dashboard["health"].get("highlights", [])
+    if highlights:
+        st.subheader("Highlights")
+        for h in highlights:
+            st.markdown(f"- {h}" if isinstance(h, str) else f"- {h.get('text', h)}")
+
     render_provenance(hub, "Dashboard")
 
 
 def render_workspace(hub: DemoDataHub) -> None:
-    st.header("Workspace")
+    st.header("Project Workspace")
+
+    # --- Project selector ---
     projects = hub.normalized_projects()
     project_ids = [row["id"] for row in projects]
+    project_names = {row["id"]: row["name"] for row in projects}
     if project_ids:
         if not st.session_state["selected_project"]:
             st.session_state["selected_project"] = project_ids[0]
-        st.session_state["selected_project"] = st.selectbox(
-            "Project", project_ids, index=project_ids.index(st.session_state["selected_project"])
+        sel_col, info_col = st.columns([2, 3])
+        st.session_state["selected_project"] = sel_col.selectbox(
+            "Project",
+            project_ids,
+            index=project_ids.index(st.session_state["selected_project"]),
+            format_func=lambda pid: project_names.get(pid, pid),
+        )
+        info_col.markdown(
+            f"""<div class="ppm-context-bar" style="margin-top:24px;">
+                <span class="ppm-context-pill">Project Workspace</span>
+                <span style="color:#CBD1D6">|</span>
+                <strong>{st.session_state['selected_methodology_name']}</strong>
+                <span style="color:#CBD1D6">&rsaquo;</span>
+                <strong>{st.session_state['selected_stage_name']}</strong>
+                <span style="color:#CBD1D6">&rsaquo;</span>
+                <strong>{st.session_state['selected_activity_name']}</strong>
+            </div>""",
+            unsafe_allow_html=True,
         )
 
+    # --- Methodology selector ---
     methodologies = hub.methodologies()
+    method_ids = [m.id for m in methodologies]
+    st.session_state["selected_methodology_id"] = st.selectbox(
+        "Methodology",
+        method_ids,
+        index=method_ids.index(st.session_state["selected_methodology_id"]),
+        format_func=lambda mid: next((m.name for m in methodologies if m.id == mid), mid),
+    )
+    sync_methodology_state(hub)
     selected_method = find_methodology(methodologies, st.session_state["selected_methodology_id"])
 
-    st.write(
-        f"Methodology: **{st.session_state['selected_methodology_name']}** | "
-        f"Stage: **{st.session_state['selected_stage_name']}** | "
-        f"Activity: **{st.session_state['selected_activity_name']}**"
-    )
-
+    # --- Methodology navigator ---
     st.subheader("Methodology navigator")
     stage_rows = []
     all_activities: list[dict[str, str]] = []
@@ -1346,19 +1890,21 @@ def render_workspace(hub: DemoDataHub) -> None:
             }
         )
         for activity in stage.activities:
+            completed_ids = st.session_state.get("completed_activity_ids", set())
             all_activities.append(
                 {
                     "stage_id": stage.id,
                     "stage_name": stage.name,
                     "activity_id": activity.id,
                     "activity_name": activity.name,
+                    "status": "completed" if activity.id in completed_ids else "not_started",
                 }
             )
 
     stage_filter = st.text_input(
         "Filter stages or activities",
         key="workspace_filter",
-        placeholder="Type to narrow methodology map",
+        placeholder="Type to narrow methodology map...",
     )
     if stage_filter.strip():
         token = stage_filter.strip().lower()
@@ -1369,7 +1915,8 @@ def render_workspace(hub: DemoDataHub) -> None:
         ]
     st.dataframe(stage_rows, hide_index=True, use_container_width=True)
 
-    if st.button("Run full methodology walkthrough", use_container_width=True):
+    btn_col1, btn_col2 = st.columns(2)
+    if btn_col1.button("Run full methodology walkthrough", key="btn-walkthrough", use_container_width=True):
         st.session_state["completed_activity_ids"].update(
             {row["activity_id"] for row in all_activities}
         )
@@ -1377,7 +1924,8 @@ def render_workspace(hub: DemoDataHub) -> None:
             f"Completed walkthrough across {len(all_activities)} activities in this methodology."
         )
 
-    activity_map = {f"{row['stage_name']} · {row['activity_name']}": row for row in all_activities}
+    # --- Activity detail ---
+    activity_map = {f"{row['stage_name']} \u203a {row['activity_name']}": row for row in all_activities}
     if activity_map:
         selected_label = st.selectbox("Inspect activity", options=list(activity_map.keys()))
         selected_row = activity_map[selected_label]
@@ -1418,13 +1966,23 @@ def render_workspace(hub: DemoDataHub) -> None:
 
 
 def render_dashboard(hub: DemoDataHub) -> None:
-    st.header("Dashboard")
+    st.header("Analytics Dashboard")
+    st.markdown(
+        '<p class="ppm-page-desc">Portfolio health KPIs, workflow status, and predictive analytics.</p>',
+        unsafe_allow_html=True,
+    )
     data = hub.normalized_dashboard()
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
     c1.metric("KPI records", len(data["health"].get("kpis", [])))
     c2.metric("Workflow runs", len(data["workflow"].get("runs", [])))
-    st.dataframe(data["health"].get("kpis", []), hide_index=True, use_container_width=True)
-    st.dataframe(data["workflow"].get("runs", []), hide_index=True, use_container_width=True)
+    c3.metric("Approvals", len(data["approvals"].get("approvals", [])))
+
+    tab_kpi, tab_wf = st.tabs(["Portfolio KPIs", "Workflow runs"])
+    with tab_kpi:
+        st.dataframe(data["health"].get("kpis", []), hide_index=True, use_container_width=True)
+    with tab_wf:
+        st.dataframe(data["workflow"].get("runs", []), hide_index=True, use_container_width=True)
+
     if st.session_state["feature_flags"].get("predictive_alerts"):
         st.warning("Predictive alerts enabled.")
         st.dataframe(data["workflow"].get("alerts", []), hide_index=True, use_container_width=True)
@@ -1432,13 +1990,21 @@ def render_dashboard(hub: DemoDataHub) -> None:
 
 
 def render_approvals(hub: DemoDataHub) -> None:
-    st.header("Approvals")
+    st.header("My Approvals")
+    st.markdown(
+        '<p class="ppm-page-desc">Review and action pending approvals across your portfolio.</p>',
+        unsafe_allow_html=True,
+    )
     st.dataframe(hub.normalized_approvals(), hide_index=True, use_container_width=True)
     render_provenance(hub, "Approvals")
 
 
 def render_connectors(hub: DemoDataHub) -> None:
-    st.header("Connector Registry")
+    st.header("Connectors")
+    st.markdown(
+        '<p class="ppm-page-desc">Manage external integrations and connector health.</p>',
+        unsafe_allow_html=True,
+    )
     rows = hub.normalized_connectors()
     st.metric("Registered connectors", len(rows))
     st.dataframe(rows, hide_index=True, use_container_width=True)
@@ -1450,20 +2016,32 @@ def render_connectors(hub: DemoDataHub) -> None:
 
 
 def render_audit(hub: DemoDataHub, outbox: DemoOutbox) -> None:
-    st.header("Audit")
+    st.header("Audit Logs")
+    st.markdown(
+        '<p class="ppm-page-desc">Full audit trail of platform events, agent actions, and user decisions.</p>',
+        unsafe_allow_html=True,
+    )
     rows = hub.normalized_audit() + outbox.read().get("audit_events", [])
     st.dataframe(rows, hide_index=True, use_container_width=True)
     render_provenance(hub, "Audit")
 
 
 def render_notifications(hub: DemoDataHub) -> None:
-    st.header("Notifications")
+    st.header("Notification Centre")
+    st.markdown(
+        '<p class="ppm-page-desc">Agent notifications, escalations, and system alerts.</p>',
+        unsafe_allow_html=True,
+    )
     st.dataframe(hub.normalized_notifications(), hide_index=True, use_container_width=True)
     render_provenance(hub, "Notifications")
 
 
 def render_demo_run(hub: DemoDataHub, engine: DemoRunEngine, outbox: DemoOutbox) -> None:
-    st.header("Demo Run")
+    st.header("Demo Run (25 Agents)")
+    st.markdown(
+        '<p class="ppm-page-desc">Step through a full 25-agent demonstration run with live playback.</p>',
+        unsafe_allow_html=True,
+    )
     run_log = hub.normalized_demo_run()
     run_agents = run_log.get("agents", [])
     st.write(f"Run ID: {run_log.get('demo_run_id')}")
@@ -1529,7 +2107,11 @@ def render_agent_runs(hub: DemoDataHub, engine: DemoRunEngine) -> None:
 
 
 def render_collections(hub: DemoDataHub) -> None:
-    st.header("Portfolio / Program / Project Collections")
+    st.header("Collections")
+    st.markdown(
+        '<p class="ppm-page-desc">Browse and manage portfolios, programmes, and projects.</p>',
+        unsafe_allow_html=True,
+    )
     entities = hub.normalized_entities()
     st.session_state["collection_type"] = st.segmented_control(
         "Collection",
@@ -1565,7 +2147,8 @@ def render_collections(hub: DemoDataHub) -> None:
 
 
 def render_intake(hub: DemoDataHub) -> None:
-    st.header("Intake & Post-Approval Routing")
+    st.header("Intake Requests")
+    st.markdown('<p class="ppm-page-desc">View submitted intake requests and route approved ones to project workspaces.</p>', unsafe_allow_html=True)
     rows = hub.normalized_intake_requests()
     st.dataframe(rows, hide_index=True, use_container_width=True)
     request_ids = [r["request_id"] for r in rows]
@@ -1584,8 +2167,149 @@ def render_intake(hub: DemoDataHub) -> None:
     render_provenance(hub, "Intake")
 
 
+def render_new_intake(hub: DemoDataHub) -> None:
+    """Multi-step intake form matching the React IntakeFormPage layout."""
+    INTAKE_STEPS = [
+        {"id": "sponsor", "label": "Sponsor details"},
+        {"id": "business", "label": "Business case"},
+        {"id": "success", "label": "Success criteria"},
+        {"id": "attachments", "label": "Attachments"},
+    ]
+
+    if "intake_step" not in st.session_state:
+        st.session_state["intake_step"] = 0
+    if "intake_form" not in st.session_state:
+        st.session_state["intake_form"] = {
+            "sponsorName": "",
+            "sponsorEmail": "",
+            "sponsorDepartment": "",
+            "sponsorTitle": "",
+            "reviewers": "",
+            "businessSummary": "",
+            "businessJustification": "",
+            "expectedBenefits": "",
+            "estimatedBudget": "",
+            "successMetrics": "",
+            "targetDate": "",
+            "riskNotes": "",
+            "attachmentSummary": "",
+            "attachmentLinks": "",
+        }
+
+    step_idx = st.session_state["intake_step"]
+    current_step = INTAKE_STEPS[step_idx]
+
+    # --- Page header ---
+    hdr_left, hdr_right = st.columns([3, 1])
+    with hdr_left:
+        st.header("Portfolio intake request")
+        st.markdown(
+            '<p class="ppm-page-desc">Submit a new project intake request. '
+            "Complete each section and the AI assistant will help pre-fill fields.</p>",
+            unsafe_allow_html=True,
+        )
+    with hdr_right:
+        st.markdown(
+            f'<div style="text-align:right;padding-top:16px;">'
+            f'<span class="ppm-step-indicator">Step {step_idx + 1} of {len(INTAKE_STEPS)}</span>'
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown('<hr style="border:none;border-top:1px solid rgba(148,163,184,0.3);margin:0 0 24px 0;">', unsafe_allow_html=True)
+
+    # --- Step sidebar + form area ---
+    step_col, form_col = st.columns([1, 3])
+
+    with step_col:
+        steps_html = ""
+        for i, s in enumerate(INTAKE_STEPS):
+            cls = "ppm-step-item ppm-step-active" if i == step_idx else "ppm-step-item"
+            marker = "&#10003; " if i < step_idx else f"{i + 1}. "
+            steps_html += f'<div class="{cls}">{marker}{s["label"]}</div>'
+        st.markdown(f'<div class="ppm-step-sidebar">{steps_html}</div>', unsafe_allow_html=True)
+
+    with form_col:
+        form = st.session_state["intake_form"]
+        st.markdown('<div class="ppm-form-section">', unsafe_allow_html=True)
+
+        if current_step["id"] == "sponsor":
+            st.subheader("Sponsor details")
+            c1, c2 = st.columns(2)
+            form["sponsorName"] = c1.text_input("Sponsor name *", value=form["sponsorName"])
+            form["sponsorEmail"] = c2.text_input("Sponsor email *", value=form["sponsorEmail"])
+            c3, c4 = st.columns(2)
+            form["sponsorDepartment"] = c3.text_input(
+                "Department *", value=form["sponsorDepartment"]
+            )
+            form["sponsorTitle"] = c4.text_input("Title", value=form["sponsorTitle"])
+            form["reviewers"] = st.text_input(
+                "Reviewers (comma-separated)", value=form["reviewers"]
+            )
+
+        elif current_step["id"] == "business":
+            st.subheader("Business case")
+            form["businessSummary"] = st.text_area(
+                "Business summary *", value=form["businessSummary"], height=100
+            )
+            form["businessJustification"] = st.text_area(
+                "Business justification *", value=form["businessJustification"], height=100
+            )
+            form["expectedBenefits"] = st.text_area(
+                "Expected benefits *", value=form["expectedBenefits"], height=80
+            )
+            form["estimatedBudget"] = st.text_input(
+                "Estimated budget", value=form["estimatedBudget"]
+            )
+
+        elif current_step["id"] == "success":
+            st.subheader("Success criteria")
+            form["successMetrics"] = st.text_area(
+                "Success metrics *", value=form["successMetrics"], height=100
+            )
+            form["targetDate"] = st.text_input("Target date", value=form["targetDate"])
+            form["riskNotes"] = st.text_area(
+                "Risk notes", value=form["riskNotes"], height=80
+            )
+
+        elif current_step["id"] == "attachments":
+            st.subheader("Attachments")
+            form["attachmentSummary"] = st.text_area(
+                "Attachment summary", value=form["attachmentSummary"], height=100
+            )
+            form["attachmentLinks"] = st.text_input(
+                "Attachment links", value=form["attachmentLinks"]
+            )
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # --- Navigation buttons ---
+        nav_left, nav_mid, nav_right = st.columns([1, 2, 1])
+        if step_idx > 0:
+            if nav_left.button("Back", key="intake-back", use_container_width=True):
+                st.session_state["intake_step"] = step_idx - 1
+                st.rerun()
+        if step_idx < len(INTAKE_STEPS) - 1:
+            if nav_right.button("Continue", key="intake-next", use_container_width=True):
+                st.session_state["intake_step"] = step_idx + 1
+                st.rerun()
+        else:
+            if nav_right.button("Submit", key="intake-submit", use_container_width=True):
+                st.success(
+                    "Intake request submitted successfully! "
+                    "In the real app this would create a project and route to approvals."
+                )
+                st.json(form)
+
+    st.session_state["intake_form"] = form
+
+
 def render_agent_gallery(hub: DemoDataHub, outbox: DemoOutbox) -> None:
-    st.header("Agent Gallery · Profile · Test · Run")
+    st.header("Agents")
+    st.markdown(
+        '<p class="ppm-page-desc">Browse, test, and run AI agents from the platform agent registry.</p>',
+        unsafe_allow_html=True,
+    )
     rows = hub.normalized_agent_catalog()
     st.metric("Total registered agents", len(rows))
     search = st.text_input("Filter agents", value="")
@@ -1665,7 +2389,11 @@ def render_agent_gallery(hub: DemoDataHub, outbox: DemoOutbox) -> None:
 
 
 def render_analytics_advanced(hub: DemoDataHub, outbox: DemoOutbox) -> None:
-    st.header("Analytics What-If & Export Pack")
+    st.header("Analytics What-If")
+    st.markdown(
+        '<p class="ppm-page-desc">Model budget and scope scenarios to forecast delivery outcomes.</p>',
+        unsafe_allow_html=True,
+    )
     dashboard = hub.normalized_dashboard()
     st.dataframe(dashboard["health"].get("kpis", []), hide_index=True, use_container_width=True)
 
@@ -1720,7 +2448,11 @@ def render_analytics_advanced(hub: DemoDataHub, outbox: DemoOutbox) -> None:
 
 
 def render_artifact_lifecycle(hub: DemoDataHub) -> None:
-    st.header("Artifact Lifecycle Board")
+    st.header("Artifact Lifecycle")
+    st.markdown(
+        '<p class="ppm-page-desc">Track artifacts through generation, review, approval, and publication stages.</p>',
+        unsafe_allow_html=True,
+    )
     rows = hub.normalized_artifact_lifecycle()
     st.dataframe(rows, hide_index=True, use_container_width=True)
     selected_status = st.selectbox(
@@ -1738,7 +2470,11 @@ def render_artifact_lifecycle(hub: DemoDataHub) -> None:
 
 
 def render_approvals_advanced(hub: DemoDataHub) -> None:
-    st.header("Approvals Queues · Stage Gate / Template / Publish")
+    st.header("Intake Approvals")
+    st.markdown(
+        '<p class="ppm-page-desc">Review intake requests by approval type: stage gate, template, or publish.</p>',
+        unsafe_allow_html=True,
+    )
     approvals = hub.normalized_intake_requests()
     approval_type = st.selectbox(
         "Approval type", options=["all", "stage_gate", "template", "publish"]
@@ -1759,70 +2495,121 @@ def render_approvals_advanced(hub: DemoDataHub) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="PPM Standalone Demo", layout="wide")
-    inject_demo_styles()
-    st.title("Standalone PPM Demo Mode")
-    st.caption(
-        "Local-only mirror of web console demo mode (no backend services, no external calls)."
+    st.set_page_config(
+        page_title="PPM Platform",
+        page_icon="\U0001f4cb",
+        layout="wide",
+        initial_sidebar_state="expanded",
     )
+    inject_demo_styles()
 
     hub = get_data_hub()
     init_state(hub)
     outbox = DemoOutbox(OUTBOX_PATH)
     engine = DemoRunEngine(hub.normalized_demo_run(), outbox)
 
-    render_scenario_selectors_sidebar(hub)
-    render_feature_flags_panel()
-    render_global_context_bar()
+    # ===== SIDEBAR — structured like the React LeftPanel =====
+    st.sidebar.markdown(
+        '<div class="sidebar-header"><span>Navigation</span></div>',
+        unsafe_allow_html=True,
+    )
 
-    nav_pages = [
-        "Home",
-        "Collections",
-        "Workspace",
-        "Intake",
-        "Approvals",
-        "Artifact Lifecycle",
-        "Agent Gallery",
-        "Dashboard",
-        "Analytics What-If",
+    # Build ordered navigation with section separators
+    _SECTION_PREFIX = "\u2500\u2500 "  # "── " visual separator
+    nav_pages_navigate = ["Home", "Demo Run", "Collections"]
+    nav_pages_work = ["New Intake", "Intake", "Approvals"]
+    nav_pages_insights = ["Dashboard", "Analytics What-If"]
+    nav_pages_admin = [
+        "Agents",
         "Connectors",
+        "Workspace",
+        "Artifact Lifecycle",
         "Audit",
-        "Demo Run",
     ]
     if st.session_state["feature_flags"].get("agent_async_notifications"):
-        nav_pages.append("Notifications")
+        nav_pages_admin.append("Notifications")
     if st.session_state["feature_flags"].get("agent_run_ui"):
-        nav_pages.append("Agent Runs")
+        nav_pages_admin.append("Agent Runs")
+
+    nav_pages = nav_pages_navigate + nav_pages_work + nav_pages_insights + nav_pages_admin
+
+    # Render section headers above the nav radio using markdown
+    _nav_sections = [
+        ("NAVIGATE", nav_pages_navigate),
+        ("WORK", nav_pages_work),
+        ("INSIGHTS", nav_pages_insights),
+        ("ADMIN", nav_pages_admin),
+    ]
+
+    # Compute CSS nth-child indices for section dividers
+    # We'll add top-border styling to the first item of each section
+    _section_starts: list[int] = []
+    _offset = 0
+    for _sect_name, _sect_pages in _nav_sections:
+        if _offset > 0:
+            _section_starts.append(_offset)
+        _offset += len(_sect_pages)
+
+    # Inject CSS for section dividers within the radio group
+    _section_css = ""
+    for idx in _section_starts:
+        # CSS nth-child is 1-indexed
+        _section_css += f"""
+            [data-testid="stSidebar"] [role="radiogroup"] > label:nth-child({idx + 1}) {{
+                margin-top: 12px !important;
+                padding-top: 12px !important;
+                border-top: 1px solid #EEEFF1 !important;
+            }}
+        """
+    if _section_css:
+        st.sidebar.markdown(f"<style>{_section_css}</style>", unsafe_allow_html=True)
 
     if st.session_state.get("active_page") in nav_pages:
         st.session_state["selected_page"] = st.session_state["active_page"]
+
+    # Ensure selected page is valid
+    if st.session_state.get("selected_page") not in nav_pages:
+        st.session_state["selected_page"] = "Home"
+
     st.session_state["selected_page"] = st.sidebar.radio(
-        "Navigation",
+        "Pages",
         nav_pages,
-        index=(
-            nav_pages.index(st.session_state["selected_page"])
-            if st.session_state["selected_page"] in nav_pages
-            else 0
-        ),
+        index=nav_pages.index(st.session_state["selected_page"]),
+        label_visibility="collapsed",
     )
     st.session_state["active_page"] = st.session_state["selected_page"]
 
-    left, right = st.columns([3, 2], gap="large")
+    # --- Scenario selectors (in collapsible expander) ---
+    with st.sidebar.expander("Scenario & Flags", expanded=False):
+        render_scenario_selectors_sidebar(hub)
+        st.markdown("---")
+        render_feature_flags_panel()
+
+    # ===== MAIN CONTENT AREA =====
+    page = st.session_state["selected_page"]
+
+    # Header bar
+    render_html_header(page)
+
+    # Layout: main content (70%) + assistant panel (30%) — matches React proportions
+    left, right = st.columns([7, 3], gap="medium")
+
     with left:
-        page = st.session_state["selected_page"]
         if page == "Home":
             render_home(hub)
         elif page == "Collections":
             render_collections(hub)
         elif page == "Workspace":
             render_workspace(hub)
+        elif page == "New Intake":
+            render_new_intake(hub)
         elif page == "Intake":
             render_intake(hub)
         elif page == "Approvals":
             render_approvals_advanced(hub)
         elif page == "Artifact Lifecycle":
             render_artifact_lifecycle(hub)
-        elif page == "Agent Gallery":
+        elif page == "Agents":
             render_agent_gallery(hub, outbox)
         elif page == "Dashboard":
             render_dashboard(hub)
@@ -1841,8 +2628,6 @@ def main() -> None:
 
     with right:
         assistant_panel(hub, outbox)
-
-    st.caption("Demo outbox path: apps/demo_streamlit/storage/demo_outbox.json")
 
 
 if __name__ == "__main__":
