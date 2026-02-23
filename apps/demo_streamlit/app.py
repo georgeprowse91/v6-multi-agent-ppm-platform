@@ -1001,6 +1001,117 @@ def inject_demo_styles() -> None:
           [data-testid="stProgress"] > div > div {
             background-color: #FD5108 !important;
           }
+
+          /* ===== Canvas Preview Styles ===== */
+          .ppm-canvas-host {
+            border: 1px solid #DFE3E6;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 12px;
+          }
+          .ppm-canvas-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #F8FAFC;
+            border-bottom: 1px solid #DFE3E6;
+            font-size: 12px;
+            color: #6B7280;
+          }
+          .ppm-canvas-toolbar-btn {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #EEEFF1;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #475569;
+          }
+          .ppm-canvas-toolbar-primary {
+            background: #FFE8D4;
+            color: #FD5108;
+          }
+          .ppm-canvas-body {
+            padding: 16px;
+            min-height: 200px;
+            background: #FFFFFF;
+          }
+          .ppm-canvas-tab-bar {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid #DFE3E6;
+            background: #F8FAFC;
+          }
+          .ppm-canvas-tab {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6B7280;
+            border-bottom: 2px solid transparent;
+          }
+          .ppm-canvas-tab-active {
+            color: #FD5108;
+            border-bottom-color: #FD5108;
+          }
+          .ppm-tree-node {
+            padding: 4px 0 4px 20px;
+            font-size: 13px;
+            color: #334155;
+            border-left: 1px solid #DFE3E6;
+            margin-left: 8px;
+          }
+          .ppm-tree-root {
+            padding: 4px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #000;
+          }
+          .ppm-board-col {
+            background: #F8FAFC;
+            border: 1px solid #EEEFF1;
+            border-radius: 8px;
+            padding: 12px;
+            min-height: 120px;
+          }
+          .ppm-board-col-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6B7280;
+            margin-bottom: 8px;
+            letter-spacing: 0.04em;
+          }
+          .ppm-board-card {
+            background: #FFFFFF;
+            border: 1px solid #DFE3E6;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            font-size: 13px;
+          }
+          .ppm-approval-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #EEEFF1;
+            font-size: 13px;
+          }
+          .ppm-lane {
+            background: #F8FAFC;
+            border: 1px solid #EEEFF1;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
+          }
+          .ppm-lane-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6B7280;
+            margin-bottom: 6px;
+          }
         </style>
         """,
         unsafe_allow_html=True,
@@ -1959,6 +2070,11 @@ def render_workspace(hub: DemoDataHub) -> None:
         d2.markdown("**Attributes**")
         d2.json(attributes)
 
+        # --- Canvas preview ---
+        canvas_type = details.get("canvas_type", "document")
+        st.subheader(f"Canvas \u2014 {friendly_label(canvas_type)}")
+        render_canvas_preview(canvas_type, selected_row["activity_name"])
+
     completed = st.session_state.get("completed_activity_ids", set())
     if completed:
         st.success(f"Completed activities: {len(completed)}")
@@ -2494,6 +2610,935 @@ def render_approvals_advanced(hub: DemoDataHub) -> None:
     render_provenance(hub, "Intake")
 
 
+# ---------------------------------------------------------------------------
+# NEW PAGES — matching React app screens
+# ---------------------------------------------------------------------------
+
+
+def render_enterprise_uplift(hub: DemoDataHub) -> None:
+    """Enterprise uplift scenarios matching the React EnterpriseUpliftPage."""
+    st.header("Enterprise Uplift")
+    st.markdown(
+        '<p class="ppm-page-desc">Enterprise-level transformation scenarios and readiness assessments.</p>',
+        unsafe_allow_html=True,
+    )
+
+    scenarios = [
+        {"id": "uplift-01", "name": "Cloud Migration Readiness", "domain": "Infrastructure", "maturity": "Level 3", "target": "Level 4", "status": "In Progress", "score": 72},
+        {"id": "uplift-02", "name": "DevOps Capability Uplift", "domain": "Engineering", "maturity": "Level 2", "target": "Level 4", "status": "Planning", "score": 45},
+        {"id": "uplift-03", "name": "Data Governance Framework", "domain": "Data & Analytics", "maturity": "Level 1", "target": "Level 3", "status": "Assessment", "score": 28},
+        {"id": "uplift-04", "name": "Security Posture Enhancement", "domain": "Security", "maturity": "Level 3", "target": "Level 5", "status": "In Progress", "score": 61},
+    ]
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Active Scenarios", len(scenarios))
+    c2.metric("Avg Maturity Score", f"{sum(s['score'] for s in scenarios) // len(scenarios)}%")
+    c3.metric("Domains Covered", len({s["domain"] for s in scenarios}))
+
+    st.dataframe(scenarios, hide_index=True, use_container_width=True)
+
+    selected = st.selectbox(
+        "Inspect scenario",
+        [s["id"] for s in scenarios],
+        format_func=lambda sid: next(s["name"] for s in scenarios if s["id"] == sid),
+    )
+    detail = next(s for s in scenarios if s["id"] == selected)
+
+    st.subheader("Scenario detail")
+    d1, d2 = st.columns(2)
+    d1.json(detail)
+    d2.markdown(
+        f"**Assessment Summary**\n"
+        f"- **Current Maturity:** {detail['maturity']}\n"
+        f"- **Target Maturity:** {detail['target']}\n"
+        f"- **Readiness Score:** {detail['score']}%\n"
+        f"- **Key Gap:** Process automation and tooling standardisation\n"
+        f"- **Recommended Actions:** Define capability roadmap, assign transformation leads"
+    )
+
+    render_provenance(hub, "Dashboard")
+
+
+def render_performance_dashboard(hub: DemoDataHub) -> None:
+    """Project performance dashboard matching the React PerformanceDashboardPage."""
+    st.header("Performance Dashboard")
+    st.markdown(
+        '<p class="ppm-page-desc">Detailed project performance metrics including earned value, schedule, and budget analysis.</p>',
+        unsafe_allow_html=True,
+    )
+
+    project_id = st.session_state.get("selected_project") or "demo-project-01"
+    st.markdown(f'<span class="ppm-badge ppm-badge-default">{project_id}</span>', unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("CPI", "1.02", delta="0.03")
+    c2.metric("SPI", "0.97", delta="-0.02")
+    c3.metric("Budget Used", "62%", delta="3%")
+    c4.metric("Milestones Complete", "4/7")
+
+    tab_ev, tab_budget, tab_schedule = st.tabs(["Earned Value", "Budget", "Schedule"])
+
+    with tab_ev:
+        ev_data = [
+            {"period": "Week 1", "PV": 120, "EV": 118, "AC": 115},
+            {"period": "Week 2", "PV": 240, "EV": 235, "AC": 230},
+            {"period": "Week 3", "PV": 360, "EV": 350, "AC": 345},
+            {"period": "Week 4", "PV": 480, "EV": 465, "AC": 455},
+            {"period": "Week 5", "PV": 600, "EV": 582, "AC": 570},
+            {"period": "Week 6", "PV": 720, "EV": 698, "AC": 742},
+        ]
+        st.dataframe(ev_data, hide_index=True, use_container_width=True)
+        st.caption("PV = Planned Value (£k) | EV = Earned Value (£k) | AC = Actual Cost (£k)")
+
+    with tab_budget:
+        budget_data = [
+            {"category": "Personnel", "budget": 650, "actual": 420, "forecast": 640, "variance": "+10k"},
+            {"category": "Infrastructure", "budget": 280, "actual": 195, "forecast": 285, "variance": "-5k"},
+            {"category": "Licensing", "budget": 120, "actual": 78, "forecast": 118, "variance": "+2k"},
+            {"category": "Contingency", "budget": 150, "actual": 49, "forecast": 147, "variance": "+3k"},
+        ]
+        st.dataframe(budget_data, hide_index=True, use_container_width=True)
+
+    with tab_schedule:
+        schedule_data = [
+            {"milestone": "Charter sign-off", "baseline": "2026-02-28", "actual": "2026-02-28", "variance": "0d", "status": "Complete"},
+            {"milestone": "Design gate exit", "baseline": "2026-03-14", "actual": "2026-03-14", "variance": "0d", "status": "Complete"},
+            {"milestone": "Sprint 5 start", "baseline": "2026-03-17", "actual": "2026-03-17", "variance": "0d", "status": "Complete"},
+            {"milestone": "Sprint 6 start", "baseline": "2026-03-31", "actual": "2026-04-14", "variance": "+14d", "status": "At Risk"},
+            {"milestone": "UAT Phase 2", "baseline": "2026-04-07", "forecast": "2026-04-21", "variance": "+14d", "status": "Upcoming"},
+            {"milestone": "Go-live", "baseline": "2026-04-28", "forecast": "2026-05-12", "variance": "+14d", "status": "Upcoming"},
+        ]
+        st.dataframe(schedule_data, hide_index=True, use_container_width=True)
+
+    render_provenance(hub, "Dashboard")
+
+
+def render_workflow_monitoring(hub: DemoDataHub) -> None:
+    """Workflow monitoring matching the React WorkflowMonitoringPage."""
+    st.header("Workflow Monitoring")
+    st.markdown(
+        '<p class="ppm-page-desc">Monitor active workflow instances, step status, and real-time execution events.</p>',
+        unsafe_allow_html=True,
+    )
+
+    workflows = [
+        {"instance_id": "wf-run-001", "workflow": "Intake > Approval > Provisioning", "status": "running", "current_step": "Approval Gate", "started_at": "2026-02-23T08:12:00Z", "steps_done": 2, "total_steps": 5},
+        {"instance_id": "wf-run-002", "workflow": "Agent Orchestration Pipeline", "status": "completed", "current_step": "Done", "started_at": "2026-02-22T14:30:00Z", "steps_done": 4, "total_steps": 4},
+        {"instance_id": "wf-run-003", "workflow": "Artifact Review Cycle", "status": "waiting", "current_step": "Reviewer Assignment", "started_at": "2026-02-23T09:45:00Z", "steps_done": 1, "total_steps": 6},
+        {"instance_id": "wf-run-004", "workflow": "Stage Gate Assessment", "status": "failed", "current_step": "Compliance Check", "started_at": "2026-02-22T16:00:00Z", "steps_done": 3, "total_steps": 5},
+    ]
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Active Workflows", sum(1 for w in workflows if w["status"] == "running"))
+    c2.metric("Completed Today", sum(1 for w in workflows if w["status"] == "completed"))
+    c3.metric("Total Instances", len(workflows))
+
+    st.markdown(
+        '<span class="ppm-badge ppm-badge-success">Stream: Connected</span>',
+        unsafe_allow_html=True,
+    )
+
+    st.dataframe(workflows, hide_index=True, use_container_width=True)
+
+    selected = st.selectbox(
+        "Inspect workflow",
+        [w["instance_id"] for w in workflows],
+        format_func=lambda wid: next(
+            f"{w['instance_id']} \u2014 {w['workflow']}" for w in workflows if w["instance_id"] == wid
+        ),
+    )
+    detail = next(w for w in workflows if w["instance_id"] == selected)
+
+    st.subheader("Workflow timeline")
+    events = [
+        {"step": 1, "name": "Trigger received", "status": "completed", "timestamp": detail["started_at"]},
+        {"step": 2, "name": "Validation & routing", "status": "completed", "timestamp": "2026-02-23T08:12:30Z"},
+        {"step": 3, "name": detail["current_step"], "status": detail["status"], "timestamp": "2026-02-23T08:13:00Z"},
+    ]
+    st.dataframe(events, hide_index=True, use_container_width=True)
+    st.json(detail)
+
+    if st.button("Trigger sample workflow", key="btn-trigger-workflow"):
+        st.success("Sample workflow triggered: wf-run-005 (Intake > Approval > Provisioning)")
+
+    render_provenance(hub, "Dashboard")
+
+
+def render_workflow_designer(hub: DemoDataHub) -> None:
+    """Workflow designer matching the React WorkflowDesigner (simplified table view)."""
+    st.header("Workflow Designer")
+    st.markdown(
+        '<p class="ppm-page-desc">Design and configure workflow orchestration rules with visual node editing.</p>',
+        unsafe_allow_html=True,
+    )
+
+    node_types = ["task", "decision", "approval", "notification", "api", "script"]
+
+    if "wf_designer_nodes" not in st.session_state:
+        st.session_state["wf_designer_nodes"] = [
+            {"node_id": "node-1", "type": "task", "label": "Receive intake request", "agent": "agent-01", "position": 1},
+            {"node_id": "node-2", "type": "decision", "label": "Check duplicates", "agent": "agent-02", "position": 2},
+            {"node_id": "node-3", "type": "approval", "label": "Manager approval gate", "agent": None, "position": 3},
+            {"node_id": "node-4", "type": "notification", "label": "Notify stakeholders", "agent": "agent-05", "position": 4},
+            {"node_id": "node-5", "type": "task", "label": "Provision workspace", "agent": "agent-03", "position": 5},
+        ]
+    if "wf_designer_edges" not in st.session_state:
+        st.session_state["wf_designer_edges"] = [
+            {"from": "node-1", "to": "node-2", "condition": "always"},
+            {"from": "node-2", "to": "node-3", "condition": "no_duplicate"},
+            {"from": "node-2", "to": "node-4", "condition": "duplicate_found"},
+            {"from": "node-3", "to": "node-5", "condition": "approved"},
+        ]
+
+    tab_nodes, tab_edges, tab_routing = st.tabs(["Nodes", "Connections", "Routing Rules"])
+
+    with tab_nodes:
+        st.dataframe(st.session_state["wf_designer_nodes"], hide_index=True, use_container_width=True)
+        st.subheader("Add node")
+        nc1, nc2, nc3 = st.columns(3)
+        new_type = nc1.selectbox("Node type", node_types, key="wfd-node-type")
+        new_label = nc2.text_input("Label", key="wfd-node-label")
+        new_agent = nc3.text_input("Agent (optional)", key="wfd-node-agent")
+        if st.button("Add node", key="btn-add-wf-node"):
+            if new_label.strip():
+                next_id = f"node-{len(st.session_state['wf_designer_nodes']) + 1}"
+                st.session_state["wf_designer_nodes"].append({
+                    "node_id": next_id, "type": new_type, "label": new_label.strip(),
+                    "agent": new_agent.strip() or None,
+                    "position": len(st.session_state["wf_designer_nodes"]) + 1,
+                })
+                st.success(f"Added node {next_id}")
+
+    with tab_edges:
+        st.dataframe(st.session_state["wf_designer_edges"], hide_index=True, use_container_width=True)
+        st.subheader("Add connection")
+        node_ids = [n["node_id"] for n in st.session_state["wf_designer_nodes"]]
+        ec1, ec2, ec3 = st.columns(3)
+        from_node = ec1.selectbox("From", node_ids, key="wfd-edge-from")
+        to_node = ec2.selectbox("To", node_ids, key="wfd-edge-to")
+        condition = ec3.text_input("Condition", value="always", key="wfd-edge-condition")
+        if st.button("Add connection", key="btn-add-wf-edge"):
+            st.session_state["wf_designer_edges"].append(
+                {"from": from_node, "to": to_node, "condition": condition}
+            )
+            st.success("Connection added")
+
+    with tab_routing:
+        routing_rules = [
+            {"intent": "intake.submit", "agent": "agent-01", "priority": 1, "dependency": None},
+            {"intent": "duplicate.check", "agent": "agent-02", "priority": 2, "dependency": "agent-01"},
+            {"intent": "approval.route", "agent": "agent-04", "priority": 3, "dependency": "agent-02"},
+            {"intent": "workspace.provision", "agent": "agent-03", "priority": 4, "dependency": "agent-04"},
+        ]
+        st.dataframe(routing_rules, hide_index=True, use_container_width=True)
+
+    bc1, bc2 = st.columns(2)
+    if bc1.button("Save workflow", key="btn-save-workflow", use_container_width=True):
+        st.success("Workflow saved (demo \u2014 persisted in session state)")
+    if bc2.button("Reset to default", key="btn-reset-workflow", use_container_width=True):
+        st.session_state.pop("wf_designer_nodes", None)
+        st.session_state.pop("wf_designer_edges", None)
+        st.rerun()
+
+
+def render_prompt_library(hub: DemoDataHub) -> None:
+    """Prompt library manager matching the React PromptManager."""
+    st.header("Prompt Library")
+    st.markdown(
+        '<p class="ppm-page-desc">Create, edit, and manage prompt templates used by AI agents across the platform.</p>',
+        unsafe_allow_html=True,
+    )
+
+    if "prompt_library" not in st.session_state:
+        st.session_state["prompt_library"] = [
+            {"id": "prompt-001", "label": "Charter Brief Generator", "description": "Generates a project charter brief from intake data", "tags": "charter, intake, document"},
+            {"id": "prompt-002", "label": "Risk Assessment Prompt", "description": "Evaluates project risks and produces a risk register", "tags": "risk, assessment, register"},
+            {"id": "prompt-003", "label": "Status Report Summary", "description": "Summarises weekly project status from activity data", "tags": "status, report, weekly"},
+            {"id": "prompt-004", "label": "Decision Log Entry", "description": "Creates a structured decision log entry with rationale", "tags": "decision, log, governance"},
+            {"id": "prompt-005", "label": "Lessons Learned Extractor", "description": "Extracts lessons learned from retrospective notes", "tags": "lessons, retrospective, knowledge"},
+        ]
+
+    prompts = st.session_state["prompt_library"]
+    st.metric("Total prompts", len(prompts))
+
+    search = st.text_input("Search prompts", key="prompt-search", placeholder="Filter by label, description, or tags...")
+    if search.strip():
+        token = search.strip().lower()
+        visible = [
+            p for p in prompts
+            if token in p["label"].lower() or token in p["description"].lower() or token in p["tags"].lower()
+        ]
+    else:
+        visible = prompts
+
+    st.dataframe(visible, hide_index=True, use_container_width=True)
+
+    st.subheader("Create / edit prompt")
+    pc1, pc2 = st.columns(2)
+    edit_label = pc1.text_input("Label", key="pl-label")
+    edit_tags = pc2.text_input("Tags (comma-separated)", key="pl-tags")
+    edit_desc = st.text_area("Description", key="pl-desc", height=80)
+
+    bc1, bc2 = st.columns(2)
+    if bc1.button("Save prompt", key="btn-save-prompt", use_container_width=True):
+        if edit_label.strip():
+            new_id = f"prompt-{len(prompts) + 1:03d}"
+            st.session_state["prompt_library"].append({
+                "id": new_id, "label": edit_label.strip(),
+                "description": edit_desc.strip(), "tags": edit_tags.strip(),
+            })
+            st.success(f"Saved prompt {new_id}: {edit_label}")
+    if bc2.button("Delete last prompt", key="btn-delete-prompt", use_container_width=True):
+        if prompts:
+            removed = st.session_state["prompt_library"].pop()
+            st.success(f"Deleted prompt {removed['id']}")
+
+
+def render_methodology_editor(hub: DemoDataHub) -> None:
+    """Methodology editor matching the React MethodologyEditor."""
+    st.header("Methodology Editor")
+    st.markdown(
+        '<p class="ppm-page-desc">Create and configure methodology stages, activities, and canvas type assignments.</p>',
+        unsafe_allow_html=True,
+    )
+
+    canvas_types = [
+        "document", "tree", "timeline", "spreadsheet", "dashboard",
+        "board", "backlog", "gantt", "grid", "financial",
+        "dependency_map", "roadmap", "approval",
+    ]
+
+    methodologies = hub.methodologies()
+    method_ids = [m.id for m in methodologies]
+    selected_method_id = st.selectbox(
+        "Methodology",
+        method_ids,
+        format_func=lambda mid: next((m.name for m in methodologies if m.id == mid), mid),
+        key="me-methodology",
+    )
+    selected_method = find_methodology(methodologies, selected_method_id)
+
+    if selected_method:
+        for stage in selected_method.stages:
+            with st.expander(f"Stage: {stage.name} ({len(stage.activities)} activities)", expanded=False):
+                details_map = hub.methodology_activity_details()
+                activity_rows = []
+                for activity in stage.activities:
+                    d = details_map.get(activity.id, {})
+                    activity_rows.append({
+                        "activity_id": activity.id,
+                        "activity_name": activity.name,
+                        "canvas_type": d.get("canvas_type", "document"),
+                        "status": d.get("status", "not_started"),
+                    })
+                st.dataframe(activity_rows, hide_index=True, use_container_width=True)
+
+    st.subheader("Add activity (demo)")
+    ac1, ac2, ac3 = st.columns(3)
+    new_activity_name = ac1.text_input("Activity name", key="me-activity-name")
+    new_canvas_type = ac2.selectbox("Canvas type", canvas_types, key="me-canvas-type")
+    new_prereqs = ac3.text_input("Prerequisites (comma-separated)", key="me-prereqs")
+    if st.button("Add activity (session only)", key="btn-add-activity"):
+        if new_activity_name.strip():
+            st.success(
+                f"Activity '{new_activity_name}' added with canvas type '{new_canvas_type}' (demo \u2014 session only)"
+            )
+            st.json({"activity_name": new_activity_name, "canvas_type": new_canvas_type, "prerequisites": new_prereqs})
+
+
+def render_role_manager(hub: DemoDataHub) -> None:
+    """Role manager matching the React RoleManager."""
+    st.header("Role Management")
+    st.markdown(
+        '<p class="ppm-page-desc">Manage platform roles, permissions, and user-role assignments.</p>',
+        unsafe_allow_html=True,
+    )
+
+    if "demo_roles" not in st.session_state:
+        st.session_state["demo_roles"] = [
+            {"role_id": "admin", "name": "Administrator", "description": "Full platform access", "permissions": "audit.view, roles.manage, config.manage, llm.manage, intake.approve, methodology.edit"},
+            {"role_id": "pm", "name": "Project Manager", "description": "Project workspace and intake management", "permissions": "intake.approve, methodology.edit, config.manage"},
+            {"role_id": "reviewer", "name": "Reviewer", "description": "Approval and review permissions", "permissions": "intake.approve, audit.view"},
+            {"role_id": "viewer", "name": "Viewer", "description": "Read-only access", "permissions": "audit.view"},
+        ]
+    if "demo_role_assignments" not in st.session_state:
+        st.session_state["demo_role_assignments"] = [
+            {"user_id": "sophie.lang", "roles": "admin, pm", "assigned_at": "2026-02-01T09:00:00Z"},
+            {"user_id": "marcus.reed", "roles": "pm, reviewer", "assigned_at": "2026-02-05T10:30:00Z"},
+            {"user_id": "priya.shah", "roles": "reviewer", "assigned_at": "2026-02-10T14:00:00Z"},
+            {"user_id": "demo.user", "roles": "admin", "assigned_at": "2026-02-15T08:00:00Z"},
+        ]
+
+    tab_roles, tab_assignments = st.tabs(["Roles", "Assignments"])
+
+    with tab_roles:
+        st.dataframe(st.session_state["demo_roles"], hide_index=True, use_container_width=True)
+        st.subheader("Create role")
+        rc1, rc2 = st.columns(2)
+        new_role_id = rc1.text_input("Role ID", key="rm-role-id")
+        new_role_name = rc2.text_input("Role name", key="rm-role-name")
+        new_role_desc = st.text_input("Description", key="rm-role-desc")
+
+        st.markdown("**Permissions**")
+        perms = ["audit.view", "roles.manage", "config.manage", "llm.manage", "intake.approve", "methodology.edit"]
+        selected_perms: list[str] = []
+        perm_cols = st.columns(3)
+        for i, perm in enumerate(perms):
+            if perm_cols[i % 3].checkbox(perm, key=f"rm-perm-{perm}"):
+                selected_perms.append(perm)
+
+        if st.button("Create role", key="btn-create-role"):
+            if new_role_id.strip() and new_role_name.strip():
+                st.session_state["demo_roles"].append({
+                    "role_id": new_role_id.strip(), "name": new_role_name.strip(),
+                    "description": new_role_desc.strip(), "permissions": ", ".join(selected_perms),
+                })
+                st.success(f"Created role: {new_role_name}")
+
+    with tab_assignments:
+        st.dataframe(st.session_state["demo_role_assignments"], hide_index=True, use_container_width=True)
+        st.subheader("Assign role")
+        ac1, ac2 = st.columns(2)
+        assign_user = ac1.text_input("User ID", key="rm-assign-user")
+        assign_roles = ac2.text_input("Roles (comma-separated)", key="rm-assign-roles")
+        if st.button("Assign", key="btn-assign-role"):
+            if assign_user.strip():
+                st.session_state["demo_role_assignments"].append({
+                    "user_id": assign_user.strip(), "roles": assign_roles.strip(),
+                    "assigned_at": datetime.now(tz=UTC).isoformat(),
+                })
+                st.success(f"Assigned roles to {assign_user}")
+
+
+def render_merge_review(hub: DemoDataHub) -> None:
+    """Merge review for duplicate intake requests matching the React MergeReviewPage."""
+    st.header("Merge Review")
+    st.markdown(
+        '<p class="ppm-page-desc">Review and resolve duplicate intake requests identified by the deduplication agent.</p>',
+        unsafe_allow_html=True,
+    )
+
+    duplicates = [
+        {
+            "pair_id": "dup-001", "request_a": "intake-001", "request_b": "intake-004",
+            "similarity": 0.87, "field_overlap": "sponsor_name, business_summary",
+            "status": "pending", "recommended_action": "merge",
+        },
+        {
+            "pair_id": "dup-002", "request_a": "intake-002", "request_b": "intake-005",
+            "similarity": 0.72, "field_overlap": "department, expected_benefits",
+            "status": "pending", "recommended_action": "review",
+        },
+    ]
+
+    st.metric("Pending duplicates", len([d for d in duplicates if d["status"] == "pending"]))
+    st.dataframe(duplicates, hide_index=True, use_container_width=True)
+
+    selected = st.selectbox("Select pair", [d["pair_id"] for d in duplicates])
+    detail = next(d for d in duplicates if d["pair_id"] == selected)
+
+    st.subheader("Comparison")
+    cmp1, cmp2 = st.columns(2)
+    cmp1.markdown(f"**Request A:** {detail['request_a']}")
+    cmp1.json({
+        "request_id": detail["request_a"], "title": "Phoenix Modernization intake",
+        "sponsor": "Sophie Lang", "department": "Digital",
+    })
+    cmp2.markdown(f"**Request B:** {detail['request_b']}")
+    cmp2.json({
+        "request_id": detail["request_b"], "title": "Phoenix Modernisation Phase 2",
+        "sponsor": "Sophie Lang", "department": "Digital",
+    })
+
+    st.markdown(
+        f"**Similarity:** {detail['similarity']:.0%} | **Overlapping fields:** {detail['field_overlap']}"
+    )
+
+    mc1, mc2, mc3 = st.columns(3)
+    if mc1.button("Merge (keep A)", key="btn-merge-a", use_container_width=True):
+        st.success(f"Merged: kept {detail['request_a']}, archived {detail['request_b']}")
+    if mc2.button("Merge (keep B)", key="btn-merge-b", use_container_width=True):
+        st.success(f"Merged: kept {detail['request_b']}, archived {detail['request_a']}")
+    if mc3.button("Not duplicate", key="btn-not-dup", use_container_width=True):
+        st.success("Marked as not duplicate")
+
+
+def render_document_search(hub: DemoDataHub) -> None:
+    """Document search matching the React DocumentSearchPage."""
+    st.header("Documents")
+    st.markdown(
+        '<p class="ppm-page-desc">Search and browse project documents with version history.</p>',
+        unsafe_allow_html=True,
+    )
+
+    documents = [
+        {"doc_id": "doc-001", "title": "Project Charter \u2014 Phoenix Modernization", "type": "charter", "project": "demo-project-01", "version": 3, "updated_at": "2026-02-20T14:30:00Z", "author": "S. Lang"},
+        {"doc_id": "doc-002", "title": "Work Breakdown Structure v2", "type": "wbs", "project": "demo-project-01", "version": 2, "updated_at": "2026-02-18T09:15:00Z", "author": "M. Reed"},
+        {"doc_id": "doc-003", "title": "Risk Register Q1 2026", "type": "risk_register", "project": "demo-project-01", "version": 5, "updated_at": "2026-02-22T16:45:00Z", "author": "H. Cole"},
+        {"doc_id": "doc-004", "title": "Budget Tracker FY26", "type": "budget", "project": "demo-project-02", "version": 1, "updated_at": "2026-02-15T11:00:00Z", "author": "P. Shah"},
+        {"doc_id": "doc-005", "title": "Sprint 5 Retrospective Notes", "type": "retrospective", "project": "demo-project-01", "version": 1, "updated_at": "2026-02-21T17:30:00Z", "author": "E. Brooks"},
+        {"doc_id": "doc-006", "title": "Architecture Decision Record \u2014 Auth", "type": "adr", "project": "demo-project-01", "version": 2, "updated_at": "2026-02-19T10:00:00Z", "author": "K. Patel"},
+    ]
+
+    sc1, sc2 = st.columns([3, 1])
+    search = sc1.text_input("Search documents", key="doc-search", placeholder="Search by title or content...")
+    project_filter = sc2.selectbox(
+        "Project", ["All"] + sorted({d["project"] for d in documents}), key="doc-project-filter",
+    )
+
+    visible = documents
+    if search.strip():
+        token = search.strip().lower()
+        visible = [d for d in visible if token in d["title"].lower() or token in d["type"].lower()]
+    if project_filter != "All":
+        visible = [d for d in visible if d["project"] == project_filter]
+
+    st.metric("Documents found", len(visible))
+    st.dataframe(visible, hide_index=True, use_container_width=True)
+
+    if visible:
+        selected_doc = st.selectbox(
+            "View document",
+            [d["doc_id"] for d in visible],
+            format_func=lambda did: next(d["title"] for d in visible if d["doc_id"] == did),
+        )
+        doc = next(d for d in visible if d["doc_id"] == selected_doc)
+
+        st.subheader("Document detail")
+        d1, d2 = st.columns(2)
+        d1.json(doc)
+        d2.markdown(
+            f"**Version history**\n\n"
+            f"| Version | Author | Date |\n|---------|--------|------|\n"
+            f"| v{doc['version']} (current) | {doc['author']} | {doc['updated_at'][:10]} |\n"
+            f"| v{max(1, doc['version'] - 1)} | {doc['author']} | 2026-02-14 |\n"
+            f"| v1 | Platform Admin | 2026-02-01 |"
+        )
+
+    if st.button("Refresh documents", key="btn-refresh-docs"):
+        st.success("Documents refreshed from project workspace")
+
+
+def render_lessons_learned(hub: DemoDataHub) -> None:
+    """Lessons learned matching the React LessonsLearnedPage."""
+    st.header("Lessons Learned")
+    st.markdown(
+        '<p class="ppm-page-desc">Capture, search, and share lessons learned across projects and methodologies.</p>',
+        unsafe_allow_html=True,
+    )
+
+    if "demo_lessons" not in st.session_state:
+        st.session_state["demo_lessons"] = [
+            {"id": "lesson-001", "title": "Early stakeholder alignment reduces rework", "description": "Engaging stakeholders in the Discover stage reduced design rework by 40%", "tags": "stakeholder, discover, rework", "topic": "Governance", "stage": "Discover"},
+            {"id": "lesson-002", "title": "Automated gate checks improve throughput", "description": "Implementing automated stage gate compliance checks cut approval time from 5 days to 1 day", "tags": "automation, gate, approval", "topic": "Process", "stage": "Deliver"},
+            {"id": "lesson-003", "title": "Risk register weekly review cadence", "description": "Weekly risk register reviews caught 3 critical issues before they impacted the schedule", "tags": "risk, review, weekly", "topic": "Risk Management", "stage": "Deliver"},
+            {"id": "lesson-004", "title": "Budget contingency allocation guidance", "description": "Allocating 12-15% contingency proved optimal for projects in the 500k-1.5M range", "tags": "budget, contingency, financial", "topic": "Financial", "stage": "Design"},
+        ]
+
+    lessons = st.session_state["demo_lessons"]
+
+    sc1, sc2 = st.columns([3, 1])
+    search = sc1.text_input("Search lessons", key="ll-search", placeholder="Search by title, description, or tags...")
+    topic_filter = sc2.selectbox(
+        "Topic", ["All"] + sorted({l_item["topic"] for l_item in lessons}), key="ll-topic-filter",
+    )
+
+    visible = lessons
+    if search.strip():
+        token = search.strip().lower()
+        visible = [
+            l_item for l_item in visible
+            if token in l_item["title"].lower() or token in l_item["description"].lower() or token in l_item["tags"].lower()
+        ]
+    if topic_filter != "All":
+        visible = [l_item for l_item in visible if l_item["topic"] == topic_filter]
+
+    st.dataframe(visible, hide_index=True, use_container_width=True)
+
+    st.subheader("Create lesson")
+    lc1, lc2 = st.columns(2)
+    new_title = lc1.text_input("Title", key="ll-title")
+    new_topic = lc2.selectbox(
+        "Topic",
+        ["Governance", "Process", "Risk Management", "Financial", "Technical", "People"],
+        key="ll-topic",
+    )
+    new_desc = st.text_area("Description", key="ll-desc", height=80)
+    new_tags = st.text_input("Tags (comma-separated)", key="ll-tags")
+
+    bc1, bc2 = st.columns(2)
+    if bc1.button("Save lesson", key="btn-save-lesson", use_container_width=True):
+        if new_title.strip():
+            new_id = f"lesson-{len(lessons) + 1:03d}"
+            st.session_state["demo_lessons"].append({
+                "id": new_id, "title": new_title.strip(), "description": new_desc.strip(),
+                "tags": new_tags.strip(), "topic": new_topic, "stage": "General",
+            })
+            st.success(f"Saved lesson: {new_title}")
+    if bc2.button("Delete last lesson", key="btn-delete-lesson", use_container_width=True):
+        if lessons:
+            removed = st.session_state["demo_lessons"].pop()
+            st.success(f"Deleted: {removed['title']}")
+
+    st.subheader("AI Recommendations")
+    st.info("Based on your current project stage and activity, the following lessons may be relevant:")
+    stage = st.session_state.get("selected_stage_name", "Discover")
+    relevant = [l_item for l_item in lessons if l_item.get("stage", "").lower() == stage.lower()]
+    if relevant:
+        for l_item in relevant[:3]:
+            st.markdown(f"- **{l_item['title']}** \u2014 {l_item['description']}")
+    else:
+        st.markdown("No stage-specific recommendations available. Try browsing all lessons above.")
+
+
+def render_global_search(hub: DemoDataHub) -> None:
+    """Global search matching the React GlobalSearchPage."""
+    st.header("Search")
+    st.markdown(
+        '<p class="ppm-page-desc">Search across documents, projects, knowledge base, approvals, and workflows.</p>',
+        unsafe_allow_html=True,
+    )
+
+    query = st.text_input(
+        "Search everything", key="global-search-query",
+        placeholder="Search documents, projects, approvals...",
+    )
+
+    sc1, sc2 = st.columns(2)
+    type_filter = sc1.selectbox(
+        "Type", ["All", "Documents", "Projects", "Approvals", "Workflows", "Knowledge"],
+        key="gs-type-filter",
+    )
+    sc2.selectbox(
+        "Date range", ["All time", "Last 7 days", "Last 30 days", "Last 90 days"],
+        key="gs-date-filter",
+    )
+
+    all_results = [
+        {"type": "Documents", "title": "Project Charter \u2014 Phoenix Modernization", "match": "charter modernization phoenix", "relevance": 0.95, "updated": "2026-02-20"},
+        {"type": "Projects", "title": "Phoenix Modernization", "match": "phoenix modernization project demo-project-01", "relevance": 0.92, "updated": "2026-02-22"},
+        {"type": "Approvals", "title": "Stage gate approval \u2014 Design phase", "match": "stage gate design approval review", "relevance": 0.88, "updated": "2026-02-21"},
+        {"type": "Workflows", "title": "Intake Approval Pipeline", "match": "intake approval pipeline workflow", "relevance": 0.85, "updated": "2026-02-23"},
+        {"type": "Knowledge", "title": "Early stakeholder alignment reduces rework", "match": "stakeholder alignment rework lesson", "relevance": 0.80, "updated": "2026-02-19"},
+        {"type": "Documents", "title": "Risk Register Q1 2026", "match": "risk register 2026 quarterly", "relevance": 0.78, "updated": "2026-02-22"},
+        {"type": "Projects", "title": "Atlas Migration", "match": "atlas migration data platform", "relevance": 0.75, "updated": "2026-02-18"},
+        {"type": "Approvals", "title": "Budget supplement 25k", "match": "budget supplement approval financial", "relevance": 0.72, "updated": "2026-02-22"},
+    ]
+
+    results = all_results
+    if query.strip():
+        token = query.strip().lower()
+        results = [r for r in results if token in r["match"] or token in r["title"].lower()]
+    if type_filter != "All":
+        results = [r for r in results if r["type"] == type_filter]
+
+    st.metric("Results", len(results))
+
+    if results:
+        grouped: dict[str, list[dict[str, Any]]] = {}
+        for r in results:
+            grouped.setdefault(r["type"], []).append(r)
+        for type_name, items in grouped.items():
+            st.subheader(f"{type_name} ({len(items)})")
+            st.dataframe(items, hide_index=True, use_container_width=True)
+    elif query.strip():
+        st.info("No results found. Try broadening your search.")
+
+
+def render_connector_marketplace(hub: DemoDataHub) -> None:
+    """Connector marketplace matching the React ConnectorMarketplacePage."""
+    st.header("Connector Marketplace")
+    st.markdown(
+        '<p class="ppm-page-desc">Browse and install available connectors to integrate with external tools and services.</p>',
+        unsafe_allow_html=True,
+    )
+
+    marketplace = [
+        {"connector_id": "jira-cloud", "name": "Jira Cloud", "category": "Project Management", "status": "available", "rating": 4.8, "installs": 1250, "description": "Sync issues, sprints, and boards with Jira Cloud"},
+        {"connector_id": "azure-devops", "name": "Azure DevOps", "category": "DevOps", "status": "available", "rating": 4.6, "installs": 980, "description": "Work items, pipelines, and repos integration"},
+        {"connector_id": "servicenow", "name": "ServiceNow", "category": "ITSM", "status": "available", "rating": 4.5, "installs": 720, "description": "Incident, change, and problem management sync"},
+        {"connector_id": "sharepoint", "name": "SharePoint Online", "category": "Document Management", "status": "installed", "rating": 4.7, "installs": 1100, "description": "Document libraries and site integration"},
+        {"connector_id": "power-bi", "name": "Power BI", "category": "Analytics", "status": "available", "rating": 4.4, "installs": 650, "description": "Dashboard and report embedding"},
+        {"connector_id": "slack", "name": "Slack", "category": "Communication", "status": "installed", "rating": 4.9, "installs": 2100, "description": "Channel notifications and command integration"},
+        {"connector_id": "ms-teams", "name": "Microsoft Teams", "category": "Communication", "status": "available", "rating": 4.5, "installs": 1800, "description": "Teams channels, meetings, and bot integration"},
+        {"connector_id": "sap", "name": "SAP S/4HANA", "category": "ERP", "status": "available", "rating": 4.2, "installs": 340, "description": "Financial and procurement data integration"},
+    ]
+
+    sc1, sc2 = st.columns([3, 1])
+    search = sc1.text_input("Search marketplace", key="mp-search", placeholder="Search connectors...")
+    category_filter = sc2.selectbox(
+        "Category", ["All"] + sorted({c["category"] for c in marketplace}), key="mp-category",
+    )
+
+    visible = marketplace
+    if search.strip():
+        token = search.strip().lower()
+        visible = [c for c in visible if token in c["name"].lower() or token in c["description"].lower()]
+    if category_filter != "All":
+        visible = [c for c in visible if c["category"] == category_filter]
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Available", len([c for c in marketplace if c["status"] == "available"]))
+    c2.metric("Installed", len([c for c in marketplace if c["status"] == "installed"]))
+    c3.metric("Categories", len({c["category"] for c in marketplace}))
+
+    st.dataframe(visible, hide_index=True, use_container_width=True)
+
+    if visible:
+        selected_conn = st.selectbox(
+            "Connector detail",
+            [c["connector_id"] for c in visible],
+            format_func=lambda cid: next(c["name"] for c in visible if c["connector_id"] == cid),
+        )
+        detail = next(c for c in visible if c["connector_id"] == selected_conn)
+        st.json(detail)
+
+        if detail["status"] == "available":
+            if st.button(f"Install {detail['name']}", key="btn-install-connector"):
+                st.success(f"Installed {detail['name']} (demo \u2014 session only)")
+        else:
+            st.info(f"{detail['name']} is already installed")
+
+
+def render_project_config(hub: DemoDataHub) -> None:
+    """Project configuration matching the React ProjectConfigPage."""
+    st.header("Project Configuration")
+    st.markdown(
+        '<p class="ppm-page-desc">Configure project-specific agent and connector settings.</p>',
+        unsafe_allow_html=True,
+    )
+
+    project_id = st.session_state.get("selected_project") or "demo-project-01"
+    st.markdown(f'<span class="ppm-badge ppm-badge-default">{project_id}</span>', unsafe_allow_html=True)
+
+    tab_agents, tab_connectors = st.tabs(["Agents", "Connectors"])
+
+    with tab_agents:
+        agent_catalog = hub.normalized_agent_catalog()
+        agent_config = []
+        for agent in agent_catalog[:10]:
+            agent_config.append({
+                "agent_id": agent["agent_id"],
+                "capability": agent["capability"],
+                "enabled": True,
+                "maturity": "Production" if int(agent["agent_id"].split("-")[1]) <= 10 else "Beta",
+                "parameters": "timeout=120s, retries=3",
+            })
+        st.dataframe(agent_config, hide_index=True, use_container_width=True)
+
+        selected_agent = st.selectbox("Configure agent", [a["agent_id"] for a in agent_config], key="pc-agent")
+        ac1, ac2, ac3 = st.columns(3)
+        ac1.text_input("Timeout (s)", value="120", key="pc-timeout")
+        ac2.text_input("Retries", value="3", key="pc-retries")
+        ac3.checkbox("Enabled", value=True, key="pc-agent-enabled")
+
+        if st.button("Save agent config", key="btn-save-agent-config"):
+            st.success(f"Saved config for {selected_agent} (demo \u2014 session only)")
+
+    with tab_connectors:
+        connectors = hub.normalized_connectors()
+        conn_config = []
+        for conn in connectors:
+            conn_config.append({
+                "connector_id": conn["connector_id"],
+                "name": conn["name"],
+                "sync_direction": "bidirectional",
+                "sync_frequency": "hourly",
+                "enabled": True,
+            })
+        st.dataframe(conn_config, hide_index=True, use_container_width=True)
+
+        if connectors:
+            selected_conn_id = st.selectbox(
+                "Configure connector", [c["connector_id"] for c in connectors], key="pc-connector",
+            )
+            cc1, cc2 = st.columns(2)
+            cc1.selectbox("Sync direction", ["inbound", "outbound", "bidirectional"], index=2, key="pc-sync-dir")
+            cc2.selectbox("Sync frequency", ["realtime", "hourly", "daily", "weekly", "manual"], index=1, key="pc-sync-freq")
+
+            if st.button("Save connector config", key="btn-save-conn-config"):
+                st.success(f"Saved config for {selected_conn_id} (demo \u2014 session only)")
+            if st.button("Test connector", key="btn-test-connector"):
+                st.success(f"Connector {selected_conn_id} test passed (demo)")
+
+
+# ---------------------------------------------------------------------------
+# CANVAS PREVIEW — renders a representative mock for each of 13 canvas types
+# ---------------------------------------------------------------------------
+
+
+def render_canvas_preview(canvas_type: str, activity_name: str) -> None:
+    """Render a mock canvas matching the React CanvasWorkspace for the given canvas_type."""
+    activity_slug = slugify(activity_name)
+
+    # Toolbar
+    toolbar_html = (
+        '<div class="ppm-canvas-toolbar">'
+        f'<span class="ppm-canvas-toolbar-btn ppm-canvas-toolbar-primary">{friendly_label(canvas_type)}</span>'
+        '<span class="ppm-canvas-toolbar-btn">Save draft</span>'
+        '<span class="ppm-canvas-toolbar-btn">Publish</span>'
+        '<span class="ppm-canvas-toolbar-btn">Export</span>'
+        '</div>'
+    )
+
+    st.markdown(f'<div class="ppm-canvas-host">{toolbar_html}<div class="ppm-canvas-body">', unsafe_allow_html=True)
+
+    if canvas_type == "document":
+        st.markdown(f"### {friendly_label(activity_name)}")
+        st.text_area(
+            "Document content",
+            value=f"# {friendly_label(activity_name)}\n\nDocument canvas for the {activity_name} activity.\n\n"
+            "## Section 1\nContent placeholder for section one.\n\n"
+            "## Section 2\nContent placeholder for section two.\n\n"
+            "---\n*Draft \u2014 AI-generated content pending review.*",
+            height=200, key=f"canvas-doc-{activity_slug}",
+        )
+
+    elif canvas_type == "tree":
+        tree_html = (
+            f'<div class="ppm-tree-root">{friendly_label(activity_name)}</div>'
+            '<div class="ppm-tree-node">1. Requirements gathering</div>'
+            '<div class="ppm-tree-node" style="padding-left:40px;">1.1 Stakeholder interviews</div>'
+            '<div class="ppm-tree-node" style="padding-left:40px;">1.2 Document review</div>'
+            '<div class="ppm-tree-node">2. Analysis</div>'
+            '<div class="ppm-tree-node" style="padding-left:40px;">2.1 Gap analysis</div>'
+            '<div class="ppm-tree-node" style="padding-left:40px;">2.2 Impact assessment</div>'
+            '<div class="ppm-tree-node">3. Deliverables</div>'
+            '<div class="ppm-tree-node" style="padding-left:40px;">3.1 Summary report</div>'
+            '<div class="ppm-tree-node" style="padding-left:40px;">3.2 Recommendation deck</div>'
+        )
+        st.markdown(tree_html, unsafe_allow_html=True)
+
+    elif canvas_type == "timeline":
+        milestones = [
+            {"milestone": "Kickoff", "date": "2026-03-01", "owner": "PM", "status": "Complete"},
+            {"milestone": "Requirements complete", "date": "2026-03-15", "owner": "BA", "status": "Complete"},
+            {"milestone": "Design review", "date": "2026-03-28", "owner": "Architect", "status": "In Progress"},
+            {"milestone": "Implementation start", "date": "2026-04-05", "owner": "Dev Lead", "status": "Upcoming"},
+            {"milestone": "UAT", "date": "2026-04-20", "owner": "QA Lead", "status": "Upcoming"},
+            {"milestone": "Go-live", "date": "2026-05-01", "owner": "PM", "status": "Upcoming"},
+        ]
+        st.dataframe(milestones, hide_index=True, use_container_width=True)
+
+    elif canvas_type == "spreadsheet":
+        rows = [
+            {"ID": "REQ-001", "Requirement": "User authentication", "Priority": "High", "Status": "Approved", "Owner": "Dev Team"},
+            {"ID": "REQ-002", "Requirement": "Data encryption at rest", "Priority": "High", "Status": "In Review", "Owner": "Security"},
+            {"ID": "REQ-003", "Requirement": "Audit logging", "Priority": "Medium", "Status": "Approved", "Owner": "Platform"},
+            {"ID": "REQ-004", "Requirement": "API rate limiting", "Priority": "Medium", "Status": "Draft", "Owner": "Dev Team"},
+            {"ID": "REQ-005", "Requirement": "Dashboard export", "Priority": "Low", "Status": "Draft", "Owner": "Frontend"},
+        ]
+        st.dataframe(rows, hide_index=True, use_container_width=True)
+
+    elif canvas_type == "dashboard":
+        dc1, dc2, dc3, dc4 = st.columns(4)
+        dc1.metric("Completion", "68%", delta="5%")
+        dc2.metric("Budget Health", "92%", delta="-2%")
+        dc3.metric("Open Risks", "3", delta="-1")
+        dc4.metric("Pending Actions", "7")
+
+    elif canvas_type == "board":
+        bc1, bc2, bc3, bc4 = st.columns(4)
+        with bc1:
+            st.markdown('<div class="ppm-board-col"><div class="ppm-board-col-title">Backlog</div>'
+                        '<div class="ppm-board-card">Define API schema</div>'
+                        '<div class="ppm-board-card">Security review</div></div>', unsafe_allow_html=True)
+        with bc2:
+            st.markdown('<div class="ppm-board-col"><div class="ppm-board-col-title">In Progress</div>'
+                        '<div class="ppm-board-card">Auth module</div>'
+                        '<div class="ppm-board-card">Data migration</div></div>', unsafe_allow_html=True)
+        with bc3:
+            st.markdown('<div class="ppm-board-col"><div class="ppm-board-col-title">Review</div>'
+                        '<div class="ppm-board-card">Logging setup</div></div>', unsafe_allow_html=True)
+        with bc4:
+            st.markdown('<div class="ppm-board-col"><div class="ppm-board-col-title">Done</div>'
+                        '<div class="ppm-board-card">Env provisioning</div>'
+                        '<div class="ppm-board-card">CI pipeline</div></div>', unsafe_allow_html=True)
+
+    elif canvas_type == "backlog":
+        backlog = [
+            {"rank": 1, "story": "Implement SSO login flow", "points": 8, "sprint": "Sprint 6", "priority": "High"},
+            {"rank": 2, "story": "Add role-based access control", "points": 5, "sprint": "Sprint 6", "priority": "High"},
+            {"rank": 3, "story": "Build audit trail API", "points": 5, "sprint": "Sprint 7", "priority": "Medium"},
+            {"rank": 4, "story": "Create dashboard widgets", "points": 3, "sprint": "Sprint 7", "priority": "Medium"},
+            {"rank": 5, "story": "Export reports to PDF", "points": 2, "sprint": "Unassigned", "priority": "Low"},
+        ]
+        st.dataframe(backlog, hide_index=True, use_container_width=True)
+
+    elif canvas_type == "gantt":
+        gantt_data = [
+            {"task": "Requirements", "start": "W1", "end": "W2", "duration": "2w", "dependency": "-", "progress": "100%"},
+            {"task": "Architecture", "start": "W2", "end": "W3", "duration": "2w", "dependency": "Requirements", "progress": "100%"},
+            {"task": "Sprint 5", "start": "W3", "end": "W5", "duration": "2w", "dependency": "Architecture", "progress": "80%"},
+            {"task": "Sprint 6", "start": "W5", "end": "W7", "duration": "2w", "dependency": "Sprint 5", "progress": "30%"},
+            {"task": "UAT", "start": "W7", "end": "W9", "duration": "2w", "dependency": "Sprint 6", "progress": "0%"},
+            {"task": "Go-live", "start": "W9", "end": "W10", "duration": "1w", "dependency": "UAT", "progress": "0%"},
+        ]
+        st.dataframe(gantt_data, hide_index=True, use_container_width=True)
+
+    elif canvas_type == "grid":
+        grid_data = [
+            {"entity": "Project Alpha", "status": "Active", "health": "Green", "budget": "92%", "schedule": "On Track"},
+            {"entity": "Project Beta", "status": "Active", "health": "Amber", "budget": "78%", "schedule": "At Risk"},
+            {"entity": "Project Gamma", "status": "Planning", "health": "Green", "budget": "100%", "schedule": "On Track"},
+            {"entity": "Project Delta", "status": "Closing", "health": "Green", "budget": "95%", "schedule": "Complete"},
+        ]
+        st.dataframe(grid_data, hide_index=True, use_container_width=True)
+
+    elif canvas_type == "financial":
+        fin_data = [
+            {"line_item": "Personnel", "budget": 650, "actual_ytd": 420, "committed": 580, "forecast": 640, "variance": 10},
+            {"line_item": "Infrastructure", "budget": 280, "actual_ytd": 195, "committed": 240, "forecast": 285, "variance": -5},
+            {"line_item": "Licensing", "budget": 120, "actual_ytd": 78, "committed": 100, "forecast": 118, "variance": 2},
+            {"line_item": "Contingency", "budget": 150, "actual_ytd": 49, "committed": 49, "forecast": 147, "variance": 3},
+            {"line_item": "TOTAL", "budget": 1200, "actual_ytd": 742, "committed": 969, "forecast": 1190, "variance": 10},
+        ]
+        st.dataframe(fin_data, hide_index=True, use_container_width=True)
+        st.caption("All figures in \u00a3k")
+
+    elif canvas_type == "dependency_map":
+        deps = [
+            {"from_node": "Auth Module", "to_node": "API Gateway", "type": "blocks", "status": "resolved"},
+            {"from_node": "API Gateway", "to_node": "Frontend App", "type": "blocks", "status": "active"},
+            {"from_node": "Data Migration", "to_node": "Reporting Module", "type": "blocks", "status": "active"},
+            {"from_node": "Vendor Integration", "to_node": "Auth Module", "type": "depends_on", "status": "at_risk"},
+            {"from_node": "CI Pipeline", "to_node": "All Modules", "type": "supports", "status": "resolved"},
+        ]
+        st.dataframe(deps, hide_index=True, use_container_width=True)
+
+    elif canvas_type == "roadmap":
+        lanes_html = (
+            '<div class="ppm-lane"><div class="ppm-lane-title">Q1 2026</div>'
+            '<div class="ppm-board-card">Foundation &amp; Architecture</div>'
+            '<div class="ppm-board-card">Security Framework</div></div>'
+            '<div class="ppm-lane"><div class="ppm-lane-title">Q2 2026</div>'
+            '<div class="ppm-board-card">Core Feature Delivery</div>'
+            '<div class="ppm-board-card">Integration Layer</div></div>'
+            '<div class="ppm-lane"><div class="ppm-lane-title">Q3 2026</div>'
+            '<div class="ppm-board-card">Scale &amp; Optimisation</div>'
+            '<div class="ppm-board-card">Advanced Analytics</div></div>'
+            '<div class="ppm-lane"><div class="ppm-lane-title">Q4 2026</div>'
+            '<div class="ppm-board-card">Enterprise Rollout</div>'
+            '<div class="ppm-board-card">Continuous Improvement</div></div>'
+        )
+        st.markdown(lanes_html, unsafe_allow_html=True)
+
+    elif canvas_type == "approval":
+        steps_html = (
+            '<div class="ppm-approval-step"><span class="ppm-badge ppm-badge-success">Approved</span> Author submits draft</div>'
+            '<div class="ppm-approval-step"><span class="ppm-badge ppm-badge-success">Approved</span> Peer review complete</div>'
+            '<div class="ppm-approval-step"><span class="ppm-badge ppm-badge-warning">Pending</span> Manager approval</div>'
+            '<div class="ppm-approval-step"><span class="ppm-badge ppm-badge-default">Waiting</span> Quality gate</div>'
+            '<div class="ppm-approval-step"><span class="ppm-badge ppm-badge-default">Waiting</span> Publish to workspace</div>'
+        )
+        st.markdown(steps_html, unsafe_allow_html=True)
+
+    else:
+        st.info(f"Canvas type '{canvas_type}' preview not available.")
+
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
+
 def main() -> None:
     st.set_page_config(
         page_title="PPM Platform",
@@ -2514,18 +3559,25 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    # Build ordered navigation with section separators
-    _SECTION_PREFIX = "\u2500\u2500 "  # "── " visual separator
-    nav_pages_navigate = ["Home", "Demo Run", "Collections"]
-    nav_pages_work = ["New Intake", "Intake", "Approvals"]
-    nav_pages_insights = ["Dashboard", "Analytics What-If"]
+    # Build ordered navigation with section separators — matches React LeftPanel
+    nav_pages_navigate = ["Home", "Demo Run", "Enterprise Uplift", "Collections"]
+    nav_pages_work = ["New Intake", "Intake", "Approvals", "Workspace", "Performance"]
+    nav_pages_insights = ["Dashboard", "Analytics What-If", "Documents", "Lessons Learned", "Search"]
     nav_pages_admin = [
         "Agents",
         "Connectors",
-        "Workspace",
+        "Marketplace",
+        "Workflow Monitor",
+        "Workflow Designer",
+        "Prompt Library",
+        "Methodology Editor",
+        "Role Manager",
+        "Project Config",
         "Artifact Lifecycle",
         "Audit",
     ]
+    if st.session_state["feature_flags"].get("duplicate_resolution"):
+        nav_pages_admin.append("Merge Review")
     if st.session_state["feature_flags"].get("agent_async_notifications"):
         nav_pages_admin.append("Notifications")
     if st.session_state["feature_flags"].get("agent_run_ui"):
@@ -2625,6 +3677,32 @@ def main() -> None:
             render_demo_run(hub, engine, outbox)
         elif page == "Agent Runs":
             render_agent_runs(hub, engine)
+        elif page == "Enterprise Uplift":
+            render_enterprise_uplift(hub)
+        elif page == "Performance":
+            render_performance_dashboard(hub)
+        elif page == "Workflow Monitor":
+            render_workflow_monitoring(hub)
+        elif page == "Workflow Designer":
+            render_workflow_designer(hub)
+        elif page == "Prompt Library":
+            render_prompt_library(hub)
+        elif page == "Methodology Editor":
+            render_methodology_editor(hub)
+        elif page == "Role Manager":
+            render_role_manager(hub)
+        elif page == "Merge Review":
+            render_merge_review(hub)
+        elif page == "Documents":
+            render_document_search(hub)
+        elif page == "Lessons Learned":
+            render_lessons_learned(hub)
+        elif page == "Search":
+            render_global_search(hub)
+        elif page == "Marketplace":
+            render_connector_marketplace(hub)
+        elif page == "Project Config":
+            render_project_config(hub)
 
     with right:
         assistant_panel(hub, outbox)
