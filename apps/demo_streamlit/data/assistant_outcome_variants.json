@@ -1,23 +1,680 @@
 {
-  "variants": {
+  "by_scenario": {
     "project_intake": {
-      "Define scope": {
+      "default": {
         "on_track": {
-          "generate": "Generated intake scope brief with milestone assumptions and target outcomes.",
-          "review": "Review package assembled with benefits, risks, and dependencies.",
-          "publish": "Intake summary published to the demo outbox and audit trail."
+          "generate": "Generated intake scope brief with milestone assumptions, stakeholder map, and target outcomes aligned to portfolio strategy.",
+          "review": "Review package assembled: benefits statement, dependency map, risk seeds, and initial RACI. Ready for gate submission.",
+          "publish": "Intake summary published to the demo outbox and audit trail. Charter activity is now unlocked."
         },
         "at_risk": {
-          "generate": "Generated intake scope with flagged dependency risks for onboarding systems.",
-          "review": "Review highlights unresolved dependencies and proposes mitigations.",
-          "publish": "Published an at-risk intake package with escalation notes."
+          "generate": "Generated intake scope with flagged dependency risks — identity provider and data classification approvals are unresolved.",
+          "review": "Review highlights 2 unresolved dependencies with High impact. Recommend PMO triage before proceeding to Discovery.",
+          "publish": "Published at-risk intake package with escalation notes. PMO notified for prioritised review."
         },
         "off_track": {
-          "generate": "Generated intake draft with major delivery risk warnings.",
-          "review": "Review indicates replanning required before gate approval.",
-          "publish": "Published exception report instead of standard intake package."
+          "generate": "Generated intake draft with major delivery risk warnings — business case assumptions not supported by current capacity data.",
+          "review": "Review indicates replanning is required before gate approval. 3 assumptions need executive sign-off.",
+          "publish": "Published exception report in place of standard intake package. Escalated to Portfolio Manager."
         }
+      }
+    },
+    "resource_request": {
+      "default": {
+        "on_track": {
+          "generate": "Generated resource request plan: 3 contractors for 10 weeks, skills matched to sprint 5–7 delivery needs.",
+          "review": "Review includes timeline impact, skills coverage matrix, and cost comparison (internal vs contractor).",
+          "publish": "Resource request package published to approval queue. Maya Chen notified. SLA: 4 hours."
+        },
+        "at_risk": {
+          "generate": "Generated resource request with contingency staffing options — internal reallocation primary, contractor fallback at £52k.",
+          "review": "Review highlights schedule risk from a 2-week mobilisation lag on internal reallocation.",
+          "publish": "Published at-risk resource request with both options costed. Finance and Resource Manager notified."
+        },
+        "off_track": {
+          "generate": "Generated emergency staffing request due to critical capacity shortfall — 2 sprint deliverables at immediate risk.",
+          "review": "Review indicates delivery milestones in sprints 5 and 6 will slip without immediate allocation decision.",
+          "publish": "Published executive escalation for resource shortfall. Elena Brooks and Sophie Lang notified as priority reviewers."
+        }
+      }
+    },
+    "vendor_procurement": {
+      "default": {
+        "on_track": {
+          "generate": "Generated vendor scorecard for Northstar Security — highest compliance posture across 3 evaluated vendors.",
+          "review": "Review package includes SOC2 certificate, data residency confirmation, legal clause summary, and risk assessment.",
+          "publish": "Procurement recommendation published to approval queue. Henry Cole (Compliance) assigned as primary reviewer."
+        },
+        "at_risk": {
+          "generate": "Generated vendor assessment with compliance gap flags — 2 SOC2 controls not yet evidenced by preferred vendor.",
+          "review": "Review recommends extra due diligence: request remediation plan and updated evidence pack before selection.",
+          "publish": "Published risk-adjusted vendor recommendation with conditional approval path."
+        },
+        "off_track": {
+          "generate": "Generated procurement exception report — preferred vendor failed 3 mandatory controls. Selection must restart.",
+          "review": "Review requests contract pause and executive intervention. PMO governance review recommended.",
+          "publish": "Published procurement hold notice. All vendors notified. Executive decision required before process resumes."
+        }
+      }
+    },
+    "discover_charter": {
+      "default": {
+        "on_track": {
+          "generate": "Charter v1 drafted with problem statement, scope boundaries, success metrics, stakeholder RACI, and risk seeds.",
+          "review": "Charter review package assembled. 4 risk seeds included, P1 dependency flagged. Reviewers: Elena Brooks, Marcus Hill.",
+          "publish": "Charter v1 submitted to stage gate review queue. Audit event logged. Next activity: Assess Business Case."
+        },
+        "at_risk": {
+          "generate": "Charter drafted with conditional scope — 2 assumptions are unvalidated and flagged as P1 risks.",
+          "review": "Charter review highlights unresolved P1 assumptions. Gate approval recommended only after assumptions are confirmed.",
+          "publish": "Charter submitted with conditional flag. Reviewers notified of open assumptions. SLA paused pending resolution."
+        },
+        "off_track": {
+          "generate": "Charter draft incomplete — key stakeholder alignment not achieved and business objectives are contested.",
+          "review": "Charter review cannot proceed without stakeholder sign-off on objectives. PMO workshop recommended.",
+          "publish": "Charter held from submission. Escalation raised to Programme Manager. Alignment session to be scheduled."
+        }
+      }
+    },
+    "design_wbs": {
+      "default": {
+        "on_track": {
+          "generate": "WBS baseline generated: 4 work packages, 12 Level-2 deliverables, resource owners assigned, 3 dependencies in RAID log.",
+          "review": "WBS review complete. Schedule estimates placed on Gantt. 3 RAID dependencies logged for resolution.",
+          "publish": "WBS baseline submitted for Design Gate sign-off. Risk response plan attached. Reviewers notified."
+        },
+        "at_risk": {
+          "generate": "WBS baseline drafted with schedule risk flags — 2 work packages have unresolved external dependencies.",
+          "review": "WBS review identifies critical path risk. Recommend resolving infrastructure and API dependencies first.",
+          "publish": "WBS published conditionally. Gate approval requires dependency resolution within 48 hours."
+        },
+        "off_track": {
+          "generate": "WBS baseline cannot be finalised — charter scope revision in progress. Draft based on current best estimate.",
+          "review": "WBS review blocked pending charter sign-off. Design Gate cannot proceed until scope is locked.",
+          "publish": "WBS held from Gate submission. Dependency on charter resolution logged. PMO notified."
+        }
+      }
+    },
+    "deliver_status_report": {
+      "default": {
+        "on_track": {
+          "generate": "Week 18 status report generated: all RAG indicators green, CPI 1.02, zero P1 defects, Milestone 4 complete 2 days early.",
+          "review": "Status report reviewed: executive summary and 5-slide steering pack ready. Routed to Elena Brooks for approval.",
+          "publish": "Status report and deck published to approval queue. All steering committee members notified. SLA: 8 hours."
+        },
+        "at_risk": {
+          "generate": "Status report generated with amber flag — identity provider risk escalated to Medium, sprint 6 may be impacted.",
+          "review": "Status report includes risk narrative and mitigation plan. Recommend executive pre-read before steering committee.",
+          "publish": "At-risk status report published. Elena Brooks assigned priority review. Rebaseline request cross-referenced."
+        },
+        "off_track": {
+          "generate": "Status report generated with red flag — 3 weeks behind schedule, executive intervention required.",
+          "review": "Status report includes escalation summary and recovery plan options. Executive briefing note attached.",
+          "publish": "Off-track status report published as priority item. Executive team notified. Programme recovery review scheduled."
+        }
+      }
+    },
+    "embed_lessons_learned": {
+      "default": {
+        "on_track": {
+          "generate": "Lessons learned register generated: 4 themes from retros, UAT survey, RAID resolution, and handover sessions.",
+          "review": "Lessons reviewed and categorised. 4 themes ready for publication: vendor, resourcing, testing, governance.",
+          "publish": "Lessons learned published to knowledge base. Tags applied. Surfaced to future intake recommendations."
+        },
+        "at_risk": {
+          "generate": "Lessons learned drafted — retrospective participation was low (58% response rate). Key themes may be incomplete.",
+          "review": "Review recommends a follow-up survey to capture missing perspectives before publishing.",
+          "publish": "Lessons published with a gap note. Follow-up survey scheduled within 2 weeks."
+        },
+        "off_track": {
+          "generate": "Lessons process incomplete — project closed without formal retrospectives. Available RAID data used as proxy.",
+          "review": "Review based on RAID resolution history only. Significant gaps noted. Post-mortem debrief recommended.",
+          "publish": "Partial lessons published with gap flag. Post-mortem debrief scheduled. PMO notified to track completion."
+        }
+      }
+    },
+    "risk_review": {
+      "default": {
+        "on_track": {
+          "generate": "Risk register reviewed: 1 High, 3 Medium, 5 Low risks. Rebaseline request drafted for the High risk item.",
+          "review": "RAID review complete. All mitigations active and within tolerance. Next review scheduled for Monday.",
+          "publish": "Rebaseline request submitted. RAID log updated. Affected stakeholders notified. Audit event logged."
+        },
+        "at_risk": {
+          "generate": "Risk register shows elevated exposure — identity provider risk moved from Medium to High. Immediate action required.",
+          "review": "RAID review identifies 2 risks requiring escalation. Schedule impact modelled at 2–3 weeks if unresolved.",
+          "publish": "Risk escalation published to PMO governance queue. Executive notification triggered. RAID updated."
+        },
+        "off_track": {
+          "generate": "Risk register critical — 3 High risks open simultaneously. Portfolio risk threshold exceeded.",
+          "review": "RAID review recommends programme pause pending executive risk acceptance or active mitigation.",
+          "publish": "Risk exception report published. Programme Director and Portfolio Manager notified. Emergency review triggered."
+        }
+      }
+    },
+    "financial_review": {
+      "default": {
+        "on_track": {
+          "generate": "Budget review complete: CPI 1.02, actuals £742k of £1.2M, forecast at completion £1.19M — within tolerance.",
+          "review": "Variance analysis shows contractor rate increase risk of £32k in sprints 6–8. Budget change request modelled.",
+          "publish": "Budget change request BCR-2026-007 (£25k) submitted. Finance and Executive notified. SLA: 8 hours."
+        },
+        "at_risk": {
+          "generate": "Budget amber — contractor rate increase confirmed, contingency draw likely. Change request being modelled.",
+          "review": "Financial review recommends £25k supplement to preserve headroom through go-live.",
+          "publish": "Budget change request raised as priority. Sophie Lang assigned expedited review."
+        },
+        "off_track": {
+          "generate": "Budget critical — contingency fully drawn, forecast overrun of £60k without corrective action.",
+          "review": "Financial review recommends scope reduction or resource cost reduction to bring forecast within budget.",
+          "publish": "Budget exception report published. Executive approval required for supplementary funding or scope change."
+        }
+      }
+    },
+    "stage_gate_approval": {
+      "default": {
+        "on_track": {
+          "generate": "Design Gate package assembled: WBS, architecture, risk register, resource plan (conditional). Gate status: Ready with conditions.",
+          "review": "Gate review initiated. Resource plan dependency resolving via parallel workflow. SLA: 24 hours.",
+          "publish": "Design Gate submitted for approval. 3 reviewers assigned. Audit event logged with full evidence chain."
+        },
+        "at_risk": {
+          "generate": "Design Gate package has 2 open conditions — resource plan and budget change both pending approval.",
+          "review": "Gate review flagged as conditional. Both conditions must be resolved before gate can be marked approved.",
+          "publish": "Gate submitted with 2 open conditions. Reviewers notified of conditions."
+        },
+        "off_track": {
+          "generate": "Design Gate cannot proceed — WBS not signed off and risk register shows 2 unmitigated High risks.",
+          "review": "Gate review blocked. PMO governance review required. Recommend delaying gate by 1 week.",
+          "publish": "Gate submission deferred. PMO notified. Remediation tasks assigned with 5-day resolution target."
+        }
+      }
+    },
+    "portfolio_review": {
+      "default": {
+        "on_track": {
+          "generate": "Portfolio health snapshot: 5 on track, 2 at risk, 1 off track. NPV £12.4M. Risk exposure 32%.",
+          "review": "Portfolio KPI review complete. Mobile App Modernization requires executive intervention. Briefing note drafted.",
+          "publish": "Executive briefing note sent to Elena Brooks. Portfolio risk review scheduled for Monday."
+        },
+        "at_risk": {
+          "generate": "Portfolio health amber — risk exposure 32% exceeds 25% threshold. 2 programmes at risk of missing Q2 gates.",
+          "review": "Portfolio review recommends resource reallocation modelling and budget supplement consideration.",
+          "publish": "Portfolio at-risk report distributed to all programme managers and executives. Weekly checkpoint activated."
+        },
+        "off_track": {
+          "generate": "Portfolio health critical — NPV forecast at only 72% of target, 3 programmes off track simultaneously.",
+          "review": "Portfolio review recommends emergency governance session and strategic prioritisation exercise.",
+          "publish": "Portfolio exception report published. Emergency governance session scheduled. Board notification prepared."
+        }
+      }
+    }
+  },
+  "by_activity": {
+    "draft project charter": {
+      "on_track": {
+        "generate": "Charter brief generated with problem statement, scope boundaries, success metrics, RACI, and risk seed register.",
+        "review": "Charter reviewed and ready for stage gate. P1 dependency flagged. Reviewers assigned.",
+        "publish": "Charter v1 submitted to stage gate. Audit event logged. Next: Assess Business Case."
       },
+      "at_risk": {
+        "generate": "Charter drafted with 2 unvalidated assumptions flagged as P1 risks. Conditional scope documented.",
+        "review": "Charter review recommends holding gate approval until P1 assumptions are confirmed.",
+        "publish": "Charter submitted conditionally. Gate SLA paused pending assumption resolution."
+      },
+      "off_track": {
+        "generate": "Charter draft incomplete — stakeholder alignment not achieved. Replanning workshop recommended.",
+        "review": "Charter review blocked — business objectives contested. PMO escalation required.",
+        "publish": "Charter held. Escalation raised to Programme Manager."
+      }
+    },
+    "assess business case": {
+      "on_track": {
+        "generate": "Business case assessed: NPV £12.4M, IRR 24%, payback 18 months. Strategic alignment score 87/100.",
+        "review": "Business case review complete. All financial thresholds met. Approved for portfolio prioritisation.",
+        "publish": "Business case published to portfolio governance. Investment committee notified for ranking."
+      },
+      "at_risk": {
+        "generate": "Business case amber — NPV positive but below the £10M portfolio threshold after risk adjustment.",
+        "review": "Business case review recommends phased investment to reduce initial commitment.",
+        "publish": "Business case published with risk-adjusted NPV flag. Portfolio Manager alerted."
+      },
+      "off_track": {
+        "generate": "Business case cannot be approved — assumptions invalid and IRR falls below the 15% hurdle rate.",
+        "review": "Business case review recommends cancellation or fundamental scope redesign.",
+        "publish": "Business case published as not approved. Project placed on hold."
+      }
+    },
+    "create wbs baseline": {
+      "on_track": {
+        "generate": "WBS baseline: 4 work packages, 12 deliverables, owners assigned, 3 dependencies in RAID log.",
+        "review": "WBS reviewed. Gantt estimates applied. Design Gate pack ready for submission.",
+        "publish": "WBS baseline published and submitted for Design Gate sign-off."
+      },
+      "at_risk": {
+        "generate": "WBS drafted with critical path risk — 2 external dependencies unresolved.",
+        "review": "WBS review flags dependency risk as gate condition.",
+        "publish": "WBS published conditionally. Gate requires dependency resolution within 48 hours."
+      },
+      "off_track": {
+        "generate": "WBS cannot be finalised — charter scope revision in progress. Draft based on best estimate.",
+        "review": "WBS review blocked. Gate submission deferred until scope is locked.",
+        "publish": "WBS held. RAID dependency logged. PMO notified."
+      }
+    },
+    "develop risk response plan": {
+      "on_track": {
+        "generate": "Risk response plan: top 5 risks with owners, mitigations, residual ratings, and RAID entries.",
+        "review": "Risk response plan reviewed. All High and Medium risks have active mitigations assigned.",
+        "publish": "Risk response plan published to gate pack. RAID log updated. Risk owners notified."
+      },
+      "at_risk": {
+        "generate": "Risk response plan includes 1 High risk with no confirmed mitigation — vendor dependency unresolved.",
+        "review": "Risk review recommends escalating unmitigated High risk to executive before gate submission.",
+        "publish": "Risk response plan published with escalation flag. Executive review requested within 24 hours."
+      },
+      "off_track": {
+        "generate": "Risk response plan incomplete — 3 High risks have no mitigation owners assigned.",
+        "review": "Risk review blocked. Gate approval not recommended until all High risks have mitigation plans.",
+        "publish": "Risk plan published as draft only. Gate submission deferred. PMO escalation triggered."
+      }
+    },
+    "publish weekly status report": {
+      "on_track": {
+        "generate": "Week 18 status report: all RAG green, CPI 1.02, 0 P1 defects, Milestone 4 complete 2 days early.",
+        "review": "Status report reviewed. Executive summary and steering pack ready. Routing to approval queue.",
+        "publish": "Status report published to approval queue. Steering committee notified. SLA: 8 hours."
+      },
+      "at_risk": {
+        "generate": "Status report amber — identity provider risk escalated, sprint 6 impact being modelled.",
+        "review": "Status report with risk narrative reviewed. Executive pre-read recommended.",
+        "publish": "Amber status report published. Priority review assigned to Elena Brooks."
+      },
+      "off_track": {
+        "generate": "Status report red — 3 weeks behind schedule, executive intervention required.",
+        "review": "Status report includes escalation summary and recovery plan. Executive briefing attached.",
+        "publish": "Red status report published as priority. Executive team notified. Recovery review scheduled."
+      }
+    },
+    "maintain raid log": {
+      "on_track": {
+        "generate": "RAID log updated: 9 open items (1 High, 3 Medium, 5 Low). All mitigations active.",
+        "review": "RAID review complete. No new escalations. Next review scheduled for Monday.",
+        "publish": "RAID log published to project workspace. All risk owners notified."
+      },
+      "at_risk": {
+        "generate": "RAID log updated with new High risk — identity provider integration moved from Medium.",
+        "review": "RAID review recommends immediate escalation and rebaseline modelling.",
+        "publish": "RAID log published with escalation flag. PMO and executive notified."
+      },
+      "off_track": {
+        "generate": "RAID log critical — 3 High risks simultaneously active. Portfolio threshold exceeded.",
+        "review": "RAID review recommends programme pause pending executive risk acceptance.",
+        "publish": "RAID exception published. Programme Director notified. Emergency review triggered."
+      }
+    },
+    "run transition handover": {
+      "on_track": {
+        "generate": "Transition handover pack: operations runbook, support contacts, escalation paths, SLA agreements.",
+        "review": "Handover reviewed by operations team. All acceptance criteria met. Go-live clearance confirmed.",
+        "publish": "Handover pack published. Operations team formally accepted. Project entering closure phase."
+      },
+      "at_risk": {
+        "generate": "Handover pack drafted with 2 open items — monitoring dashboards and on-call rota not finalised.",
+        "review": "Handover review recommends 1-week parallel run before formal operations acceptance.",
+        "publish": "Handover published conditionally. Parallel run activated. Operations acceptance scheduled."
+      },
+      "off_track": {
+        "generate": "Handover cannot proceed — critical defects unresolved and operations team not ready.",
+        "review": "Handover review recommends extending delivery phase by 2 weeks.",
+        "publish": "Handover deferred. 2-week extension approved. Operations and stakeholders notified."
+      }
+    },
+    "capture lessons learned": {
+      "on_track": {
+        "generate": "Lessons learned: 4 themes from 3 retros, UAT survey, RAID resolution, and handover.",
+        "review": "Lessons reviewed: vendor onboarding, resourcing, testing quality, governance efficiency.",
+        "publish": "Lessons published to knowledge base with tags. Surfaced to future intake recommendations."
+      },
+      "at_risk": {
+        "generate": "Lessons drafted — low retrospective participation (58%). Key themes may be incomplete.",
+        "review": "Review recommends follow-up survey before publishing.",
+        "publish": "Lessons published with gap note. Follow-up survey scheduled."
+      },
+      "off_track": {
+        "generate": "Lessons process incomplete — no formal retrospectives held. RAID data used as proxy.",
+        "review": "Review based on RAID history only. Post-mortem debrief recommended.",
+        "publish": "Partial lessons published. Post-mortem scheduled. PMO tracking."
+      }
+    },
+    "define sprint outcomes": {
+      "on_track": {
+        "generate": "Sprint outcomes defined: 3 user stories per outcome, acceptance criteria co-authored with product owner.",
+        "review": "Sprint outcome review complete. All stories meet INVEST criteria. Velocity forecast confirmed.",
+        "publish": "Sprint outcomes published to backlog. Team notified. Sprint kickoff confirmed for Monday."
+      },
+      "at_risk": {
+        "generate": "Sprint outcomes defined — 2 stories depend on an API schema not yet finalised.",
+        "review": "Sprint review flags API dependency as risk to sprint goal. Recommend descoping those stories.",
+        "publish": "Sprint outcomes published with conditional flag. API dependency tracked in RAID."
+      },
+      "off_track": {
+        "generate": "Sprint outcomes cannot be defined — product owner unavailable and acceptance criteria not agreed.",
+        "review": "Sprint planning blocked. Recommend rescheduling until product owner is engaged.",
+        "publish": "Sprint deferred 1 week. Stakeholders notified. Product owner engagement escalated."
+      }
+    },
+    "build story map": {
+      "on_track": {
+        "generate": "Story map built: 5 user journey steps, 18 stories across 3 releases. Release 1 MVP defined.",
+        "review": "Story map reviewed with product owner and 3 business users. MVP scope confirmed.",
+        "publish": "Story map published to team wiki. Release plan shared with all stakeholders."
+      },
+      "at_risk": {
+        "generate": "Story map drafted — MVP scope under debate. 2 features contested between stakeholders.",
+        "review": "Story map review recommends prioritisation workshop to resolve MVP scope disagreement.",
+        "publish": "Story map published as draft pending MVP scope resolution. Workshop scheduled."
+      },
+      "off_track": {
+        "generate": "Story map incomplete — user journey not sufficiently understood. Discovery workshops required.",
+        "review": "Story map review blocked. Additional user research sessions required.",
+        "publish": "Story map on hold. User research sessions scheduled. Timeline impact: 2 weeks."
+      }
+    },
+    "prioritize backlog": {
+      "on_track": {
+        "generate": "Backlog prioritised: 12 Must-have, 8 Should-have, 5 Could-have. Sprint 1 stories sized.",
+        "review": "Backlog review complete. Top 20 stories ready for sprint planning. Dependencies mapped.",
+        "publish": "Prioritised backlog published. Sprint 1 planning confirmed for Monday."
+      },
+      "at_risk": {
+        "generate": "Backlog prioritised — 4 Must-have stories blocked by unresolved technical decisions.",
+        "review": "Backlog review flags technical blockers. Architecture decision needed within 3 days.",
+        "publish": "Backlog published with blocker flags. Architecture team alerted for expedited decision."
+      },
+      "off_track": {
+        "generate": "Backlog cannot be finalised — scope still in flux following stakeholder review.",
+        "review": "Backlog review blocked. Product owner alignment needed before prioritisation can proceed.",
+        "publish": "Backlog held. Product owner alignment session scheduled. Sprint 1 delayed 1 week."
+      }
+    },
+    "facilitate sprint review": {
+      "on_track": {
+        "generate": "Sprint review: 8 of 8 stories accepted. Velocity: 42 points. 0 carry-over stories.",
+        "review": "Sprint review notes compiled. Stakeholder feedback captured. 3 improvement suggestions logged.",
+        "publish": "Sprint review outcomes published. Accepted stories moved to Done. Next sprint planning scheduled."
+      },
+      "at_risk": {
+        "generate": "Sprint review: 6 of 8 stories accepted. 2 carried over due to incomplete acceptance criteria.",
+        "review": "Sprint review notes flag acceptance criteria quality as a recurring issue.",
+        "publish": "Sprint review published with carry-over notes. Retrospective action added."
+      },
+      "off_track": {
+        "generate": "Sprint review: 3 of 8 stories accepted. Sprint goal not met due to API dependency failure.",
+        "review": "Sprint review outcome triggers replanning. Emergency dependency resolution session recommended.",
+        "publish": "Sprint outcome published as off-track. PMO notified. Emergency session scheduled."
+      }
+    },
+    "prepare release notes": {
+      "on_track": {
+        "generate": "Release notes generated: 12 user-facing changes, 3 bug fixes, known limitations, and upgrade guide.",
+        "review": "Release notes reviewed by product and engineering. All changes accurately documented.",
+        "publish": "Release notes published to customer portal and shared with support team."
+      },
+      "at_risk": {
+        "generate": "Release notes drafted — 2 features are incomplete and will be deferred to the next release.",
+        "review": "Release notes review flags deferred features as customer communication risk.",
+        "publish": "Release notes published with deferred features clearly noted. Customer comms prepared."
+      },
+      "off_track": {
+        "generate": "Release notes cannot be finalised — release has been deferred pending critical defect resolution.",
+        "review": "Release notes review blocked. Release date to be communicated once defects are resolved.",
+        "publish": "Release notes held. Deferral communication sent to stakeholders and customers."
+      }
+    },
+    "run retrospective": {
+      "on_track": {
+        "generate": "Retrospective run: 6 team members, 12 action items identified, 3 assigned for next sprint.",
+        "review": "Retrospective actions reviewed. Top theme: improve acceptance criteria co-authoring.",
+        "publish": "Retrospective notes published to team wiki. Actions tracked. Next retro scheduled."
+      },
+      "at_risk": {
+        "generate": "Retrospective run — lower-than-expected participation (4 of 7 team members attended).",
+        "review": "Retrospective review notes engagement risk. Recommend async input option for next session.",
+        "publish": "Retrospective notes published with participation flag. Team lead notified."
+      },
+      "off_track": {
+        "generate": "Retrospective not held — sprint closure overran and team pulled to production support.",
+        "review": "Retrospective deferred. Key issues to be captured via async survey instead.",
+        "publish": "Async survey published to team. Responses requested by end of week."
+      }
+    },
+    "track flow metrics": {
+      "on_track": {
+        "generate": "Flow metrics: cycle time 3.2 days, throughput 8.4 stories/week, WIP 4 items.",
+        "review": "Flow metrics review shows improving trend. Cycle time reduced 18% over last 4 sprints.",
+        "publish": "Flow metrics dashboard published. Team performance report shared with PMO."
+      },
+      "at_risk": {
+        "generate": "Flow metrics amber — WIP grown to 9 items, cycle time increasing. Bottleneck in review stage.",
+        "review": "Flow metrics review recommends WIP limit enforcement and review stage capacity increase.",
+        "publish": "Flow metrics published with bottleneck flag. Kanban WIP limits updated."
+      },
+      "off_track": {
+        "generate": "Flow metrics critical — cycle time doubled to 6.8 days, throughput dropped 40%.",
+        "review": "Flow metrics review identifies systemic approval bottleneck causing cascade delays.",
+        "publish": "Flow metrics exception published. Emergency process review scheduled."
+      }
+    },
+    "align scope and sprint horizon": {
+      "on_track": {
+        "generate": "Scope and sprint horizon aligned: 4-sprint delivery horizon with 2-sprint review gates confirmed.",
+        "review": "Scope alignment review complete. Predictive milestones and adaptive sprint cadence coordinated.",
+        "publish": "Aligned delivery plan published. All teams confirmed on the hybrid approach."
+      },
+      "at_risk": {
+        "generate": "Scope alignment draft — 2 predictive milestones conflict with adaptive sprint boundaries.",
+        "review": "Alignment review flags milestone-sprint conflicts. Recommend buffer sprints at milestone points.",
+        "publish": "Alignment plan published with buffer sprint proposal. Stakeholders reviewing impact."
+      },
+      "off_track": {
+        "generate": "Scope and sprint horizon cannot be aligned — predictive timeline too rigid for adaptive work.",
+        "review": "Alignment review recommends switching to fully adaptive approach for this phase.",
+        "publish": "Alignment blocked. Methodology discussion escalated to Programme Manager."
+      }
+    },
+    "map cross-team dependencies": {
+      "on_track": {
+        "generate": "Cross-team dependency map: 8 dependencies across 4 teams. All owners confirmed and timelines agreed.",
+        "review": "Dependency map reviewed. No critical path conflicts identified. Monitoring schedule set.",
+        "publish": "Dependency map published to programme dashboard. All team leads notified."
+      },
+      "at_risk": {
+        "generate": "Dependency map shows 2 unresolved cross-team dependencies affecting the critical path.",
+        "review": "Dependency review recommends immediate resolution workshops with affected teams.",
+        "publish": "Dependency map published with risk flags. Resolution workshops scheduled."
+      },
+      "off_track": {
+        "generate": "Dependency map incomplete — 3 teams have not confirmed their delivery timelines.",
+        "review": "Dependency review blocked. Programme Manager escalation required to enforce timeline commitments.",
+        "publish": "Dependency map published as draft. Escalation raised to Programme Manager."
+      }
+    },
+    "draft release roadmap": {
+      "on_track": {
+        "generate": "Release roadmap: 3 releases over 26 weeks. MVP Release 1 in Week 10, Release 2 Week 18, Release 3 Week 26.",
+        "review": "Release roadmap reviewed with product, engineering, and operations. All teams aligned.",
+        "publish": "Release roadmap published. Go-live window confirmed. Stakeholder comms calendar created."
+      },
+      "at_risk": {
+        "generate": "Release roadmap with risk flag — Release 1 date depends on vendor integration completing on time.",
+        "review": "Roadmap review recommends a 2-week contingency buffer for Release 1.",
+        "publish": "Roadmap published with contingency window. Vendor dependency tracked in RAID."
+      },
+      "off_track": {
+        "generate": "Release roadmap cannot be confirmed — scope incomplete and velocity estimates unreliable.",
+        "review": "Roadmap review blocked. 2-week discovery extension recommended before committing to dates.",
+        "publish": "Roadmap held pending scope confirmation. Discovery extension approved."
+      }
+    },
+    "validate solution architecture": {
+      "on_track": {
+        "generate": "Solution architecture validated: all security, compliance, and integration requirements met.",
+        "review": "Architecture review complete. Sign-off from K. Patel recorded in audit trail.",
+        "publish": "Architecture validation report published to Design Gate pack."
+      },
+      "at_risk": {
+        "generate": "Architecture validation shows 1 gap — data encryption at rest not confirmed for the vendor environment.",
+        "review": "Architecture review recommends obtaining vendor confirmation before gate submission.",
+        "publish": "Architecture report published conditionally. Vendor confirmation outstanding."
+      },
+      "off_track": {
+        "generate": "Architecture validation failed — proposed solution does not meet ISO 27001 controls.",
+        "review": "Architecture review recommends fundamental redesign of the security layer.",
+        "publish": "Architecture validation report published as failed. Redesign project initiated."
+      }
+    },
+    "review governance checkpoints": {
+      "on_track": {
+        "generate": "Governance checkpoints reviewed: all 4 mandatory gates cleared, evidence packs complete.",
+        "review": "Governance review complete. No exceptions. All decisions traceable to approved evidence.",
+        "publish": "Governance checkpoint report published. PMO sign-off recorded."
+      },
+      "at_risk": {
+        "generate": "Governance review shows 1 gate with incomplete evidence — architecture sign-off missing.",
+        "review": "Governance review recommends obtaining architecture sign-off before the next gate.",
+        "publish": "Governance checkpoint report published with exception. Architecture team notified."
+      },
+      "off_track": {
+        "generate": "Governance review critical — 2 gates bypassed without proper evidence. Audit exception raised.",
+        "review": "Governance review recommends formal audit investigation and retrospective gate sign-offs.",
+        "publish": "Governance exception report published. Internal audit team notified."
+      }
+    },
+    "update forecast": {
+      "on_track": {
+        "generate": "Forecast updated: EAC £1.19M, ETC £448k, CPI 1.02, SPI 0.97. On track to deliver within budget.",
+        "review": "Forecast review complete. Variance within tolerance. No corrective action required.",
+        "publish": "Updated forecast published to finance dashboard and portfolio health report."
+      },
+      "at_risk": {
+        "generate": "Forecast amber — EAC projected at £1.222M if rebaseline approved, exceeding budget by £22k.",
+        "review": "Forecast review recommends raising a budget change request to cover the £22k overrun risk.",
+        "publish": "Updated forecast published. Budget change request BCR-2026-007 cross-referenced."
+      },
+      "off_track": {
+        "generate": "Forecast critical — EAC projected at £1.35M, 12.5% over approved budget.",
+        "review": "Forecast review recommends scope reduction or executive budget supplement decision.",
+        "publish": "Forecast exception published. Executive team notified. Budget options paper being prepared."
+      }
+    },
+    "operational readiness review": {
+      "on_track": {
+        "generate": "Operational readiness review complete: all 11 pre-deployment checklist items verified. Go-live approved.",
+        "review": "Ops readiness reviewed. Runbook, monitoring, and on-call rota all confirmed.",
+        "publish": "Operational readiness sign-off published. Go-live window confirmed for Saturday 02:00–06:00."
+      },
+      "at_risk": {
+        "generate": "Ops readiness review shows 2 open items — monitoring dashboards and on-call rota not finalised.",
+        "review": "Readiness review recommends 1-week parallel run before accepting operations ownership.",
+        "publish": "Readiness sign-off conditional. Parallel run activated. Operations acceptance next Friday."
+      },
+      "off_track": {
+        "generate": "Ops readiness review failed — critical defects unresolved, operations team not ready.",
+        "review": "Readiness review recommends extending delivery phase by 2 weeks.",
+        "publish": "Go-live deferred. Extension approved. Operations and stakeholders notified."
+      }
+    },
+    "measure benefits realization": {
+      "on_track": {
+        "generate": "Benefits realisation measured: support ticket deflection 22% (target 20%). All KPIs met or exceeded.",
+        "review": "Benefits review complete. All 4 benefit KPIs met or exceeded in first quarter post go-live.",
+        "publish": "Benefits realisation report published. Project formally closed."
+      },
+      "at_risk": {
+        "generate": "Benefits realisation amber — ticket deflection at 14% (target 20%). Adoption rate lower than expected.",
+        "review": "Benefits review recommends targeted user adoption campaign to close the deflection gap.",
+        "publish": "Benefits report published with amber status. Adoption campaign plan submitted."
+      },
+      "off_track": {
+        "generate": "Benefits realisation critical — 2 of 4 KPIs not met. Business sponsor review required.",
+        "review": "Benefits review recommends 3-month recovery plan with dedicated adoption resources.",
+        "publish": "Benefits exception report published. Business sponsor review scheduled."
+      }
+    }
+  },
+  "by_stage": {
+    "discover": {
+      "on_track": {
+        "generate": "Discovery outputs ready: charter brief, business case, stakeholder map, and risk register assembled for stage gate.",
+        "review": "Discovery review package complete. All gate entry criteria met. Reviewers assigned.",
+        "publish": "Discovery Gate submission complete. Audit event logged. Design stage activities unlocked."
+      },
+      "at_risk": {
+        "generate": "Discovery outputs drafted with conditional flags — 2 key assumptions remain unvalidated by stakeholders.",
+        "review": "Discovery review highlights unresolved assumptions. Gate approval conditional on stakeholder sign-off.",
+        "publish": "Discovery Gate submitted conditionally. Assumption resolution required within 48 hours."
+      },
+      "off_track": {
+        "generate": "Discovery stage behind — stakeholder alignment workshops incomplete and charter unsigned.",
+        "review": "Discovery review blocked. PMO-facilitated alignment workshop recommended before gate submission.",
+        "publish": "Discovery Gate deferred. PMO workshop scheduled. Timeline impact: 1 week."
+      }
+    },
+    "design": {
+      "on_track": {
+        "generate": "Design stage outputs complete — WBS baseline, risk response plan, resource plan, and architecture all ready.",
+        "review": "Design review package assembled. Gate entry criteria met. Minor condition on resource plan.",
+        "publish": "Design Gate submitted. 3 reviewers assigned. SLA: 24 hours."
+      },
+      "at_risk": {
+        "generate": "Design outputs drafted — 3 RAID dependencies unresolved, creating critical path risk.",
+        "review": "Design review recommends resolving the 3 RAID dependencies before gate submission.",
+        "publish": "Design Gate submitted conditionally. RAID dependencies must be resolved within 5 days."
+      },
+      "off_track": {
+        "generate": "Design stage behind — WBS baseline not signed off and architecture review not started.",
+        "review": "Design review blocked. PMO governance review recommended. Gate deferred 2 weeks.",
+        "publish": "Design Gate deferred. Remediation tasks assigned. PMO tracking weekly."
+      }
+    },
+    "deliver": {
+      "on_track": {
+        "generate": "Delivery status: 87% deliverables green, CPI 1.02, 0 P1 defects, Milestone 4 complete 2 days early.",
+        "review": "Delivery review complete. Status report and steering pack ready for approval.",
+        "publish": "Delivery status report published. Approval queue: Elena Brooks (SLA: 8 hours)."
+      },
+      "at_risk": {
+        "generate": "Delivery amber — identity provider integration risk escalated, sprint 6 impact being modelled.",
+        "review": "Delivery review includes risk narrative and rebaseline recommendation.",
+        "publish": "Amber delivery report published. Elena Brooks assigned priority review."
+      },
+      "off_track": {
+        "generate": "Delivery off track — 3 weeks behind schedule, executive intervention required.",
+        "review": "Delivery review includes recovery plan options and executive briefing note.",
+        "publish": "Red delivery report published. Executive team notified. Recovery review activated."
+      }
+    },
+    "embed": {
+      "on_track": {
+        "generate": "Embed stage progressing — lessons learned drafted, transition handover complete, benefits tracking initiated.",
+        "review": "Embed review complete. Lessons published, handover accepted, closure checklist 100%.",
+        "publish": "Project closure certificate issued. Lessons published to knowledge base. Formal closure confirmed."
+      },
+      "at_risk": {
+        "generate": "Embed stage at risk — retrospective participation low and benefits tracking behind target.",
+        "review": "Embed review recommends follow-up survey and adoption campaign before formal closure.",
+        "publish": "Closure deferred pending benefits gap resolution. Follow-up plan submitted."
+      },
+      "off_track": {
+        "generate": "Embed stage incomplete — no formal retrospectives held and handover not accepted.",
+        "review": "Embed review blocked. Post-mortem and re-handover required before formal closure.",
+        "publish": "Formal closure deferred. Post-mortem and re-handover sessions scheduled."
+      }
+    }
+  },
+  "variants": {
+    "project_intake": {
       "default": {
         "on_track": {
           "generate": "Generated project intake content for the selected activity.",
@@ -32,16 +689,6 @@
           "generate": "Generated resource request plan with baseline staffing assumptions.",
           "review": "Review includes timeline impact and skills coverage.",
           "publish": "Published resource request package for approval routing."
-        },
-        "at_risk": {
-          "generate": "Generated resource request with contingency staffing options.",
-          "review": "Review highlights schedule risk from unresolved hiring gap.",
-          "publish": "Published at-risk resource request with mitigation plan."
-        },
-        "off_track": {
-          "generate": "Generated emergency staffing request due to critical capacity shortfall.",
-          "review": "Review indicates delivery milestones likely to slip.",
-          "publish": "Published executive escalation for resource shortfall."
         }
       }
     },
@@ -51,16 +698,6 @@
           "generate": "Generated vendor scorecard balancing compliance and delivery speed.",
           "review": "Review package includes legal, risk, and security evidence.",
           "publish": "Published procurement recommendation to demo outbox."
-        },
-        "at_risk": {
-          "generate": "Generated vendor assessment with compliance gap flags.",
-          "review": "Review recommends extra due diligence before selection.",
-          "publish": "Published risk-adjusted vendor recommendation."
-        },
-        "off_track": {
-          "generate": "Generated procurement exception report due to failed controls.",
-          "review": "Review requests contract pause and executive intervention.",
-          "publish": "Published procurement hold notice."
         }
       }
     }

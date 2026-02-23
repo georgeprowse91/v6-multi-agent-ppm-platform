@@ -1,0 +1,9 @@
+[
+  {"role":"assistant","content":"Risk register review initiated. I've scanned all open risks across the current project. Current snapshot:\n\n- 🔴 **1 High** risk (Identity provider integration)\n- 🟡 **3 Medium** risks\n- 🟢 **5 Low** risks\n\nTotal risk exposure score: **32%** (threshold: 25%). Recommended action: review and mitigate High risk immediately. Shall I start with the highest impact item?"},
+  {"role":"user","content":"Yes, start with the high risk."},
+  {"role":"assistant","content":"**Risk: Identity Provider Integration Delay**\n\n| Attribute | Detail |\n|---|---|\n| Likelihood | High |\n| Impact | High |\n| Schedule impact | +2–3 weeks |\n| Cost impact | +£18k |\n| Root cause | Vendor sandbox provisioning delayed by procurement review |\n| Current mitigation | Fallback auth flow owner assigned; weekly vendor check-in |\n| Escalation status | Escalated to PMO — awaiting executive decision |\n\nRecommended action: **rebaseline sprint 6** and notify dependency owners. Shall I draft the rebaseline request?"},
+  {"role":"user","content":"Draft the rebaseline request."},
+  {"role":"assistant","content":"**Rebaseline Request Drafted:**\n\n- Sprint 6 extended by **2 weeks**\n- 2 downstream milestones updated (UAT start, Go-live)\n- Budget contingency draw-down: **£18k** (within £40k contingency)\n- Decision required from: Elena Brooks, Sophie Lang\n\nI've updated the RAID log with the escalation trail and triggered a notification to all affected stakeholders. Ready to submit for approval?"},
+  {"role":"user","content":"Submit it."},
+  {"role":"assistant","content":"**Rebaseline request submitted.**\n\n- Approval queue: Elena Brooks (Executive), Sophie Lang (Finance)\n- SLA: 24 hours\n- Audit event logged: `risk.rebaseline_request.submitted`\n\nThe 3 Medium risks have been reviewed — all within tolerance with active mitigations. I'll schedule the next RAID review for Monday and notify you when the rebaseline decision is received."}
+]

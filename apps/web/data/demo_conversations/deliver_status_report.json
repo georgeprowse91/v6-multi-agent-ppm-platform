@@ -1,0 +1,9 @@
+[
+  {"role":"assistant","content":"Weekly status report time. I've pulled the latest milestone progress from Jira, budget actuals from SAP, and the current RAID log. Headline summary:\n\n- 🟢 Schedule: **on track** — 87% of deliverables tracking green\n- 🟢 Budget: £742k spent vs £756k planned — £14k under forecast\n- 🟡 Risk: Identity provider integration escalated to Medium\n- 🟢 Quality: 0 P1 defects in UAT to date\n\nShall I generate the full report or the executive summary?"},
+  {"role":"user","content":"Executive summary for the steering committee."},
+  {"role":"assistant","content":"**Executive Summary — Week 18**\n\n✅ **Schedule:** On track. No critical path slippages. Milestone 4 (Integration Dev) completed 2 days early.\n✅ **Budget:** CPI 1.02. £14k under forecast. Contingency undrawn.\n⚠️ **Risk:** Identity provider integration moved to Medium (was Low). Mitigation active — fallback auth owner assigned.\n✅ **Quality:** 0 P1 defects. UAT defect rate 40% lower than Q1 baseline.\n\nNext 2 weeks: sprint 6 kick-off, UAT phase 2 start, vendor contract close.\n\nShall I generate the steering committee slide deck as well?"},
+  {"role":"user","content":"Yes please."},
+  {"role":"assistant","content":"**Slide deck generated** (5 slides):\n\n1. Period summary + RAG status\n2. Milestone tracker (Gantt snapshot)\n3. Budget burn chart\n4. Open risks and mitigations\n5. Next 2-week focus items\n\nReady to publish. Shall I route both the report and the deck to the status report approval queue?"},
+  {"role":"user","content":"Route to approval."},
+  {"role":"assistant","content":"**Status report and slide deck submitted to approval queue.**\n\n- Reviewer: Elena Brooks (SLA: 8 hours)\n- Notification sent to all steering committee members\n- Audit event logged: `status_report.submitted`\n\nI'll notify you the moment the decision comes back. Is there anything else you'd like to action before the steering committee meeting?"}
+]
