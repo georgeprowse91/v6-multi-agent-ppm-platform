@@ -1,0 +1,9 @@
+[
+  {"role":"assistant","content":"You're in the **Design** stage — **Create WBS Baseline**. I can generate a hierarchical WBS from the approved charter scope, or import a template from a similar past project. Which would you prefer?"},
+  {"role":"user","content":"Generate from the approved charter scope."},
+  {"role":"assistant","content":"Analysing the charter. I'm identifying **4 top-level work packages**:\n\n1. Discovery & Stakeholder Alignment\n2. Solution Architecture\n3. Integration Development\n4. UAT and Deployment Readiness\n\nI'll break each into Level 2 deliverables and attach effort estimates from the resource demand plan. Want me to assign resource owners from the current staffing plan?"},
+  {"role":"user","content":"Yes, assign resource owners."},
+  {"role":"assistant","content":"Owners assigned from the resource capacity plan:\n\n| Work Package | Lead | Support |\n|---|---|---|\n| Architecture | K. Patel | L. Chen |\n| Integration Dev | T. Nguyen | A. Lee |\n| UAT | S. Ortiz | — |\n| Deployment | L. Chen | T. Nguyen |\n\nSchedule estimates have been placed on the Gantt. **3 items have dependency flags** — do you want to resolve those now or park them in the RAID log?"},
+  {"role":"user","content":"Add them to the RAID log."},
+  {"role":"assistant","content":"Three dependencies logged to RAID:\n\n1. 🔴 **Sandbox environment availability** — Infrastructure · P1 · Owner: L. Chen\n2. 🟡 **Third-party API schema sign-off** — Vendor · P2 · Owner: R. Shah\n3. 🟡 **Data classification approval** — Compliance · P2 · Owner: H. Cole\n\nWBS baseline is ready to publish. Should I submit it for **Design Gate sign-off** along with the risk response plan?"}
+]

@@ -737,41 +737,187 @@ def append_outbox_event(outbox: DemoOutbox, event_type: str, payload: dict[str, 
     )
 
 
+_RAG_LABEL = {"on_track": "🟢 On Track", "at_risk": "🟡 At Risk", "off_track": "🔴 Off Track"}
+
+
 def generate_artifact_content(artifact_type: str, artifact_format: str) -> tuple[str, str]:
-    project_id = st.session_state.get("selected_project") or "N/A"
-    method_name = st.session_state.get("selected_methodology_name") or "N/A"
-    stage_name = st.session_state.get("selected_stage_name") or "N/A"
-    activity_name = st.session_state.get("selected_activity_name") or "N/A"
+    project_id = st.session_state.get("selected_project") or "demo-project-01"
+    method_name = st.session_state.get("selected_methodology_name") or "Predictive"
+    stage_name = st.session_state.get("selected_stage_name") or "Discover"
+    activity_name = st.session_state.get("selected_activity_name") or "Activity"
     outcome = st.session_state.get("selected_outcome") or "on_track"
+    rag = _RAG_LABEL.get(outcome, "🟢 On Track")
     timestamp = datetime.now(tz=UTC).isoformat()
 
     if artifact_format == "csv":
         content = (
-            "artifact_type,project_id,methodology,stage,activity,outcome,generated_at\n"
-            f"{artifact_type},{project_id},{method_name},{stage_name},{activity_name},{outcome},{timestamp}\n"
+            "artifact_type,project_id,methodology,stage,activity,outcome,rag_status,generated_at\n"
+            f"{artifact_type},{project_id},{method_name},{stage_name},{activity_name},{outcome},{rag},{timestamp}\n"
         )
         return content, "text/csv"
+
     if artifact_format == "txt":
         content = (
-            f"Artifact Type: {artifact_type}\n"
-            f"Project: {project_id}\n"
-            f"Methodology: {method_name}\n"
-            f"Stage: {stage_name}\n"
-            f"Activity: {activity_name}\n"
-            f"Outcome: {outcome}\n"
-            f"Generated: {timestamp}\n"
+            f"Artifact Type : {artifact_type}\n"
+            f"Project       : {project_id}\n"
+            f"Methodology   : {method_name}\n"
+            f"Stage         : {stage_name}\n"
+            f"Activity      : {activity_name}\n"
+            f"RAG Status    : {rag}\n"
+            f"Generated     : {timestamp}\n"
         )
         return content, "text/plain"
 
-    content = (
-        f"# {artifact_type.replace('_', ' ').title()}\n\n"
-        f"Project: {project_id}\n"
-        f"Methodology: {method_name}\n"
-        f"Stage: {stage_name}\n"
-        f"Activity: {activity_name}\n"
-        f"Outcome: {outcome}\n"
-        f"Generated: {timestamp}\n"
-    )
+    # Rich markdown — template varies by artifact_type
+    if artifact_type == "status_report":
+        content = f"""# Weekly Status Report — {project_id}
+
+**Period:** {timestamp[:10]}  **Methodology:** {method_name}  **Stage:** {stage_name}
+**Activity:** {activity_name}  **Overall Status:** {rag}
+
+---
+
+## Executive Summary
+
+Project is progressing through the **{stage_name}** stage with status **{rag}**.
+Current activity in focus: *{activity_name}*.
+
+## Milestone Tracker
+
+| Milestone | Planned | Status |
+|-----------|---------|--------|
+| {activity_name} | This week | {rag} |
+| Stage gate review | Next week | Scheduled |
+
+## Budget
+
+- Actuals to date: £742k of £1.2M (62%)
+- Forecast at completion: £1.19M (within tolerance)
+- CPI: 1.02 ✅ | SPI: 0.97 🟡
+
+## Risk Summary
+
+- Open risks: 9 (1 High, 3 Medium, 5 Low)
+- Risk exposure: 32% (threshold: 25%) {"⚠️ Above threshold" if outcome != "on_track" else "✅"}
+
+## Next Period Focus
+
+- Complete {activity_name}
+- Prepare gate pack for review
+- Resolve outstanding RAID items
+
+---
+*Generated: {timestamp}*
+"""
+    elif artifact_type == "risk_register":
+        content = f"""# Risk Register — {project_id}
+
+**Stage:** {stage_name}  **As of:** {timestamp[:10]}  **Overall Status:** {rag}
+
+---
+
+| # | Risk | Likelihood | Impact | Score | Owner | Mitigation | Status |
+|---|------|-----------|--------|-------|-------|------------|--------|
+| R01 | Identity provider integration delay | High | High | 🔴 16 | L. Chen | Fallback auth owner assigned | Escalated |
+| R02 | Contractor rate increase | Medium | Medium | 🟡 9 | S. Lang | Budget change request raised | Active |
+| R03 | Data classification approval | Medium | Low | 🟡 6 | H. Cole | Compliance review in progress | Active |
+| R04 | API schema freeze delay | Low | Medium | 🟢 4 | T. Nguyen | Schema freeze confirmed this week | Monitoring |
+| R05 | UAT resource availability | Low | Low | 🟢 2 | A. Lee | Capacity confirmed | Closed |
+
+## RAID Summary
+
+- **Risks:** 9 open (1H, 3M, 5L)
+- **Assumptions:** 3 unvalidated
+- **Issues:** 1 active (identity provider)
+- **Dependencies:** 3 in RAID log
+
+---
+*Generated: {timestamp}*
+"""
+    elif artifact_type == "decision_log":
+        content = f"""# Decision Log — {project_id}
+
+**Stage:** {stage_name}  **Activity:** {activity_name}  **As of:** {timestamp[:10]}
+
+---
+
+| # | Decision | Date | Owner | Rationale | Impact |
+|---|----------|------|-------|-----------|--------|
+| D01 | Proceed with contractor option for sprint 5–7 resourcing | {timestamp[:10]} | M. Chen | Fastest mobilisation, within contingency | +£52k, -2 week lag |
+| D02 | Select Northstar Security as preferred vendor | {timestamp[:10]} | H. Cole | Highest compliance posture (SOC2, data residency) | Procurement approved |
+| D03 | Extend sprint 6 by 2 weeks pending vendor integration | {timestamp[:10]} | E. Brooks | Risk mitigation — identity provider dependency | +2 weeks, £18k draw |
+| D04 | Architecture sign-off accepted with conditions | {timestamp[:10]} | K. Patel | Encryption at rest confirmation pending from vendor | Gate conditional |
+
+## Open Decisions
+
+- Budget supplement £25k — awaiting Sophie Lang and Elena Brooks approval (SLA: 8h)
+
+---
+*Generated: {timestamp}*
+"""
+    elif artifact_type == "timeline":
+        content = f"""# Project Timeline — {project_id}
+
+**Methodology:** {method_name}  **Stage:** {stage_name}  **Status:** {rag}
+
+---
+
+## Milestone Schedule
+
+| Milestone | Baseline | Forecast | Status |
+|-----------|----------|----------|--------|
+| Charter sign-off | 2026-02-28 | 2026-02-28 | ✅ On track |
+| Design Gate exit | 2026-03-14 | 2026-03-14 | 🟡 Conditional |
+| Sprint 5 start | 2026-03-17 | 2026-03-17 | ✅ On track |
+| Sprint 6 start | 2026-03-31 | 2026-04-14 | {"🔴 At risk +2w" if outcome != "on_track" else "✅ On track"} |
+| UAT Phase 2 | 2026-04-07 | 2026-04-21 | {"🔴 Delayed" if outcome == "off_track" else "🟡 Monitoring"} |
+| Go-live | 2026-04-28 | 2026-05-12 | {"🔴 At risk" if outcome != "on_track" else "✅ On track"} |
+
+## Summary
+
+- **Schedule variance:** {"−14 days (rebaseline pending)" if outcome != "on_track" else "0 days"}
+- **Critical path:** Identity provider integration → Sprint 6 → UAT Phase 2 → Go-live
+- **SPI:** {"0.87" if outcome == "off_track" else "0.97"}
+
+---
+*Generated: {timestamp}*
+"""
+    else:
+        title = artifact_type.replace("_", " ").title()
+        content = f"""# {title} — {project_id}
+
+**Methodology:** {method_name}  **Stage:** {stage_name}  **Activity:** {activity_name}
+**Status:** {rag}  **Generated:** {timestamp[:10]}
+
+---
+
+## Summary
+
+Artifact generated for the **{activity_name}** activity in the {stage_name} stage of the
+{method_name} methodology. Current delivery status is {rag}.
+
+## Key Outputs
+
+- Scope and objectives documented for {activity_name}
+- Evidence package assembled and linked to audit trail
+- Stakeholders notified and approval routing initiated
+- Next activity recommended: stage gate review
+
+## Metadata
+
+| Attribute | Value |
+|-----------|-------|
+| Project | {project_id} |
+| Methodology | {method_name} |
+| Stage | {stage_name} |
+| Activity | {activity_name} |
+| RAG Status | {rag} |
+| Generated | {timestamp} |
+
+---
+*This artifact was generated by the demo assistant. All data is illustrative.*
+"""
+
     return content, "text/markdown"
 
 
@@ -824,40 +970,114 @@ def handle_chip(chip: Chip, outbox: DemoOutbox) -> None:
 
 
 def get_action_chips() -> list[Chip]:
-    return [
+    stage = (st.session_state.get("selected_stage_name") or "").lower()
+    outcome = st.session_state.get("selected_outcome") or "on_track"
+    stage_id = st.session_state.get("selected_stage_id")
+    activity_id = st.session_state.get("selected_activity_id")
+
+    # Stage-specific primary artifact chip
+    _stage_artifacts: dict[str, tuple[str, str]] = {
+        "discover": ("Draft charter brief", "status_report"),
+        "design": ("Generate WBS baseline", "timeline"),
+        "deliver": ("Generate status report", "status_report"),
+        "embed": ("Generate lessons learned", "decision_log"),
+    }
+    artifact_label, artifact_type = _stage_artifacts.get(stage, ("Generate artifact", "status_report"))
+
+    chips: list[Chip] = [
         Chip(label="Go to Dashboard", action="NAVIGATE", payload={"page": "Dashboard"}),
         Chip(
             label="Open selected activity",
             action="OPEN_ACTIVITY",
-            payload={
-                "stage_id": st.session_state.get("selected_stage_id"),
-                "activity_id": st.session_state.get("selected_activity_id"),
-            },
+            payload={"stage_id": stage_id, "activity_id": activity_id},
         ),
         Chip(
             label="Complete current activity",
             action="COMPLETE_ACTIVITY",
-            payload={
-                "stage_id": st.session_state.get("selected_stage_id"),
-                "activity_id": st.session_state.get("selected_activity_id"),
-            },
+            payload={"stage_id": stage_id, "activity_id": activity_id},
         ),
         Chip(
-            label="Generate status report",
+            label=artifact_label,
             action="GENERATE_ARTIFACT",
-            payload={"artifact_type": "status_report", "artifact_format": "md"},
+            payload={"artifact_type": artifact_type, "artifact_format": "md"},
         ),
     ]
 
+    # Add escalation chip when at risk or off track
+    if outcome == "at_risk":
+        chips.append(
+            Chip(
+                label="Generate risk register",
+                action="GENERATE_ARTIFACT",
+                payload={"artifact_type": "risk_register", "artifact_format": "md"},
+            )
+        )
+    elif outcome == "off_track":
+        chips.append(
+            Chip(
+                label="Generate decision log",
+                action="GENERATE_ARTIFACT",
+                payload={"artifact_type": "decision_log", "artifact_format": "md"},
+            )
+        )
+
+    return chips
+
+
+def _load_outcome_variants() -> dict[str, Any]:
+    path = DEMO_ROOT / "data/assistant_outcome_variants.json"
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _detect_action(prompt: str) -> str:
+    lowered = prompt.lower()
+    if any(w in lowered for w in ("generate", "create", "draft", "write", "produce", "build")):
+        return "generate"
+    if any(w in lowered for w in ("review", "check", "assess", "evaluate", "analyse", "analyze")):
+        return "review"
+    if any(w in lowered for w in ("publish", "submit", "send", "share", "approve", "release")):
+        return "publish"
+    return "generate"
+
 
 def choose_assistant_response(hub: DemoDataHub, prompt: str) -> tuple[str, str]:
+    variants = _load_outcome_variants()
+    scenario_id = st.session_state.get("selected_scenario", "")
+    activity_name = st.session_state.get("selected_activity_name", "")
+    stage_name = st.session_state.get("selected_stage_name", "")
+    outcome = st.session_state.get("selected_outcome", "on_track")
+    action = _detect_action(prompt)
+
+    # 1. Try by_scenario → "default" bucket → outcome → action
+    by_scenario = variants.get("by_scenario", {})
+    if scenario_id in by_scenario:
+        bucket = by_scenario[scenario_id].get("default", {})
+        text = bucket.get(outcome, {}).get(action) or bucket.get("on_track", {}).get(action)
+        if text:
+            return str(text), f"variants.by_scenario.{scenario_id}"
+
+    # 2. Try by_activity (lowercase match)
+    by_activity = variants.get("by_activity", {})
+    bucket = by_activity.get(activity_name.lower(), {})
+    text = bucket.get(outcome, {}).get(action) or bucket.get("on_track", {}).get(action)
+    if text:
+        return str(text), "variants.by_activity"
+
+    # 3. Try by_stage (lowercase match)
+    by_stage = variants.get("by_stage", {})
+    bucket = by_stage.get(stage_name.lower(), {})
+    text = bucket.get(outcome, {}).get(action) or bucket.get("on_track", {}).get(action)
+    if text:
+        return str(text), "variants.by_stage"
+
+    # 4. Keyword matching against assistant-responses.json
     response_payload = hub.assistant_responses()
-    lowered = (
-        f"{prompt} "
-        f"{st.session_state.get('selected_activity_name', '')} "
-        f"{st.session_state.get('selected_stage_name', '')} "
-        f"{st.session_state.get('selected_outcome', '')}"
-    ).lower()
+    lowered = f"{prompt} {activity_name} {stage_name} {outcome}".lower()
     for entry in response_payload.get("responses", []):
         match_terms = [str(term).lower() for term in entry.get("match", [])]
         if any(term in lowered for term in match_terms):

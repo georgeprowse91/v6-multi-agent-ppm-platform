@@ -1,48 +1,253 @@
 {
   "responses": [
     {
-      "match": ["discover", "intake", "charter"],
-      "summary": "Intake analysis is ready for Discover stage handoff.",
+      "match": ["discover", "charter", "initiate", "intake"],
+      "summary": "Discover stage analysis is ready for charter handoff.",
       "items": [
-        "Problem statement aligned to strategic outcomes",
-        "Initial assumptions and constraints captured",
-        "Recommended next step: review business case"
+        "Problem statement aligned to strategic portfolio objective",
+        "Initial assumptions, constraints, and stakeholder map captured",
+        "Risk seed register loaded (4 items) — 1 flagged as P1",
+        "Recommended next step: submit charter for stage gate review"
       ]
     },
     {
-      "match": ["design", "wbs", "plan"],
-      "summary": "Design planning is drafted with timeline and dependencies.",
+      "match": ["business case", "npv", "investment", "roi", "benefits"],
+      "summary": "Business case analysis is complete with financial projections.",
       "items": [
-        "WBS baseline includes major deliverables",
-        "Dependencies mapped across product and security teams",
-        "Risk response owners assigned for top 3 risks"
+        "NPV forecast: £12.4M over 3-year horizon",
+        "Payback period: 18 months post go-live",
+        "Top benefit driver: 20% reduction in support ticket volume",
+        "Risk-adjusted IRR: 24% — above the 15% portfolio hurdle rate"
       ]
     },
     {
-      "match": ["deliver", "status", "on_track"],
-      "summary": "Delivery status is healthy and within forecast.",
+      "match": ["design", "wbs", "work breakdown", "baseline", "plan"],
+      "summary": "Design planning is drafted with WBS, timeline, and dependency map.",
       "items": [
-        "Milestones are on schedule this reporting period",
-        "Budget burn remains within planned tolerance",
-        "No critical blockers detected"
+        "WBS baseline includes 4 work packages and 12 Level-2 deliverables",
+        "Dependencies mapped across product, security, and infrastructure teams",
+        "Risk response owners assigned for top 3 RAID items",
+        "Gantt schedule shared with all resource leads"
       ]
     },
     {
-      "match": ["off_track", "risk", "raid"],
-      "summary": "Delivery risk has increased and mitigation is required.",
+      "match": ["architecture", "technical", "solution design", "integration blueprint"],
+      "summary": "Solution architecture review is complete and ready for sign-off.",
       "items": [
-        "Escalate staffing constraint to PMO governance",
-        "Rebaseline two impacted milestones",
-        "Open RAID review with dependency owners"
+        "Target architecture validated against security and compliance requirements",
+        "Integration blueprint covers 3 system touch-points",
+        "API schema freeze confirmed — no breaking changes expected",
+        "Architecture sign-off from K. Patel recorded in audit trail"
+      ]
+    },
+    {
+      "match": ["deliver", "status", "on_track", "sprint", "progress"],
+      "summary": "Delivery status is healthy and tracking within forecast.",
+      "items": [
+        "87% of deliverables tracking green — no critical path slippages",
+        "Budget CPI 1.02 — £14k under forecast",
+        "Zero P1 defects in UAT to date",
+        "Milestone 4 completed 2 days ahead of schedule"
+      ]
+    },
+    {
+      "match": ["at_risk", "risk", "issue", "delay", "mitigation", "raid"],
+      "summary": "Delivery risk has increased — mitigation and escalation recommended.",
+      "items": [
+        "1 High risk: identity provider integration — escalated to PMO",
+        "Rebaseline request submitted (2-week extension, £18k contingency draw)",
+        "Fallback auth owner assigned; weekly vendor check-in active",
+        "3 Medium risks within tolerance — monitoring weekly"
+      ]
+    },
+    {
+      "match": ["off_track", "behind", "slippage", "escalate", "executive"],
+      "summary": "Program is off track — executive intervention and replan required.",
+      "items": [
+        "Schedule impact: 3 weeks behind critical path",
+        "Rebaseline and £25k budget supplement pending executive approval",
+        "Executive briefing note prepared and routed to Elena Brooks",
+        "Weekly executive checkpoint activated until program recovers"
+      ]
+    },
+    {
+      "match": ["embed", "lessons", "close", "retrospective", "handover"],
+      "summary": "Embed stage activities are underway — project approaching closure.",
+      "items": [
+        "Lessons learned aggregated from 3 retrospectives and post-UAT survey",
+        "4 themes published to knowledge base with searchable tags",
+        "Transition handover completed with operations team",
+        "Project closure checklist 100% complete"
+      ]
+    },
+    {
+      "match": ["approval", "gate", "stage gate", "decision", "sign-off"],
+      "summary": "Approval package is assembled and ready for gate review.",
+      "items": [
+        "Gate pack includes: WBS, architecture doc, risk register, resource plan",
+        "3 reviewers assigned — SLA: 24 hours",
+        "Conditional approval noted: resource plan pending Finance confirmation",
+        "Audit event logged with full evidence chain"
+      ]
+    },
+    {
+      "match": ["budget", "finance", "cost", "expenditure", "actuals", "forecast"],
+      "summary": "Financial position is reviewed and up to date.",
+      "items": [
+        "Total actuals: £742k of £1.2M approved budget (62%)",
+        "Forecast at completion: £1.19M — within tolerance",
+        "CPI: 1.02 | SPI: 0.97",
+        "Contingency: £40k undrawn — available for rebaseline draw"
+      ]
+    },
+    {
+      "match": ["resource", "capacity", "staffing", "headcount", "allocation"],
+      "summary": "Resource capacity plan reviewed — gap identified in sprints 5–7.",
+      "items": [
+        "2 additional engineers needed for sprints 5–7 (6 weeks)",
+        "Option A: internal reallocation from Atlas project (0 cost, 2-week lag)",
+        "Option B: contractor engagement (£52k, 1-week mobilisation)",
+        "Resource request workflow initiated — SLA: 4 hours"
+      ]
+    },
+    {
+      "match": ["vendor", "procurement", "contract", "supplier", "soc2", "compliance"],
+      "summary": "Vendor assessment is complete with compliance and risk evaluation.",
+      "items": [
+        "SOC2 Type II certification confirmed — valid to Dec 2026",
+        "Data residency controls: EU-only hosting confirmed in contract",
+        "Legal review: 2 clauses flagged for amendment",
+        "Recommendation: proceed with conditions — H. Cole sign-off required"
+      ]
+    },
+    {
+      "match": ["schedule", "timeline", "gantt", "milestone", "deadline", "due"],
+      "summary": "Schedule analysis is complete with updated milestone projections.",
+      "items": [
+        "Milestone 4 complete — 2 days ahead of plan",
+        "Sprint 6 start on track; UAT phase 2 begins next week",
+        "Critical path: Go-live milestone at risk if rebaseline not approved",
+        "Updated Gantt shared with all resource leads"
+      ]
+    },
+    {
+      "match": ["quality", "defect", "testing", "uat", "acceptance"],
+      "summary": "Quality metrics are healthy — UAT progressing ahead of plan.",
+      "items": [
+        "0 P1 defects in UAT Phase 1 (42 test cases executed)",
+        "Defect rate: 40% lower than Q1 baseline",
+        "UAT Phase 2 begins Monday — 28 additional test cases queued",
+        "Acceptance criteria co-authored with 6 business users"
+      ]
+    },
+    {
+      "match": ["portfolio", "program", "strategic", "health"],
+      "summary": "Portfolio health snapshot generated with KPI analysis.",
+      "items": [
+        "5 of 8 programs on track — 2 at risk, 1 off track",
+        "Portfolio NPV forecast: £12.4M of £14M target (88%)",
+        "Risk exposure: 32% — above 25% threshold, action required",
+        "Resource capacity utilisation: 86% — approaching headroom limit"
+      ]
+    },
+    {
+      "match": ["workflow", "automation", "routing", "trigger", "orchestration"],
+      "summary": "Workflow status reviewed — all active flows within SLA.",
+      "items": [
+        "18 workflows healthy | 4 warning | 2 failed",
+        "Approval Escalation (WF-2042) failed — reroute to alternate approver",
+        "Document Sync latency elevated — connector concurrency increase recommended",
+        "Demo Run workflow: 25/25 agents queued and ready"
+      ]
+    },
+    {
+      "match": ["audit", "compliance check", "log", "trail", "evidence"],
+      "summary": "Audit trail is current and all events are traceable.",
+      "items": [
+        "Last 3 audit events: charter submitted, gate approved, budget change raised",
+        "Digital signatures verified for all approval decisions",
+        "Evidence packages attached to all stage gate submissions",
+        "No compliance exceptions detected in current reporting period"
+      ]
+    },
+    {
+      "match": ["notification", "alert", "async", "message", "notify"],
+      "summary": "Notification centre is active with pending items for your attention.",
+      "items": [
+        "1 High priority: identity provider risk requires PMO review by Friday",
+        "1 Medium priority: procurement package awaiting Finance sign-off",
+        "1 Medium priority: SAP connector degraded — partial sync active",
+        "1 Predictive alert: resource capacity likely to breach 90% in 3 weeks"
+      ]
+    },
+    {
+      "match": ["agent", "ai", "invoke", "run", "execute"],
+      "summary": "Agent invocation ready — capability matched to your current context.",
+      "items": [
+        "Agent selected based on current stage and activity context",
+        "Policy checks will execute before artifact generation",
+        "Output artifacts will be linked to the current activity audit trail",
+        "Average execution time for this agent: 45–120 seconds"
+      ]
+    },
+    {
+      "match": ["intent router", "agent-01", "routing", "classify"],
+      "summary": "Intent Router (agent-01) has classified your request and dispatched it.",
+      "items": [
+        "Request classified: project delivery — risk escalation",
+        "Routing to Risk Issue Management agent (agent-15)",
+        "Context injected: project ID, stage, current RAID log",
+        "Expected output: rebaseline recommendation and RAID update"
+      ]
+    },
+    {
+      "match": ["demand intake", "agent-04", "intake form"],
+      "summary": "Demand Intake agent (agent-04) is processing the intake submission.",
+      "items": [
+        "Intake record created and validated against portfolio thresholds",
+        "Business case placeholder generated from intake data",
+        "Routing: submitted to Portfolio Manager for prioritisation",
+        "SLA: 48-hour intake review window started"
+      ]
+    },
+    {
+      "match": ["analytics", "agent-22", "insights", "dashboard", "metrics"],
+      "summary": "Analytics Insights agent (agent-22) has generated the portfolio analytics report.",
+      "items": [
+        "Portfolio health score: 74/100 (was 71 last week — improving)",
+        "Predictive alert: resource capacity likely to breach 90% in 3 weeks",
+        "What-if model: 15% scope reduction improves NPV forecast by £800k",
+        "Dashboard pack exported and available for download"
+      ]
+    },
+    {
+      "match": ["data sync", "agent-23", "connector", "synchronisation"],
+      "summary": "Data Synchronisation agent (agent-23) has completed the connector health check.",
+      "items": [
+        "Jira connector: healthy — last sync 30 min ago",
+        "SAP connector: degraded — partial metadata (retry scheduled)",
+        "SharePoint connector: warning — latency elevated",
+        "2/3 connectors within SLA — 1 requires attention"
+      ]
+    },
+    {
+      "match": ["system health", "agent-25", "monitoring", "infrastructure", "observability"],
+      "summary": "System Health agent (agent-25) has completed the platform health check.",
+      "items": [
+        "All 8 platform services reporting healthy",
+        "API response time P95: 340ms (threshold: 500ms)",
+        "Memory utilisation: 62% across compute tier",
+        "1 scheduled maintenance window: Sunday 01:00–03:00"
       ]
     }
   ],
   "default": {
-    "summary": "Here is the latest portfolio snapshot from the assistant.",
+    "summary": "Here is the latest portfolio snapshot from your AI assistant.",
     "items": [
-      "Portfolio risk trending moderate",
-      "2 approvals need attention",
-      "Workflow backlog within SLA"
+      "Portfolio health: Moderate — 5 programs on track, 2 at risk, 1 off track",
+      "2 approvals require your attention within the next 24 hours",
+      "Risk exposure at 32% — above the 25% portfolio threshold",
+      "Workflow backlog is within SLA — no immediate action needed"
     ]
   }
 }
