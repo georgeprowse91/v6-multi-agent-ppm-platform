@@ -103,11 +103,12 @@ if __name__ == "__main__":
     print(json.dumps(output, indent=2))
 
 
-# New outbound hook placeholder. Later, this should send data to Clarity via real API.
 def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *, include_schema: bool) -> None:
     """
-    Placeholder outbound handler for Clarity.
-    This function currently logs the records to be written and performs no external calls.
+    Outbound handler for Clarity.
+
+    Routes mapped canonical records to Clarity via the MCP path when configured,
+    or falls back to the Clarity REST API (POST /ppm/rest/v1/projects) for each record.
 
     Args:
         records: Mapped records in the canonical schema.
@@ -127,15 +128,55 @@ def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *,
         )
         return
 
+    # --- MCP path -----------------------------------------------------------
     if _should_use_mcp():
         connector = _build_mcp_connector()
         for payload in mapped_payload:
             connector.create_work_item(payload)
+        logger.info(
+            "Sent %d record(s) to Clarity via MCP for tenant %s",
+            len(mapped_payload),
+            tenant_id,
+        )
         return
 
+    # --- REST API path -------------------------------------------------------
+    # Build a ClarityConnector and push each work-item via the REST API.
+    instance_url = resolve_secret(os.getenv("CLARITY_INSTANCE_URL")) or ""
+    if not instance_url:
+        logger.error(
+            "CLARITY_INSTANCE_URL is not set; cannot send outbound records for tenant %s",
+            tenant_id,
+        )
+        return
+
+    rest_connector = create_clarity_connector(instance_url=instance_url, sync_direction="outbound")
+
+    succeeded = 0
+    failed = 0
+    for payload in mapped_payload:
+        external_id = payload.get("externalId", "")
+        try:
+            # Attempt to create the work item; Clarity REST endpoint: POST /ppm/rest/v1/projects
+            rest_connector._request("POST", "/ppm/rest/v1/projects", json=payload)
+            succeeded += 1
+            logger.debug(
+                "Clarity outbound record accepted: externalId=%s tenant=%s",
+                external_id,
+                tenant_id,
+            )
+        except Exception as exc:
+            failed += 1
+            logger.error(
+                "Failed to push Clarity outbound record externalId=%s tenant=%s: %s",
+                external_id,
+                tenant_id,
+                exc,
+            )
+
     logger.info(
-        "Outbound payload for Clarity tenant %s (include_schema=%s): %s",
+        "Clarity outbound sync complete for tenant %s: %d succeeded, %d failed",
         tenant_id,
-        include_schema,
-        mapped_payload,
+        succeeded,
+        failed,
     )
