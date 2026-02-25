@@ -1,19 +1,20 @@
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
-from fastapi import FastAPI
 from typing import Any
 
-from integrations.connectors.sdk.src.runtime import ConnectorRuntime
+from fastapi import FastAPI
 from connector_secrets import resolve_secret
-
-from integrations.connectors.integration import IntegrationAuthType, IntegrationConfig, ClarityMcpConnector
-
-from .mappers import map_to_clarity
+from integrations.connectors.integration import ClarityMcpConnector, IntegrationAuthType, IntegrationConfig
+from integrations.connectors.sdk.src.runtime import ConnectorRuntime
 
 from .clarity_connector import ClarityConnector, create_clarity_connector
+from .mappers import map_to_clarity
+
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
+logger = logging.getLogger(__name__)
 
 
 def _ensure_source(records: list[dict[str, Any]], source: str) -> list[dict[str, Any]]:
@@ -69,12 +70,8 @@ def _build_mcp_connector() -> ClarityMcpConnector:
 
 
 def _should_use_mcp() -> bool:
-    prefer = (resolve_secret(os.getenv("CLARITY_PREFER_MCP")) or "").lower() in {
-        "1",
-        "true",
-        "yes",
-    }
-    return bool(prefer and resolve_secret(os.getenv("CLARITY_MCP_SERVER_URL")))
+    prefer_mcp = (resolve_secret(os.getenv("CLARITY_PREFER_MCP")) or "").lower() in {"1", "true", "yes"}
+    return prefer_mcp and bool(resolve_secret(os.getenv("CLARITY_MCP_SERVER_URL")))
 
 
 def create_app() -> FastAPI:
@@ -104,21 +101,8 @@ if __name__ == "__main__":
 
 
 def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *, include_schema: bool) -> None:
-    """
-    Outbound handler for Clarity.
-
-    Routes mapped canonical records to Clarity via the MCP path when configured,
-    or falls back to the Clarity REST API (POST /ppm/rest/v1/projects) for each record.
-
-    Args:
-        records: Mapped records in the canonical schema.
-        tenant_id: Tenant identifier.
-        include_schema: Whether the mapped records include schema metadata.
-    """
-    import logging
-
+    """Outbound handler – routes canonical records to Clarity via MCP or REST API."""
     mapped_payload = map_to_clarity(records)
-    logger = logging.getLogger(__name__)
 
     if not mapped_payload:
         logger.warning(
@@ -128,7 +112,6 @@ def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *,
         )
         return
 
-    # --- MCP path -----------------------------------------------------------
     if _should_use_mcp():
         connector = _build_mcp_connector()
         for payload in mapped_payload:
@@ -140,8 +123,6 @@ def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *,
         )
         return
 
-    # --- REST API path -------------------------------------------------------
-    # Build a ClarityConnector and push each work-item via the REST API.
     instance_url = resolve_secret(os.getenv("CLARITY_INSTANCE_URL")) or ""
     if not instance_url:
         logger.error(
@@ -157,7 +138,6 @@ def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *,
     for payload in mapped_payload:
         external_id = payload.get("externalId", "")
         try:
-            # Attempt to create the work item; Clarity REST endpoint: POST /ppm/rest/v1/projects
             rest_connector._request("POST", "/ppm/rest/v1/projects", json=payload)
             succeeded += 1
             logger.debug(
