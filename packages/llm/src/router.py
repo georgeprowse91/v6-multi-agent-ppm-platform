@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from llm.types import LLMProviderError, LLMResponse
 from model_registry import find_model, get_enabled_models
 from providers.anthropic_provider import AnthropicProvider
+from providers.azure_openai_provider import AzureOpenAIProvider
 from providers.google_provider import GoogleProvider
 from providers.openai_provider import OpenAIProvider
 
@@ -24,6 +25,10 @@ class LLMRouteRequest:
     json_mode: bool = False
     temperature: float = 0.0
     max_tokens: int | None = None
+
+
+# Type alias for all supported provider adapters.
+_AnyProvider = AnthropicProvider | AzureOpenAIProvider | GoogleProvider | OpenAIProvider
 
 
 class LLMRouter:
@@ -58,7 +63,7 @@ class LLMRouter:
         selected = models[0]
         return selected.provider, selected.model_id
 
-    def _build_adapter(self, provider: str) -> AnthropicProvider | GoogleProvider | OpenAIProvider:
+    def _build_adapter(self, provider: str) -> _AnyProvider:
         if provider == "openai":
             api_key = resolve_secret(os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY"))
             if not api_key:
@@ -92,6 +97,29 @@ class LLMRouter:
                 base_url=os.getenv(
                     "GOOGLE_BASE_URL", "https://generativelanguage.googleapis.com/v1beta"
                 ),
+                timeout=self.timeout,
+            )
+        if provider == "azure_openai":
+            api_key = resolve_secret(
+                os.getenv("AZURE_OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
+            )
+            endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+            if not api_key:
+                raise LLMProviderError(
+                    "Azure OpenAI API key is not configured (AZURE_OPENAI_API_KEY)",
+                    retryable=False,
+                    provider=provider,
+                )
+            if not endpoint:
+                raise LLMProviderError(
+                    "Azure OpenAI endpoint is not configured (AZURE_OPENAI_ENDPOINT)",
+                    retryable=False,
+                    provider=provider,
+                )
+            return AzureOpenAIProvider(
+                api_key=api_key,
+                endpoint=endpoint,
+                api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-05-01-preview"),
                 timeout=self.timeout,
             )
         raise LLMProviderError(
