@@ -152,8 +152,7 @@ class Policy:
 
     def evaluate(self, ctx: PolicyContext) -> PolicyDecision:
         """Evaluate the policy against the given context."""
-        sorted_rules = sorted(self.rules, key=lambda r: r.sequence)
-        for rule in sorted_rules:
+        for rule in sorted(self.rules, key=lambda r: r.sequence):
             if rule.matches(ctx):
                 return PolicyDecision(
                     effect=rule.effect,

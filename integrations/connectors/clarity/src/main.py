@@ -14,6 +14,7 @@ from .clarity_connector import ClarityConnector, create_clarity_connector
 from .mappers import map_to_clarity
 
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
+logger = logging.getLogger(__name__)
 
 
 def _ensure_source(records: list[dict[str, Any]], source: str) -> list[dict[str, Any]]:
@@ -102,7 +103,6 @@ if __name__ == "__main__":
 def send_to_external_system(records: list[dict[str, object]], tenant_id: str, *, include_schema: bool) -> None:
     """Outbound handler – routes canonical records to Clarity via MCP or REST API."""
     mapped_payload = map_to_clarity(records)
-    logger = logging.getLogger(__name__)
 
     if not mapped_payload:
         logger.warning(

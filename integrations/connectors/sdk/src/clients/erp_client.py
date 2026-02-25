@@ -15,6 +15,14 @@ if str(_SDK_SRC) not in sys.path:
 logger = logging.getLogger(__name__)
 
 
+def _parse_response(response: Any) -> dict[str, Any]:
+    """Return the JSON body of a connector response, or a minimal accepted sentinel on failure."""
+    try:
+        return response.json()
+    except Exception:
+        return {"status": "accepted"}
+
+
 class ErpClient(ABC):
     """
     Abstract base class for ERP system clients (e.g. SAP, Oracle, NetSuite).
@@ -45,21 +53,20 @@ class NoopErpClient(ErpClient):
 
     def __init__(self, system_name: str) -> None:
         self.system_name = system_name
-        self._logger = logging.getLogger(__name__)
 
     def authenticate(self) -> None:
-        self._logger.info("Authenticating with %s (noop)", self.system_name)
+        logger.info("Authenticating with %s (noop)", self.system_name)
 
     def create_record(self, resource: str, data: dict[str, Any]) -> dict[str, Any]:
-        self._logger.info("Noop create_record on %s.%s: %s", self.system_name, resource, data)
+        logger.info("Noop create_record on %s.%s: %s", self.system_name, resource, data)
         return {}
 
     def update_record(self, resource: str, record_id: str, data: dict[str, Any]) -> dict[str, Any]:
-        self._logger.info("Noop update_record on %s.%s id=%s: %s", self.system_name, resource, record_id, data)
+        logger.info("Noop update_record on %s.%s id=%s: %s", self.system_name, resource, record_id, data)
         return {}
 
     def list_records(self, resource: str, filters: dict[str, Any] | None = None) -> Iterable[dict[str, Any]]:
-        self._logger.info("Noop list_records on %s.%s with filters=%s", self.system_name, resource, filters)
+        logger.info("Noop list_records on %s.%s with filters=%s", self.system_name, resource, filters)
         return []
 
 
@@ -112,21 +119,12 @@ class SapErpClient(ErpClient):
         resource_cfg = self._connector.RESOURCE_PATHS.get(resource, {})
         write_path = resource_cfg.get("write_path") or resource_cfg.get("path", f"/{resource}")
         write_method = resource_cfg.get("write_method", "POST")
-        response = self._connector._request(write_method, write_path, json=data)
-        try:
-            return response.json()
-        except Exception:
-            return {"status": "accepted"}
+        return _parse_response(self._connector._request(write_method, write_path, json=data))
 
     def update_record(self, resource: str, record_id: str, data: dict[str, Any]) -> dict[str, Any]:
         resource_cfg = self._connector.RESOURCE_PATHS.get(resource, {})
         write_path = resource_cfg.get("write_path") or resource_cfg.get("path", f"/{resource}")
-        url = f"{write_path}('{record_id}')"
-        response = self._connector._request("PATCH", url, json=data)
-        try:
-            return response.json()
-        except Exception:
-            return {"status": "accepted"}
+        return _parse_response(self._connector._request("PATCH", f"{write_path}('{record_id}')", json=data))
 
     def list_records(self, resource: str, filters: dict[str, Any] | None = None) -> Iterable[dict[str, Any]]:
         return self._connector.read(resource, filters=filters)
@@ -179,21 +177,12 @@ class OracleErpClient(ErpClient):
     def create_record(self, resource: str, data: dict[str, Any]) -> dict[str, Any]:
         resource_cfg = getattr(self._connector, "RESOURCE_PATHS", {}).get(resource, {})
         write_path = resource_cfg.get("write_path") or resource_cfg.get("path", f"/fscmRestApi/resources/11.13.18.05/{resource}")
-        response = self._connector._request("POST", write_path, json=data)
-        try:
-            return response.json()
-        except Exception:
-            return {"status": "accepted"}
+        return _parse_response(self._connector._request("POST", write_path, json=data))
 
     def update_record(self, resource: str, record_id: str, data: dict[str, Any]) -> dict[str, Any]:
         resource_cfg = getattr(self._connector, "RESOURCE_PATHS", {}).get(resource, {})
         write_path = resource_cfg.get("write_path") or resource_cfg.get("path", f"/fscmRestApi/resources/11.13.18.05/{resource}")
-        url = f"{write_path}/{record_id}"
-        response = self._connector._request("PATCH", url, json=data)
-        try:
-            return response.json()
-        except Exception:
-            return {"status": "accepted"}
+        return _parse_response(self._connector._request("PATCH", f"{write_path}/{record_id}", json=data))
 
     def list_records(self, resource: str, filters: dict[str, Any] | None = None) -> Iterable[dict[str, Any]]:
         return self._connector.read(resource, filters=filters)
@@ -246,21 +235,12 @@ class NetSuiteErpClient(ErpClient):
     def create_record(self, resource: str, data: dict[str, Any]) -> dict[str, Any]:
         resource_cfg = self._connector.RESOURCE_PATHS.get(resource, {})
         path = resource_cfg.get("path", f"/services/rest/record/v1/{resource}")
-        response = self._connector._request("POST", path, json=data)
-        try:
-            return response.json()
-        except Exception:
-            return {"status": "accepted"}
+        return _parse_response(self._connector._request("POST", path, json=data))
 
     def update_record(self, resource: str, record_id: str, data: dict[str, Any]) -> dict[str, Any]:
         resource_cfg = self._connector.RESOURCE_PATHS.get(resource, {})
         path = resource_cfg.get("path", f"/services/rest/record/v1/{resource}")
-        url = f"{path}/{record_id}"
-        response = self._connector._request("PATCH", url, json=data)
-        try:
-            return response.json()
-        except Exception:
-            return {"status": "accepted"}
+        return _parse_response(self._connector._request("PATCH", f"{path}/{record_id}", json=data))
 
     def list_records(self, resource: str, filters: dict[str, Any] | None = None) -> Iterable[dict[str, Any]]:
         return self._connector.read(resource, filters=filters)
