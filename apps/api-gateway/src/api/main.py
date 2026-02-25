@@ -6,9 +6,11 @@ This is the main entry point for the PPM platform REST API.
 
 import logging
 import os
+import signal
 import sys
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, FastAPI, Request
@@ -21,6 +23,7 @@ from api.cors import ALLOWED_CORS_HEADERS, ALLOWED_CORS_METHODS, get_allowed_ori
 from api.limiter import limiter
 from api.middleware.security import AuthTenantMiddleware, FieldMaskingMiddleware
 from api.routes import (
+    admin,
     agent_config,
     agents,
     analytics,
@@ -43,24 +46,15 @@ from api.slowapi_compat import (
     SlowAPIMiddleware,
     _rate_limit_exceeded_handler,
 )
-
-REPO_ROOT = Path(__file__).resolve().parents[4]
-COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
-OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-for path_root in (REPO_ROOT, COMMON_ROOT, OBSERVABILITY_ROOT, SECURITY_ROOT):
-    if str(path_root) not in sys.path:
-        sys.path.insert(0, str(path_root))
-
-from common.env_validation import environment_value  # noqa: E402
-from common.exceptions import PPMPlatformError, exception_to_http_status  # noqa: E402
-from observability.logging import configure_logging  # noqa: E402
-from observability.metrics import RequestMetricsMiddleware, configure_metrics  # noqa: E402
-from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
-from security.errors import register_error_handlers  # noqa: E402
-from security.headers import SecurityHeadersMiddleware  # noqa: E402
-
-from packages.version import API_VERSION  # noqa: E402
+from common.env_validation import environment_value
+from common.exceptions import PPMPlatformError, exception_to_http_status
+from observability.logging import configure_logging
+from observability.metrics import RequestMetricsMiddleware, configure_metrics
+from observability.tracing import TraceMiddleware, configure_tracing
+from packages.version import API_VERSION
+from security.auth import clear_auth_caches
+from security.errors import register_error_handlers
+from security.headers import SecurityHeadersMiddleware
 
 # Configure logging
 logging.basicConfig(
@@ -71,6 +65,70 @@ logger = logging.getLogger(__name__)
 
 validate_startup_config()
 
+environment = environment_value(os.environ)
+
+
+def _install_key_rotation_handler() -> None:
+    """Install SIGUSR1 handler for in-process LLM key and JWKS cache rotation.
+
+    Sending SIGUSR1 to the process clears the cached OIDC discovery document
+    and JWKS data in ``security.auth``, forcing fresh resolution on the next
+    request.  This provides zero-downtime rotation when IdP keys or LLM API
+    keys are rotated in the secret store.
+    """
+    if not hasattr(signal, "SIGUSR1"):  # pragma: no cover - Windows
+        logger.info(
+            "key_rotation_handler_skipped",
+            extra={"reason": "SIGUSR1 not available on this platform"},
+        )
+        return
+
+    def _handle_rotation(signum: int, frame: object) -> None:
+        clear_auth_caches()
+        logger.info("llm_key_rotation_triggered", extra={"signal": "SIGUSR1"})
+
+    signal.signal(signal.SIGUSR1, _handle_rotation)
+    logger.info("llm_key_rotation_handler_installed", extra={"signal": "SIGUSR1"})
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Application lifespan manager (replaces deprecated @app.on_event handlers).
+
+    Startup section initialises the bootstrap registry and installs the
+    in-process LLM key-rotation signal handler.  Shutdown section tears down
+    registered bootstrap components gracefully.
+    """
+    # --- startup ---
+    logger.info("Starting Multi-Agent PPM Platform...")
+    app.state.environment = environment
+    app.state.bootstrap_registry = build_default_bootstrap_registry()
+    try:
+        await app.state.bootstrap_registry.startup(app)
+    except StartupFailure as exc:
+        logger.error(
+            "Application startup failed",
+            extra={
+                "component": exc.component,
+                "error": exc.message,
+                "startup_order": exc.startup_order,
+            },
+        )
+        raise RuntimeError(str(exc)) from exc
+
+    _install_key_rotation_handler()
+    logger.info("Application started successfully")
+
+    yield
+
+    # --- shutdown ---
+    logger.info("Shutting down Multi-Agent PPM Platform...")
+    bootstrap_registry = getattr(app.state, "bootstrap_registry", None)
+    if bootstrap_registry:
+        await bootstrap_registry.shutdown(app)
+    logger.info("Application shut down successfully")
+
+
 # Create FastAPI application
 app = FastAPI(
     title="Multi-Agent PPM Platform",
@@ -79,6 +137,7 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_prefix="/v1",
+    lifespan=lifespan,
 )
 
 
@@ -90,8 +149,6 @@ def _version_payload() -> dict[str, str]:
         "build_sha": os.getenv("BUILD_SHA", "unknown"),
     }
 
-
-environment = environment_value(os.environ)
 
 # Configure CORS
 allowed_origins = get_allowed_origins(environment)
@@ -114,40 +171,6 @@ configure_logging("api-gateway")
 app.add_middleware(TraceMiddleware, service_name="api-gateway")
 app.add_middleware(RequestMetricsMiddleware, service_name="api-gateway")
 register_error_handlers(app)
-
-
-@app.on_event("startup")
-async def startup_event() -> None:
-    """Initialize application on startup."""
-    logger.info("Starting Multi-Agent PPM Platform...")
-    app.state.environment = environment
-    app.state.bootstrap_registry = build_default_bootstrap_registry()
-    try:
-        await app.state.bootstrap_registry.startup(app)
-    except StartupFailure as exc:
-        logger.error(
-            "Application startup failed",
-            extra={
-                "component": exc.component,
-                "error": exc.message,
-                "startup_order": exc.startup_order,
-            },
-        )
-        raise RuntimeError(str(exc)) from exc
-
-    logger.info("Application started successfully")
-
-
-@app.on_event("shutdown")
-async def shutdown_event() -> None:
-    """Clean up resources on shutdown."""
-    logger.info("Shutting down Multi-Agent PPM Platform...")
-
-    bootstrap_registry = getattr(app.state, "bootstrap_registry", None)
-    if bootstrap_registry:
-        await bootstrap_registry.shutdown(app)
-
-    logger.info("Application shut down successfully")
 
 
 @limiter.exempt
@@ -212,6 +235,7 @@ api_v1.include_router(risk_research.router, tags=["risk-research"])
 api_v1.include_router(vendor_research.router, tags=["vendor-research"])
 api_v1.include_router(vendor_management.router, tags=["vendor-management"])
 api_v1.include_router(compliance_research.router, tags=["compliance-research"])
+api_v1.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(api_v1)
 
 

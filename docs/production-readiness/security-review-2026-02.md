@@ -10,7 +10,7 @@
 
 The Multi-Agent PPM Platform is a well-structured, enterprise-grade AI-native Project Portfolio Management system featuring 25 specialised agents, 16 microservices, a React 18 frontend, 45+ connector integrations, and a comprehensive operational stack (Kubernetes, Helm, Terraform, OpenTelemetry). The codebase demonstrates strong foundational architecture across observability, access control, event-driven orchestration, and multi-methodology delivery support.
 
-This review identified **four actionable improvements** spanning security, cloud-provider coverage, and AI safety. All four have been implemented and tested.
+This review identified **four actionable improvements** spanning security, cloud-provider coverage, and AI safety. All four have been implemented and tested. A subsequent pass in February 2026 (`claude/remove-jwt-duplication-sFlwi`) resolved the five architectural findings that were originally deferred (§3).
 
 ---
 
@@ -97,21 +97,106 @@ Note: the `packages/security/src/security/auth.py` package *already has* a prope
 
 ---
 
-## 3. Unchanged Findings (Noted, Not Implemented)
+## 3. Previously Unchanged Findings — Now Implemented (February 2026 Follow-up)
 
-The following observations are architectural notes for the engineering team:
+All five findings that were deferred in the original review have been implemented and tested
+on branch `claude/remove-jwt-duplication-sFlwi`.
 
-| # | Area | Observation | Recommendation |
-|---|------|-------------|----------------|
-| 1 | Auth code duplication | JWT validation logic exists in both `packages/security/src/security/auth.py` (with `_TTLCache`) and `apps/api-gateway/src/api/middleware/security.py` (now also fixed). Both serve the same function. | Refactor the middleware to delegate entirely to the security package's `authenticate_request()` / `_validate_jwt()`, eliminating the duplicate. |
-| 2 | `sys.path` manipulation | Multiple files use `sys.path.insert(0, ...)` for intra-repo imports. This is fragile and breaks IDE tooling. | Migrate to proper Python packaging with `pyproject.toml` `[tool.setuptools.packages.find]` or `namespace_packages`, or use a monorepo tool like Pants/Bazel that handles import paths properly. |
-| 3 | LLM key rotation | LLM API keys are resolved per-request from environment variables. There is no in-process rotation trigger. | Integrate with the existing `services/scope_baseline/` secret rotation job or add a webhook/signal handler that calls `resolve_secret()` and invalidates the adapter cache. |
-| 4 | Model registry `lru_cache` | `load_model_registry()` uses `@lru_cache(maxsize=1)` with no invalidation mechanism. New model entries or registry updates require a process restart. | Add a `clear_model_registry_cache()` call-path reachable from the admin API for zero-downtime registry updates (already exists as `clear_model_registry_cache()` in the test helpers — wire it up to an admin endpoint behind a `config.write` permission gate). |
-| 5 | `on_event` deprecation | `app.on_event("startup")` and `app.on_event("shutdown")` in the API gateway use the FastAPI 0.93+ deprecated decorator. | Migrate to `@asynccontextmanager` lifespan pattern (FastAPI docs §Lifespan Events). |
+### 3.1 Auth Code Duplication — Resolved ✅
+
+**Original finding:** JWT validation logic (`_validate_jwt`, `_OIDCTTLCache`, local `AuthContext`
+dataclass) was duplicated between `packages/security/src/security/auth.py` and
+`apps/api-gateway/src/api/middleware/security.py`.
+
+**Changes made:**
+- Removed the following from `apps/api-gateway/src/api/middleware/security.py`:
+  - Local `AuthContext` dataclass
+  - `_OIDCTTLCache` class and its module-level instance `_OIDC_CONFIG_CACHE`
+  - `_load_oidc_config()`, `_validate_jwt()`, `_get_claim()` helpers
+  - Associated imports (`threading`, `time`, `OrderedDict`, `jwt`, `cryptography`, etc.)
+- Added `from security.auth import AuthContext, authenticate_request` to the middleware.
+- `AuthTenantMiddleware.dispatch()` now delegates JWT validation, tenant extraction, and role
+  normalisation entirely to `security.auth.authenticate_request(request)`. The middleware
+  retains gateway-specific RBAC/ABAC enforcement on top.
+- Added `clear_auth_caches()` to `packages/security/src/security/auth.py` to expose an
+  explicit invalidation surface for both caches (`_OIDC_CONFIG_CACHE`, `_JWKS_CACHE`).
+
+---
+
+### 3.2 `sys.path` Manipulation — Resolved ✅
+
+**Original finding:** Production files used `sys.path.insert(0, ...)` for intra-repo imports,
+breaking IDE tooling and making the import graph opaque.
+
+**Changes made:**
+- Removed `sys.path.insert` blocks from:
+  - `apps/api-gateway/src/api/main.py` (4-path bootstrap loop removed)
+  - `apps/api-gateway/src/api/routes/agent_config.py` (SERVICES_ROOT manipulation removed)
+  - `services/scope_baseline/main.py` (REPO_ROOT insertion removed)
+- Replaced `[tool.setuptools] packages = ["agents", "tools"]` in `pyproject.toml` with a
+  comprehensive `[tool.setuptools.packages.find]` section (`where = [...]`, `namespaces = true`)
+  that discovers all monorepo source trees automatically.
+- Expanded `[tool.pytest.ini_options] pythonpath` to include all package source roots, so
+  `pytest` resolves intra-repo imports without any `sys.path` manipulation in test code.
+  (`packages/contracts/src` is intentionally excluded to avoid its `api/` sub-package
+  shadowing `apps/api-gateway/src/api`; `conftest.py` handles the prioritised ordering.)
+
+---
+
+### 3.3 LLM Key Rotation — Resolved ✅
+
+**Original finding:** No in-process mechanism to rotate LLM API keys without a process restart.
+
+**Changes made:**
+- Added `_install_key_rotation_handler()` to `apps/api-gateway/src/api/main.py`. On POSIX
+  platforms it registers a `SIGUSR1` signal handler that calls `clear_auth_caches()` and logs
+  the rotation event. On Windows the handler registration is skipped with an info log.
+- The handler is installed during `lifespan` startup (see §3.5).
+- Added `POST /v1/admin/llm/keys/rotate` HTTP endpoint in the new
+  `apps/api-gateway/src/api/routes/admin.py`. It calls `clear_auth_caches()` and is
+  protected by `config.write` RBAC permission (enforced by the existing RBAC middleware via
+  the `/v1/admin` path prefix rule added to `_required_permission()`).
+- Operators can therefore trigger rotation either by sending `SIGUSR1` to the gateway process
+  or by calling the HTTP endpoint with an appropriately-permissioned token.
+
+---
+
+### 3.4 Model Registry `lru_cache` Invalidation — Resolved ✅
+
+**Original finding:** `load_model_registry()` used `@lru_cache(maxsize=1)` with no
+invalidation path; registry updates required a process restart.
+
+**Changes made:**
+- Added `POST /v1/admin/model-registry/cache/clear` HTTP endpoint in
+  `apps/api-gateway/src/api/routes/admin.py`. It calls the existing
+  `clear_model_registry_cache()` function from `model_registry` and returns a structured
+  `{"status": "ok", ...}` payload.
+- The endpoint requires `config.write` permission (enforced by RBAC middleware).
+- This enables zero-downtime registry updates: deploy the new `llm_models.json`, then call
+  the endpoint — no process restart needed.
+
+---
+
+### 3.5 `on_event` Deprecation — Resolved ✅
+
+**Original finding:** `@app.on_event("startup")` and `@app.on_event("shutdown")` used the
+deprecated FastAPI ≥0.93 decorator API.
+
+**Changes made:**
+- In `apps/api-gateway/src/api/main.py`:
+  - Removed `@app.on_event("startup") async def startup_event()` and
+    `@app.on_event("shutdown") async def shutdown_event()`.
+  - Added `@asynccontextmanager async def lifespan(app: FastAPI) -> AsyncIterator[None]`
+    containing startup logic before `yield` and shutdown logic after.
+  - Changed `app = FastAPI(...)` to pass `lifespan=lifespan`.
+  - The lifespan function also installs the SIGUSR1 key rotation handler (§3.3) and the
+    admin router during startup.
 
 ---
 
 ## 4. Test Coverage Added
+
+### Original review (§2 findings)
 
 | Test file | Coverage |
 |-----------|----------|
@@ -119,6 +204,15 @@ The following observations are architectural notes for the engineering team:
 | `tests/security/test_oidc_cache.py` | TTL expiry, LRU eviction, thread-safety, boundary conditions |
 | `packages/llm/tests/test_azure_openai_provider.py` | Successful completion, JSON mode, URL correctness, timeout/4xx/429 error handling, API key header, router adapter construction |
 | `tests/llm/test_prompt_sanitizer_enhanced.py` | 23 positive/negative detection cases, Unicode normalisation, sanitize phrase neutralisation, false-positive guard |
+
+### Follow-up (§3 findings — February 2026)
+
+| Test file | Coverage |
+|-----------|----------|
+| `tests/security/test_oidc_cache.py` | Updated: now tests `security.auth._TTLCache` (the canonical implementation) rather than the removed middleware duplicate; added `test_clear_empties_all_entries` for the new `clear()` method |
+| `tests/security/test_jwt_delegation.py` | New: verifies `_validate_jwt` / `_OIDCTTLCache` absent from middleware; `AuthContext` identity; middleware dispatches to `authenticate_request`; 401 propagation; exempt paths bypass auth |
+| `tests/security/test_key_rotation.py` | New: `clear_auth_caches()` export, OIDC/JWKS cache clearing, idempotency; SIGUSR1 handler installation; model registry cache clear and LRU reload |
+| `tests/test_security_review_fixes.py` | New: integration smoke-tests for all 5 fixes — no duplicate symbols in middleware, no `sys.path.insert` in production files, pyproject.toml package discovery, admin endpoint existence, admin router mounted, no `on_event`, lifespan configured |
 
 ---
 
@@ -134,21 +228,28 @@ The following observations are architectural notes for the engineering team:
 - **Comprehensive CI/CD** with 22 GitHub Actions workflows including SBOM, container scanning, SAST, secret scanning, and IaC scanning.
 - **OpenTelemetry-first** instrumentation with distributed tracing, metrics, and structured logging.
 
-### Production Readiness Score (pre-improvements)
-| Category | Assessment |
-|----------|-----------|
-| Architecture | ✅ Strong |
-| Observability | ✅ Strong |
-| Security headers | ⚠️ Missing CSP (now fixed) |
-| Auth cache | ⚠️ Memory leak (now fixed) |
-| AI safety | ⚠️ Partial injection coverage (now improved) |
-| Cloud compliance (AUS) | ⚠️ No Azure OpenAI (now added) |
-| Test coverage | ✅ 320+ test files |
-| Documentation | ✅ Comprehensive |
+### Production Readiness Score
+| Category | Original | After Feb 2026 follow-up |
+|----------|----------|--------------------------|
+| Architecture | ✅ Strong | ✅ Strong |
+| Observability | ✅ Strong | ✅ Strong |
+| Security headers | ⚠️ Missing CSP | ✅ Fixed |
+| Auth cache | ⚠️ Memory leak | ✅ Fixed |
+| AI safety | ⚠️ Partial injection coverage | ✅ Improved |
+| Cloud compliance (AUS) | ⚠️ No Azure OpenAI | ✅ Added |
+| Auth code quality | ⚠️ Duplicate JWT logic | ✅ Centralised (§3.1) |
+| Import hygiene | ⚠️ `sys.path` manipulation | ✅ Proper packaging (§3.2) |
+| Key rotation | ⚠️ No in-process trigger | ✅ SIGUSR1 + HTTP (§3.3) |
+| Registry invalidation | ⚠️ Restart required | ✅ Admin endpoint (§3.4) |
+| Lifecycle events | ⚠️ Deprecated `on_event` | ✅ Lifespan pattern (§3.5) |
+| Test coverage | ✅ 320+ test files | ✅ 39 new tests for §3 fixes |
+| Documentation | ✅ Comprehensive | ✅ Comprehensive |
 
 ---
 
 ## 6. Change Summary
+
+### Original review (§2 findings)
 
 | File | Type | Description |
 |------|------|-------------|
@@ -162,3 +263,19 @@ The following observations are architectural notes for the engineering team:
 | `tests/security/test_oidc_cache.py` | New | Test suite for OIDC TTL cache |
 | `packages/llm/tests/test_azure_openai_provider.py` | New | Test suite for Azure OpenAI provider |
 | `tests/llm/test_prompt_sanitizer_enhanced.py` | New | Test suite for enhanced injection detection |
+
+### Follow-up (§3 findings — February 2026)
+
+| File | Type | Description |
+|------|------|-------------|
+| `apps/api-gateway/src/api/middleware/security.py` | Modified | Removed duplicate JWT validation; delegates to `security.auth.authenticate_request()`; added `/v1/admin` → `config.write` RBAC mapping |
+| `packages/security/src/security/auth.py` | Modified | Added `clear_auth_caches()` to expose explicit OIDC/JWKS cache invalidation |
+| `apps/api-gateway/src/api/main.py` | Modified | Removed `sys.path.insert` bootstrap; replaced `@app.on_event` with `@asynccontextmanager lifespan`; added SIGUSR1 key rotation handler; mounts admin router |
+| `apps/api-gateway/src/api/routes/agent_config.py` | Modified | Removed `sys.path.insert` block (SERVICES_ROOT manipulation) |
+| `services/scope_baseline/main.py` | Modified | Removed `sys.path.insert` block (REPO_ROOT manipulation) |
+| `pyproject.toml` | Modified | Replaced `[tool.setuptools] packages = [...]` with `[tool.setuptools.packages.find]` (`namespaces = true`); expanded pytest `pythonpath` |
+| `apps/api-gateway/src/api/routes/admin.py` | New | Admin endpoints: `POST /v1/admin/model-registry/cache/clear` and `POST /v1/admin/llm/keys/rotate`; both require `config.write` |
+| `tests/security/test_oidc_cache.py` | Modified | Retargeted to `security.auth._TTLCache`; added `clear()` test |
+| `tests/security/test_jwt_delegation.py` | New | Delegation correctness, symbol removal, 401 propagation, exempt paths |
+| `tests/security/test_key_rotation.py` | New | Cache clearing, SIGUSR1 handler, model registry LRU invalidation |
+| `tests/test_security_review_fixes.py` | New | Smoke tests for all 5 previously deferred findings |

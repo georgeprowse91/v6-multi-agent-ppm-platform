@@ -3,44 +3,23 @@ from __future__ import annotations
 import json
 import logging
 import os
-import threading
-import time as _time
-from collections import OrderedDict
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
 import httpx
-import jwt
-
-try:
-    from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
-except ModuleNotFoundError:  # pragma: no cover - fallback for constrained local smoke envs
-
-    class RSAPublicKey:  # type: ignore[no-redef]
-        pass
-
 
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
-from jwt import InvalidTokenError
-from security.errors import error_payload
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from starlette.types import ASGIApp
 
+from security.auth import AuthContext, authenticate_request
 from security.config import load_yaml
+from security.errors import error_payload
 
 logger = logging.getLogger("api-gateway-security")
-
-
-@dataclass
-class AuthContext:
-    tenant_id: str
-    subject: str
-    roles: list[str]
-    claims: dict[str, Any]
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -61,6 +40,8 @@ def _role_permissions(roles_cfg: dict[str, Any]) -> dict[str, set[str]]:
 def _required_permission(request: Request) -> str:
     path = request.url.path
     method = request.method
+    if path.startswith("/v1/admin"):
+        return "config.write"
     if path.startswith("/v1/audit"):
         return "audit.read" if method == "GET" else "audit.write"
     if path.startswith("/v1/agents/config") or "/agents/config" in path:
@@ -88,15 +69,6 @@ def _classification_from_body(body: bytes) -> str | None:
     if isinstance(payload, dict):
         return payload.get("classification")
     return None
-
-
-def _get_claim(claims: dict[str, Any], path: str) -> Any:
-    current: Any = claims
-    for part in path.split("."):
-        if not isinstance(current, dict):
-            return None
-        current = current.get(part)
-    return current
 
 
 def _is_classification_allowed(
@@ -147,126 +119,6 @@ def _mask_fields(
             payload[key] = _mask_fields(value, field_cfg, roles, mask)
 
     return payload
-
-
-# Bounded TTL cache for OIDC discovery documents.  A plain dict (the previous
-# implementation) never expires entries, causing unbounded memory growth and
-# stale discovery data after IdP key rotation.  This replacement is
-# thread-safe, capped at _OIDC_CACHE_MAX entries, and expires entries after
-# _OIDC_CACHE_TTL seconds (default: 5 minutes, matching AUTH_CACHE_TTL_SECONDS).
-_OIDC_CACHE_TTL: float = float(os.getenv("AUTH_CACHE_TTL_SECONDS", "300"))
-_OIDC_CACHE_MAX: int = int(os.getenv("AUTH_CACHE_MAX_ENTRIES", "32"))
-
-
-class _OIDCTTLCache:
-    """Thread-safe bounded LRU cache with per-entry TTL."""
-
-    def __init__(self, ttl: float, max_size: int) -> None:
-        self._ttl = ttl
-        self._max = max(1, max_size)
-        self._store: OrderedDict[str, tuple[dict[str, Any], float]] = OrderedDict()
-        self._lock = threading.RLock()
-
-    def get(self, key: str) -> dict[str, Any] | None:
-        now = _time.time()
-        with self._lock:
-            entry = self._store.get(key)
-            if entry is None:
-                return None
-            value, inserted_at = entry
-            if now - inserted_at >= self._ttl:
-                self._store.pop(key, None)
-                return None
-            self._store.move_to_end(key)
-            return value
-
-    def set(self, key: str, value: dict[str, Any]) -> None:
-        now = _time.time()
-        with self._lock:
-            self._store[key] = (value, now)
-            self._store.move_to_end(key)
-            while len(self._store) > self._max:
-                self._store.popitem(last=False)
-
-
-_OIDC_CONFIG_CACHE = _OIDCTTLCache(ttl=_OIDC_CACHE_TTL, max_size=_OIDC_CACHE_MAX)
-
-
-async def _load_oidc_config(discovery_url: str) -> dict[str, Any]:
-    cached = _OIDC_CONFIG_CACHE.get(discovery_url)
-    if cached is not None:
-        return cached
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        response = await client.get(discovery_url)
-        response.raise_for_status()
-        data = cast(dict[str, Any], response.json())
-    _OIDC_CONFIG_CACHE.set(discovery_url, data)
-    return data
-
-
-async def _validate_jwt(token: str) -> dict[str, Any]:
-    identity_url = os.getenv("AUTH_SERVICE_URL") or os.getenv("IDENTITY_ACCESS_URL")
-    if identity_url:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.post(f"{identity_url}/auth/validate", json={"token": token})
-            response.raise_for_status()
-            data = response.json()
-            if not data.get("active"):
-                raise HTTPException(status_code=401, detail="Invalid token")
-            return data.get("claims") or {}
-
-    jwt_secret = os.getenv("IDENTITY_JWT_SECRET")
-    jwks_url = os.getenv("IDENTITY_JWKS_URL")
-    discovery_url = os.getenv("IDENTITY_OIDC_DISCOVERY_URL")
-    audience = os.getenv("IDENTITY_AUDIENCE")
-    issuer = os.getenv("IDENTITY_ISSUER")
-    try:
-        if not jwks_url and (discovery_url or issuer):
-            discovery_endpoint = discovery_url or (
-                f"{issuer.rstrip('/')}/.well-known/openid-configuration" if issuer else None
-            )
-            if discovery_endpoint:
-                oidc_config = await _load_oidc_config(discovery_endpoint)
-                jwks_url = oidc_config.get("jwks_uri")
-                issuer = issuer or oidc_config.get("issuer")
-        if jwks_url:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.get(jwks_url)
-                response.raise_for_status()
-                jwks = response.json()
-            unverified_header = jwt.get_unverified_header(token)
-            kid = unverified_header.get("kid")
-            key = next((k for k in jwks.get("keys", []) if k.get("kid") == kid), None)
-            if not key:
-                raise HTTPException(status_code=401, detail="Invalid token key")
-            public_key = cast(RSAPublicKey, jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key)))
-            return cast(
-                dict[str, Any],
-                jwt.decode(
-                    token,
-                    public_key,
-                    algorithms=[unverified_header.get("alg", "RS256")],
-                    audience=audience,
-                    issuer=issuer,
-                    options={"verify_aud": bool(audience), "verify_iss": bool(issuer)},
-                ),
-            )
-        if not jwt_secret:
-            raise HTTPException(status_code=500, detail="JWT validation configuration missing")
-        return cast(
-            dict[str, Any],
-            jwt.decode(
-                token,
-                jwt_secret,
-                algorithms=["HS256"],
-                audience=audience,
-                issuer=issuer,
-                options={"verify_aud": bool(audience), "verify_iss": bool(issuer)},
-            ),
-        )
-    except InvalidTokenError as exc:
-        logger.warning("token_validation_failed", extra={"error": str(exc)})
-        raise HTTPException(status_code=401, detail="Invalid token") from exc
 
 
 async def _evaluate_rbac(auth: AuthContext, permission: str, classification: str | None) -> None:
@@ -444,6 +296,13 @@ async def _evaluate_abac(
 
 
 class AuthTenantMiddleware(BaseHTTPMiddleware):
+    """Authentication and authorisation middleware for the API gateway.
+
+    JWT validation is delegated entirely to ``security.auth.authenticate_request``
+    which centralises the OIDC/JWKS/HS256 logic and its TTL-cached JWKS store.
+    This middleware then applies gateway-specific RBAC and ABAC checks on top.
+    """
+
     def __init__(self, app: ASGIApp, *args: Any, **kwargs: Any) -> None:
         super().__init__(app, *args, **kwargs)
 
@@ -467,22 +326,11 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
         ):
             return await call_next(request)
 
-        token = None
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header.replace("Bearer ", "", 1).strip()
-        tenant_id = request.headers.get("X-Tenant-ID")
-
-        if not token or not tenant_id:
-            payload = error_payload(
-                message="Missing JWT or tenant header",
-                code="http_401",
-                details="Missing JWT or tenant header",
-            )
-            return JSONResponse(status_code=401, content=payload)
-
+        # Delegate JWT validation, tenant/role extraction, and AuthContext
+        # construction to the centralised security package.  This eliminates
+        # the duplicate _validate_jwt implementation that previously lived here.
         try:
-            claims = await _validate_jwt(token)
+            auth_context = await authenticate_request(request)
         except HTTPException as exc:
             message = exc.detail if isinstance(exc.detail, str) else "Request failed"
             payload = error_payload(
@@ -490,30 +338,6 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(status_code=exc.status_code, content=payload)
 
-        roles_claim = os.getenv("IDENTITY_ROLES_CLAIM", "roles")
-        roles = _get_claim(claims, roles_claim) or claims.get("role") or claims.get("groups") or []
-        if isinstance(roles, str):
-            roles = [role.strip() for role in roles.replace(",", " ").split() if role.strip()]
-
-        tenant_claim = os.getenv("IDENTITY_TENANT_CLAIM", "tenant_id")
-        claim_tenant = _get_claim(claims, tenant_claim)
-        if not claim_tenant:
-            payload = error_payload(
-                message="Tenant claim missing", code="http_403", details="Tenant claim missing"
-            )
-            return JSONResponse(status_code=403, content=payload)
-        if claim_tenant != tenant_id:
-            payload = error_payload(
-                message="Tenant mismatch", code="http_403", details="Tenant mismatch"
-            )
-            return JSONResponse(status_code=403, content=payload)
-
-        auth_context = AuthContext(
-            tenant_id=tenant_id,
-            subject=claims.get("sub", "unknown"),
-            roles=roles,
-            claims=claims,
-        )
         request.state.auth = auth_context
 
         body = await request.body()

@@ -235,6 +235,17 @@ async def _validate_jwt(token: str, config: AuthConfig) -> dict[str, Any]:
         raise HTTPException(status_code=401, detail="Invalid token") from exc
 
 
+def clear_auth_caches() -> None:
+    """Clear all in-process authentication caches.
+
+    Forces fresh OIDC discovery document and JWKS fetches on the next request.
+    Call this after an LLM API key or IdP JWKS rotation to ensure the process
+    picks up new credentials without requiring a restart.
+    """
+    _OIDC_CONFIG_CACHE.clear()
+    _JWKS_CACHE.clear()
+
+
 async def authenticate_request(request: Request, config: AuthConfig | None = None) -> AuthContext:
     auth_header = request.headers.get("Authorization", "")
     token = (

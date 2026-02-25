@@ -4,18 +4,10 @@ Agent Configuration API Routes
 Provides CRUD endpoints for agent configuration management.
 """
 
-import sys
-from pathlib import Path
 from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel
-
-# Add services to path
-REPO_ROOT = Path(__file__).resolve().parents[5]
-SERVICES_ROOT = REPO_ROOT / "services" / "agent-config" / "src"
-if str(SERVICES_ROOT) not in sys.path:
-    sys.path.insert(0, str(SERVICES_ROOT))
 
 from agent_config_service import (
     AgentCategory,
