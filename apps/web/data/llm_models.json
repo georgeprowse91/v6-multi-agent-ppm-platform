@@ -22,5 +22,21 @@
     "enabled": true,
     "capabilities": ["chat", "json"],
     "allow_in_demo": false
+  },
+  {
+    "provider": "azure_openai",
+    "model_id": "gpt-4o",
+    "display_name": "Azure OpenAI GPT-4o (AUS East)",
+    "enabled": false,
+    "capabilities": ["chat", "json"],
+    "allow_in_demo": false
+  },
+  {
+    "provider": "azure_openai",
+    "model_id": "gpt-4o-mini",
+    "display_name": "Azure OpenAI GPT-4o Mini (AUS East)",
+    "enabled": false,
+    "capabilities": ["chat", "json"],
+    "allow_in_demo": false
   }
 ]

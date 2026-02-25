@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
+import time as _time
+from collections import OrderedDict
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -146,17 +149,58 @@ def _mask_fields(
     return payload
 
 
-_OIDC_CONFIG_CACHE: dict[str, dict[str, Any]] = {}
+# Bounded TTL cache for OIDC discovery documents.  A plain dict (the previous
+# implementation) never expires entries, causing unbounded memory growth and
+# stale discovery data after IdP key rotation.  This replacement is
+# thread-safe, capped at _OIDC_CACHE_MAX entries, and expires entries after
+# _OIDC_CACHE_TTL seconds (default: 5 minutes, matching AUTH_CACHE_TTL_SECONDS).
+_OIDC_CACHE_TTL: float = float(os.getenv("AUTH_CACHE_TTL_SECONDS", "300"))
+_OIDC_CACHE_MAX: int = int(os.getenv("AUTH_CACHE_MAX_ENTRIES", "32"))
+
+
+class _OIDCTTLCache:
+    """Thread-safe bounded LRU cache with per-entry TTL."""
+
+    def __init__(self, ttl: float, max_size: int) -> None:
+        self._ttl = ttl
+        self._max = max(1, max_size)
+        self._store: OrderedDict[str, tuple[dict[str, Any], float]] = OrderedDict()
+        self._lock = threading.RLock()
+
+    def get(self, key: str) -> dict[str, Any] | None:
+        now = _time.time()
+        with self._lock:
+            entry = self._store.get(key)
+            if entry is None:
+                return None
+            value, inserted_at = entry
+            if now - inserted_at >= self._ttl:
+                self._store.pop(key, None)
+                return None
+            self._store.move_to_end(key)
+            return value
+
+    def set(self, key: str, value: dict[str, Any]) -> None:
+        now = _time.time()
+        with self._lock:
+            self._store[key] = (value, now)
+            self._store.move_to_end(key)
+            while len(self._store) > self._max:
+                self._store.popitem(last=False)
+
+
+_OIDC_CONFIG_CACHE = _OIDCTTLCache(ttl=_OIDC_CACHE_TTL, max_size=_OIDC_CACHE_MAX)
 
 
 async def _load_oidc_config(discovery_url: str) -> dict[str, Any]:
-    if discovery_url in _OIDC_CONFIG_CACHE:
-        return _OIDC_CONFIG_CACHE[discovery_url]
+    cached = _OIDC_CONFIG_CACHE.get(discovery_url)
+    if cached is not None:
+        return cached
     async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.get(discovery_url)
         response.raise_for_status()
         data = cast(dict[str, Any], response.json())
-    _OIDC_CONFIG_CACHE[discovery_url] = data
+    _OIDC_CONFIG_CACHE.set(discovery_url, data)
     return data
 
 
