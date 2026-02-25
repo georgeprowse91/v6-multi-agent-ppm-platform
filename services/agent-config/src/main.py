@@ -107,8 +107,8 @@ def create_app() -> FastAPI:
             configure_tracing("agent-config")
             app.add_middleware(RequestMetricsMiddleware)
             app.add_middleware(TraceMiddleware)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to configure observability: %s", exc)
 
     # ------------------------------------------------------------------
     # Health
@@ -153,8 +153,6 @@ def create_app() -> FastAPI:
     def update_agent(catalog_id: str, body: UpdateAgentConfigRequest) -> AgentConfigResponse:
         """Update enablement or parameter values for an agent."""
         store = get_agent_config_store()
-        if store.get_agent(catalog_id) is None:
-            raise HTTPException(status_code=404, detail=f"Agent not found: {catalog_id}")
         updates: dict[str, Any] = {}
         if body.enabled is not None:
             updates["enabled"] = body.enabled

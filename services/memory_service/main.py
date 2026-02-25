@@ -17,9 +17,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-for root in (REPO_ROOT,):
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 try:
     from packages.version import API_VERSION

@@ -103,7 +103,7 @@ class SapErpClient(ErpClient):
     def authenticate(self) -> None:
         result = self._connector.test_connection()
         from base_connector import ConnectionStatus
-        if result.status not in (ConnectionStatus.CONNECTED,):
+        if result.status != ConnectionStatus.CONNECTED:
             raise RuntimeError(f"SAP authentication failed: {result.message}")
         self._authenticated = True
         logger.info("SAP ERP client authenticated successfully")
@@ -171,7 +171,7 @@ class OracleErpClient(ErpClient):
     def authenticate(self) -> None:
         result = self._connector.test_connection()
         from base_connector import ConnectionStatus
-        if result.status not in (ConnectionStatus.CONNECTED,):
+        if result.status != ConnectionStatus.CONNECTED:
             raise RuntimeError(f"Oracle authentication failed: {result.message}")
         self._authenticated = True
         logger.info("Oracle ERP client authenticated successfully")
@@ -238,7 +238,7 @@ class NetSuiteErpClient(ErpClient):
     def authenticate(self) -> None:
         result = self._connector.test_connection()
         from base_connector import ConnectionStatus
-        if result.status not in (ConnectionStatus.CONNECTED,):
+        if result.status != ConnectionStatus.CONNECTED:
             raise RuntimeError(f"NetSuite authentication failed: {result.message}")
         self._authenticated = True
         logger.info("NetSuite ERP client authenticated successfully")

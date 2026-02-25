@@ -487,10 +487,10 @@ class MethodologyEngine:
             ValueError: If the methodology is not registered.
         """
         key = Methodology(methodology) if isinstance(methodology, str) else methodology
-        try:
-            return self._templates[key]
-        except KeyError:
-            raise ValueError(f"Unknown methodology: {methodology}") from None
+        template = self._templates.get(key)
+        if template is None:
+            raise ValueError(f"Unknown methodology: {methodology}")
+        return template
 
     def register_template(self, template: MethodologyTemplate) -> None:
         """Register or replace a methodology template."""

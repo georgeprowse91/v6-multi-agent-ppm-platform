@@ -88,9 +88,9 @@ def verify_signature(
         logger.warning("ZOOM_WEBHOOK_SECRET not set; skipping signature verification")
         return True
 
-    _h = {k.lower(): v for k, v in headers.items()}
-    timestamp = _h.get("x-zm-request-timestamp", "")
-    received_sig = _h.get("x-zm-signature", "")
+    normalised_headers = {k.lower(): v for k, v in headers.items()}
+    timestamp = normalised_headers.get("x-zm-request-timestamp", "")
+    received_sig = normalised_headers.get("x-zm-signature", "")
 
     message = f"v0:{timestamp}:{payload_body.decode('utf-8', errors='replace')}"
     expected_sig = "v0=" + hmac.new(
@@ -181,13 +181,14 @@ def handle_webhook(payload: dict[str, Any], headers: dict[str, str]) -> dict[str
         details (dict): Event-specific normalised fields.
     """
     event_type: str = payload.get("event", "")
-    event_obj: dict[str, Any] = payload.get("payload", {}).get("object", {})
-    account_id: str | None = payload.get("payload", {}).get("account_id")
     event_ts: int | None = payload.get("event_ts")
+    event_payload: dict[str, Any] = payload.get("payload", {})
+    event_obj: dict[str, Any] = event_payload.get("object", {})
+    account_id: str | None = event_payload.get("account_id")
 
     # Handle Zoom challenge-response (URL validation)
     if event_type == "endpoint.url_validation":
-        plain_token = payload.get("payload", {}).get("plainToken", "")
+        plain_token = event_payload.get("plainToken", "")
         zoom_secret = os.getenv("ZOOM_WEBHOOK_SECRET", "")
         encrypted = hmac.new(
             zoom_secret.encode("utf-8"),
