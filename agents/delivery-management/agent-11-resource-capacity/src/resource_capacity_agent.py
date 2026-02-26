@@ -20,25 +20,28 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, cast
 
-import yaml
-from data_quality.rules import evaluate_quality_rules
+_COMMON_SRC = Path(__file__).resolve().parents[4] / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths()
+
+import yaml  # noqa: E402
+from data_quality.rules import evaluate_quality_rules  # noqa: E402
 
 try:
-    from events import ResourceAllocationCreatedEvent
+    from events import ResourceAllocationCreatedEvent  # noqa: E402
 except Exception:
-    from packages.contracts.src.events import ResourceAllocationCreatedEvent
-from observability.tracing import get_trace_id
+    from packages.contracts.src.events import ResourceAllocationCreatedEvent  # noqa: E402
+from observability.tracing import get_trace_id  # noqa: E402
 
-from agents.common.connector_integration import CalendarIntegrationService, DatabaseStorageService
-from agents.common.integration_services import ForecastingModel
-from agents.common.scenario import ScenarioEngine
-from agents.runtime import BaseAgent, get_event_bus
-from agents.runtime.src.state_store import TenantStateStore
-
-FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[4] / "packages" / "feature-flags" / "src"
-if str(FEATURE_FLAGS_ROOT) not in sys.path:
-    sys.path.insert(0, str(FEATURE_FLAGS_ROOT))
-
+from agents.common.connector_integration import CalendarIntegrationService, DatabaseStorageService  # noqa: E402
+from agents.common.integration_services import ForecastingModel  # noqa: E402
+from agents.common.scenario import ScenarioEngine  # noqa: E402
+from agents.runtime import BaseAgent, get_event_bus  # noqa: E402
+from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
 
 

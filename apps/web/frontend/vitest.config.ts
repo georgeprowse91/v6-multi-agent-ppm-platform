@@ -12,16 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@design-system/tokens/tokens': path.resolve(
-        __dirname,
-        '../../..',
-        'packages/ui-kit/design-system/tokens/tokens.ts'
-      ),
-      '@design-system/icons/icon-map.json': path.resolve(
-        __dirname,
-        '../../..',
-        'packages/ui-kit/design-system/icons/icon-map.json'
-      ),
+      '@design-system': path.resolve(__dirname, '../../../packages/ui-kit/design-system'),
       '@ppm/canvas-engine': path.resolve(__dirname, '../../..', 'packages/canvas-engine/src'),
     },
   },

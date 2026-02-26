@@ -12,18 +12,21 @@ import sys
 
 logger = logging.getLogger(__name__)
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
+
 CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
 CONNECTOR_SDK_PATH = CONNECTORS_ROOT / "sdk" / "src"
 
 
 def _ensure_connector_paths() -> None:
-    if str(CONNECTOR_SDK_PATH) not in sys.path:
-        sys.path.insert(0, str(CONNECTOR_SDK_PATH))
-    for connector_dir in CONNECTORS_ROOT.iterdir():
-        src_path = connector_dir / "src"
-        if src_path.is_dir() and str(src_path) not in sys.path:
-            sys.path.insert(0, str(src_path))
+    """Legacy helper - paths are now registered by ensure_monorepo_paths."""
+    pass
 
 
 @dataclass

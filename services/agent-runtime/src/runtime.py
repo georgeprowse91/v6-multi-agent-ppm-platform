@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import ast
 import asyncio
 import importlib.util
 import inspect
 import json
+import logging
 import os
 import sys
 import time
@@ -17,21 +19,13 @@ AGENTS_ROOT = REPO_ROOT / "agents"
 CONNECTOR_REGISTRY_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "connectors.json"
 RUNTIME_CONFIG_DIR = Path(__file__).resolve().parent / "config"
 
-for path in [
-    REPO_ROOT,
-    PACKAGES_ROOT / "data-quality" / "src",
-    PACKAGES_ROOT / "contracts" / "src",
-    PACKAGES_ROOT / "observability" / "src",
-    PACKAGES_ROOT / "security" / "src",
-    PACKAGES_ROOT / "llm" / "src",
-    PACKAGES_ROOT / "event-bus" / "src",
-    PACKAGES_ROOT / "feature-flags" / "src",
-    PACKAGES_ROOT / "common" / "src",
-    REPO_ROOT / "services" / "data-sync-service" / "src",
-    REPO_ROOT / "ops",
-]:
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+_COMMON_SRC = PACKAGES_ROOT / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths(REPO_ROOT)
 
 from common.resilience import (  # noqa: E402
     CircuitBreakerPolicy,
@@ -132,6 +126,47 @@ class ConnectorRegistry:
         return self._connectors.get(connector_id)
 
 
+_BLOCKED_IMPORTS = frozenset({
+    "subprocess", "shutil", "ctypes", "multiprocessing",
+})
+
+_module_validation_logger = logging.getLogger(__name__ + ".module_validation")
+
+
+def _validate_module_source(path: Path) -> None:
+    """Static analysis: reject modules that import dangerous standard-library modules.
+
+    This is a defense-in-depth measure — it does **not** replace proper
+    containerised sandboxing but raises the bar for accidental or
+    opportunistic abuse.
+    """
+    try:
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(path))
+    except (SyntaxError, UnicodeDecodeError) as exc:
+        _module_validation_logger.warning(
+            "Could not parse %s for import validation: %s", path, exc,
+        )
+        return  # allow load to proceed — exec_module will surface the real error
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                top = alias.name.split(".")[0]
+                if top in _BLOCKED_IMPORTS:
+                    raise ImportError(
+                        f"Module {path} imports blocked module {alias.name!r} "
+                        f"(line {node.lineno})"
+                    )
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            top = node.module.split(".")[0]
+            if top in _BLOCKED_IMPORTS:
+                raise ImportError(
+                    f"Module {path} imports blocked module {node.module!r} "
+                    f"(line {node.lineno})"
+                )
+
+
 class ConnectorActionClient:
     def __init__(
         self,
@@ -178,6 +213,7 @@ class ConnectorActionClient:
 
     def _load_entrypoint_module(self, connector: ConnectorInfo) -> Any:
         module_path = self._resolve_entrypoint(connector)
+        _validate_module_source(module_path)
         module_name = f"connector_entrypoint_{connector.connector_id}_{hash(module_path)}"
         spec = importlib.util.spec_from_file_location(module_name, module_path)
         if spec is None or spec.loader is None:
@@ -677,6 +713,7 @@ class AgentRuntime:
     def _load_agent_class(self, path: Path, class_name: str | None = None) -> type[BaseAgent]:
         if str(path.parent) not in sys.path:
             sys.path.insert(0, str(path.parent))
+        _validate_module_source(path)
         module_name = f"agent_module_{path.stem}_{hash(path)}"
         spec = importlib.util.spec_from_file_location(module_name, path)
         if spec is None or spec.loader is None:

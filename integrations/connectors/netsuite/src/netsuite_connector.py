@@ -13,14 +13,19 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SDK_PATH = Path(__file__).resolve().parents[2] / "sdk" / "src"
-if str(SDK_PATH) not in sys.path:
-    sys.path.insert(0, str(SDK_PATH))
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+_COMMON_SRC = _REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
 
-from base_connector import ConnectorCategory, ConnectorConfig
-from http_client import HttpClient
-from rest_connector import OAuth2RestConnector
-from connector_secrets import resolve_secret
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths(_REPO_ROOT)
+
+from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from http_client import HttpClient  # noqa: E402
+from rest_connector import OAuth2RestConnector  # noqa: E402
+from connector_secrets import resolve_secret  # noqa: E402
 
 DEFAULT_TOKEN_URL = "https://accounts.netsuite.com/services/oauth2/v1/token"
 

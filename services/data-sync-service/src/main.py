@@ -13,12 +13,12 @@ from fastapi import APIRouter, FastAPI, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT):
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+_common_src = REPO_ROOT / "packages" / "common" / "src"
+if str(_common_src) not in sys.path:
+    sys.path.insert(0, str(_common_src))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 from conflict_store import get_conflict_store  # noqa: E402
 from data_sync_queue import enqueue_sync_job, get_queue_client  # noqa: E402

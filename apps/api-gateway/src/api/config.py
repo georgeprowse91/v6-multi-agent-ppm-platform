@@ -12,9 +12,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 REPO_ROOT = Path(__file__).resolve().parents[4]
 COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
 if str(COMMON_ROOT) not in sys.path:
-    sys.path.insert(0, str(COMMON_ROOT))
+    sys.path.insert(0, str(COMMON_ROOT))  # bootstrap: packages/common/src for env_validation
 
-from common.env_validation import build_validation_diagnostics, format_validation_report
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths(REPO_ROOT)
+
+from common.env_validation import (  # noqa: E402
+    build_validation_diagnostics,
+    format_validation_report,
+    reject_placeholder_secrets,
+)
 
 
 class Settings(BaseSettings):
@@ -67,4 +75,9 @@ def validate_startup_config() -> Settings:
             "AUTH_DEV_MODE must not be enabled in production. "
             "Set AUTH_DEV_MODE=false in the production environment."
         )
+    reject_placeholder_secrets(
+        service_name="api-gateway",
+        environment=settings.environment,
+        secret_vars={"DATABASE_URL": settings.database_url},
+    )
     return settings

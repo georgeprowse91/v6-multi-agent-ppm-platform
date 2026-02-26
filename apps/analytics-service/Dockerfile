@@ -1,3 +1,7 @@
+# NOTE: This Dockerfile uses Docker BuildKit additional_contexts. It must be
+# built via docker-compose (ops/docker/docker-compose.yml) which provides the
+# 'repo-root' context pointing to the repository root.
+# Standalone build: DOCKER_BUILDKIT=1 docker build --build-context repo-root=../.. .
 # syntax=docker/dockerfile:1.6
 FROM python:3.11-slim
 

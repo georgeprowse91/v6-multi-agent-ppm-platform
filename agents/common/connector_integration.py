@@ -28,20 +28,15 @@ from email.message import EmailMessage
 from pathlib import Path
 from typing import Any
 
-# Add connector SDK to path
-REPO_ROOT = Path(__file__).resolve().parents[2]
-CONNECTOR_SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+_COMMON_SRC = Path(__file__).resolve().parents[2] / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
 
 def _ensure_connector_paths() -> None:
-    for connector_dir in CONNECTORS_ROOT.iterdir():
-        src_path = connector_dir / "src"
-        if src_path.is_dir() and str(src_path) not in sys.path:
-            sys.path.insert(0, str(src_path))
-
-    if str(CONNECTOR_SDK_PATH) not in sys.path:
-        sys.path.insert(0, str(CONNECTOR_SDK_PATH))
+    ensure_monorepo_paths()
 
 
 def _get_connector_types() -> tuple[type, type]:
@@ -2708,10 +2703,17 @@ class DatabaseStorageService:
         )
         return pyodbc.connect(conn_str, attrs_before={access_token_key: access_token})
 
+    def _safe_bracket_quote(self, name: str) -> str:
+        """Bracket-quote a SQL Server identifier after normalization."""
+        normalized = self._normalize_collection_name(name)
+        # SQL Server bracket quoting prevents identifier injection
+        return f"[{normalized}]"
+
     def _ensure_azure_sql_table(self, cursor, table_name: str) -> None:
+        safe_name = self._safe_bracket_quote(table_name)
         cursor.execute(f"""
-            IF OBJECT_ID(N'{table_name}', N'U') IS NULL
-            CREATE TABLE {table_name} (
+            IF OBJECT_ID(N'{safe_name}', N'U') IS NULL
+            CREATE TABLE {safe_name} (
                 record_id NVARCHAR(255) NOT NULL PRIMARY KEY,
                 data NVARCHAR(MAX) NOT NULL,
                 updated_at DATETIME2 NOT NULL
@@ -2755,7 +2757,7 @@ class DatabaseStorageService:
     ) -> dict[str, Any]:
         import json
 
-        table_name = self._normalize_collection_name(collection)
+        safe_name = self._safe_bracket_quote(collection)
         payload = dict(data)
         payload["_id"] = record_id
         payload["_updated_at"] = datetime.now(timezone.utc).isoformat()
@@ -2766,10 +2768,10 @@ class DatabaseStorageService:
             connection = self._get_azure_sql_connection()
             cursor = connection.cursor()
             try:
-                self._ensure_azure_sql_table(cursor, table_name)
+                self._ensure_azure_sql_table(cursor, collection)
                 cursor.execute(
                     f"""
-                    MERGE {table_name} AS target
+                    MERGE {safe_name} AS target
                     USING (SELECT ? AS record_id, ? AS data, ? AS updated_at) AS source
                     ON target.record_id = source.record_id
                     WHEN MATCHED THEN
@@ -2812,14 +2814,14 @@ class DatabaseStorageService:
     async def _retrieve_azure_sql(self, collection: str, record_id: str) -> dict[str, Any] | None:
         import json
 
-        table_name = self._normalize_collection_name(collection)
+        safe_name = self._safe_bracket_quote(collection)
         try:
             connection = self._get_azure_sql_connection()
             cursor = connection.cursor()
             try:
-                self._ensure_azure_sql_table(cursor, table_name)
+                self._ensure_azure_sql_table(cursor, collection)
                 cursor.execute(
-                    f"SELECT data FROM {table_name} WHERE record_id = ?",
+                    f"SELECT data FROM {safe_name} WHERE record_id = ?",
                     (record_id,),
                 )
                 row = cursor.fetchone()
@@ -2855,7 +2857,7 @@ class DatabaseStorageService:
     ) -> list[dict[str, Any]]:
         import json
 
-        table_name = self._normalize_collection_name(collection)
+        safe_name = self._safe_bracket_quote(collection)
         filter_clauses = []
         params: list[Any] = []
         if filters:
@@ -2873,9 +2875,9 @@ class DatabaseStorageService:
             connection = self._get_azure_sql_connection()
             cursor = connection.cursor()
             try:
-                self._ensure_azure_sql_table(cursor, table_name)
+                self._ensure_azure_sql_table(cursor, collection)
                 cursor.execute(
-                    f"SELECT TOP (?) data FROM {table_name} {where_clause}",
+                    f"SELECT TOP (?) data FROM {safe_name} {where_clause}",
                     params_with_limit,
                 )
                 rows = cursor.fetchall()

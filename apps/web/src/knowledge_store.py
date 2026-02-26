@@ -1,12 +1,22 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
+_SAFE_IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]{0,127}$")
+
+
+def _quote_identifier(name: str) -> str:
+    """Validate and double-quote a SQLite identifier to prevent SQL injection."""
+    if not _SAFE_IDENTIFIER_RE.match(name):
+        raise ValueError(f"Invalid SQL identifier: {name!r}")
+    return f'"{name}"'
 
 
 @dataclass
@@ -125,13 +135,17 @@ class KnowledgeStore:
         *,
         default_value: str | None = None,
     ) -> None:
-        columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        safe_table = _quote_identifier(table)
+        safe_column = _quote_identifier(column)
+        if not _SAFE_IDENTIFIER_RE.match(column_type):
+            raise ValueError(f"Invalid SQL column type: {column_type!r}")
+        columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({safe_table})")}
         if column in columns:
             return
-        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {column_type}")
+        conn.execute(f"ALTER TABLE {safe_table} ADD COLUMN {safe_column} {column_type}")
         if default_value is not None:
             conn.execute(
-                f"UPDATE {table} SET {column} = ? WHERE {column} IS NULL",
+                f"UPDATE {safe_table} SET {safe_column} = ? WHERE {safe_column} IS NULL",
                 (default_value,),
             )
 

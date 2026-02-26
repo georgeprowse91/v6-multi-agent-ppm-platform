@@ -12,11 +12,12 @@ from pydantic import BaseModel
 from api.runtime_bootstrap import bootstrap_runtime_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[5]
-WORKFLOW_ENGINE_SRC = REPO_ROOT / "apps" / "workflow-engine" / "src"
-COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
-for path in (WORKFLOW_ENGINE_SRC, COMMON_SRC):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 from agent_client import get_agent_client  # noqa: E402
 from common.env_validation import environment_value  # noqa: E402

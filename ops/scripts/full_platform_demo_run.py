@@ -12,6 +12,13 @@ from uuid import uuid4
 import httpx
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
+
 DEMO_SCENARIOS_DIR = REPO_ROOT / "examples" / "demo-scenarios"
 DEMO_LOG_PATH = REPO_ROOT / "data" / "demo" / "demo_run_log.json"
 
@@ -69,12 +76,6 @@ async def run_full_platform_demo() -> dict:
 
     with tempfile.TemporaryDirectory() as tmpdir:
         os.environ["WORKFLOW_DB_PATH"] = str(Path(tmpdir) / "workflows.db")
-
-        api_root = REPO_ROOT / "apps" / "api-gateway" / "src"
-        workflow_root = REPO_ROOT / "apps" / "workflow-engine" / "src"
-        for root in (api_root, workflow_root, REPO_ROOT):
-            if str(root) not in sys.path:
-                sys.path.insert(0, str(root))
 
         from api.main import app as api_app  # noqa: WPS433
         from main import app as workflow_app  # noqa: WPS433

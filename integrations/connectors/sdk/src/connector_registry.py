@@ -18,8 +18,12 @@ from typing import Any
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 from base_connector import ConnectorCategory, SyncDirection
 from runtime_flags import demo_mode_enabled

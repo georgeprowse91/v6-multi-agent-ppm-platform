@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import statistics
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -11,6 +12,18 @@ from typing import Any, Dict, Iterable, List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
+
+_SAFE_IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]{0,127}$")
+
+
+def _validate_table_name(name: str) -> str:
+    """Validate and return a safe SQL table name, raising on invalid input."""
+    if not _SAFE_IDENTIFIER_RE.match(name):
+        raise ValueError(
+            f"Invalid SQL table name: {name!r}. "
+            "Table names must be alphanumeric/underscore and <= 128 chars."
+        )
+    return name
 
 
 class AnalyticsSettings(BaseSettings):
@@ -57,7 +70,7 @@ class SynapseAnalyticsProvider(AnalyticsProvider):
         from sqlalchemy import create_engine, text
 
         self._engine = create_engine(connection_string)
-        self._table = table
+        self._table = _validate_table_name(table)
         self._ensure_table()
         self._insert_stmt = text(
             f"INSERT INTO {self._table} (timestamp, category, name, value, metadata) "

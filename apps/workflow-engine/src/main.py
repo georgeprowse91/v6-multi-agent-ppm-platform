@@ -17,23 +17,12 @@ from slowapi.util import get_remote_address
 from tools.runtime_paths import bootstrap_runtime_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-WORKFLOW_ROOT = Path(__file__).resolve().parent
-SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-WORKFLOW_PACKAGE_ROOT = REPO_ROOT / "packages" / "workflow" / "src"
-EVENT_BUS_ROOT = REPO_ROOT / "packages" / "event-bus" / "src"
-COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
-for root in (
-    REPO_ROOT,
-    WORKFLOW_ROOT,
-    SECURITY_ROOT,
-    OBSERVABILITY_ROOT,
-    WORKFLOW_PACKAGE_ROOT,
-    EVENT_BUS_ROOT,
-    COMMON_ROOT,
-):
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+_common_src = REPO_ROOT / "packages" / "common" / "src"
+if str(_common_src) not in sys.path:
+    sys.path.insert(0, str(_common_src))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 from agent_client import get_agent_client  # noqa: E402
 from common.env_validation import environment_value  # noqa: E402

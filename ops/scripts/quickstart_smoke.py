@@ -6,12 +6,13 @@ import importlib
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
 
-# Ensure repo root is importable
-for p in (REPO_ROOT, REPO_ROOT / "apps" / "web" / "src"):
-    if str(p) not in sys.path:
-        sys.path.insert(0, str(p))
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 CORE_MODULES = [
     "agents",

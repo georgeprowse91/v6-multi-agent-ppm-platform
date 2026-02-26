@@ -18,23 +18,26 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Protocol
 
-import httpx
-import yaml
-from observability.metrics import build_business_workflow_metrics
-from observability.tracing import get_trace_id
-from security.lineage import mask_lineage_payload
+_COMMON_SRC = Path(__file__).resolve().parents[4] / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
 
-from agents.common.connector_integration import DatabaseStorageService, _ensure_connector_paths
-from agents.runtime import BaseAgent
-from agents.runtime.src.audit import build_audit_event, emit_audit_event
-from agents.runtime.src.event_bus import EventBus, ServiceBusEventBus
-from agents.runtime.src.state_store import TenantStateStore
-from jsonschema import ValidationError, validate
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
-FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[4] / "packages" / "feature-flags" / "src"
-if str(FEATURE_FLAGS_ROOT) not in sys.path:
-    sys.path.insert(0, str(FEATURE_FLAGS_ROOT))
+ensure_monorepo_paths()
 
+import httpx  # noqa: E402
+import yaml  # noqa: E402
+from observability.metrics import build_business_workflow_metrics  # noqa: E402
+from observability.tracing import get_trace_id  # noqa: E402
+from security.lineage import mask_lineage_payload  # noqa: E402
+
+from agents.common.connector_integration import DatabaseStorageService, _ensure_connector_paths  # noqa: E402
+from agents.runtime import BaseAgent  # noqa: E402
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from agents.runtime.src.event_bus import EventBus, ServiceBusEventBus  # noqa: E402
+from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
+from jsonschema import ValidationError, validate  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
 
 try:

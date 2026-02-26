@@ -32,16 +32,17 @@ from pydantic import AnyHttpUrl, BaseModel, Field, TypeAdapter, field_validator,
 from api.circuit_breaker import CircuitBreaker
 from api.connector_loader import get_connector_class
 
-# Add connector SDK to path
+# Bootstrap monorepo paths
 REPO_ROOT = Path(__file__).resolve().parents[5]
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
+
 CONNECTOR_SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
 CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
-connector_src_paths = [
-    path / "src" for path in CONNECTORS_ROOT.iterdir() if (path / "src").is_dir()
-]
-for path in [CONNECTOR_SDK_PATH, *connector_src_paths]:
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
 
 from regulatory_compliance_connector import RegulatoryComplianceConnector
 from security.audit_log import build_event, get_audit_log_store

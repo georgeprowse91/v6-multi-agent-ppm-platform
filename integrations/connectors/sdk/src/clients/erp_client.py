@@ -7,10 +7,13 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Iterable
 
-# Ensure the SDK src directory is on the path so sub-modules resolve.
-_SDK_SRC = Path(__file__).resolve().parents[1]
-if str(_SDK_SRC) not in sys.path:
-    sys.path.insert(0, str(_SDK_SRC))
+REPO_ROOT = Path(__file__).resolve().parents[5]
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +88,6 @@ class SapErpClient(ErpClient):
     """
 
     def __init__(self, instance_url: str = "") -> None:
-        _connectors_root = Path(__file__).resolve().parents[4]
-        _sap_src = _connectors_root / "sap" / "src"
-        if str(_sap_src) not in sys.path:
-            sys.path.insert(0, str(_sap_src))
-
         from connector_secrets import resolve_secret
         from base_connector import ConnectorCategory, ConnectorConfig, SyncDirection, SyncFrequency
         from sap_connector import SapConnector
@@ -144,11 +142,6 @@ class OracleErpClient(ErpClient):
     """
 
     def __init__(self, instance_url: str = "") -> None:
-        _connectors_root = Path(__file__).resolve().parents[4]
-        _oracle_src = _connectors_root / "oracle" / "src"
-        if str(_oracle_src) not in sys.path:
-            sys.path.insert(0, str(_oracle_src))
-
         from connector_secrets import resolve_secret
         from base_connector import ConnectorCategory, ConnectorConfig, SyncDirection, SyncFrequency
         from oracle_connector import OracleConnector
@@ -202,11 +195,6 @@ class NetSuiteErpClient(ErpClient):
     """
 
     def __init__(self, instance_url: str = "") -> None:
-        _connectors_root = Path(__file__).resolve().parents[4]
-        _netsuite_src = _connectors_root / "netsuite" / "src"
-        if str(_netsuite_src) not in sys.path:
-            sys.path.insert(0, str(_netsuite_src))
-
         from connector_secrets import resolve_secret
         from base_connector import ConnectorCategory, ConnectorConfig, SyncDirection, SyncFrequency
         from netsuite_connector import NetSuiteConnector

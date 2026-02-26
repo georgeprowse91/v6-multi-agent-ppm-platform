@@ -13,9 +13,12 @@ from opentelemetry import trace
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-if str(OBSERVABILITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(OBSERVABILITY_ROOT))
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 from observability.logging import configure_logging  # noqa: E402
 from observability.metrics import configure_metrics  # noqa: E402

@@ -13,9 +13,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-OBSERVABILITY_ROOT = Path(__file__).resolve().parents[3] / "packages" / "observability" / "src"
-if str(OBSERVABILITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(OBSERVABILITY_ROOT))
+_COMMON_SRC = Path(__file__).resolve().parents[3] / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths()
 
 from observability.metrics import build_agent_execution_metrics, build_cost_metrics  # noqa: E402
 from observability.tracing import get_trace_id, start_agent_span  # noqa: E402
@@ -222,7 +226,7 @@ class BaseAgent(ABC):
         return True
 
     @abstractmethod
-    async def process(self, input_data: dict[str, Any]) -> Any:
+    async def process(self, input_data: dict[str, Any]) -> AgentPayload | dict[str, Any]:
         """
         Process the agent's core logic.
 
@@ -232,7 +236,7 @@ class BaseAgent(ABC):
             input_data: Input data for the agent to process
 
         Returns:
-            Agent response payload as a dictionary or Pydantic model.
+            Agent response payload as a dictionary or AgentPayload.
 
         Raises:
             ValueError: If input validation fails

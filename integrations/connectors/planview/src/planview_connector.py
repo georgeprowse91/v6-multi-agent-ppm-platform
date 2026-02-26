@@ -17,23 +17,24 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# Add SDK to path
-SDK_PATH = Path(__file__).resolve().parents[2] / "sdk" / "src"
-if str(SDK_PATH) not in sys.path:
-    sys.path.insert(0, str(SDK_PATH))
-CONNECTORS_PATH = Path(__file__).resolve().parents[2]
-if str(CONNECTORS_PATH) not in sys.path:
-    sys.path.insert(0, str(CONNECTORS_PATH))
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+_COMMON_SRC = _REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
 
-from integrations.connectors.sdk.src.auth import OAuth2TokenManager
-from base_connector import (
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths(_REPO_ROOT)
+
+from integrations.connectors.sdk.src.auth import OAuth2TokenManager  # noqa: E402
+from base_connector import (  # noqa: E402
     BaseConnector,
     ConnectionStatus,
     ConnectionTestResult,
     ConnectorCategory,
     ConnectorConfig,
 )
-from http_client import HttpClient, HttpClientError, RetryConfig
+from http_client import HttpClient, HttpClientError, RetryConfig  # noqa: E402
 try:
     from mcp_client.client import MCPClient
     from mcp_client.errors import (
@@ -57,7 +58,7 @@ try:
     from .mappers import map_from_mcp_response, map_to_mcp_params
 except ImportError:
     from mappers import map_from_mcp_response, map_to_mcp_params
-from connector_secrets import fetch_keyvault_secret, resolve_secret
+from connector_secrets import fetch_keyvault_secret, resolve_secret  # noqa: E402
 
 DEFAULT_TOKEN_URL = "https://api.planview.com/oauth2/token"
 

@@ -16,21 +16,23 @@ from pathlib import Path
 from string import Template
 from typing import Any
 
-import httpx
-import yaml
+_COMMON_SRC = Path(__file__).resolve().parents[5] / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
 
-from agents.common.connector_integration import NotificationService
-from agents.runtime import BaseAgent
-from agents.runtime.src.state_store import TenantStateStore
-from integrations.services.integration import AnalyticsClient, EventBusClient, EventEnvelope
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
-DATA_SYNC_ROOT = Path(__file__).resolve().parents[5] / "services" / "data-sync-service" / "src"
-if str(DATA_SYNC_ROOT) not in sys.path:
-    sys.path.insert(0, str(DATA_SYNC_ROOT))
+ensure_monorepo_paths()
 
+import httpx  # noqa: E402
+import yaml  # noqa: E402
+
+from agents.common.connector_integration import NotificationService  # noqa: E402
+from agents.runtime import BaseAgent  # noqa: E402
+from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
+from integrations.services.integration import AnalyticsClient, EventBusClient, EventEnvelope  # noqa: E402
 from data_sync_status import StatusStore  # noqa: E402
 from observability.tracing import get_trace_id  # noqa: E402
-
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 
 

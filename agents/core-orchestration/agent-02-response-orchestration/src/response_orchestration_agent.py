@@ -16,24 +16,27 @@ import uuid
 from pathlib import Path
 from typing import Any, cast
 
-import httpx
-import yaml
-from plan_schema import Plan, PlanTask
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+_COMMON_SRC = Path(__file__).resolve().parents[5] / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
 
-from agents.common.web_search import (
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths()
+
+import httpx  # noqa: E402
+import yaml  # noqa: E402
+from plan_schema import Plan, PlanTask  # noqa: E402
+from pydantic import BaseModel, ConfigDict, Field, ValidationError  # noqa: E402
+
+from agents.common.web_search import (  # noqa: E402
     SearchPurpose,
     build_search_query,
     search_web,
     summarize_snippets,
 )
-from agents.runtime import BaseAgent, get_event_bus
-from agents.runtime.src.audit import build_audit_event, emit_audit_event
-
-OBSERVABILITY_ROOT = Path(__file__).resolve().parents[5] / "packages" / "observability" / "src"
-if str(OBSERVABILITY_ROOT) not in sys.path:
-    sys.path.insert(0, str(OBSERVABILITY_ROOT))
-
+from agents.runtime import BaseAgent, get_event_bus  # noqa: E402
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 from observability.metrics import configure_metrics  # noqa: E402
 from observability.tracing import get_trace_id, inject_trace_headers  # noqa: E402
 

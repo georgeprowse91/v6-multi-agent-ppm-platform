@@ -19,13 +19,12 @@ from jsonschema import Draft202012Validator, FormatChecker
 from sqlalchemy.exc import SQLAlchemyError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
-COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, FEATURE_FLAGS_ROOT, COMMON_ROOT):
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+_common_src = REPO_ROOT / "packages" / "common" / "src"
+if str(_common_src) not in sys.path:
+    sys.path.insert(0, str(_common_src))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 from common.env_validation import (  # noqa: E402
     durability_mode_for_storage,

@@ -39,23 +39,12 @@ from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-LLM_ROOT = REPO_ROOT / "packages" / "llm" / "src"
-FEATURE_FLAGS_ROOT = REPO_ROOT / "packages" / "feature-flags" / "src"
-COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
-EVENT_BUS_ROOT = REPO_ROOT / "packages" / "event-bus" / "src"
-for root in (
-    REPO_ROOT,
-    OBSERVABILITY_ROOT,
-    SECURITY_ROOT,
-    LLM_ROOT,
-    FEATURE_FLAGS_ROOT,
-    COMMON_ROOT,
-    EVENT_BUS_ROOT,
-):
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+_common_src = REPO_ROOT / "packages" / "common" / "src"
+if str(_common_src) not in sys.path:
+    sys.path.insert(0, str(_common_src))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 from agent_registry import load_agent_registry  # noqa: E402
 from agent_settings_models import (  # noqa: E402

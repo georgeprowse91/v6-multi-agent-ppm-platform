@@ -21,11 +21,12 @@ logging.basicConfig(level=logging.INFO)
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-for root in (REPO_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT):
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+_common_src = REPO_ROOT / "packages" / "common" / "src"
+if str(_common_src) not in sys.path:
+    sys.path.insert(0, str(_common_src))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 SCHEMA_PATH = REPO_ROOT / "data" / "schemas" / "audit-event.schema.json"
 RETENTION_CONFIG_PATH = REPO_ROOT / "config" / "retention" / "policies.yaml"
 CLASSIFICATION_CONFIG_PATH = REPO_ROOT / "config" / "data-classification" / "levels.yaml"

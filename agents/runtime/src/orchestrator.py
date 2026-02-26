@@ -13,28 +13,26 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import yaml
-from observability.metrics import build_agent_execution_metrics
+_COMMON_SRC = Path(__file__).resolve().parents[3] / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
 
-from agents.runtime.src.audit import build_audit_event, emit_audit_event
-from agents.runtime.src.base_agent import BaseAgent
-from agents.runtime.src.data_service import DataServiceClient
-from agents.runtime.src.event_bus import EventBus, get_event_bus, publish_insight
-from agents.runtime.src.models import AgentRun, AgentRunStatus
-from agents.runtime.src.notification_service import NotificationServiceClient
-from packages.memory_client import MemoryClient
-from services.memory_service.memory_service import MemoryService
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
-WEB_SRC_ROOT = Path(__file__).resolve().parents[3] / "apps" / "web" / "src"
-if str(WEB_SRC_ROOT) not in sys.path:
-    sys.path.insert(0, str(WEB_SRC_ROOT))
+ensure_monorepo_paths()
 
+import yaml  # noqa: E402
+from observability.metrics import build_agent_execution_metrics  # noqa: E402
+
+from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
+from agents.runtime.src.base_agent import BaseAgent  # noqa: E402
+from agents.runtime.src.data_service import DataServiceClient  # noqa: E402
+from agents.runtime.src.event_bus import EventBus, get_event_bus, publish_insight  # noqa: E402
+from agents.runtime.src.models import AgentRun, AgentRunStatus  # noqa: E402
+from agents.runtime.src.notification_service import NotificationServiceClient  # noqa: E402
+from packages.memory_client import MemoryClient  # noqa: E402
+from services.memory_service.memory_service import MemoryService  # noqa: E402
 from template_mappings import get_template_mapping  # noqa: E402
-
-FEATURE_FLAGS_ROOT = Path(__file__).resolve().parents[3] / "packages" / "feature-flags" / "src"
-if str(FEATURE_FLAGS_ROOT) not in sys.path:
-    sys.path.insert(0, str(FEATURE_FLAGS_ROOT))
-
 from feature_flags import is_feature_enabled  # noqa: E402
 
 logger = logging.getLogger("agents.runtime.orchestrator")

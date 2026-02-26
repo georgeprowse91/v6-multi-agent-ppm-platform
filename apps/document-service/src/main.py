@@ -11,13 +11,12 @@ from fastapi import APIRouter, FastAPI, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DOCUMENT_ROOT = Path(__file__).resolve().parent
-SECURITY_ROOT = REPO_ROOT / "packages" / "security" / "src"
-OBSERVABILITY_ROOT = REPO_ROOT / "packages" / "observability" / "src"
-COMMON_ROOT = REPO_ROOT / "packages" / "common" / "src"
-for root in (REPO_ROOT, DOCUMENT_ROOT, SECURITY_ROOT, OBSERVABILITY_ROOT, COMMON_ROOT):
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
+_common_src = REPO_ROOT / "packages" / "common" / "src"
+if str(_common_src) not in sys.path:
+    sys.path.insert(0, str(_common_src))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
 
 from cryptography.fernet import Fernet  # noqa: E402
 from document_policy import evaluate_document_policy  # noqa: E402

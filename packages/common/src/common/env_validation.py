@@ -132,3 +132,37 @@ def enforce_no_default_file_backed_storage(
 def environment_value(environ: Mapping[str, str] | None = None) -> str:
     env = environ or {}
     return normalize_environment(env.get("ENVIRONMENT"))
+
+
+_PLACEHOLDER_PATTERNS = (
+    "replace_me",
+    "replace-me",
+    "changeme",
+    "change_me",
+    "change-me",
+    "not_a_real",
+    "not-a-real",
+)
+
+
+def reject_placeholder_secrets(
+    *,
+    service_name: str,
+    environment: str | None,
+    secret_vars: dict[str, str],
+) -> None:
+    """Raise if any secret variable contains a placeholder value in strict environments.
+
+    This prevents accidentally deploying with demo/example credential values
+    to staging or production.
+    """
+    if not is_strict_environment(environment):
+        return
+    env_name = normalize_environment(environment)
+    for var_name, value in secret_vars.items():
+        lower = value.lower()
+        if any(pattern in lower for pattern in _PLACEHOLDER_PATTERNS):
+            raise ValueError(
+                f"[{service_name}] {var_name} contains a placeholder value in "
+                f"{env_name}. Replace with a real secret from your secrets manager."
+            )

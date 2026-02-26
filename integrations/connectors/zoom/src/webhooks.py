@@ -276,9 +276,12 @@ def register_webhook(
         dict with keys: connector_id, status, webhook_id, webhook_url,
         subscribed_events (on success) or error (on failure).
     """
-    _sdk_src = Path(__file__).resolve().parents[2] / "sdk" / "src"
-    if str(_sdk_src) not in sys.path:
-        sys.path.insert(0, str(_sdk_src))
+    _repo_root = Path(__file__).resolve().parents[4]
+    _common_src = _repo_root / "packages" / "common" / "src"
+    if str(_common_src) not in sys.path:
+        sys.path.insert(0, str(_common_src))
+    from common.bootstrap import ensure_monorepo_paths
+    ensure_monorepo_paths(_repo_root)
 
     subscribed_events = event_types or sorted(_MEETING_EVENTS | _WEBINAR_EVENTS | _RECORDING_EVENTS)
 

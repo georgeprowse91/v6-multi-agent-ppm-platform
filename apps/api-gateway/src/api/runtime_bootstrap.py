@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-import importlib
 import sys
 from pathlib import Path
-from typing import cast
 
 
 def bootstrap_runtime_paths() -> list[Path]:
     """Ensure repository paths are available for local dev runs."""
     repo_root = Path(__file__).resolve().parents[4]
-    if str(repo_root) not in sys.path:
-        sys.path.insert(0, str(repo_root))
+    _common_src = repo_root / "packages" / "common" / "src"
+    if str(_common_src) not in sys.path:
+        sys.path.insert(0, str(_common_src))
 
-    runtime_module = importlib.import_module("tools.runtime_paths")
-    return cast(list[Path], runtime_module.bootstrap_runtime_paths())
+    from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+    ensure_monorepo_paths(repo_root)
+    return []
