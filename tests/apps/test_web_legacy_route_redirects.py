@@ -1,14 +1,32 @@
 from __future__ import annotations
 
+import os
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
+
+_WEB_SRC = Path(__file__).resolve().parents[2] / "apps" / "web" / "src"
 
 
 def _load_web_app():
-    module_path = Path(__file__).resolve().parents[2] / "apps" / "web" / "src" / "main.py"
+    # Ensure web/src is first in sys.path to prevent config.py namespace collision
+    web_src_str = str(_WEB_SRC.resolve())
+    if web_src_str not in sys.path:
+        sys.path.insert(0, web_src_str)
+
+    # Clear cached web modules so each load gets a fresh app instance.
+    # bootstrap.py returns a module-level singleton (legacy_app); without clearing,
+    # the second test re-uses the already-started app and add_middleware() raises
+    # RuntimeError("Cannot add middleware after an application has started").
+    for mod_name in list(sys.modules):
+        if mod_name in {"bootstrap", "legacy_main", "middleware", "routes",
+                        "web_main_legacy_redirects"}:
+            sys.modules.pop(mod_name, None)
+
+    module_path = _WEB_SRC / "main.py"
     spec = spec_from_file_location("web_main_legacy_redirects", module_path)
     module = module_from_spec(spec)
     assert spec and spec.loader
@@ -17,7 +35,15 @@ def _load_web_app():
     return module
 
 
-def test_legacy_routes_always_redirect_to_spa() -> None:
+def test_legacy_routes_always_redirect_to_spa(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("API_GATEWAY_URL", "http://api-gateway:8000")
+    monkeypatch.setenv("IDENTITY_ACCESS_URL", "http://identity:8000")
+    monkeypatch.setenv("WORKFLOW_ENGINE_URL", "http://workflow:8000")
+    try:
+        import config as _web_cfg  # noqa: PLC0415
+        _web_cfg.get_settings.cache_clear()
+    except Exception:  # noqa: BLE001
+        pass
     web = _load_web_app()
     client = TestClient(web.app)
 
@@ -35,7 +61,15 @@ def test_legacy_routes_always_redirect_to_spa() -> None:
         assert response.headers["location"] == destination
 
 
-def test_migration_map_reports_redirect_compatibility() -> None:
+def test_migration_map_reports_redirect_compatibility(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("API_GATEWAY_URL", "http://api-gateway:8000")
+    monkeypatch.setenv("IDENTITY_ACCESS_URL", "http://identity:8000")
+    monkeypatch.setenv("WORKFLOW_ENGINE_URL", "http://workflow:8000")
+    try:
+        import config as _web_cfg  # noqa: PLC0415
+        _web_cfg.get_settings.cache_clear()
+    except Exception:  # noqa: BLE001
+        pass
     web = _load_web_app()
     client = TestClient(web.app)
 

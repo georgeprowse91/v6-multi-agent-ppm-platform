@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
+from pathlib import Path
+
 from integrations.connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
 
-from .main import CONNECTOR_ROOT, run_sync
+# Compute CONNECTOR_ROOT locally to avoid circular import with .main
+CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
 
 router = APIRouter(prefix="/connectors/clarity", tags=["connectors"])
 
@@ -20,6 +23,7 @@ def sync_inbound(request: InboundSyncRequest) -> list[dict[str, object]]:
         )
     if not request.live:
         raise HTTPException(status_code=400, detail="Either records or live=true is required")
+    from .main import run_sync  # lazy import to avoid circular dependency
     return run_sync(
         None,
         request.tenant_id,

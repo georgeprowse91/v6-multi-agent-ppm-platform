@@ -24,8 +24,32 @@
       "enum": [
         "active",
         "inactive",
-        "on_leave"
+        "on_leave",
+        "allocated"
       ]
+    },
+    "program_id": {
+      "type": "string"
+    },
+    "cost_rate": {
+      "type": "number"
+    },
+    "skills": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "capacity_hours_per_week": {
+      "type": "number"
+    },
+    "allocation_pct": {
+      "type": "number"
+    },
+    "availability_pct": {
+      "type": "number"
     },
     "created_at": {
       "type": "string",

@@ -191,7 +191,7 @@ class TeamsConnector(OAuth2RestConnector):
             "channels": "list_channels",
         }
         tool_key = read_tools.get(resource_type)
-        rest_call = lambda: super().read(resource_type, filters=filters, limit=limit, offset=offset)
+        rest_call = lambda: OAuth2RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset)
         if not tool_key:
             return rest_call()
         params = map_to_mcp_params(
@@ -219,7 +219,7 @@ class TeamsConnector(OAuth2RestConnector):
             "messages": "post_message",
         }
         tool_key = write_tools.get(resource_type)
-        rest_call = lambda: super().write(resource_type, data)
+        rest_call = lambda: OAuth2RestConnector.write(self, resource_type, data)
         if not tool_key:
             return rest_call()
         params = map_to_mcp_params("write", {"resource_type": resource_type, "records": data})

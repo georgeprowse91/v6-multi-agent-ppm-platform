@@ -27,7 +27,8 @@
       "enum": [
         "active",
         "inactive",
-        "pending"
+        "pending",
+        "blocked"
       ]
     },
     "owner": {
@@ -41,6 +42,9 @@
         "confidential",
         "restricted"
       ]
+    },
+    "rating": {
+      "type": "number"
     },
     "created_at": {
       "type": "string",

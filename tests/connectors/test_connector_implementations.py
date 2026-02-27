@@ -18,11 +18,22 @@ connector_src_paths = [
     path / "src" for path in CONNECTORS_ROOT.iterdir() if (path / "src").is_dir()
 ]
 security_module = types.ModuleType("security")
+security_module.__path__ = []  # Mark as package so submodule imports work
 dlp_module = types.ModuleType("security.dlp")
 secrets_module = types.ModuleType("security.secrets")
 keyvault_module = types.ModuleType("security.keyvault")
+config_module = types.ModuleType("security.config")
 dlp_module.redact_payload = lambda payload: payload
 secrets_module.resolve_secret = lambda value: value
+
+
+def _load_yaml_stub(path: "Path") -> object:  # type: ignore[name-defined]
+    import yaml
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+config_module.load_yaml = _load_yaml_stub
+config_module.resolve_config = lambda value: value
 
 
 class DummyKeyVaultConfig:  # noqa: D401 - simple mock
@@ -48,10 +59,12 @@ keyvault_module.KeyVaultUnavailableError = DummyKeyVaultUnavailableError
 security_module.dlp = dlp_module
 security_module.secrets = secrets_module
 security_module.keyvault = keyvault_module
+security_module.config = config_module
 sys.modules.setdefault("security", security_module)
 sys.modules.setdefault("security.dlp", dlp_module)
 sys.modules.setdefault("security.secrets", secrets_module)
 sys.modules.setdefault("security.keyvault", keyvault_module)
+sys.modules.setdefault("security.config", config_module)
 for path in [SDK_PATH, *connector_src_paths]:
     path_str = str(path.resolve())
     if path_str not in sys.path:

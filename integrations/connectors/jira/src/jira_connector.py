@@ -40,9 +40,9 @@ from base_connector import (  # noqa: E402
     ConnectorConfig,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig  # noqa: E402
-from mcp_client.client import MCPClient  # noqa: E402
-from mcp_client.errors import (  # noqa: E402
+from mcp_client import (  # noqa: E402
     MCPAuthenticationError,
+    MCPClient,
     MCPResponseError,
     MCPServerError,
     MCPToolNotFoundError,

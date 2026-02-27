@@ -10,12 +10,12 @@
   "certifications": [],
   "availability": 1.0,
   "team_memberships": [],
-  "created_at": "2026-02-27T08:38:26.614899+00:00",
-  "status": "Active",
+  "created_at": "2026-02-27T13:11:07.996798+00:00",
+  "status": "active",
   "training": {},
   "training_load": 0.0,
   "employee_id": "res-2",
   "source_system": "agent",
   "_id": "res-2",
-  "_updated_at": "2026-02-27T08:38:26.617870+00:00"
+  "_updated_at": "2026-02-27T13:11:07.998929+00:00"
 }

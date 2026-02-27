@@ -7,5 +7,5 @@
   "control_ids": "list[string]",
   "created_at": "string",
   "_id": "control_mappings",
-  "_updated_at": "2026-02-27T08:59:25.619310+00:00"
+  "_updated_at": "2026-02-27T13:11:55.725464+00:00"
 }

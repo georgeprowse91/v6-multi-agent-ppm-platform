@@ -96,6 +96,7 @@
             "anyOf": [
               {
                 "items": {
+                  "additionalProperties": true,
                   "type": "object"
                 },
                 "type": "array"
@@ -200,6 +201,36 @@
         "title": "AgentPayload",
         "type": "object"
       },
+      "AgentQueryErrorResponse": {
+        "description": "Client-safe error response for query failures.",
+        "properties": {
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation Id"
+          },
+          "error": {
+            "default": "AgentQueryError",
+            "title": "Error",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "AgentQueryErrorResponse",
+        "type": "object"
+      },
       "AgentResponse": {
         "description": "Standard agent response contract.",
         "properties": {
@@ -227,6 +258,11 @@
           "metadata": {
             "$ref": "#/components/schemas/AgentResponseMetadata"
           },
+          "request_feedback": {
+            "default": false,
+            "title": "Request Feedback",
+            "type": "boolean"
+          },
           "success": {
             "title": "Success",
             "type": "boolean"
@@ -253,6 +289,18 @@
           "correlation_id": {
             "title": "Correlation Id",
             "type": "string"
+          },
+          "cost_summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Summary"
           },
           "execution_time_seconds": {
             "anyOf": [
@@ -311,6 +359,7 @@
             "type": "string"
           },
           "actor": {
+            "additionalProperties": true,
             "title": "Actor",
             "type": "object"
           },
@@ -321,6 +370,7 @@
           "metadata": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -334,6 +384,7 @@
             "type": "string"
           },
           "resource": {
+            "additionalProperties": true,
             "title": "Resource",
             "type": "object"
           },
@@ -358,10 +409,10 @@
         "title": "AuditEventResponse",
         "type": "object"
       },
-      "Body_upload_certification_document_api_v1_certifications__connector_id__documents_post": {
+      "Body_upload_certification_document_v1_certifications__connector_id__documents_post": {
         "properties": {
           "file": {
-            "format": "binary",
+            "contentMediaType": "application/octet-stream",
             "title": "File",
             "type": "string"
           },
@@ -380,7 +431,7 @@
         "required": [
           "file"
         ],
-        "title": "Body_upload_certification_document_api_v1_certifications__connector_id__documents_post",
+        "title": "Body_upload_certification_document_v1_certifications__connector_id__documents_post",
         "type": "object"
       },
       "CategoryInfo": {
@@ -756,6 +807,7 @@
           "external_monitoring": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -766,6 +818,7 @@
           },
           "impacted_regulations": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Impacted Regulations",
@@ -792,7 +845,18 @@
       "ConnectorConfigRequest": {
         "description": "Request model for creating/updating connector configuration.",
         "properties": {
+          "client_id": {
+            "default": "",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_secret": {
+            "default": "",
+            "title": "Client Secret",
+            "type": "string"
+          },
           "custom_fields": {
+            "additionalProperties": true,
             "title": "Custom Fields",
             "type": "object"
           },
@@ -801,9 +865,127 @@
             "title": "Instance Url",
             "type": "string"
           },
+          "mcp_api_key": {
+            "default": "",
+            "title": "Mcp Api Key",
+            "type": "string"
+          },
+          "mcp_api_key_header": {
+            "default": "",
+            "title": "Mcp Api Key Header",
+            "type": "string"
+          },
+          "mcp_client_id": {
+            "default": "",
+            "title": "Mcp Client Id",
+            "type": "string"
+          },
+          "mcp_client_secret": {
+            "default": "",
+            "title": "Mcp Client Secret",
+            "type": "string"
+          },
+          "mcp_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/McpConfig"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mcp_disabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Disabled Operations",
+            "type": "array"
+          },
+          "mcp_enabled": {
+            "default": true,
+            "title": "Mcp Enabled",
+            "type": "boolean"
+          },
+          "mcp_enabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Enabled Operations",
+            "type": "array"
+          },
+          "mcp_oauth_token": {
+            "default": "",
+            "title": "Mcp Oauth Token",
+            "type": "string"
+          },
+          "mcp_scope": {
+            "default": "",
+            "title": "Mcp Scope",
+            "type": "string"
+          },
+          "mcp_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Scopes",
+            "type": "array"
+          },
+          "mcp_server_id": {
+            "default": "",
+            "title": "Mcp Server Id",
+            "type": "string"
+          },
+          "mcp_server_url": {
+            "default": "",
+            "title": "Mcp Server Url",
+            "type": "string"
+          },
+          "mcp_tool_map": {
+            "additionalProperties": true,
+            "title": "Mcp Tool Map",
+            "type": "object"
+          },
+          "mcp_tools": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Tools",
+            "type": "array"
+          },
+          "prefer_mcp": {
+            "default": false,
+            "title": "Prefer Mcp",
+            "type": "boolean"
+          },
           "project_key": {
             "default": "",
             "title": "Project Key",
+            "type": "string"
+          },
+          "prompt_map": {
+            "additionalProperties": true,
+            "title": "Prompt Map",
+            "type": "object"
+          },
+          "protocol": {
+            "default": "",
+            "title": "Protocol",
+            "type": "string"
+          },
+          "protocol_version": {
+            "default": "",
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "resource_map": {
+            "additionalProperties": true,
+            "title": "Resource Map",
+            "type": "object"
+          },
+          "scope": {
+            "default": "",
+            "title": "Scope",
             "type": "string"
           },
           "sync_direction": {
@@ -817,6 +999,11 @@
             "pattern": "^(realtime|hourly|every_4_hours|daily|weekly|manual)$",
             "title": "Sync Frequency",
             "type": "string"
+          },
+          "tool_map": {
+            "additionalProperties": true,
+            "title": "Tool Map",
+            "type": "object"
           }
         },
         "title": "ConnectorConfigRequest",
@@ -829,6 +1016,14 @@
             "title": "Category",
             "type": "string"
           },
+          "client_id": {
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_secret": {
+            "title": "Client Secret",
+            "type": "string"
+          },
           "connector_id": {
             "title": "Connector Id",
             "type": "string"
@@ -838,6 +1033,7 @@
             "type": "string"
           },
           "custom_fields": {
+            "additionalProperties": true,
             "title": "Custom Fields",
             "type": "object"
           },
@@ -864,12 +1060,116 @@
             ],
             "title": "Last Sync At"
           },
+          "mcp_api_key": {
+            "title": "Mcp Api Key",
+            "type": "string"
+          },
+          "mcp_api_key_header": {
+            "title": "Mcp Api Key Header",
+            "type": "string"
+          },
+          "mcp_client_id": {
+            "title": "Mcp Client Id",
+            "type": "string"
+          },
+          "mcp_client_secret": {
+            "title": "Mcp Client Secret",
+            "type": "string"
+          },
+          "mcp_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/McpConfig"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mcp_disabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Disabled Operations",
+            "type": "array"
+          },
+          "mcp_enabled": {
+            "title": "Mcp Enabled",
+            "type": "boolean"
+          },
+          "mcp_enabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Enabled Operations",
+            "type": "array"
+          },
+          "mcp_feature_enabled": {
+            "title": "Mcp Feature Enabled",
+            "type": "boolean"
+          },
+          "mcp_oauth_token": {
+            "title": "Mcp Oauth Token",
+            "type": "string"
+          },
+          "mcp_scope": {
+            "title": "Mcp Scope",
+            "type": "string"
+          },
+          "mcp_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Scopes",
+            "type": "array"
+          },
+          "mcp_server_id": {
+            "title": "Mcp Server Id",
+            "type": "string"
+          },
+          "mcp_server_url": {
+            "title": "Mcp Server Url",
+            "type": "string"
+          },
+          "mcp_tool_map": {
+            "additionalProperties": true,
+            "title": "Mcp Tool Map",
+            "type": "object"
+          },
           "name": {
             "title": "Name",
             "type": "string"
           },
+          "prefer_mcp": {
+            "title": "Prefer Mcp",
+            "type": "boolean"
+          },
           "project_key": {
             "title": "Project Key",
+            "type": "string"
+          },
+          "prompt_map": {
+            "additionalProperties": true,
+            "title": "Prompt Map",
+            "type": "object"
+          },
+          "protocol": {
+            "default": "",
+            "title": "Protocol",
+            "type": "string"
+          },
+          "protocol_version": {
+            "default": "",
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "resource_map": {
+            "additionalProperties": true,
+            "title": "Resource Map",
+            "type": "object"
+          },
+          "scope": {
+            "title": "Scope",
             "type": "string"
           },
           "sync_direction": {
@@ -879,6 +1179,11 @@
           "sync_frequency": {
             "title": "Sync Frequency",
             "type": "string"
+          },
+          "tool_map": {
+            "additionalProperties": true,
+            "title": "Tool Map",
+            "type": "object"
           },
           "updated_at": {
             "title": "Updated At",
@@ -895,6 +1200,23 @@
           "instance_url",
           "project_key",
           "custom_fields",
+          "mcp_server_url",
+          "mcp_server_id",
+          "mcp_client_id",
+          "mcp_client_secret",
+          "mcp_scope",
+          "mcp_api_key",
+          "mcp_api_key_header",
+          "mcp_oauth_token",
+          "client_id",
+          "client_secret",
+          "scope",
+          "mcp_tool_map",
+          "prefer_mcp",
+          "mcp_enabled",
+          "mcp_feature_enabled",
+          "mcp_enabled_operations",
+          "mcp_disabled_operations",
           "health_status",
           "created_at",
           "updated_at",
@@ -906,6 +1228,13 @@
       "ConnectorListItemResponse": {
         "description": "Response model for connector list items (combines definition and config).",
         "properties": {
+          "auth_requirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Auth Requirements",
+            "type": "array"
+          },
           "auth_type": {
             "title": "Auth Type",
             "type": "string"
@@ -914,8 +1243,19 @@
             "title": "Category",
             "type": "string"
           },
+          "client_id": {
+            "default": "",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_secret": {
+            "default": "",
+            "title": "Client Secret",
+            "type": "string"
+          },
           "config_fields": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Config Fields",
@@ -923,6 +1263,7 @@
           },
           "config_schema": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Config Schema",
@@ -938,6 +1279,7 @@
             "type": "string"
           },
           "custom_fields": {
+            "additionalProperties": true,
             "title": "Custom Fields",
             "type": "object"
           },
@@ -982,18 +1324,136 @@
             ],
             "title": "Last Sync At"
           },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "mcp_api_key": {
+            "default": "",
+            "title": "Mcp Api Key",
+            "type": "string"
+          },
+          "mcp_api_key_header": {
+            "default": "",
+            "title": "Mcp Api Key Header",
+            "type": "string"
+          },
+          "mcp_client_id": {
+            "default": "",
+            "title": "Mcp Client Id",
+            "type": "string"
+          },
+          "mcp_client_secret": {
+            "default": "",
+            "title": "Mcp Client Secret",
+            "type": "string"
+          },
+          "mcp_disabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Disabled Operations",
+            "type": "array"
+          },
+          "mcp_enabled": {
+            "default": true,
+            "title": "Mcp Enabled",
+            "type": "boolean"
+          },
+          "mcp_enabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Enabled Operations",
+            "type": "array"
+          },
+          "mcp_feature_enabled": {
+            "default": true,
+            "title": "Mcp Feature Enabled",
+            "type": "boolean"
+          },
+          "mcp_oauth_token": {
+            "default": "",
+            "title": "Mcp Oauth Token",
+            "type": "string"
+          },
+          "mcp_preferred": {
+            "title": "Mcp Preferred",
+            "type": "boolean"
+          },
+          "mcp_scope": {
+            "default": "",
+            "title": "Mcp Scope",
+            "type": "string"
+          },
+          "mcp_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Scopes",
+            "type": "array"
+          },
+          "mcp_server_id": {
+            "default": "",
+            "title": "Mcp Server Id",
+            "type": "string"
+          },
+          "mcp_server_url": {
+            "default": "",
+            "title": "Mcp Server Url",
+            "type": "string"
+          },
+          "mcp_tool_map": {
+            "additionalProperties": true,
+            "title": "Mcp Tool Map",
+            "type": "object"
+          },
+          "mcp_tools": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Tools",
+            "type": "array"
+          },
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "prefer_mcp": {
+            "default": false,
+            "title": "Prefer Mcp",
+            "type": "boolean"
           },
           "project_key": {
             "default": "",
             "title": "Project Key",
             "type": "string"
           },
+          "scope": {
+            "default": "",
+            "title": "Scope",
+            "type": "string"
+          },
           "status": {
             "title": "Status",
             "type": "string"
+          },
+          "supported_objects": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Objects",
+            "type": "array"
+          },
+          "supported_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Operations",
+            "type": "array"
           },
           "supported_sync_directions": {
             "items": {
@@ -1011,6 +1471,10 @@
             "default": "daily",
             "title": "Sync Frequency",
             "type": "string"
+          },
+          "system": {
+            "title": "System",
+            "type": "string"
           }
         },
         "required": [
@@ -1018,6 +1482,9 @@
           "name",
           "description",
           "category",
+          "system",
+          "supported_operations",
+          "mcp_preferred",
           "status",
           "icon",
           "supported_sync_directions",
@@ -1027,6 +1494,44 @@
           "env_vars"
         ],
         "title": "ConnectorListItemResponse",
+        "type": "object"
+      },
+      "EvaluationRunRequest": {
+        "properties": {
+          "prompt_name": {
+            "title": "Prompt Name",
+            "type": "string"
+          },
+          "prompt_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Version"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "samples": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Samples",
+            "type": "array"
+          }
+        },
+        "required": [
+          "prompt_name",
+          "run_id",
+          "samples"
+        ],
+        "title": "EvaluationRunRequest",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -1042,6 +1547,248 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "McpConfig": {
+        "properties": {
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "api_key_header": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Header"
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Secret"
+          },
+          "oauth_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Oauth Token"
+          },
+          "prompt_map": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Map"
+          },
+          "protocol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocol"
+          },
+          "protocol_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocol Version"
+          },
+          "resource_map": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Map"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scope"
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scopes"
+          },
+          "server_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Server Id"
+          },
+          "server_url": {
+            "anyOf": [
+              {
+                "format": "uri",
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Server Url"
+          },
+          "tool_map": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Map"
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tools"
+          }
+        },
+        "title": "McpConfig",
+        "type": "object"
+      },
+      "McpServerToolsResponse": {
+        "properties": {
+          "server_id": {
+            "title": "Server Id",
+            "type": "string"
+          },
+          "server_url": {
+            "title": "Server Url",
+            "type": "string"
+          },
+          "system": {
+            "title": "System",
+            "type": "string"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/McpToolSchemaResponse"
+            },
+            "title": "Tools",
+            "type": "array"
+          }
+        },
+        "required": [
+          "system",
+          "server_id",
+          "server_url",
+          "tools"
+        ],
+        "title": "McpServerToolsResponse",
+        "type": "object"
+      },
+      "McpToolSchemaResponse": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "input_schema": {
+            "additionalProperties": true,
+            "title": "Input Schema",
+            "type": "object"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "McpToolSchemaResponse",
+        "type": "object"
+      },
       "PersistSessionRequest": {
         "properties": {
           "content": {
@@ -1049,6 +1796,7 @@
             "type": "string"
           },
           "metadata": {
+            "additionalProperties": true,
             "title": "Metadata",
             "type": "object"
           },
@@ -1087,6 +1835,7 @@
             "type": "string"
           },
           "metadata": {
+            "additionalProperties": true,
             "title": "Metadata",
             "type": "object"
           },
@@ -1143,6 +1892,7 @@
             "type": "boolean"
           },
           "parameter_overrides": {
+            "additionalProperties": true,
             "default": {},
             "title": "Parameter Overrides",
             "type": "object"
@@ -1191,6 +1941,7 @@
           "parameter_overrides": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1206,12 +1957,796 @@
         "title": "ProjectAgentConfigUpdateModel",
         "type": "object"
       },
+      "ProjectConnectorConfigResponse": {
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "client_id": {
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_secret": {
+            "title": "Client Secret",
+            "type": "string"
+          },
+          "connector_id": {
+            "title": "Connector Id",
+            "type": "string"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string"
+          },
+          "custom_fields": {
+            "additionalProperties": true,
+            "title": "Custom Fields",
+            "type": "object"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "health_status": {
+            "title": "Health Status",
+            "type": "string"
+          },
+          "instance_url": {
+            "title": "Instance Url",
+            "type": "string"
+          },
+          "last_sync_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sync At"
+          },
+          "mcp_api_key": {
+            "title": "Mcp Api Key",
+            "type": "string"
+          },
+          "mcp_api_key_header": {
+            "title": "Mcp Api Key Header",
+            "type": "string"
+          },
+          "mcp_client_id": {
+            "title": "Mcp Client Id",
+            "type": "string"
+          },
+          "mcp_client_secret": {
+            "title": "Mcp Client Secret",
+            "type": "string"
+          },
+          "mcp_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/McpConfig"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mcp_disabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Disabled Operations",
+            "type": "array"
+          },
+          "mcp_enabled": {
+            "title": "Mcp Enabled",
+            "type": "boolean"
+          },
+          "mcp_enabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Enabled Operations",
+            "type": "array"
+          },
+          "mcp_feature_enabled": {
+            "title": "Mcp Feature Enabled",
+            "type": "boolean"
+          },
+          "mcp_oauth_token": {
+            "title": "Mcp Oauth Token",
+            "type": "string"
+          },
+          "mcp_scope": {
+            "title": "Mcp Scope",
+            "type": "string"
+          },
+          "mcp_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Scopes",
+            "type": "array"
+          },
+          "mcp_server_id": {
+            "title": "Mcp Server Id",
+            "type": "string"
+          },
+          "mcp_server_url": {
+            "title": "Mcp Server Url",
+            "type": "string"
+          },
+          "mcp_tool_map": {
+            "additionalProperties": true,
+            "title": "Mcp Tool Map",
+            "type": "object"
+          },
+          "mcp_tools": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Tools",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prefer_mcp": {
+            "title": "Prefer Mcp",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_key": {
+            "title": "Project Key",
+            "type": "string"
+          },
+          "prompt_map": {
+            "additionalProperties": true,
+            "title": "Prompt Map",
+            "type": "object"
+          },
+          "protocol": {
+            "default": "",
+            "title": "Protocol",
+            "type": "string"
+          },
+          "protocol_version": {
+            "default": "",
+            "title": "Protocol Version",
+            "type": "string"
+          },
+          "resource_map": {
+            "additionalProperties": true,
+            "title": "Resource Map",
+            "type": "object"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "sync_direction": {
+            "title": "Sync Direction",
+            "type": "string"
+          },
+          "sync_frequency": {
+            "title": "Sync Frequency",
+            "type": "string"
+          },
+          "tool_map": {
+            "additionalProperties": true,
+            "title": "Tool Map",
+            "type": "object"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connector_id",
+          "project_id",
+          "name",
+          "category",
+          "enabled",
+          "sync_direction",
+          "sync_frequency",
+          "instance_url",
+          "project_key",
+          "custom_fields",
+          "mcp_server_url",
+          "mcp_server_id",
+          "mcp_client_id",
+          "mcp_client_secret",
+          "mcp_scope",
+          "mcp_api_key",
+          "mcp_api_key_header",
+          "mcp_oauth_token",
+          "client_id",
+          "client_secret",
+          "scope",
+          "mcp_tools",
+          "mcp_tool_map",
+          "prefer_mcp",
+          "mcp_enabled",
+          "mcp_feature_enabled",
+          "mcp_enabled_operations",
+          "mcp_disabled_operations",
+          "health_status",
+          "created_at",
+          "updated_at",
+          "last_sync_at"
+        ],
+        "title": "ProjectConnectorConfigResponse",
+        "type": "object"
+      },
+      "ProjectConnectorListItemResponse": {
+        "properties": {
+          "auth_requirements": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Auth Requirements",
+            "type": "array"
+          },
+          "auth_type": {
+            "title": "Auth Type",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "client_id": {
+            "default": "",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_secret": {
+            "default": "",
+            "title": "Client Secret",
+            "type": "string"
+          },
+          "config_fields": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Config Fields",
+            "type": "array"
+          },
+          "config_schema": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Config Schema",
+            "type": "array"
+          },
+          "configured": {
+            "default": false,
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "connector_id": {
+            "title": "Connector Id",
+            "type": "string"
+          },
+          "custom_fields": {
+            "additionalProperties": true,
+            "title": "Custom Fields",
+            "type": "object"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "enabled": {
+            "default": false,
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "env_vars": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Env Vars",
+            "type": "array"
+          },
+          "health_status": {
+            "default": "unknown",
+            "title": "Health Status",
+            "type": "string"
+          },
+          "icon": {
+            "title": "Icon",
+            "type": "string"
+          },
+          "instance_url": {
+            "default": "",
+            "title": "Instance Url",
+            "type": "string"
+          },
+          "last_sync_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sync At"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "mcp_api_key": {
+            "default": "",
+            "title": "Mcp Api Key",
+            "type": "string"
+          },
+          "mcp_api_key_header": {
+            "default": "",
+            "title": "Mcp Api Key Header",
+            "type": "string"
+          },
+          "mcp_client_id": {
+            "default": "",
+            "title": "Mcp Client Id",
+            "type": "string"
+          },
+          "mcp_client_secret": {
+            "default": "",
+            "title": "Mcp Client Secret",
+            "type": "string"
+          },
+          "mcp_disabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Disabled Operations",
+            "type": "array"
+          },
+          "mcp_enabled": {
+            "default": true,
+            "title": "Mcp Enabled",
+            "type": "boolean"
+          },
+          "mcp_enabled_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Enabled Operations",
+            "type": "array"
+          },
+          "mcp_feature_enabled": {
+            "default": true,
+            "title": "Mcp Feature Enabled",
+            "type": "boolean"
+          },
+          "mcp_oauth_token": {
+            "default": "",
+            "title": "Mcp Oauth Token",
+            "type": "string"
+          },
+          "mcp_preferred": {
+            "title": "Mcp Preferred",
+            "type": "boolean"
+          },
+          "mcp_scope": {
+            "default": "",
+            "title": "Mcp Scope",
+            "type": "string"
+          },
+          "mcp_scopes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Scopes",
+            "type": "array"
+          },
+          "mcp_server_id": {
+            "default": "",
+            "title": "Mcp Server Id",
+            "type": "string"
+          },
+          "mcp_server_url": {
+            "default": "",
+            "title": "Mcp Server Url",
+            "type": "string"
+          },
+          "mcp_tool_map": {
+            "additionalProperties": true,
+            "title": "Mcp Tool Map",
+            "type": "object"
+          },
+          "mcp_tools": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Tools",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "prefer_mcp": {
+            "default": false,
+            "title": "Prefer Mcp",
+            "type": "boolean"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_key": {
+            "default": "",
+            "title": "Project Key",
+            "type": "string"
+          },
+          "scope": {
+            "default": "",
+            "title": "Scope",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "supported_objects": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Objects",
+            "type": "array"
+          },
+          "supported_operations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Operations",
+            "type": "array"
+          },
+          "supported_sync_directions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Supported Sync Directions",
+            "type": "array"
+          },
+          "sync_direction": {
+            "default": "inbound",
+            "title": "Sync Direction",
+            "type": "string"
+          },
+          "sync_frequency": {
+            "default": "daily",
+            "title": "Sync Frequency",
+            "type": "string"
+          },
+          "system": {
+            "title": "System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connector_id",
+          "name",
+          "description",
+          "category",
+          "system",
+          "supported_operations",
+          "mcp_preferred",
+          "status",
+          "icon",
+          "supported_sync_directions",
+          "auth_type",
+          "config_fields",
+          "config_schema",
+          "env_vars",
+          "project_id"
+        ],
+        "title": "ProjectConnectorListItemResponse",
+        "type": "object"
+      },
+      "ProjectMcpConfigRequest": {
+        "properties": {
+          "mcp_server_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mcp Server Id"
+          },
+          "mcp_server_url": {
+            "format": "uri",
+            "minLength": 1,
+            "title": "Mcp Server Url",
+            "type": "string"
+          },
+          "mcp_tool_map": {
+            "additionalProperties": true,
+            "title": "Mcp Tool Map",
+            "type": "object"
+          },
+          "mcp_tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mcp Tools"
+          }
+        },
+        "required": [
+          "mcp_server_url"
+        ],
+        "title": "ProjectMcpConfigRequest",
+        "type": "object"
+      },
+      "ProjectMcpConfigResponse": {
+        "properties": {
+          "connector_id": {
+            "title": "Connector Id",
+            "type": "string"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "mcp_server_id": {
+            "title": "Mcp Server Id",
+            "type": "string"
+          },
+          "mcp_server_url": {
+            "title": "Mcp Server Url",
+            "type": "string"
+          },
+          "mcp_tool_map": {
+            "additionalProperties": true,
+            "title": "Mcp Tool Map",
+            "type": "object"
+          },
+          "mcp_tools": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Mcp Tools",
+            "type": "array"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connector_id",
+          "project_id",
+          "enabled",
+          "mcp_server_url",
+          "mcp_server_id",
+          "mcp_tool_map",
+          "mcp_tools",
+          "updated_at"
+        ],
+        "title": "ProjectMcpConfigResponse",
+        "type": "object"
+      },
+      "PromptCreateRequest": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "defaults": {
+            "additionalProperties": true,
+            "title": "Defaults",
+            "type": "object"
+          },
+          "environment_tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Environment Tags",
+            "type": "array"
+          },
+          "experiment_tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Experiment Tags",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "owner": {
+            "title": "Owner",
+            "type": "string"
+          },
+          "required_variables": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Required Variables",
+            "type": "array"
+          },
+          "status": {
+            "default": "draft",
+            "title": "Status",
+            "type": "string"
+          },
+          "version_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Label"
+          }
+        },
+        "required": [
+          "name",
+          "content",
+          "owner",
+          "created_by"
+        ],
+        "title": "PromptCreateRequest",
+        "type": "object"
+      },
+      "PromptPromotionRequest": {
+        "properties": {
+          "environment": {
+            "title": "Environment",
+            "type": "string"
+          }
+        },
+        "required": [
+          "environment"
+        ],
+        "title": "PromptPromotionRequest",
+        "type": "object"
+      },
+      "PromptRenderRequest": {
+        "properties": {
+          "variables": {
+            "additionalProperties": true,
+            "title": "Variables",
+            "type": "object"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "variables"
+        ],
+        "title": "PromptRenderRequest",
+        "type": "object"
+      },
+      "PromptUpdateRequest": {
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "environment_tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Environment Tags"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "version_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Label"
+          }
+        },
+        "title": "PromptUpdateRequest",
+        "type": "object"
+      },
       "QueryRequest": {
         "description": "Request model for agent queries.",
         "properties": {
           "context": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1223,6 +2758,7 @@
           "prompt": {
             "anyOf": [
               {
+                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -1311,6 +2847,7 @@
         "properties": {
           "added_risks": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Added Risks",
@@ -1329,6 +2866,7 @@
           },
           "external_risks": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "External Risks",
@@ -1463,6 +3001,7 @@
             "type": "array"
           },
           "scope": {
+            "additionalProperties": true,
             "title": "Scope",
             "type": "object"
           },
@@ -1684,6 +3223,7 @@
         "description": "Response model for connection test result.",
         "properties": {
           "details": {
+            "additionalProperties": true,
             "title": "Details",
             "type": "object"
           },
@@ -1710,6 +3250,13 @@
       },
       "ValidationError": {
         "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
           "loc": {
             "items": {
               "anyOf": [
@@ -1744,6 +3291,7 @@
       "VendorListResponse": {
         "properties": {
           "search_criteria": {
+            "additionalProperties": true,
             "title": "Search Criteria",
             "type": "object"
           },
@@ -1764,6 +3312,7 @@
           },
           "vendors": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Vendors",
@@ -1792,6 +3341,7 @@
             "title": "Correlation Id"
           },
           "vendor": {
+            "additionalProperties": true,
             "title": "Vendor",
             "type": "object"
           }
@@ -1844,6 +3394,7 @@
           },
           "insights": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Insights",
@@ -1862,6 +3413,7 @@
           },
           "sources": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Sources",
@@ -1912,6 +3464,7 @@
       "VendorUpdateRequest": {
         "properties": {
           "updates": {
+            "additionalProperties": true,
             "description": "Vendor fields to update.",
             "title": "Updates",
             "type": "object"
@@ -1937,6 +3490,7 @@
             "title": "Status"
           },
           "updates": {
+            "additionalProperties": true,
             "title": "Updates",
             "type": "object"
           },
@@ -2000,6 +3554,7 @@
           },
           "audit_trail": {
             "items": {
+              "additionalProperties": true,
               "type": "object"
             },
             "title": "Audit Trail",
@@ -2032,6 +3587,7 @@
             "title": "Decision"
           },
           "metadata": {
+            "additionalProperties": true,
             "title": "Metadata",
             "type": "object"
           },
@@ -2117,6 +3673,7 @@
             "title": "Decision"
           },
           "metadata": {
+            "additionalProperties": true,
             "title": "Metadata",
             "type": "object"
           },
@@ -2160,6 +3717,7 @@
       "WorkflowDefinitionCreateRequest": {
         "properties": {
           "definition": {
+            "additionalProperties": true,
             "title": "Definition",
             "type": "object"
           },
@@ -2313,6 +3871,7 @@
       "WorkflowStartRequest": {
         "properties": {
           "actor": {
+            "additionalProperties": true,
             "title": "Actor",
             "type": "object"
           },
@@ -2322,6 +3881,7 @@
             "type": "string"
           },
           "payload": {
+            "additionalProperties": true,
             "title": "Payload",
             "type": "object"
           },
@@ -2355,7 +3915,13 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Root  Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -2364,15 +3930,109 @@
         "summary": "Root"
       }
     },
-    "/v1/agents": {
+    "/api/health": {
       "get": {
-        "description": "List all available agents.\n\nReturns information about all loaded agents and their capabilities.",
-        "operationId": "list_agents_api_v1_agents_get",
+        "description": "Health check endpoint accessible under the /api prefix.",
+        "operationId": "api_health_api_health_get",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Api Health Api Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Api Health"
+      }
+    },
+    "/healthz": {
+      "get": {
+        "description": "Lightweight health check for local dev and probes.",
+        "operationId": "healthz_healthz_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Healthz Healthz Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Healthz"
+      }
+    },
+    "/v1/admin/llm/keys/rotate": {
+      "post": {
+        "description": "Trigger in-process LLM API key and JWKS cache rotation.\n\nClears the OIDC discovery document cache and the JWKS cache maintained by\n``security.auth``, forcing fresh resolution on the next inbound request.\nThis is the HTTP-triggered complement to the SIGUSR1 signal handler\ninstalled at startup.\n\nRequires ``config.write`` permission (enforced by RBAC middleware).",
+        "operationId": "rotate_llm_keys_endpoint_v1_admin_llm_keys_rotate_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Rotate Llm Keys Endpoint V1 Admin Llm Keys Rotate Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Trigger in-process LLM credential rotation",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/admin/model-registry/cache/clear": {
+      "post": {
+        "description": "Invalidate the in-process model registry cache.\n\nAfter this call the next invocation of ``load_model_registry()`` will\nre-read ``apps/web/data/llm_models.json`` from disk, enabling zero-downtime\nregistry updates without a process restart.\n\nRequires ``config.write`` permission (enforced by RBAC middleware).",
+        "operationId": "clear_model_registry_cache_endpoint_v1_admin_model_registry_cache_clear_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Clear Model Registry Cache Endpoint V1 Admin Model Registry Cache Clear Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Clear model registry LRU cache",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v1/agents": {
+      "get": {
+        "description": "List all available agents.\n\nReturns information about all loaded agents and their capabilities.",
+        "operationId": "list_agents_v1_agents_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Agents V1 Agents Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -2387,7 +4047,7 @@
     "/v1/agents/config": {
       "get": {
         "description": "List all agent configurations.\n\nOptionally filter by category and/or enabled status.",
-        "operationId": "list_agent_configs_api_v1_agents_config_get",
+        "operationId": "list_agent_configs_v1_agents_config_get",
         "parameters": [
           {
             "in": "query",
@@ -2420,6 +4080,29 @@
               ],
               "title": "Enabled"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -2430,7 +4113,7 @@
                   "items": {
                     "$ref": "#/components/schemas/AgentConfigModel"
                   },
-                  "title": "Response List Agent Configs Api V1 Agents Config Get",
+                  "title": "Response List Agent Configs V1 Agents Config Get",
                   "type": "array"
                 }
               }
@@ -2457,12 +4140,24 @@
     "/v1/agents/config/categories": {
       "get": {
         "description": "List all available agent categories.",
-        "operationId": "list_agent_categories_api_v1_agents_config_categories_get",
+        "operationId": "list_agent_categories_v1_agents_config_categories_get",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": {
+                    "items": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "title": "Response List Agent Categories V1 Agents Config Categories Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -2477,7 +4172,7 @@
     "/v1/agents/config/{catalog_id}": {
       "get": {
         "description": "Get configuration for a specific agent.",
-        "operationId": "get_agent_config_api_v1_agents_config__catalog_id__get",
+        "operationId": "get_agent_config_v1_agents_config__catalog_id__get",
         "parameters": [
           {
             "in": "path",
@@ -2518,7 +4213,7 @@
       },
       "patch": {
         "description": "Update configuration for a specific agent.\n\nRequires admin or PM role.",
-        "operationId": "update_agent_config_api_v1_agents_config__catalog_id__patch",
+        "operationId": "update_agent_config_v1_agents_config__catalog_id__patch",
         "parameters": [
           {
             "in": "path",
@@ -2571,7 +4266,7 @@
     "/v1/agents/{agent_id}": {
       "get": {
         "description": "Get information about a specific agent.",
-        "operationId": "get_agent_info_api_v1_agents__agent_id__get",
+        "operationId": "get_agent_info_v1_agents__agent_id__get",
         "parameters": [
           {
             "in": "path",
@@ -2587,7 +4282,11 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Agent Info V1 Agents  Agent Id  Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -2611,7 +4310,7 @@
     },
     "/v1/audit/events": {
       "get": {
-        "operationId": "list_audit_events_api_v1_audit_events_get",
+        "operationId": "list_audit_events_v1_audit_events_get",
         "parameters": [
           {
             "in": "query",
@@ -2619,6 +4318,8 @@
             "required": false,
             "schema": {
               "default": 200,
+              "maximum": 500,
+              "minimum": 1,
               "title": "Limit",
               "type": "integer"
             }
@@ -2629,6 +4330,7 @@
             "required": false,
             "schema": {
               "default": 0,
+              "minimum": 0,
               "title": "Offset",
               "type": "integer"
             }
@@ -2642,7 +4344,7 @@
                   "items": {
                     "$ref": "#/components/schemas/AuditEventResponse"
                   },
-                  "title": "Response List Audit Events Api V1 Audit Events Get",
+                  "title": "Response List Audit Events V1 Audit Events Get",
                   "type": "array"
                 }
               }
@@ -2668,7 +4370,7 @@
     },
     "/v1/certifications": {
       "get": {
-        "operationId": "list_certifications_api_v1_certifications_get",
+        "operationId": "list_certifications_v1_certifications_get",
         "parameters": [
           {
             "in": "query",
@@ -2685,6 +4387,29 @@
               ],
               "title": "Connector Id"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -2695,7 +4420,7 @@
                   "items": {
                     "$ref": "#/components/schemas/CertificationRecordResponse"
                   },
-                  "title": "Response List Certifications Api V1 Certifications Get",
+                  "title": "Response List Certifications V1 Certifications Get",
                   "type": "array"
                 }
               }
@@ -2719,7 +4444,7 @@
         ]
       },
       "post": {
-        "operationId": "create_certification_api_v1_certifications_post",
+        "operationId": "create_certification_v1_certifications_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2760,7 +4485,7 @@
     },
     "/v1/certifications/{connector_id}": {
       "get": {
-        "operationId": "get_certification_api_v1_certifications__connector_id__get",
+        "operationId": "get_certification_v1_certifications__connector_id__get",
         "parameters": [
           {
             "in": "path",
@@ -2800,7 +4525,7 @@
         ]
       },
       "put": {
-        "operationId": "update_certification_api_v1_certifications__connector_id__put",
+        "operationId": "update_certification_v1_certifications__connector_id__put",
         "parameters": [
           {
             "in": "path",
@@ -2852,7 +4577,7 @@
     },
     "/v1/certifications/{connector_id}/documents": {
       "post": {
-        "operationId": "upload_certification_document_api_v1_certifications__connector_id__documents_post",
+        "operationId": "upload_certification_document_v1_certifications__connector_id__documents_post",
         "parameters": [
           {
             "in": "path",
@@ -2868,7 +4593,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_upload_certification_document_api_v1_certifications__connector_id__documents_post"
+                "$ref": "#/components/schemas/Body_upload_certification_document_v1_certifications__connector_id__documents_post"
               }
             }
           },
@@ -2905,7 +4630,7 @@
     "/v1/connectors": {
       "get": {
         "description": "List all available connectors with their configuration status.\n\nOptionally filter by category.",
-        "operationId": "list_connectors_api_v1_connectors_get",
+        "operationId": "list_connectors_v1_connectors_get",
         "parameters": [
           {
             "in": "query",
@@ -2922,6 +4647,29 @@
               ],
               "title": "Category"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -2932,7 +4680,7 @@
                   "items": {
                     "$ref": "#/components/schemas/ConnectorListItemResponse"
                   },
-                  "title": "Response List Connectors Api V1 Connectors Get",
+                  "title": "Response List Connectors V1 Connectors Get",
                   "type": "array"
                 }
               }
@@ -2959,7 +4707,32 @@
     "/v1/connectors/categories": {
       "get": {
         "description": "List all connector categories with their metadata.",
-        "operationId": "list_categories_api_v1_connectors_categories_get",
+        "operationId": "list_categories_v1_connectors_categories_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2968,12 +4741,22 @@
                   "items": {
                     "$ref": "#/components/schemas/CategoryInfo"
                   },
-                  "title": "Response List Categories Api V1 Connectors Categories Get",
+                  "title": "Response List Categories V1 Connectors Categories Get",
                   "type": "array"
                 }
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "List Categories",
@@ -2982,9 +4765,33 @@
         ]
       }
     },
+    "/v1/connectors/health/dashboard": {
+      "get": {
+        "description": "Connector health dashboard metrics (sync lag, error proxy, mapping coverage).",
+        "operationId": "connector_health_dashboard_v1_connectors_health_dashboard_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Connector Health Dashboard V1 Connectors Health Dashboard Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Connector Health Dashboard",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
     "/v1/connectors/regulatory_compliance/audit-logs": {
       "get": {
-        "operationId": "get_regulatory_audit_logs_api_v1_connectors_regulatory_compliance_audit_logs_get",
+        "operationId": "get_regulatory_audit_logs_v1_connectors_regulatory_compliance_audit_logs_get",
         "parameters": [
           {
             "in": "query",
@@ -3027,7 +4834,11 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Regulatory Audit Logs V1 Connectors Regulatory Compliance Audit Logs Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -3051,7 +4862,7 @@
     },
     "/v1/connectors/regulatory_compliance/config": {
       "put": {
-        "operationId": "update_regulatory_compliance_config_api_v1_connectors_regulatory_compliance_config_put",
+        "operationId": "update_regulatory_compliance_config_v1_connectors_regulatory_compliance_config_put",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3092,7 +4903,7 @@
     },
     "/v1/connectors/regulatory_compliance/test": {
       "post": {
-        "operationId": "test_regulatory_compliance_connection_api_v1_connectors_regulatory_compliance_test_post",
+        "operationId": "test_regulatory_compliance_connection_v1_connectors_regulatory_compliance_test_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3134,7 +4945,7 @@
     "/v1/connectors/{connector_id}": {
       "get": {
         "description": "Get a specific connector with its configuration.",
-        "operationId": "get_connector_api_v1_connectors__connector_id__get",
+        "operationId": "get_connector_v1_connectors__connector_id__get",
         "parameters": [
           {
             "in": "path",
@@ -3177,7 +4988,7 @@
     "/v1/connectors/{connector_id}/config": {
       "delete": {
         "description": "Delete a connector configuration.",
-        "operationId": "delete_connector_config_api_v1_connectors__connector_id__config_delete",
+        "operationId": "delete_connector_config_v1_connectors__connector_id__config_delete",
         "parameters": [
           {
             "in": "path",
@@ -3193,7 +5004,13 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Delete Connector Config V1 Connectors  Connector Id  Config Delete",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -3216,7 +5033,7 @@
       },
       "put": {
         "description": "Update connector configuration.\n\nNote: This only stores non-secret configuration.\nSecrets (API tokens, passwords) must be provided via environment variables.",
-        "operationId": "update_connector_config_api_v1_connectors__connector_id__config_put",
+        "operationId": "update_connector_config_v1_connectors__connector_id__config_put",
         "parameters": [
           {
             "in": "path",
@@ -3269,7 +5086,7 @@
     "/v1/connectors/{connector_id}/disable": {
       "post": {
         "description": "Disable a connector.",
-        "operationId": "disable_connector_api_v1_connectors__connector_id__disable_post",
+        "operationId": "disable_connector_v1_connectors__connector_id__disable_post",
         "parameters": [
           {
             "in": "path",
@@ -3312,7 +5129,7 @@
     "/v1/connectors/{connector_id}/enable": {
       "post": {
         "description": "Enable a connector.\n\nThis will disable any other connector in the same category (mutual exclusivity).",
-        "operationId": "enable_connector_api_v1_connectors__connector_id__enable_post",
+        "operationId": "enable_connector_v1_connectors__connector_id__enable_post",
         "parameters": [
           {
             "in": "path",
@@ -3355,7 +5172,7 @@
     "/v1/connectors/{connector_id}/test": {
       "post": {
         "description": "Test connection to the external system.\n\nFor Jira connector, requires environment variables:\n- JIRA_INSTANCE_URL (or use request.instance_url)\n- JIRA_EMAIL\n- JIRA_API_TOKEN",
-        "operationId": "test_connection_api_v1_connectors__connector_id__test_post",
+        "operationId": "test_connection_v1_connectors__connector_id__test_post",
         "parameters": [
           {
             "in": "path",
@@ -3408,7 +5225,7 @@
     "/v1/connectors/{connector_id}/webhook": {
       "post": {
         "description": "Receive webhook notifications from external systems.",
-        "operationId": "handle_connector_webhook_api_v1_connectors__connector_id__webhook_post",
+        "operationId": "handle_connector_webhook_v1_connectors__connector_id__webhook_post",
         "parameters": [
           {
             "in": "path",
@@ -3424,7 +5241,11 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Handle Connector Webhook V1 Connectors  Connector Id  Webhook Post",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -3448,7 +5269,7 @@
     },
     "/v1/documents/sessions": {
       "post": {
-        "operationId": "start_session_api_v1_documents_sessions_post",
+        "operationId": "start_session_v1_documents_sessions_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3489,7 +5310,7 @@
     },
     "/v1/documents/sessions/{session_id}": {
       "get": {
-        "operationId": "get_session_api_v1_documents_sessions__session_id__get",
+        "operationId": "get_session_v1_documents_sessions__session_id__get",
         "parameters": [
           {
             "in": "path",
@@ -3531,7 +5352,7 @@
     },
     "/v1/documents/sessions/{session_id}/persist": {
       "post": {
-        "operationId": "persist_session_api_v1_documents_sessions__session_id__persist_post",
+        "operationId": "persist_session_v1_documents_sessions__session_id__persist_post",
         "parameters": [
           {
             "in": "path",
@@ -3583,7 +5404,7 @@
     },
     "/v1/documents/sessions/{session_id}/stop": {
       "post": {
-        "operationId": "stop_session_api_v1_documents_sessions__session_id__stop_post",
+        "operationId": "stop_session_v1_documents_sessions__session_id__stop_post",
         "parameters": [
           {
             "in": "path",
@@ -3636,12 +5457,16 @@
     "/v1/health": {
       "get": {
         "description": "Health check endpoint for load balancers and monitoring.\n\nReturns:\n    Basic health status of the API",
-        "operationId": "health_check_api_v1_health_get",
+        "operationId": "health_check_v1_health_get",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Health Check V1 Health Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -3656,12 +5481,16 @@
     "/v1/health/live": {
       "get": {
         "description": "Liveness check - indicates if the service is alive.\n\nReturns:\n    Simple alive status",
-        "operationId": "liveness_check_api_v1_health_live_get",
+        "operationId": "liveness_check_v1_health_live_get",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Liveness Check V1 Health Live Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -3676,12 +5505,16 @@
     "/v1/health/ready": {
       "get": {
         "description": "Readiness check - indicates if the service is ready to accept traffic.\n\nReturns:\n    Ready status including dependency checks",
-        "operationId": "readiness_check_api_v1_health_ready_get",
+        "operationId": "readiness_check_v1_health_ready_get",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Readiness Check V1 Health Ready Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -3695,7 +5528,7 @@
     },
     "/v1/lineage": {
       "get": {
-        "operationId": "list_lineage_api_v1_lineage_get",
+        "operationId": "list_lineage_v1_lineage_get",
         "parameters": [
           {
             "in": "query",
@@ -3734,7 +5567,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "title": "Response List Lineage V1 Lineage Get"
+                }
               }
             },
             "description": "Successful Response"
@@ -3756,10 +5591,53 @@
         ]
       }
     },
+    "/v1/mcp/servers/{system}/tools": {
+      "get": {
+        "description": "List available MCP tools for a specific server/system.",
+        "operationId": "list_mcp_server_tools_v1_mcp_servers__system__tools_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "system",
+            "required": true,
+            "schema": {
+              "title": "System",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpServerToolsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Mcp Server Tools",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
     "/v1/projects/{project_id}/agents/config": {
       "get": {
         "description": "List all agent configurations for a specific project.",
-        "operationId": "list_project_agent_configs_api_v1_projects__project_id__agents_config_get",
+        "operationId": "list_project_agent_configs_v1_projects__project_id__agents_config_get",
         "parameters": [
           {
             "in": "path",
@@ -3768,6 +5646,29 @@
             "schema": {
               "title": "Project Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
             }
           }
         ],
@@ -3779,7 +5680,7 @@
                   "items": {
                     "$ref": "#/components/schemas/ProjectAgentConfigModel"
                   },
-                  "title": "Response List Project Agent Configs Api V1 Projects  Project Id  Agents Config Get",
+                  "title": "Response List Project Agent Configs V1 Projects  Project Id  Agents Config Get",
                   "type": "array"
                 }
               }
@@ -3806,7 +5707,7 @@
     "/v1/projects/{project_id}/agents/config/{agent_id}": {
       "get": {
         "description": "Get project-specific configuration for an agent.",
-        "operationId": "get_project_agent_config_api_v1_projects__project_id__agents_config__agent_id__get",
+        "operationId": "get_project_agent_config_v1_projects__project_id__agents_config__agent_id__get",
         "parameters": [
           {
             "in": "path",
@@ -3840,7 +5741,7 @@
                       "type": "null"
                     }
                   ],
-                  "title": "Response Get Project Agent Config Api V1 Projects  Project Id  Agents Config  Agent Id  Get"
+                  "title": "Response Get Project Agent Config V1 Projects  Project Id  Agents Config  Agent Id  Get"
                 }
               }
             },
@@ -3864,7 +5765,7 @@
       },
       "put": {
         "description": "Set project-specific configuration for an agent.\n\nRequires admin or PM role.",
-        "operationId": "set_project_agent_config_api_v1_projects__project_id__agents_config__agent_id__put",
+        "operationId": "set_project_agent_config_v1_projects__project_id__agents_config__agent_id__put",
         "parameters": [
           {
             "in": "path",
@@ -3926,7 +5827,7 @@
     "/v1/projects/{project_id}/agents/enabled": {
       "get": {
         "description": "Get list of enabled agents for a specific project.",
-        "operationId": "get_enabled_agents_for_project_api_v1_projects__project_id__agents_enabled_get",
+        "operationId": "get_enabled_agents_for_project_v1_projects__project_id__agents_enabled_get",
         "parameters": [
           {
             "in": "path",
@@ -3942,7 +5843,11 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Enabled Agents For Project V1 Projects  Project Id  Agents Enabled Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -3967,7 +5872,7 @@
     "/v1/projects/{project_id}/agents/{agent_id}/enabled": {
       "get": {
         "description": "Check if a specific agent is enabled for a project.",
-        "operationId": "check_agent_enabled_for_project_api_v1_projects__project_id__agents__agent_id__enabled_get",
+        "operationId": "check_agent_enabled_for_project_v1_projects__project_id__agents__agent_id__enabled_get",
         "parameters": [
           {
             "in": "path",
@@ -3992,7 +5897,11 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Check Agent Enabled For Project V1 Projects  Project Id  Agents  Agent Id  Enabled Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -4017,7 +5926,7 @@
     "/v1/projects/{project_id}/compliance/research": {
       "post": {
         "description": "Trigger external regulatory monitoring using the Compliance agent.",
-        "operationId": "research_compliance_api_v1_projects__project_id__compliance_research_post",
+        "operationId": "research_compliance_v1_projects__project_id__compliance_research_post",
         "parameters": [
           {
             "in": "path",
@@ -4067,9 +5976,383 @@
         ]
       }
     },
+    "/v1/projects/{project_id}/connectors": {
+      "get": {
+        "description": "List connectors with project-scoped configuration.",
+        "operationId": "list_project_connectors_v1_projects__project_id__connectors_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectConnectorListItemResponse"
+                  },
+                  "title": "Response List Project Connectors V1 Projects  Project Id  Connectors Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Project Connectors",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/connectors/{connector_id}/config": {
+      "put": {
+        "description": "Update project-scoped connector configuration.",
+        "operationId": "update_project_connector_config_v1_projects__project_id__connectors__connector_id__config_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectorConfigRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectConnectorConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Project Connector Config",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/connectors/{connector_id}/disable": {
+      "post": {
+        "description": "Disable a project-scoped connector.",
+        "operationId": "disable_project_connector_v1_projects__project_id__connectors__connector_id__disable_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectConnectorConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Disable Project Connector",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/connectors/{connector_id}/enable": {
+      "post": {
+        "description": "Enable a project-scoped connector.",
+        "operationId": "enable_project_connector_v1_projects__project_id__connectors__connector_id__enable_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "title": "Connector Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectConnectorConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enable Project Connector",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
+    "/v1/projects/{project_id}/connectors/{system}/mcp": {
+      "post": {
+        "description": "Enable MCP configuration for a project-scoped connector.",
+        "operationId": "enable_project_mcp_config_v1_projects__project_id__connectors__system__mcp_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "system",
+            "required": true,
+            "schema": {
+              "title": "System",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectMcpConfigRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectMcpConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enable Project Mcp Config",
+        "tags": [
+          "connectors"
+        ]
+      },
+      "put": {
+        "description": "Update MCP configuration for a project-scoped connector.",
+        "operationId": "update_project_mcp_config_v1_projects__project_id__connectors__system__mcp_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "system",
+            "required": true,
+            "schema": {
+              "title": "System",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectMcpConfigRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectMcpConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Project Mcp Config",
+        "tags": [
+          "connectors"
+        ]
+      }
+    },
     "/v1/projects/{project_id}/health": {
       "get": {
-        "operationId": "project_health_api_v1_projects__project_id__health_get",
+        "operationId": "project_health_v1_projects__project_id__health_get",
         "parameters": [
           {
             "in": "path",
@@ -4085,7 +6368,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "title": "Response Project Health V1 Projects  Project Id  Health Get"
+                }
               }
             },
             "description": "Successful Response"
@@ -4109,7 +6394,7 @@
     },
     "/v1/projects/{project_id}/health/trends": {
       "get": {
-        "operationId": "project_health_trends_api_v1_projects__project_id__health_trends_get",
+        "operationId": "project_health_trends_v1_projects__project_id__health_trends_get",
         "parameters": [
           {
             "in": "path",
@@ -4125,7 +6410,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "title": "Response Project Health Trends V1 Projects  Project Id  Health Trends Get"
+                }
               }
             },
             "description": "Successful Response"
@@ -4149,7 +6436,7 @@
     },
     "/v1/projects/{project_id}/health/what-if": {
       "post": {
-        "operationId": "project_health_what_if_api_v1_projects__project_id__health_what_if_post",
+        "operationId": "project_health_what_if_v1_projects__project_id__health_what_if_post",
         "parameters": [
           {
             "in": "path",
@@ -4165,6 +6452,7 @@
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": true,
                 "title": "Payload",
                 "type": "object"
               }
@@ -4176,7 +6464,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "title": "Response Project Health What If V1 Projects  Project Id  Health What If Post"
+                }
               }
             },
             "description": "Successful Response"
@@ -4201,7 +6491,7 @@
     "/v1/projects/{project_id}/risks/research": {
       "post": {
         "description": "Trigger external risk research using the Risk & Issue Management agent.",
-        "operationId": "research_project_risks_api_v1_projects__project_id__risks_research_post",
+        "operationId": "research_project_risks_v1_projects__project_id__risks_research_post",
         "parameters": [
           {
             "in": "path",
@@ -4254,7 +6544,7 @@
     "/v1/projects/{project_id}/scope/research": {
       "post": {
         "description": "Trigger scope research using the Project Definition & Scope agent.",
-        "operationId": "generate_scope_research_api_v1_projects__project_id__scope_research_post",
+        "operationId": "generate_scope_research_v1_projects__project_id__scope_research_post",
         "parameters": [
           {
             "in": "path",
@@ -4304,10 +6594,365 @@
         ]
       }
     },
+    "/v1/prompts": {
+      "get": {
+        "operationId": "list_prompts_v1_prompts_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "environment",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Environment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response List Prompts V1 Prompts Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Prompts",
+        "tags": [
+          "prompts"
+        ]
+      },
+      "post": {
+        "operationId": "create_prompt_v1_prompts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromptCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Create Prompt V1 Prompts Post"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Prompt",
+        "tags": [
+          "prompts"
+        ]
+      }
+    },
+    "/v1/prompts/evaluations/run": {
+      "post": {
+        "operationId": "run_evaluation_v1_prompts_evaluations_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Run Evaluation V1 Prompts Evaluations Run Post"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Evaluation",
+        "tags": [
+          "prompts"
+        ]
+      }
+    },
+    "/v1/prompts/flagged": {
+      "get": {
+        "operationId": "list_flagged_prompts_v1_prompts_flagged_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response List Flagged Prompts V1 Prompts Flagged Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Flagged Prompts",
+        "tags": [
+          "prompts"
+        ]
+      }
+    },
+    "/v1/prompts/{name}": {
+      "delete": {
+        "operationId": "delete_prompt_v1_prompts__name__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Delete Prompt V1 Prompts  Name  Delete"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Prompt",
+        "tags": [
+          "prompts"
+        ]
+      },
+      "put": {
+        "operationId": "update_prompt_v1_prompts__name__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromptUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Update Prompt V1 Prompts  Name  Put"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Prompt",
+        "tags": [
+          "prompts"
+        ]
+      }
+    },
+    "/v1/prompts/{name}/promote/{version}": {
+      "post": {
+        "operationId": "promote_prompt_v1_prompts__name__promote__version__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromptPromotionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Promote Prompt V1 Prompts  Name  Promote  Version  Post"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Promote Prompt",
+        "tags": [
+          "prompts"
+        ]
+      }
+    },
+    "/v1/prompts/{name}/render": {
+      "post": {
+        "operationId": "render_prompt_v1_prompts__name__render_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PromptRenderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Render Prompt V1 Prompts  Name  Render Post"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Render Prompt",
+        "tags": [
+          "prompts"
+        ]
+      }
+    },
     "/v1/query": {
       "post": {
         "description": "Process a natural language query through the agent system.\n\nThis endpoint routes the query through the Intent Router and Response Orchestration agents.",
-        "operationId": "process_query_api_v1_query_post",
+        "operationId": "process_query_v1_query_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4329,6 +6974,56 @@
             },
             "description": "Successful Response"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -4338,6 +7033,46 @@
               }
             },
             "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Gateway"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentQueryErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
           }
         },
         "summary": "Process Query",
@@ -4349,12 +7084,16 @@
     "/v1/status": {
       "get": {
         "description": "Get platform status.",
-        "operationId": "get_status_api_v1_status_get",
+        "operationId": "get_status_v1_status_get",
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Status V1 Status Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"
@@ -4366,7 +7105,7 @@
     "/v1/vendors": {
       "get": {
         "description": "List vendor profiles with optional filtering.",
-        "operationId": "list_vendors_api_v1_vendors_get",
+        "operationId": "list_vendors_v1_vendors_get",
         "parameters": [
           {
             "in": "query",
@@ -4464,7 +7203,7 @@
     "/v1/vendors/{vendor_id}": {
       "get": {
         "description": "Get a vendor profile by ID.",
-        "operationId": "get_vendor_profile_api_v1_vendors__vendor_id__get",
+        "operationId": "get_vendor_profile_v1_vendors__vendor_id__get",
         "parameters": [
           {
             "in": "path",
@@ -4505,7 +7244,7 @@
       },
       "patch": {
         "description": "Update fields on a vendor profile.",
-        "operationId": "update_vendor_profile_api_v1_vendors__vendor_id__patch",
+        "operationId": "update_vendor_profile_v1_vendors__vendor_id__patch",
         "parameters": [
           {
             "in": "path",
@@ -4558,7 +7297,7 @@
     "/v1/vendors/{vendor_id}/research": {
       "post": {
         "description": "Trigger external vendor research using the Vendor & Procurement agent.",
-        "operationId": "research_vendor_api_v1_vendors__vendor_id__research_post",
+        "operationId": "research_vendor_v1_vendors__vendor_id__research_post",
         "parameters": [
           {
             "in": "path",
@@ -4610,7 +7349,7 @@
     },
     "/v1/workflows/approvals": {
       "get": {
-        "operationId": "list_approvals_api_v1_workflows_approvals_get",
+        "operationId": "list_approvals_v1_workflows_approvals_get",
         "parameters": [
           {
             "in": "query",
@@ -4643,6 +7382,29 @@
               ],
               "title": "Approver Id"
             }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -4653,7 +7415,7 @@
                   "items": {
                     "$ref": "#/components/schemas/WorkflowApprovalResponse"
                   },
-                  "title": "Response List Approvals Api V1 Workflows Approvals Get",
+                  "title": "Response List Approvals V1 Workflows Approvals Get",
                   "type": "array"
                 }
               }
@@ -4679,7 +7441,7 @@
     },
     "/v1/workflows/approvals/{approval_id}": {
       "get": {
-        "operationId": "get_approval_api_v1_workflows_approvals__approval_id__get",
+        "operationId": "get_approval_v1_workflows_approvals__approval_id__get",
         "parameters": [
           {
             "in": "path",
@@ -4721,7 +7483,7 @@
     },
     "/v1/workflows/approvals/{approval_id}/decision": {
       "post": {
-        "operationId": "decide_approval_api_v1_workflows_approvals__approval_id__decision_post",
+        "operationId": "decide_approval_v1_workflows_approvals__approval_id__decision_post",
         "parameters": [
           {
             "in": "path",
@@ -4773,7 +7535,32 @@
     },
     "/v1/workflows/definitions": {
       "get": {
-        "operationId": "list_definitions_api_v1_workflows_definitions_get",
+        "operationId": "list_definitions_v1_workflows_definitions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -4782,12 +7569,22 @@
                   "items": {
                     "$ref": "#/components/schemas/WorkflowDefinitionResponse"
                   },
-                  "title": "Response List Definitions Api V1 Workflows Definitions Get",
+                  "title": "Response List Definitions V1 Workflows Definitions Get",
                   "type": "array"
                 }
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "List Definitions",
@@ -4796,7 +7593,7 @@
         ]
       },
       "post": {
-        "operationId": "create_definition_api_v1_workflows_definitions_post",
+        "operationId": "create_definition_v1_workflows_definitions_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4837,7 +7634,32 @@
     },
     "/v1/workflows/instances": {
       "get": {
-        "operationId": "list_instances_api_v1_workflows_instances_get",
+        "operationId": "list_instances_v1_workflows_instances_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -4846,12 +7668,22 @@
                   "items": {
                     "$ref": "#/components/schemas/WorkflowRunResponse"
                   },
-                  "title": "Response List Instances Api V1 Workflows Instances Get",
+                  "title": "Response List Instances V1 Workflows Instances Get",
                   "type": "array"
                 }
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "List Instances",
@@ -4862,7 +7694,7 @@
     },
     "/v1/workflows/instances/{run_id}": {
       "get": {
-        "operationId": "get_instance_api_v1_workflows_instances__run_id__get",
+        "operationId": "get_instance_v1_workflows_instances__run_id__get",
         "parameters": [
           {
             "in": "path",
@@ -4904,7 +7736,7 @@
     },
     "/v1/workflows/instances/{run_id}/resume": {
       "post": {
-        "operationId": "resume_workflow_api_v1_workflows_instances__run_id__resume_post",
+        "operationId": "resume_workflow_v1_workflows_instances__run_id__resume_post",
         "parameters": [
           {
             "in": "path",
@@ -4946,7 +7778,7 @@
     },
     "/v1/workflows/instances/{run_id}/timeline": {
       "get": {
-        "operationId": "workflow_timeline_api_v1_workflows_instances__run_id__timeline_get",
+        "operationId": "workflow_timeline_v1_workflows_instances__run_id__timeline_get",
         "parameters": [
           {
             "in": "path",
@@ -4955,6 +7787,29 @@
             "schema": {
               "title": "Run Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 2000,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
             }
           }
         ],
@@ -4966,7 +7821,7 @@
                   "items": {
                     "$ref": "#/components/schemas/WorkflowEventResponse"
                   },
-                  "title": "Response Workflow Timeline Api V1 Workflows Instances  Run Id  Timeline Get",
+                  "title": "Response Workflow Timeline V1 Workflows Instances  Run Id  Timeline Get",
                   "type": "array"
                 }
               }
@@ -4992,7 +7847,7 @@
     },
     "/v1/workflows/start": {
       "post": {
-        "operationId": "start_workflow_api_v1_workflows_start_post",
+        "operationId": "start_workflow_v1_workflows_start_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -5031,23 +7886,6 @@
         ]
       }
     },
-    "/healthz": {
-      "get": {
-        "description": "Lightweight health check for local dev and probes.",
-        "operationId": "healthz_healthz_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Healthz"
-      }
-    },
     "/version": {
       "get": {
         "description": "Return API version metadata.",
@@ -5056,7 +7894,13 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Version Version Get",
+                  "type": "object"
+                }
               }
             },
             "description": "Successful Response"

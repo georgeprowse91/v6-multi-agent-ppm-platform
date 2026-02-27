@@ -162,5 +162,5 @@ class WorkdayConnector(OAuth2RestConnector):
             filters=filters,
             limit=limit,
             offset=offset,
-            rest_call=lambda: super().read(resource_type, filters=filters, limit=limit, offset=offset),
+            rest_call=lambda: OAuth2RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset),
         )

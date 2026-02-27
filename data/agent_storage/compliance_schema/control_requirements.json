@@ -8,5 +8,5 @@
   "evidence_requirements": "list[string]",
   "test_frequency": "string",
   "_id": "control_requirements",
-  "_updated_at": "2026-02-27T08:59:25.618923+00:00"
+  "_updated_at": "2026-02-27T13:11:55.724762+00:00"
 }

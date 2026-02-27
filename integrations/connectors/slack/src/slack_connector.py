@@ -181,7 +181,7 @@ class SlackConnector(RestConnector):
             "users": "list_users",
         }
         tool_key = read_tools.get(resource_type)
-        rest_call = lambda: super().read(resource_type, filters=filters, limit=limit, offset=offset)
+        rest_call = lambda: RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset)
         if not tool_key:
             return rest_call()
         params = map_to_mcp_params(
@@ -209,7 +209,7 @@ class SlackConnector(RestConnector):
             "messages": "post_message",
         }
         tool_key = write_tools.get(resource_type)
-        rest_call = lambda: super().write(resource_type, data)
+        rest_call = lambda: RestConnector.write(self, resource_type, data)
         if not tool_key:
             return rest_call()
         params = map_to_mcp_params("write", {"resource_type": resource_type, "records": data})

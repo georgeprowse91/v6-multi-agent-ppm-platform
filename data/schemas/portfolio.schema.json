@@ -40,6 +40,15 @@
     "updated_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "strategic_theme": {
+      "type": "string"
+    },
+    "target_npv": {
+      "type": "number"
+    },
+    "kpi_delivery_on_time_target_pct": {
+      "type": "number"
     }
   },
   "required": [

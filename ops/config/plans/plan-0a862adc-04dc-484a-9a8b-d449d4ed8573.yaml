@@ -1,0 +1,13 @@
+plan_id: plan-0a862adc-04dc-484a-9a8b-d449d4ed8573
+tasks:
+- task_id: task-1
+  agent_id: risk-management
+  action: null
+  dependencies: []
+  metadata:
+    priority: null
+    intent: null
+status: approved
+modification_history: []
+created_at: '2026-02-27T13:04:52.765845Z'
+version: 530

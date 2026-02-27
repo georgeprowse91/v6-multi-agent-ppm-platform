@@ -61,6 +61,10 @@ def test_workflow_persistence(tmp_path, monkeypatch) -> None:
 
     module = _load_module()
     workflow_tasks = importlib.import_module("workflow.tasks")
+    # Reset the cached context so the task creates a fresh store pointing to
+    # this test's db_path (a stale context from a previous test would use an
+    # old, now-deleted, temp database).
+    workflow_tasks._CONTEXT = None
     workflow_tasks.AGENT_CLIENT_OVERRIDE = DummyAgentClient()
     client = TestClient(module.app)
 

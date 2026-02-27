@@ -3,14 +3,17 @@
   "tenant_id": "tenant-sync",
   "entity_type": "project",
   "source_system": "jira",
-  "status": "success",
+  "status": "failed",
   "mode": "single",
-  "started_at": "2026-02-25T16:05:36.414843+00:00",
-  "finished_at": "2026-02-25T16:05:36.420637+00:00",
-  "master_id": "MASTER-PROJECT-20260225160536",
+  "started_at": "2026-02-27T13:11:03.630171+00:00",
+  "finished_at": "2026-02-27T13:11:03.635800+00:00",
+  "master_id": null,
   "details": {
-    "action": "created"
+    "error": "validation_failed",
+    "errors": [
+      "'status' is a required property\n\nFailed validating 'required' in schema:\n    {'type': 'object',\n     'required': ['id', 'name', 'status'],\n     'properties': {'id': {'type': 'string'},\n                    'name': {'type': 'string'},\n                    'status': {'type': 'string'},\n                    'description': {'type': 'string'},\n                    'start_date': {'type': 'string'},\n                    'end_date': {'type': 'string'},\n                    'owner_id': {'type': 'string'},\n                    'budget': {'type': 'number'},\n                    'updated_at': {'type': 'string'},\n                    'created_at': {'type': 'string'}}}\n\nOn instance:\n    {'id': 'proj-9', 'name': 'Retry Project'}"
+    ]
   },
   "_id": "SYNCLOG-2",
-  "_updated_at": "2026-02-25T16:05:36.420768+00:00"
+  "_updated_at": "2026-02-27T13:11:03.636003+00:00"
 }

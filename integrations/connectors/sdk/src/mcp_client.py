@@ -101,6 +101,10 @@ class MCPServerError(MCPClientError):
         self.data = data
 
 
+class MCPAuthenticationError(MCPClientError):
+    """Authentication failure when calling MCP server."""
+
+
 class MCPClient:
     """Simple JSON-RPC MCP client built for connector usage."""
 

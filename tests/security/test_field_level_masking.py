@@ -31,6 +31,13 @@ def test_field_masking_blocks_restricted_fields(monkeypatch) -> None:
     client = _client()
     token = _make_token("project_manager")
 
+    _METADATA = {
+        "agent_id": "test-agent",
+        "catalog_id": "test-agent",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "correlation_id": "test-corr-mask",
+    }
+
     mock_orchestrator = MagicMock()
     mock_orchestrator.initialized = True
     mock_orchestrator.process_query = AsyncMock(
@@ -40,6 +47,7 @@ def test_field_masking_blocks_restricted_fields(monkeypatch) -> None:
                 "project": {"budget": 50000, "risk_rating": "high"},
                 "portfolio": {"strategic_score": 92},
             },
+            "metadata": _METADATA,
         }
     )
 
@@ -62,6 +70,13 @@ def test_field_masking_allows_privileged_fields(monkeypatch) -> None:
     client = _client()
     token = _make_token("portfolio_admin")
 
+    _METADATA = {
+        "agent_id": "test-agent",
+        "catalog_id": "test-agent",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "correlation_id": "test-corr-priv",
+    }
+
     mock_orchestrator = MagicMock()
     mock_orchestrator.initialized = True
     mock_orchestrator.process_query = AsyncMock(
@@ -71,6 +86,7 @@ def test_field_masking_allows_privileged_fields(monkeypatch) -> None:
                 "project": {"budget": 50000, "risk_rating": "high"},
                 "portfolio": {"strategic_score": 92},
             },
+            "metadata": _METADATA,
         }
     )
 

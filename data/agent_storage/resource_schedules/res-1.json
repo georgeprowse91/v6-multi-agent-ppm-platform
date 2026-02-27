@@ -14,8 +14,8 @@
     "holidays": []
   },
   "availability": 1.0,
-  "tenant_id": "tenant-a",
-  "updated_at": "2026-02-27T08:38:26.611618+00:00",
+  "tenant_id": "system",
+  "updated_at": "2026-02-27T13:11:55.700307+00:00",
   "_id": "res-1",
-  "_updated_at": "2026-02-27T08:38:26.611887+00:00"
+  "_updated_at": "2026-02-27T13:11:55.700543+00:00"
 }

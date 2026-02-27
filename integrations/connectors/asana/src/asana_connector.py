@@ -202,7 +202,7 @@ class AsanaConnector(RestConnector):
             "tasks": "list_tasks",
         }
         tool_key = read_tools.get(resource_type)
-        rest_call = lambda: super().read(resource_type, filters=filters, limit=limit, offset=offset)
+        rest_call = lambda: RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset)
         if not tool_key:
             return rest_call()
         params = {
@@ -227,7 +227,7 @@ class AsanaConnector(RestConnector):
             "tasks": "create_task",
         }
         tool_key = write_tools.get(resource_type)
-        rest_call = lambda: super().write(resource_type, data)
+        rest_call = lambda: RestConnector.write(self, resource_type, data)
         if not tool_key:
             return rest_call()
         params = {"resource_type": resource_type, "records": data}

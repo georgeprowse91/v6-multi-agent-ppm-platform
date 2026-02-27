@@ -80,6 +80,155 @@
       "reason": "validation_failed",
       "attempts": 0,
       "queued_at": "2026-02-22T05:10:20.236483+00:00"
+    },
+    "RETRY-b7704b6c-5270-4912-9141-c3f8dbd7243a": {
+      "retry_id": "RETRY-b7704b6c-5270-4912-9141-c3f8dbd7243a",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T09:53:24.670767+00:00"
+    },
+    "RETRY-54bebe23-7f01-44a4-b4e4-14e3a80349e8": {
+      "retry_id": "RETRY-54bebe23-7f01-44a4-b4e4-14e3a80349e8",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "data": {
+        "id": "proj-dup",
+        "name": "Duplicated"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T09:53:25.089723+00:00"
+    },
+    "RETRY-5647b440-b93d-4bea-93d6-fc2e741db220": {
+      "retry_id": "RETRY-5647b440-b93d-4bea-93d6-fc2e741db220",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T09:59:20.858413+00:00"
+    },
+    "RETRY-ed0eae42-e204-4bcc-b44f-b647bc5de8c9": {
+      "retry_id": "RETRY-ed0eae42-e204-4bcc-b44f-b647bc5de8c9",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "data": {
+        "id": "proj-dup",
+        "name": "Duplicated"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T09:59:21.278902+00:00"
+    },
+    "RETRY-b88ffc85-d483-4805-b0f0-83df31ae8f7b": {
+      "retry_id": "RETRY-b88ffc85-d483-4805-b0f0-83df31ae8f7b",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T10:10:49.130992+00:00"
+    },
+    "RETRY-c06a214d-4560-4f0a-a346-d388548d18f0": {
+      "retry_id": "RETRY-c06a214d-4560-4f0a-a346-d388548d18f0",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "data": {
+        "id": "proj-dup",
+        "name": "Duplicated"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T10:10:50.106669+00:00"
+    },
+    "RETRY-9caea009-49ef-448f-b6f9-f731b57f3996": {
+      "retry_id": "RETRY-9caea009-49ef-448f-b6f9-f731b57f3996",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T10:11:27.482774+00:00"
+    },
+    "RETRY-45314bcb-c384-4b1a-8412-da6f5c8bff90": {
+      "retry_id": "RETRY-45314bcb-c384-4b1a-8412-da6f5c8bff90",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "data": {
+        "id": "proj-dup",
+        "name": "Duplicated"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T10:11:28.343757+00:00"
+    },
+    "RETRY-4e6b23f6-7d19-4fbe-899f-25bbb539f142": {
+      "retry_id": "RETRY-4e6b23f6-7d19-4fbe-899f-25bbb539f142",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T10:13:27.557706+00:00"
+    },
+    "RETRY-03e1c990-ec5d-446e-a402-f311a105d730": {
+      "retry_id": "RETRY-03e1c990-ec5d-446e-a402-f311a105d730",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "sap",
+      "data": {
+        "id": "proj-2",
+        "name": "Gemini",
+        "email": "owner@example.com"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T10:14:40.374738+00:00"
+    },
+    "RETRY-b0c22f3c-8a27-410f-b5ad-0850db7627de": {
+      "retry_id": "RETRY-b0c22f3c-8a27-410f-b5ad-0850db7627de",
+      "tenant_id": "tenant-sync",
+      "entity_type": "project",
+      "source_system": "jira",
+      "data": {
+        "id": "proj-dup",
+        "name": "Duplicated"
+      },
+      "reason": "validation_failed",
+      "attempts": 0,
+      "queued_at": "2026-02-27T10:14:59.599505+00:00"
     }
   }
 }

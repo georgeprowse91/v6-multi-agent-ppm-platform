@@ -7,7 +7,7 @@
     "status": "open",
     "project_id": "prj-mobile-001",
     "owner": "res-eng-002",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-02T14:04:00Z"
   },
   {
@@ -18,7 +18,7 @@
     "status": "open",
     "project_id": "prj-portal-002",
     "owner": "res-eng-003",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-03T14:08:00Z"
   },
   {
@@ -29,7 +29,7 @@
     "status": "open",
     "project_id": "prj-observability-003",
     "owner": "res-eng-004",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-04T14:12:00Z"
   },
   {
@@ -40,7 +40,7 @@
     "status": "open",
     "project_id": "gen-project-001",
     "owner": "res-eng-005",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-05T14:16:00Z"
   },
   {
@@ -51,7 +51,7 @@
     "status": "open",
     "project_id": "gen-project-002",
     "owner": "res-eng-006",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-06-06T14:20:00Z"
   },
   {
@@ -62,7 +62,7 @@
     "status": "triaged",
     "project_id": "gen-project-003",
     "owner": "res-eng-007",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-07T14:24:00Z"
   },
   {
@@ -73,7 +73,7 @@
     "status": "triaged",
     "project_id": "gen-project-004",
     "owner": "res-eng-008",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-08T14:28:00Z"
   },
   {
@@ -84,7 +84,7 @@
     "status": "triaged",
     "project_id": "gen-project-005",
     "owner": "res-eng-009",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-09T14:32:00Z"
   },
   {
@@ -95,7 +95,7 @@
     "status": "resolved",
     "project_id": "gen-project-006",
     "owner": "res-eng-001",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-10T14:36:00Z"
   },
   {
@@ -106,7 +106,7 @@
     "status": "open",
     "project_id": "gen-project-007",
     "owner": "res-eng-002",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-06-11T14:40:00Z"
   },
   {
@@ -117,7 +117,7 @@
     "status": "triaged",
     "project_id": "gen-project-008",
     "owner": "res-eng-003",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-12T14:44:00Z"
   },
   {
@@ -128,7 +128,7 @@
     "status": "resolved",
     "project_id": "gen-project-009",
     "owner": "res-eng-004",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-13T14:48:00Z"
   },
   {
@@ -139,7 +139,7 @@
     "status": "open",
     "project_id": "gen-project-010",
     "owner": "res-eng-005",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-14T14:52:00Z"
   },
   {
@@ -150,7 +150,7 @@
     "status": "triaged",
     "project_id": "gen-project-011",
     "owner": "res-eng-006",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-15T14:56:00Z"
   },
   {
@@ -161,7 +161,7 @@
     "status": "resolved",
     "project_id": "gen-project-012",
     "owner": "res-eng-007",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-06-16T14:00:00Z"
   },
   {
@@ -172,7 +172,7 @@
     "status": "resolved",
     "project_id": "gen-project-013",
     "owner": "res-eng-008",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-17T14:04:00Z"
   },
   {
@@ -183,7 +183,7 @@
     "status": "resolved",
     "project_id": "gen-project-014",
     "owner": "res-eng-009",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-18T14:08:00Z"
   },
   {
@@ -194,7 +194,7 @@
     "status": "triaged",
     "project_id": "gen-project-015",
     "owner": "res-eng-001",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-19T14:12:00Z"
   },
   {
@@ -205,7 +205,7 @@
     "status": "resolved",
     "project_id": "gen-project-016",
     "owner": "res-eng-002",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-20T14:16:00Z"
   },
   {
@@ -216,7 +216,7 @@
     "status": "resolved",
     "project_id": "gen-project-017",
     "owner": "res-eng-003",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-06-21T14:20:00Z"
   },
   {
@@ -227,7 +227,7 @@
     "status": "triaged",
     "project_id": "gen-project-018",
     "owner": "res-eng-004",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-22T14:24:00Z"
   },
   {
@@ -238,7 +238,7 @@
     "status": "resolved",
     "project_id": "gen-project-019",
     "owner": "res-eng-005",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-23T14:28:00Z"
   },
   {
@@ -249,7 +249,7 @@
     "status": "resolved",
     "project_id": "gen-project-020",
     "owner": "res-eng-006",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-24T14:32:00Z"
   },
   {
@@ -260,7 +260,7 @@
     "status": "open",
     "project_id": "gen-project-014",
     "owner": "res-eng-007",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-25T14:32:00Z"
   },
   {
@@ -271,7 +271,7 @@
     "status": "in_progress",
     "project_id": "gen-project-015",
     "owner": "res-eng-008",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-26T14:32:00Z"
   },
   {
@@ -282,7 +282,7 @@
     "status": "resolved",
     "project_id": "gen-project-016",
     "owner": "res-eng-009",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-27T14:32:00Z"
   },
   {
@@ -293,7 +293,7 @@
     "status": "open",
     "project_id": "gen-project-017",
     "owner": "res-eng-001",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-28T14:32:00Z"
   },
   {
@@ -304,7 +304,7 @@
     "status": "in_progress",
     "project_id": "gen-project-018",
     "owner": "res-eng-002",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-29T14:32:00Z"
   },
   {
@@ -315,7 +315,7 @@
     "status": "resolved",
     "project_id": "gen-project-019",
     "owner": "res-eng-003",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-06-30T14:32:00Z"
   },
   {
@@ -326,7 +326,7 @@
     "status": "open",
     "project_id": "gen-project-020",
     "owner": "res-eng-004",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-07-01T14:32:00Z"
   }
 ]

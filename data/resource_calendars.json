@@ -117,5 +117,20 @@
       "planned_leave": [],
       "holidays": []
     }
+  },
+  "tenant-alpha": {
+    "res-1": {
+      "resource_id": "res-1",
+      "available_hours_per_day": 8,
+      "working_days": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "planned_leave": [],
+      "holidays": []
+    }
   }
 }

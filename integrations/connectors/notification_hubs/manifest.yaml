@@ -5,7 +5,7 @@ description: Send push notifications via Azure Notification Hubs.
 owner: integration-team
 category: collaboration
 auth:
-  type: sas
+  type: token
   fields:
   - namespace
   - hub_name

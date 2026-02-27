@@ -22,6 +22,7 @@ from typing import Any, TypeVar
 import yaml
 from common.resilience import (
     CircuitBreakerPolicy,
+    CircuitOpenError,
     DependencyResilienceConfig,
     ResilienceMiddleware,
     RetryPolicy,
@@ -540,6 +541,14 @@ class BaseConnector(ABC):
             self._last_call_cost_usd = self.estimate_call_cost(endpoint, payload, response)
             self._telemetry.sync_total.add(1, {**attributes, "result": "success"})
             return dict(response)
+        except CircuitBreakerOpenError:
+            # Circuit-open errors propagate directly so callers can detect the open state
+            self._telemetry.sync_total.add(1, {**attributes, "result": "circuit_open"})
+            raise
+        except CircuitOpenError as exc:
+            # Convert common.resilience.CircuitOpenError to the public CircuitBreakerOpenError
+            self._telemetry.sync_total.add(1, {**attributes, "result": "circuit_open"})
+            raise CircuitBreakerOpenError(str(exc)) from exc
         except Exception as exc:  # noqa: BLE001
             self._telemetry.sync_total.add(1, {**attributes, "result": "failure"})
             raise ConnectorCallFailedError(

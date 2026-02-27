@@ -1,0 +1,22 @@
+plan_id: plan-2bdcadf1-24cd-494f-a2bc-37e26f14094c
+tasks:
+- task_id: task-1
+  agent_id: financial-management
+  action: null
+  dependencies:
+  - risk-management
+  metadata:
+    priority: null
+    intent: null
+- task_id: task-2
+  agent_id: risk-management
+  action: null
+  dependencies:
+  - financial-management
+  metadata:
+    priority: null
+    intent: null
+status: approved
+modification_history: []
+created_at: '2026-02-27T13:11:13.451345Z'
+version: 571

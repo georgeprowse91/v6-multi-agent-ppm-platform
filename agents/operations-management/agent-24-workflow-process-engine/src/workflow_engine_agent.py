@@ -340,8 +340,8 @@ class WorkflowEngineAgent(BaseAgent):
             "dependencies": parsed_workflow.get("dependencies", {}),
         }
 
-        # Store workflow definition
-        self.workflow_definitions[workflow_id] = workflow
+        # Store workflow definition (use tenant_id:workflow_id to avoid cross-tenant cache collisions)
+        self.workflow_definitions[f"{tenant_id}:{workflow_id}"] = workflow
         await self.state_store.save_definition(tenant_id, workflow_id, workflow.copy())
         self.durable_orchestrations[workflow_id] = {
             "workflow_id": workflow_id,
@@ -1673,12 +1673,13 @@ class WorkflowEngineAgent(BaseAgent):
         return True
 
     async def _load_definition(self, tenant_id: str, workflow_id: str) -> dict[str, Any] | None:
-        workflow = self.workflow_definitions.get(workflow_id)
+        cache_key = f"{tenant_id}:{workflow_id}"
+        workflow = self.workflow_definitions.get(cache_key)
         if workflow:
             return workflow
         stored = await self.state_store.get_definition(tenant_id, workflow_id)
         if stored:
-            self.workflow_definitions[workflow_id] = stored
+            self.workflow_definitions[cache_key] = stored
         return stored
 
     async def _load_instance(self, tenant_id: str, instance_id: str) -> dict[str, Any] | None:

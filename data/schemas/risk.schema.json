@@ -31,7 +31,10 @@
         "rare",
         "unlikely",
         "possible",
-        "likely"
+        "likely",
+        "low",
+        "medium",
+        "high"
       ]
     },
     "status": {
@@ -39,6 +42,7 @@
       "enum": [
         "open",
         "mitigated",
+        "mitigating",
         "closed"
       ]
     },
@@ -53,6 +57,12 @@
         "confidential",
         "restricted"
       ]
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "mitigation": {
+      "type": "string"
     },
     "created_at": {
       "type": "string",

@@ -5,7 +5,7 @@ description: Sync schedules and sheets from Smartsheet.
 owner: integration-team
 category: pm
 auth:
-  type: api_token
+  type: api_key
   fields:
   - api_token
   - base_url

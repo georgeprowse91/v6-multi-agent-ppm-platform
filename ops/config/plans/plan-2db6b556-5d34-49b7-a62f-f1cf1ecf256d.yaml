@@ -1,0 +1,29 @@
+plan_id: plan-2db6b556-5d34-49b7-a62f-f1cf1ecf256d
+tasks:
+- task_id: task-1
+  agent_id: project-definition
+  action: generate_charter
+  dependencies: []
+  metadata:
+    priority: null
+    intent: null
+- task_id: task-2
+  agent_id: schedule-planning
+  action: generate_schedule
+  dependencies:
+  - project-definition
+  metadata:
+    priority: null
+    intent: null
+- task_id: task-3
+  agent_id: resource-capacity
+  action: analyze_capacity
+  dependencies:
+  - schedule-planning
+  metadata:
+    priority: null
+    intent: null
+status: approved
+modification_history: []
+created_at: '2026-02-27T12:03:40.467629Z'
+version: 503

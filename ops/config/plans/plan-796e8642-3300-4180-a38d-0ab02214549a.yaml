@@ -1,0 +1,29 @@
+plan_id: plan-796e8642-3300-4180-a38d-0ab02214549a
+tasks:
+- task_id: task-1
+  agent_id: risk-management
+  action: assess_risks
+  dependencies: []
+  metadata:
+    priority: null
+    intent: null
+- task_id: task-2
+  agent_id: compliance-regulatory
+  action: run_compliance_check
+  dependencies:
+  - risk-management
+  metadata:
+    priority: null
+    intent: null
+- task_id: task-3
+  agent_id: approval-workflow
+  action: submit_for_approval
+  dependencies:
+  - compliance-regulatory
+  metadata:
+    priority: null
+    intent: null
+status: approved
+modification_history: []
+created_at: '2026-02-27T13:07:15.028320Z'
+version: 552

@@ -1,11 +1,11 @@
 {
   "allocation_id": "res-1",
   "environment": "staging",
-  "release_id": "REL-20260227085928",
-  "reserved_at": "2026-02-27T08:59:28.710002+00:00",
+  "release_id": "REL-20260227131107",
+  "reserved_at": "2026-02-27T13:11:07.807645+00:00",
   "reserved_until": "2024-06-09T05:00:00",
   "status": "released",
   "_id": "res-1",
-  "_updated_at": "2026-02-27T08:59:28.715478+00:00",
-  "released_at": "2026-02-27T08:59:28.715368+00:00"
+  "_updated_at": "2026-02-27T13:11:07.813646+00:00",
+  "released_at": "2026-02-27T13:11:07.813407+00:00"
 }

@@ -359,6 +359,13 @@ class ReleaseDeploymentAgent(BaseAgent):
         """
         self.logger.info("Planning release: %s", release_data.get("name"))
 
+        # Pre-flight quality gate check — must pass before the release record is created
+        # so that a transient quality service failure leaves no orphan release entries.
+        if self.quality_agent:
+            await self.quality_agent.process(
+                {"action": "pre_release_quality_check", "release_name": release_data.get("name")}
+            )
+
         # Generate release ID
         release_id = await self._generate_release_id()
 
@@ -446,11 +453,23 @@ class ReleaseDeploymentAgent(BaseAgent):
             )
             release["calendar_event"] = calendar_event
 
+        await self._publish_event(
+            "deployment.release_planned",
+            {
+                "release_id": release_id,
+                "name": release["name"],
+                "planned_date": release["planned_date"],
+                "target_environment": release["target_environment"],
+                "tenant_id": tenant_id,
+            },
+        )
+
         return {
             "release_id": release_id,
             "name": release["name"],
             "planned_date": release["planned_date"],
             "target_environment": release["target_environment"],
+            "status": "planned",
             "environment_available": env_availability,
             "conflicts": conflicts,
             "alternative_windows": alternative_windows,

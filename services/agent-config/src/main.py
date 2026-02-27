@@ -32,6 +32,13 @@ except ImportError:
     _has_observability = False
 
 try:
+    from security.api_governance import apply_api_governance, version_response_payload
+    from security.auth import AuthTenantMiddleware
+    _has_security = True
+except ImportError:
+    _has_security = False
+
+try:
     from packages.version import API_VERSION
 except ImportError:
     API_VERSION = "1.0.0"
@@ -102,22 +109,41 @@ def create_app() -> FastAPI:
         version=API_VERSION,
     )
 
+    if _has_security:
+        try:
+            app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+        except Exception as exc:
+            logger.warning("Failed to configure auth middleware: %s", exc)
+
     if _has_observability:
         try:
             configure_metrics("agent-config")
             configure_tracing("agent-config")
-            app.add_middleware(RequestMetricsMiddleware)
-            app.add_middleware(TraceMiddleware)
+            app.add_middleware(TraceMiddleware, service_name="agent-config")
+            app.add_middleware(RequestMetricsMiddleware, service_name="agent-config")
         except Exception as exc:
             logger.warning("Failed to configure observability: %s", exc)
+
+    if _has_security:
+        try:
+            apply_api_governance(app, service_name="agent-config")
+        except Exception as exc:
+            logger.warning("Failed to apply API governance: %s", exc)
 
     # ------------------------------------------------------------------
     # Health
     # ------------------------------------------------------------------
 
     @app.get("/health", response_model=HealthResponse, tags=["health"])
+    @app.get("/healthz", response_model=HealthResponse, tags=["health"])
     def health() -> HealthResponse:
         return HealthResponse()
+
+    @app.get("/version", tags=["health"])
+    def version() -> dict[str, str]:
+        if _has_security:
+            return version_response_payload("agent-config")
+        return {"service": "agent-config", "version": API_VERSION}
 
     # ------------------------------------------------------------------
     # Agent catalog endpoints

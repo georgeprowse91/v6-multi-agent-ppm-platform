@@ -7,7 +7,7 @@
     "likelihood": "high",
     "status": "open",
     "owner": "u_demo_owner_02",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-02T09:03:00Z",
     "project_id": "prj-mobile-001",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -20,7 +20,7 @@
     "likelihood": "medium",
     "status": "mitigating",
     "owner": "u_demo_owner_03",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-03T09:06:00Z",
     "project_id": "prj-portal-002",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -33,7 +33,7 @@
     "likelihood": "low",
     "status": "closed",
     "owner": "u_demo_owner_04",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-04T09:09:00Z",
     "project_id": "prj-observability-003",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -46,7 +46,7 @@
     "likelihood": "medium",
     "status": "open",
     "owner": "u_demo_owner_05",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-05-05T09:12:00Z",
     "project_id": "gen-project-001",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -59,7 +59,7 @@
     "likelihood": "high",
     "status": "mitigating",
     "owner": "u_demo_owner_06",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-06T09:15:00Z",
     "project_id": "gen-project-002",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -72,7 +72,7 @@
     "likelihood": "medium",
     "status": "closed",
     "owner": "u_demo_owner_07",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-07T09:18:00Z",
     "project_id": "gen-project-003",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -85,7 +85,7 @@
     "likelihood": "low",
     "status": "open",
     "owner": "u_demo_owner_01",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-08T09:21:00Z",
     "project_id": "gen-project-004",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -98,7 +98,7 @@
     "likelihood": "medium",
     "status": "mitigating",
     "owner": "u_demo_owner_02",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-05-09T09:24:00Z",
     "project_id": "gen-project-005",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -111,7 +111,7 @@
     "likelihood": "high",
     "status": "closed",
     "owner": "u_demo_owner_03",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-10T09:27:00Z",
     "project_id": "gen-project-006",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -124,7 +124,7 @@
     "likelihood": "medium",
     "status": "open",
     "owner": "u_demo_owner_04",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-11T09:30:00Z",
     "project_id": "gen-project-007",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -137,7 +137,7 @@
     "likelihood": "low",
     "status": "mitigating",
     "owner": "u_demo_owner_05",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-12T09:33:00Z",
     "project_id": "gen-project-008",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -150,7 +150,7 @@
     "likelihood": "medium",
     "status": "closed",
     "owner": "u_demo_owner_06",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-05-13T09:36:00Z",
     "project_id": "gen-project-009",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -163,7 +163,7 @@
     "likelihood": "high",
     "status": "open",
     "owner": "u_demo_owner_07",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-14T09:39:00Z",
     "project_id": "gen-project-010",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -176,7 +176,7 @@
     "likelihood": "medium",
     "status": "mitigating",
     "owner": "u_demo_owner_01",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-15T09:42:00Z",
     "project_id": "gen-project-011",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -189,7 +189,7 @@
     "likelihood": "low",
     "status": "closed",
     "owner": "u_demo_owner_02",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-16T09:45:00Z",
     "project_id": "gen-project-012",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -202,7 +202,7 @@
     "likelihood": "medium",
     "status": "open",
     "owner": "u_demo_owner_03",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-05-17T09:48:00Z",
     "project_id": "gen-project-013",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -215,7 +215,7 @@
     "likelihood": "high",
     "status": "mitigating",
     "owner": "u_demo_owner_04",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-18T09:51:00Z",
     "project_id": "gen-project-014",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -228,7 +228,7 @@
     "likelihood": "medium",
     "status": "closed",
     "owner": "u_demo_owner_05",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-19T09:54:00Z",
     "project_id": "gen-project-015",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -241,7 +241,7 @@
     "likelihood": "low",
     "status": "open",
     "owner": "u_demo_owner_06",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-20T09:57:00Z",
     "project_id": "gen-project-016",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -254,7 +254,7 @@
     "likelihood": "medium",
     "status": "mitigating",
     "owner": "u_demo_owner_07",
-    "classification": "Confidential",
+    "classification": "confidential",
     "created_at": "2025-05-21T09:00:00Z",
     "project_id": "gen-project-017",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -267,7 +267,7 @@
     "likelihood": "high",
     "status": "closed",
     "owner": "u_demo_owner_01",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-22T09:03:00Z",
     "project_id": "gen-project-018",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -280,7 +280,7 @@
     "likelihood": "medium",
     "status": "open",
     "owner": "u_demo_owner_02",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-23T09:06:00Z",
     "project_id": "gen-project-019",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -293,7 +293,7 @@
     "likelihood": "low",
     "status": "mitigating",
     "owner": "u_demo_owner_03",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-24T09:09:00Z",
     "project_id": "gen-project-020",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -306,7 +306,7 @@
     "likelihood": "medium",
     "status": "mitigating",
     "owner": "u_demo_owner_04",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-25T09:09:00Z",
     "project_id": "gen-project-014",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -319,7 +319,7 @@
     "likelihood": "high",
     "status": "mitigating",
     "owner": "u_demo_owner_05",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-26T09:09:00Z",
     "project_id": "gen-project-015",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -332,7 +332,7 @@
     "likelihood": "low",
     "status": "mitigating",
     "owner": "u_demo_owner_06",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-27T09:09:00Z",
     "project_id": "gen-project-016",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -345,7 +345,7 @@
     "likelihood": "medium",
     "status": "mitigating",
     "owner": "u_demo_owner_07",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-28T09:09:00Z",
     "project_id": "gen-project-017",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -358,7 +358,7 @@
     "likelihood": "high",
     "status": "mitigating",
     "owner": "u_demo_owner_01",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-29T09:09:00Z",
     "project_id": "gen-project-018",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -371,7 +371,7 @@
     "likelihood": "low",
     "status": "mitigating",
     "owner": "u_demo_owner_02",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-30T09:09:00Z",
     "project_id": "gen-project-019",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."
@@ -384,7 +384,7 @@
     "likelihood": "medium",
     "status": "mitigating",
     "owner": "u_demo_owner_03",
-    "classification": "Internal",
+    "classification": "internal",
     "created_at": "2025-05-31T09:09:00Z",
     "project_id": "gen-project-020",
     "mitigation": "Weekly executive dependency review with fallback delivery path and reserve budget."

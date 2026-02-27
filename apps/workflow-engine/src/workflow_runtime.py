@@ -735,8 +735,12 @@ class WorkflowRuntime:
                 should_retry=True,
                 retry_delay_seconds=delay_seconds * (2 ** (attempts - 1)),
             )
+        # Ensure the step-state row exists before calling update_step_error, which
+        # issues an UPDATE rather than an UPSERT.  When max_attempts == 1 the row
+        # may never have been written (no prior retrying/completed state).
+        self.store.upsert_step_state(instance.run_id, step_id, "failed", attempts, step_output)
         self.store.update_step_error(
-            instance.run_id, step_id, f"Step failed after {attempts} attempts"
+            instance.run_id, step_id, f"{failure_message} after {attempts} attempts"
         )
         self.store.update_status(instance.run_id, "failed", step_id)
         self.store.add_event(

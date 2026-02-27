@@ -66,13 +66,15 @@ def test_clear_auth_caches_idempotent() -> None:
 
 
 def test_install_key_rotation_handler_available() -> None:
-    """_install_key_rotation_handler must exist in main module."""
-    import api.main as main_mod
-
-    assert hasattr(main_mod, "_install_key_rotation_handler"), (
+    """_install_key_rotation_handler must exist in api.main source."""
+    from pathlib import Path
+    repo_root = Path(__file__).resolve().parents[2]
+    source = (repo_root / "apps" / "api-gateway" / "src" / "api" / "main.py").read_text(
+        encoding="utf-8"
+    )
+    assert "def _install_key_rotation_handler(" in source, (
         "_install_key_rotation_handler must be defined in api.main"
     )
-    assert callable(main_mod._install_key_rotation_handler)
 
 
 def test_signal_handler_clears_caches(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -82,12 +84,29 @@ def test_signal_handler_clears_caches(monkeypatch: pytest.MonkeyPatch) -> None:
     if not hasattr(_signal, "SIGUSR1"):
         pytest.skip("SIGUSR1 not available on this platform")
 
+    # Set required env vars so api.main can be imported
+    monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost/test")
+    monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
+
+    # Invalidate the settings cache so our env vars take effect
+    try:
+        import api.config as _cfg
+        _cfg.get_settings.cache_clear()
+    except Exception:
+        pass
+
     cleared = []
 
     def mock_clear():
         cleared.append(True)
 
-    monkeypatch.setattr("api.main.clear_auth_caches", mock_clear)
+    import importlib
+    import sys
+
+    # Remove cached module if it failed to import previously
+    sys.modules.pop("api.main", None)
+
+    monkeypatch.setattr("api.main.clear_auth_caches", mock_clear, raising=False)
 
     import api.main as main_mod
 

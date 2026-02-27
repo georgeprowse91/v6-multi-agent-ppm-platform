@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+import pytest_asyncio
 from response_orchestration_agent import ResponseOrchestrationAgent
 
 
@@ -33,7 +34,7 @@ class MockAgent:
         return {**self.output, **connector_data}
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def orchestration_agent() -> ResponseOrchestrationAgent:
     orchestrator = ResponseOrchestrationAgent(config={"event_bus": EventCollector()})
     await orchestrator.initialize()

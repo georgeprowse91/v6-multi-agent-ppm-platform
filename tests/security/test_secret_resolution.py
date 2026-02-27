@@ -85,9 +85,9 @@ def test_missing_reference_is_non_leaky() -> None:
 def test_prod_configs_contain_only_secret_references() -> None:
     targets = [
         Path("ops/config/environments/prod.yaml"),
-        Path("ops/ops/infra/kubernetes/deployment.yaml"),
-        Path("ops/ops/infra/kubernetes/secret-provider-class.yaml"),
-        Path("ops/ops/infra/kubernetes/service-account.yaml"),
+        Path("ops/infra/kubernetes/deployment.yaml"),
+        Path("ops/infra/kubernetes/secret-provider-class.yaml"),
+        Path("ops/infra/kubernetes/service-account.yaml"),
     ]
     sensitive_markers = re.compile(
         r"(api[_-]?key|token|password|secret|connection[_-]?string)",

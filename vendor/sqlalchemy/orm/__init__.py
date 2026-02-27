@@ -90,6 +90,27 @@ class _Query:
     def offset(self, n):
         return self
 
+    def delete(self, synchronize_session="evaluate"):
+        return 0
+
+    def update(self, values, synchronize_session="evaluate"):
+        return 0
+
+    def scalar(self):
+        return None
+
+    def with_entities(self, *args):
+        return self
+
+    def distinct(self):
+        return self
+
+    def join(self, *args, **kwargs):
+        return self
+
+    def options(self, *args):
+        return self
+
 
 class _Result:
     def fetchall(self):

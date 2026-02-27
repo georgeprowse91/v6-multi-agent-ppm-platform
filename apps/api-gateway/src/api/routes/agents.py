@@ -75,7 +75,11 @@ async def process_query(request: QueryRequest, http_request: Request) -> AgentRe
 
     This endpoint routes the query through the Intent Router and Response Orchestration agents.
     """
-    orchestrator = http_request.app.state.orchestrator
+    import sys
+    _main = sys.modules.get("api.main")
+    orchestrator = getattr(_main, "orchestrator", None) or getattr(
+        http_request.app.state, "orchestrator", None
+    )
     correlation_id = _get_correlation_id(http_request)
 
     if not orchestrator or not orchestrator.initialized:
@@ -119,7 +123,11 @@ async def list_agents(request: Request) -> dict[str, Any]:
 
     Returns information about all loaded agents and their capabilities.
     """
-    orchestrator = request.app.state.orchestrator
+    import sys
+    _main = sys.modules.get("api.main")
+    orchestrator = getattr(_main, "orchestrator", None) or getattr(
+        request.app.state, "orchestrator", None
+    )
 
     if not orchestrator:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
@@ -135,7 +143,11 @@ async def get_agent_info(agent_id: str, request: Request) -> dict[str, Any]:
     """
     Get information about a specific agent.
     """
-    orchestrator = request.app.state.orchestrator
+    import sys
+    _main = sys.modules.get("api.main")
+    orchestrator = getattr(_main, "orchestrator", None) or getattr(
+        request.app.state, "orchestrator", None
+    )
 
     if not orchestrator:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")

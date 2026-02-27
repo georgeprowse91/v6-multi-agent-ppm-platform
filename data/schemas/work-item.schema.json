@@ -21,8 +21,15 @@
       "enum": [
         "task",
         "milestone",
-        "deliverable"
+        "deliverable",
+        "feature",
+        "bug",
+        "chore",
+        "technical"
       ]
+    },
+    "story_points": {
+      "type": "integer"
     },
     "status": {
       "type": "string",

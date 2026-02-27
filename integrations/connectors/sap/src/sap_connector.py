@@ -167,5 +167,5 @@ class SapConnector(BasicAuthRestConnector):
             filters=filters,
             limit=limit,
             offset=offset,
-            rest_call=lambda: super().read(resource_type, filters=filters, limit=limit, offset=offset),
+            rest_call=lambda: BasicAuthRestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset),
         )

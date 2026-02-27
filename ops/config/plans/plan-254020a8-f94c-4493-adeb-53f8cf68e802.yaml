@@ -1,0 +1,21 @@
+plan_id: plan-254020a8-f94c-4493-adeb-53f8cf68e802
+tasks:
+- task_id: task-1
+  agent_id: agent-04-demand-intake
+  action: submit_request
+  dependencies: []
+  metadata:
+    priority: null
+    intent: null
+- task_id: task-2
+  agent_id: agent-05-business-case-investment
+  action: generate_business_case
+  dependencies:
+  - agent-04-demand-intake
+  metadata:
+    priority: null
+    intent: null
+status: approved
+modification_history: []
+created_at: '2026-02-27T12:02:23.300676Z'
+version: 490

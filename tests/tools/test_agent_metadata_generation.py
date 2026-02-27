@@ -6,7 +6,7 @@ from pathlib import Path
 def test_agent_metadata_generation_check() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     result = subprocess.run(
-        [sys.executable, "scripts/generate_agent_metadata.py", "--check"],
+        [sys.executable, "ops/scripts/generate_agent_metadata.py", "--check"],
         cwd=repo_root,
         check=False,
         capture_output=True,

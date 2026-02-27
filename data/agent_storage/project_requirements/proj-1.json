@@ -4,7 +4,7 @@
     "project_id": "proj-1",
     "requirements": [
       {
-        "id": "REQ-4ecbec",
+        "id": "REQ-aebd33",
         "text": "The system shall support SSO.",
         "source": "form_recognizer",
         "project_id": "proj-1",
@@ -22,8 +22,8 @@
       "validation_score": 0.95
     },
     "total_count": 1,
-    "updated_at": "2026-02-27T08:38:25.719535+00:00"
+    "updated_at": "2026-02-27T13:11:07.044667+00:00"
   },
   "_id": "proj-1",
-  "_updated_at": "2026-02-27T08:38:25.719783+00:00"
+  "_updated_at": "2026-02-27T13:11:07.044978+00:00"
 }
