@@ -14,7 +14,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Union, cast
 
 _COMMON_SRC = Path(__file__).resolve().parents[5] / "packages" / "common" / "src"
 if str(_COMMON_SRC) not in sys.path:
@@ -79,7 +79,7 @@ class AgentInvocationResult(BaseModel):
 
 
 class OrchestrationResponse(BaseModel):
-    aggregated_response: str
+    aggregated_response: Union[str, dict[str, Any]]
     status: str = "completed"
     agent_results: list[AgentInvocationResult]
     execution_summary: dict[str, Any]
@@ -919,42 +919,24 @@ class ResponseOrchestrationAgent(BaseAgent):
             )
         return activity
 
-    async def _aggregate_responses(self, results: list[dict[str, Any]]) -> str:
+    async def _aggregate_responses(
+        self, results: list[dict[str, Any]]
+    ) -> Union[str, dict[str, Any]]:
         """
         Aggregate multiple agent responses into coherent output.
 
-        Returns aggregated response string.
+        Returns a dict keyed by agent_id containing each agent's raw response data,
+        or an error string if all agents failed.
         """
         successful_results = [r for r in results if r.get("success")]
 
         if not successful_results:
             return "Unable to process request - all agents failed"
 
-        responses = []
-        for result in successful_results:
-            agent_id = result.get("agent_id", "unknown")
-            data = result.get("data", {})
-            if isinstance(data, dict):
-                message = data.get("message")
-                if message is None and "data" in data:
-                    message = json.dumps(data.get("data"), default=str)
-            else:
-                message = str(data)
-            if not message:
-                message = "No response"
-            responses.append(f"[{agent_id}]: {message}")
-
-        if len(responses) <= 2:
-            return "\n".join(responses)
-
-        summary_lines = []
-        for response in responses:
-            trimmed = response.strip()
-            if len(trimmed) > 220:
-                trimmed = trimmed[:217].rstrip() + "..."
-            summary_lines.append(f"- {trimmed}")
-
-        return "Summary of agent responses:\n" + "\n".join(summary_lines)
+        return {
+            r.get("agent_id", "unknown"): r.get("data") or {}
+            for r in successful_results
+        }
 
     def _initialize_cache_backend(self) -> None:
         if (

@@ -129,6 +129,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Application shut down successfully")
 
 
+# Module-level orchestrator reference — updated by bootstrap at startup.
+# Exposed here so tests can patch it with `patch("api.main.orchestrator", ...)`.
+orchestrator: Any | None = None
+
 # Create FastAPI application
 app = FastAPI(
     title="Multi-Agent PPM Platform",
@@ -136,7 +140,6 @@ app = FastAPI(
     version=API_VERSION,
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_prefix="/v1",
     lifespan=lifespan,
 )
 
@@ -182,6 +185,16 @@ async def healthz() -> dict[str, Any]:
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": os.getenv("APP_VERSION", app.version),
         "api_version": API_VERSION,
+    }
+
+
+@limiter.exempt
+@app.get("/api/health")
+async def api_health() -> dict[str, Any]:
+    """Health check endpoint accessible under the /api prefix."""
+    return {
+        "status": "ok",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

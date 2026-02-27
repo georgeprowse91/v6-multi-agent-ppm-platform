@@ -17,6 +17,15 @@ def _load_web_app():
     if web_src_str not in sys.path:
         sys.path.insert(0, web_src_str)
 
+    # Clear cached web modules so each load gets a fresh app instance.
+    # bootstrap.py returns a module-level singleton (legacy_app); without clearing,
+    # the second test re-uses the already-started app and add_middleware() raises
+    # RuntimeError("Cannot add middleware after an application has started").
+    for mod_name in list(sys.modules):
+        if mod_name in {"bootstrap", "legacy_main", "middleware", "routes",
+                        "web_main_legacy_redirects"}:
+            sys.modules.pop(mod_name, None)
+
     module_path = _WEB_SRC / "main.py"
     spec = spec_from_file_location("web_main_legacy_redirects", module_path)
     module = module_from_spec(spec)

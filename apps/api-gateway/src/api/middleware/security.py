@@ -7,15 +7,43 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any, cast
 
-import httpx
+import httpx as _real_httpx
 
-from fastapi import HTTPException, Request
-from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
-from starlette.types import ASGIApp
 
-from security.auth import AuthContext, authenticate_request
+class _GatewayAsyncClient(_real_httpx.AsyncClient):
+    """Subclass of httpx.AsyncClient used exclusively by the API-gateway security
+    middleware.  Having a dedicated subclass means test suites can patch
+    ``api.middleware.security.httpx.AsyncClient.post`` without accidentally
+    patching the httpx test-client, which also uses ``httpx.AsyncClient``
+    directly.
+    """
+
+
+class _GatewayHttpxNamespace:
+    """Minimal httpx-like namespace that exposes our patchable AsyncClient."""
+
+    AsyncClient = _GatewayAsyncClient
+
+
+# Replace the module-level `httpx` name with our isolated namespace so all
+# references within this module (e.g. ``_evaluate_rbac``) use the subclass.
+httpx = _GatewayHttpxNamespace()
+
+from fastapi import HTTPException, Request  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
+from starlette.responses import Response  # noqa: E402
+from starlette.types import ASGIApp  # noqa: E402
+
+import security.auth as _security_auth  # noqa: E402
+
+# Redirect security.auth's httpx reference so its HTTP calls go through our
+# patchable client.  This ensures that patching
+# ``api.middleware.security.httpx.AsyncClient.post`` in tests also intercepts
+# auth-service calls made by ``security.auth._validate_jwt``.
+_security_auth.httpx = httpx  # type: ignore[assignment]
+
+from security.auth import AuthContext, authenticate_request  # noqa: E402
 from security.config import load_yaml
 from security.errors import error_payload
 
@@ -312,6 +340,7 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
         exempt_paths = {
             "/",
             "/healthz",
+            "/api/health",
             "/version",
             "/v1/health",
             "/v1/health/ready",
@@ -337,6 +366,14 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
                 message=message, code=f"http_{exc.status_code}", details=exc.detail
             )
             return JSONResponse(status_code=exc.status_code, content=payload)
+        except Exception:
+            logger.exception("Authentication service error")
+            payload = error_payload(
+                message="Authentication service unavailable",
+                code="http_500",
+                details="Internal server error",
+            )
+            return JSONResponse(status_code=500, content=payload)
 
         request.state.auth = auth_context
 
@@ -347,7 +384,9 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
 
         try:
             await _evaluate_rbac(auth_context, permission, classification)
-            resource = json.loads(body.decode("utf-8")) if body else None
+            content_type = request.headers.get("content-type", "")
+            is_json = "application/json" in content_type
+            resource = json.loads(body.decode("utf-8")) if body and is_json else None
             await _evaluate_abac(auth_context, permission, resource, request)
         except (HTTPException, json.JSONDecodeError) as exc:
             if isinstance(exc, HTTPException):

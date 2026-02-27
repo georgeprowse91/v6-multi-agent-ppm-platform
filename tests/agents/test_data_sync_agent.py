@@ -67,7 +67,7 @@ async def test_data_sync_persists_and_emits_audit(tmp_path, monkeypatch):
             "action": "sync_data",
             "tenant_id": "tenant-sync",
             "entity_type": "project",
-            "data": {"id": "proj-2", "name": "Gemini", "email": "owner@example.com"},
+            "data": {"id": "proj-2", "name": "Gemini", "status": "active", "email": "owner@example.com"},
             "source_system": "sap",
         }
     )
@@ -196,7 +196,7 @@ async def test_data_sync_discards_duplicates(tmp_path):
         "action": "sync_data",
         "tenant_id": "tenant-sync",
         "entity_type": "project",
-        "data": {"id": "proj-dup", "name": "Duplicated"},
+        "data": {"id": "proj-dup", "name": "Duplicated", "status": "active"},
         "source_system": "jira",
     }
 

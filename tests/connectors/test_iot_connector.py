@@ -90,7 +90,11 @@ def test_iot_read_sensor_data() -> None:
 
     result = connector.read("sensor_data")
 
-    assert result == [{"id": "reading-1"}]
+    # The real IoT connector normalises raw records into a standard format;
+    # the original record lands in the `metadata` field.
+    assert len(result) == 1
+    assert result[0]["source"] == "iot"
+    assert result[0]["metadata"] == {"id": "reading-1"}
 
 
 def test_iot_test_connection_timeout() -> None:

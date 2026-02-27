@@ -20,6 +20,14 @@ def _load_web_app():
     if web_src_str not in sys.path:
         sys.path.insert(0, web_src_str)
 
+    # Clear cached web modules so we get a fresh app instance with all routes registered.
+    # bootstrap.py returns a module-level singleton (legacy_app); stale cached modules
+    # can cause routes to be missing or middleware to fail.
+    for mod_name in list(sys.modules):
+        if mod_name in {"bootstrap", "legacy_main", "middleware", "routes",
+                        "web_main_governance"}:
+            sys.modules.pop(mod_name, None)
+
     module_path = _WEB_SRC / "main.py"
     spec = spec_from_file_location("web_main_governance", module_path)
     module = module_from_spec(spec)
@@ -42,12 +50,13 @@ def test_governance_api_endpoints(monkeypatch: pytest.MonkeyPatch) -> None:
         pass
     web = _load_web_app()
     client = TestClient(web.app)
+    # Routes are registered under the /v1 prefix (api_router in legacy_main.py)
     endpoints = {
-        "/api/approvals": ("pending_count", "items", "queues"),
-        "/api/workflow-monitoring": ("status_board", "runs", "bottlenecks"),
-        "/api/document-search": ("query", "results", "filters"),
-        "/api/lessons-learned": ("categories", "entries", "recommendations"),
-        "/api/audit-log": ("entries", "filters", "evidence_packs"),
+        "/v1/api/approvals": ("pending_count", "items", "queues"),
+        "/v1/api/workflow-monitoring": ("status_board", "runs", "bottlenecks"),
+        "/v1/api/document-search": ("query", "results", "filters"),
+        "/v1/api/lessons-learned": ("categories", "entries", "recommendations"),
+        "/v1/api/audit-log": ("entries", "filters", "evidence_packs"),
     }
 
     for path, required_keys in endpoints.items():

@@ -64,6 +64,8 @@ def test_storage_integrity_checks_raise_for_missing_rows(tmp_path: Path) -> None
     with pytest.raises(RuntimeError, match="Failed to update step state"):
         store.update_step_error("missing-run", "missing-step", "boom")
 
+    # Create a parent workflow instance so the FK constraint on workflow_step_runs is satisfied
+    store.create("x", "any-wf", "tenant", {})
     with store._connect() as conn:  # noqa: SLF001 - deliberate integrity test path
         conn.execute(
             "INSERT INTO workflow_step_runs (run_id, step_id, status, attempts, output) VALUES (?, ?, ?, ?, ?)",

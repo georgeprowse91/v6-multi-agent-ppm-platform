@@ -26,7 +26,13 @@ def _load_module(name: str, path: Path):
 
 @pytest.mark.asyncio
 async def test_orchestration_service_starts_workflow_via_engine() -> None:
-    if importlib.util.find_spec("structlog") is None:
+    try:
+        spec = importlib.util.find_spec("structlog")
+    except ValueError:
+        # structlog is in sys.modules as a stub (set up by another test module);
+        # treat it as "found" and proceed.
+        spec = True
+    if spec is None:
         pytest.skip("structlog is required for orchestrator module import")
     orchestrator_module = _load_module("orchestration_service_orchestrator", ORCHESTRATOR_PATH)
     workflow_module = _load_module("orchestration_service_workflow_client", WORKFLOW_CLIENT_PATH)

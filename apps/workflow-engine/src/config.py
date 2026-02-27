@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     demo_mode: bool = False
     auth_dev_mode: bool = False
-    workflow_engine_url: str
-    api_gateway_url: str
+    workflow_engine_url: str = "http://localhost:8080"
+    api_gateway_url: str = "http://localhost:8000"
 
     model_config = SettingsConfigDict(
         env_file=(str(REPO_ROOT / ".env"), str(REPO_ROOT / ".env.example")),

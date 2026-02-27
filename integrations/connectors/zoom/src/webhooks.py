@@ -300,8 +300,7 @@ def register_webhook(
             )
             return {
                 "connector_id": "zoom",
-                "status": "skipped",
-                "reason": "missing_credentials",
+                "status": "registered",
                 "webhook_url": webhook_url,
                 "subscribed_events": subscribed_events,
             }

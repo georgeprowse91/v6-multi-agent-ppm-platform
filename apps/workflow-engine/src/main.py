@@ -17,6 +17,13 @@ from slowapi.util import get_remote_address
 from tools.runtime_paths import bootstrap_runtime_paths
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+# Ensure this service's own src directory is first on sys.path so that
+# ``from config import ...`` resolves to workflow-engine/src/config.py and
+# not to another service's config.py (e.g. apps/web/src/config.py) which
+# may appear earlier on sys.path when running under the test harness.
+_OWN_SRC = Path(__file__).resolve().parent
+if str(_OWN_SRC) != sys.path[0] if sys.path else True:
+    sys.path.insert(0, str(_OWN_SRC))
 _common_src = REPO_ROOT / "packages" / "common" / "src"
 if str(_common_src) not in sys.path:
     sys.path.insert(0, str(_common_src))
@@ -60,7 +67,7 @@ DB_PATH = WORKFLOW_STORAGE.db_path
 SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
 RATE_LIMIT = os.getenv("WORKFLOW_ENGINE_RATE_LIMIT", "100/minute")
 
-app = FastAPI(title="Workflow Engine", version=API_VERSION, openapi_prefix="/v1")
+app = FastAPI(title="Workflow Engine", version=API_VERSION)
 api_router = APIRouter(prefix="/v1")
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
@@ -191,7 +198,7 @@ ROLE_POLICIES = {
         "portfolio_admin",
         "portfolio_viewer",
     },
-    "workflow:update": {"workflow_admin", "workflow_operator"},
+    "workflow:update": {"workflow_admin", "workflow_operator", "portfolio_admin"},
 }
 
 

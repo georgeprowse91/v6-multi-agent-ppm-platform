@@ -9,17 +9,50 @@ import jwt
 from fastapi.testclient import TestClient
 
 
-def _load_app(path: Path, module_name: str):
-    spec = spec_from_file_location(module_name, path)
-    module = module_from_spec(spec)
-    assert spec and spec.loader
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module.app
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _load_app(path: Path, module_name: str, extra_src: Path | None = None):
+    # Prepend the app's own src directory so its config.py takes priority over
+    # any other config.py that may be earlier in sys.path (e.g. apps/web/src).
+    src_dir = str(path.parent.resolve())
+
+    # Snapshot state to restore after loading so we don't pollute other tests.
+    original_path = sys.path[:]
+    original_config = sys.modules.get("config")
+
+    try:
+        # Temporarily move the app src to position 0 for correct config.py resolution.
+        if src_dir in sys.path:
+            sys.path.remove(src_dir)
+        sys.path.insert(0, src_dir)
+        if extra_src:
+            extra = str(extra_src.resolve())
+            if extra in sys.path:
+                sys.path.remove(extra)
+            sys.path.insert(0, extra)
+        # Clear any cached 'config' module so the correct app-specific one loads.
+        for mod_name in list(sys.modules):
+            if mod_name in {"config", module_name}:
+                sys.modules.pop(mod_name, None)
+        spec = spec_from_file_location(module_name, path)
+        module = module_from_spec(spec)
+        assert spec and spec.loader
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+        return module.app
+    finally:
+        # Restore sys.path so we don't pollute subsequent tests.
+        sys.path[:] = original_path
+        # Restore the original config module (or remove the app-specific one).
+        if original_config is None:
+            sys.modules.pop("config", None)
+        else:
+            sys.modules["config"] = original_config
 
 
 def _identity_client():
-    path = Path(__file__).resolve().parents[2] / "services" / "identity-access" / "src" / "main.py"
+    path = _REPO_ROOT / "services" / "identity-access" / "src" / "main.py"
     return TestClient(_load_app(path, "identity_access_main"))
 
 
@@ -30,7 +63,7 @@ def _gateway_client():
 
 
 def _workflow_client():
-    path = Path(__file__).resolve().parents[2] / "apps" / "workflow-engine" / "src" / "main.py"
+    path = _REPO_ROOT / "apps" / "workflow-engine" / "src" / "main.py"
     return TestClient(_load_app(path, "workflow_engine_main"))
 
 
@@ -56,7 +89,16 @@ def test_end_to_end_workflow(monkeypatch) -> None:
     mock_orchestrator = MagicMock()
     mock_orchestrator.initialized = True
     mock_orchestrator.process_query = AsyncMock(
-        return_value={"success": True, "data": {"ok": True}}
+        return_value={
+            "success": True,
+            "data": {"ok": True},
+            "metadata": {
+                "agent_id": "intent-router",
+                "catalog_id": "intent-router",
+                "timestamp": "2024-01-01T00:00:00Z",
+                "correlation_id": "test-corr-e2e",
+            },
+        }
     )
 
     gateway = _gateway_client()

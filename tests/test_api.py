@@ -32,7 +32,12 @@ def mock_orchestrator():
         return_value={
             "success": True,
             "data": {"response": "Test response"},
-            "metadata": {"agent_id": "intent-router"},
+            "metadata": {
+                "agent_id": "intent-router",
+                "catalog_id": "intent-router",
+                "timestamp": "2024-01-01T00:00:00Z",
+                "correlation_id": "test-corr-id",
+            },
         }
     )
     return mock

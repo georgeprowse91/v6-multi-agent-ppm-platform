@@ -903,7 +903,7 @@ class RiskManagementAgent(BaseAgent):
             "score": initial_assessment.get("score"),
             "proximity": risk_data.get("proximity", "medium_term"),
             "detectability": risk_data.get("detectability", "medium"),
-            "owner": risk_data.get("owner"),
+            "owner": risk_data.get("owner") or "unassigned",
             "status": "open",
             "created_at": created_at,
             "created_by": risk_data.get("created_by", "unknown"),
@@ -1851,7 +1851,10 @@ class RiskManagementAgent(BaseAgent):
                 "category": risk.get("category", "external"),
                 "probability": risk.get("probability", 3),
                 "impact": risk.get("impact", 3),
-                "classification": "external",
+                # "external" is not a valid schema value; external research risks
+                # default to "internal" classification (org-visible but not public).
+                "classification": risk.get("classification", "internal"),
+                "owner": risk.get("owner", "risk-management-system"),
                 "created_by": "external_research",
                 "sources": risk.get("sources", []),
             }

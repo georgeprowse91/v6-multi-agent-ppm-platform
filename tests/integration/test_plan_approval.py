@@ -10,7 +10,9 @@ from tests.helpers.service_bus import build_test_event_bus
 @pytest.mark.asyncio
 async def test_plan_is_created_as_pending_approval(tmp_path) -> None:
     event_bus = build_test_event_bus()
-    agent = ResponseOrchestrationAgent(config={"event_bus": event_bus, "plans_dir": str(tmp_path)})
+    agent = ResponseOrchestrationAgent(
+        config={"event_bus": event_bus, "plans_dir": str(tmp_path), "require_approval": True}
+    )
     await agent.initialize()
 
     response = await agent.process(
@@ -49,6 +51,7 @@ async def test_approving_updated_plan_executes_modified_tasks(tmp_path) -> None:
             config={
                 "event_bus": event_bus,
                 "plans_dir": str(tmp_path),
+                "require_approval": True,
                 "http_client": client,
                 "agent_endpoints": {
                     "financial-management": "http://test/financial",
@@ -108,7 +111,9 @@ async def test_rejected_plan_emits_event_and_does_not_execute(tmp_path) -> None:
 
     event_bus.subscribe("plan.rejected", on_plan_rejected)
 
-    agent = ResponseOrchestrationAgent(config={"event_bus": event_bus, "plans_dir": str(tmp_path)})
+    agent = ResponseOrchestrationAgent(
+        config={"event_bus": event_bus, "plans_dir": str(tmp_path), "require_approval": True}
+    )
     await agent.initialize()
 
     pending = await agent.process(

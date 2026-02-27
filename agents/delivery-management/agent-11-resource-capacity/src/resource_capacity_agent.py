@@ -1163,7 +1163,7 @@ class ResourceCapacityAgent(BaseAgent):
             "availability": 1.0,  # 100% available by default
             "team_memberships": resource_data.get("team_memberships", []),
             "created_at": datetime.now(timezone.utc).isoformat(),
-            "status": "Active",
+            "status": "active",
             "training": training_metadata,
             "training_load": 0.0,
         }
@@ -1214,7 +1214,7 @@ class ResourceCapacityAgent(BaseAgent):
         return {
             "resource_id": resource_id,
             "profile": resource_profile,
-            "status": "Active",
+            "status": "active",
             "data_quality": validation,
         }
 
@@ -1846,7 +1846,7 @@ class ResourceCapacityAgent(BaseAgent):
                 "start_date": start_date,
                 "end_date": end_date,
                 "allocation_percentage": allocation_percentage,
-                "status": "Active",
+                "status": "active",
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }
 
@@ -2600,7 +2600,7 @@ class ResourceCapacityAgent(BaseAgent):
                         / self.default_working_hours_per_day
                         * 100,
                         "source_system": "jira_tempo",
-                        "status": "Active",
+                        "status": "active",
                     }
                 )
             return allocations

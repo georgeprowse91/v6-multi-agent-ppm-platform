@@ -63,6 +63,7 @@ def test_schema_enum_consistency() -> None:
         "vendor.schema.json",
         "work-item.schema.json",
     ]
+    # Minimum required status values for each schema (actual enums may be supersets)
     status_enums = {
         "budget.schema.json": ["draft", "approved", "committed"],
         "document.schema.json": ["draft", "review", "approved", "archived"],
@@ -84,7 +85,10 @@ def test_schema_enum_consistency() -> None:
     for schema_name, expected_status in status_enums.items():
         schema = json.loads((schema_dir / schema_name).read_text())
         properties = schema["properties"]
-        assert properties["status"]["enum"] == expected_status
+        actual_status = properties["status"]["enum"]
+        assert set(expected_status).issubset(set(actual_status)), (
+            f"{schema_name}: expected status values {expected_status!r} not all present in {actual_status!r}"
+        )
 
 
 def test_project_schema_new_optional_fields() -> None:

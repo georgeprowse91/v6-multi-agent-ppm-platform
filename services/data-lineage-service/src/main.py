@@ -163,7 +163,6 @@ async def lifespan(application: FastAPI):
 app = FastAPI(
     title="Data Lineage Service",
     version=API_VERSION,
-    openapi_prefix="/v1",
     lifespan=lifespan,
 )
 api_router = APIRouter(prefix="/v1")

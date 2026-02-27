@@ -104,7 +104,7 @@ JWKS_CACHE = JwksCache()
 SERVICE_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SCIM_DB_PATH = SERVICE_ROOT / "storage" / "scim.db"
 
-app = FastAPI(title="Identity Access Service", version=API_VERSION, openapi_prefix="/v1")
+app = FastAPI(title="Identity Access Service", version=API_VERSION)
 api_router = APIRouter(prefix="/v1")
 configure_tracing("identity-access")
 configure_metrics("identity-access")

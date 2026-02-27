@@ -103,7 +103,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### Routing configuration",
             "Intent routing is defined in `config/agents/intent-routing.yaml`. The file declares each intent, minimum confidence thresholds, and the agent/action routes to invoke. Validate updates with:",
             "### Adding a new intent (no code changes)",
@@ -224,7 +224,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -272,7 +272,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### Dynamic escalation policy",
             "Approval escalation timing is dynamically computed using risk and criticality context and loaded from `ops/config/agents/approval_policies.yaml`.",
             "`risk_thresholds`: maps computed request risk (`high`, `medium`, `low`) to escalation timeout hours.",
@@ -492,7 +492,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -540,7 +540,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -667,7 +667,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -791,7 +791,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -839,7 +839,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "For optional external scope research, set `SEARCH_API_ENDPOINT` and `SEARCH_API_KEY`, and enable the agent flag `enable_external_research` in project configuration to allow outbound queries."
           ]
         },
@@ -1054,7 +1054,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -1102,7 +1102,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -1279,7 +1279,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### Resource & Capacity Agent Environment Variables",
             "**Identity & Notifications (Microsoft Graph)**",
             "`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`: Azure AD application credentials.",
@@ -1367,7 +1367,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "Additional configuration options supported by the Financial Management Agent:",
             "`exchange_rate_fixture`, `exchange_rate_api_url`: currency exchange sources.",
             "`tax_rate_fixture`, `tax_rate_api_url`: tax rate lookup configuration.",
@@ -1501,7 +1501,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "Additional vendor procurement configuration (set via agent config or environment variables) includes:",
             "`vendor_store_path`, `contract_store_path`, `invoice_store_path`, `vendor_performance_store_path`, `event_store_path`: JSON-backed state paths for tenant-scoped storage.",
             "`procurement_connectors.enabled_connectors`: list of procurement connectors (`sap_ariba`, `coupa`, `oracle_procurement`, `dynamics_365`).",
@@ -1572,7 +1572,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -1755,7 +1755,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### Risk data integrations",
             "The risk management agent can connect to Azure services and project management platforms for enhanced analytics:",
             "**Cosmos DB / Azure SQL**: `COSMOS_DB_CONNECTION_STRING`, `COSMOS_DB_DATABASE`, or `AZURE_SQL_CONNECTION_STRING`",
@@ -1821,7 +1821,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -1869,7 +1869,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. The change agent also uses the environment variables below for integrations.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. The change agent also uses the environment variables below for integrations.",
             "### Integration environment variables",
             "| Variable | Purpose | | --- | --- | | `GITHUB_TOKEN` | GitHub REST API access for repo metadata, PR status, and commit diffs. | | `GITLAB_TOKEN` | GitLab REST API access for repo metadata, merge requests, and commit diffs. | | `AZURE_DEVOPS_TOKEN` | Azure Repos/DevOps REST API access for repos and PR status. | | `SERVICE_BUS_CONNECTION_STRING` | Azure Service Bus connection for change events. | | `COSMOS_DB_CONNECTION_STRING` | Persist workflow state in Cosmos DB. | | `DURABLE_FUNCTIONS_URL` | Azure Durable Functions orchestration endpoint. | | `LOGIC_APPS_URL` | Azure Logic Apps orchestration endpoint. | | `SHAREPOINT_SITE_URL` | Enable SharePoint connector for change context documents. | | `CONFLUENCE_BASE_URL` | Enable Confluence connector (if configured) for KB articles. | | `NEO4J_URI` | Neo4j graph database URI for CI dependency storage. | | `NEO4J_USERNAME` | Neo4j username. | | `NEO4J_PASSWORD` | Neo4j password. |",
             "### Agent configuration highlights",
@@ -1995,7 +1995,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -2173,7 +2173,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -2369,7 +2369,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables."
           ]
         },
         {
@@ -2506,7 +2506,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### OAuth scopes (Microsoft Graph)",
             "Ensure the Azure app registration includes the following scopes (delegated or application, depending on your deployment):",
             "`Mail.Send` (Exchange/Outlook email)",
@@ -2633,7 +2633,7 @@
             "**Naming/roles clarity**: Ensure documentation consistently assigns analytics ownership to Agent 22 and reserves system health telemetry and alerting for Agent 25.",
             "**Action documentation vs. runtime behavior**: Ensure orchestration docs list the full action set (including ETL/power BI/realtime ingestion actions).",
             "**Event taxonomy alignment**: The analytics event topics list should be aligned with upstream agents’ emitted event names (schedule, deployment, risk, quality, resource).",
-            "**Connector parity**: Ensure the Azure services referenced (Synapse, Data Factory, Event Hub, Power BI, OpenAI) have corresponding connectors and secrets defined in `.env.example` and runtime docs.",
+            "**Connector parity**: Ensure the Azure services referenced (Synapse, Data Factory, Event Hub, Power BI, OpenAI) have corresponding connectors and secrets defined in `ops/config/ops/config/.env.example` and runtime docs.",
             "**UI alignment**: Dashboard/report endpoints (`/dashboards/{id}`, `/reports/{id}/download`, `/narrative`) should match the frontend/API routing templates."
           ]
         },
@@ -2706,7 +2706,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "Additional environment variables:",
             "`SYNAPSE_WORKSPACE_NAME`: Synapse workspace name.",
             "`SYNAPSE_SQL_POOL_NAME`: Dedicated SQL pool name.",
@@ -2850,7 +2850,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### Required environment variables",
             "Set the following variables to enable full integration:",
             "**Azure Service Bus / Event Grid**",
@@ -2880,7 +2880,7 @@
             "`JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_INSTANCE_URL`",
             "`WORKDAY_CLIENT_ID`, `WORKDAY_CLIENT_SECRET`, `WORKDAY_REFRESH_TOKEN`, `WORKDAY_API_URL`",
             "### Local development",
-            "Copy `.env.example` to `.env` and populate the required variables above.",
+            "Copy `ops/config/.env.example` to `.env` and populate the required variables above.",
             "Ensure the validation rules and pipeline configuration files exist:",
             "`config/agent-23/validation_rules.yaml`",
             "`config/agent-23/pipelines.yaml`",
@@ -2893,7 +2893,7 @@
             "Provision Azure Service Bus, Event Grid, Data Factory, SQL Database, Cosmos DB, and Log Analytics.",
             "Store connector secrets in Azure Key Vault and grant the agent identity access to the vault.",
             "Provide the environment variables above through your runtime (Kubernetes secrets, App Service settings, or managed identity configuration).",
-            "Deploy with the provided Dockerfile or orchestration tooling in `infra/`."
+            "Deploy with the provided Dockerfile or orchestration tooling in `ops/infra/`."
           ]
         },
         {
@@ -3011,7 +3011,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### Durable workflow configuration",
             "The agent loads durable workflow orchestration definitions from `config/agent-24/durable_workflows.yaml` on startup. Each workflow entry defines ordered steps, retry policies, and optional compensation tasks. The agent registers these definitions as Durable Functions-style orchestrations and persists them in the workflow state store.",
             "### Workflow specification format",
@@ -3076,7 +3076,7 @@
         {
           "heading": "Configuration",
           "content": [
-            "Agent runtime configuration is centralized in `.env` (see `.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
+            "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### Monitoring setup",
             "The system health agent initializes Azure Monitor, Application Insights, and Log Analytics clients when the following environment variables are provided:",
             "`MONITOR_WORKSPACE_ID`: Log Analytics workspace ID for querying historical metrics.",

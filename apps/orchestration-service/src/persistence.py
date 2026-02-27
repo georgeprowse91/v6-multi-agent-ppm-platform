@@ -217,7 +217,9 @@ class DatabaseOrchestrationStateStore:
 def build_state_store(state_path: Path) -> OrchestrationStateStore:
     backend = os.getenv("ORCHESTRATION_STATE_BACKEND", "").lower()
     environment = os.getenv("ENVIRONMENT", "development").lower()
-    database_url = os.getenv("ORCHESTRATION_DATABASE_URL") or os.getenv("DATABASE_URL")
+    # Use only ORCHESTRATION_DATABASE_URL for the state store; the generic DATABASE_URL
+    # belongs to the API-gateway and must not auto-activate the DB backend here.
+    database_url = os.getenv("ORCHESTRATION_DATABASE_URL")
 
     if backend in {"file", "json"}:
         return JsonOrchestrationStateStore(state_path)
