@@ -10,6 +10,8 @@ from sqlite3 import Error as SqliteError
 from typing import Any
 from uuid import uuid4
 
+from contextlib import asynccontextmanager
+
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
@@ -144,7 +146,26 @@ class RetentionStatusResponse(BaseModel):
     last_pruned_count: int
 
 
-app = FastAPI(title="Data Lineage Service", version=API_VERSION, openapi_prefix="/v1")
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    store_path = Path(os.getenv("DATA_LINEAGE_STORE_PATH", DEFAULT_STORE_PATH))
+    application.state.store = LineageStore(store_path)
+    interval = int(os.getenv("DATA_LINEAGE_RETENTION_INTERVAL_SECONDS", "3600"))
+    scheduler = RetentionScheduler(application.state.store, interval_seconds=interval)
+    scheduler.start()
+    application.state.retention_scheduler = scheduler
+    yield
+    scheduler = getattr(application.state, "retention_scheduler", None)
+    if scheduler:
+        scheduler.stop()
+
+
+app = FastAPI(
+    title="Data Lineage Service",
+    version=API_VERSION,
+    openapi_prefix="/v1",
+    lifespan=lifespan,
+)
 api_router = APIRouter(prefix="/v1")
 app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
 configure_tracing("data-lineage-service")
@@ -152,23 +173,6 @@ configure_metrics("data-lineage-service")
 app.add_middleware(TraceMiddleware, service_name="data-lineage-service")
 app.add_middleware(RequestMetricsMiddleware, service_name="data-lineage-service")
 apply_api_governance(app, service_name="data-lineage-service")
-
-
-@app.on_event("startup")
-async def startup() -> None:
-    store_path = Path(os.getenv("DATA_LINEAGE_STORE_PATH", DEFAULT_STORE_PATH))
-    app.state.store = LineageStore(store_path)
-    interval = int(os.getenv("DATA_LINEAGE_RETENTION_INTERVAL_SECONDS", "3600"))
-    scheduler = RetentionScheduler(app.state.store, interval_seconds=interval)
-    scheduler.start()
-    app.state.retention_scheduler = scheduler
-
-
-@app.on_event("shutdown")
-async def shutdown() -> None:
-    scheduler = getattr(app.state, "retention_scheduler", None)
-    if scheduler:
-        scheduler.stop()
 
 
 @app.get("/healthz", response_model=HealthResponse)

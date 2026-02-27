@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "ops" / "scripts"))
 
 from schema_registry import compare_schemas, is_bump_sufficient, parse_semver  # noqa: E402
 from schema_tool import main  # noqa: E402

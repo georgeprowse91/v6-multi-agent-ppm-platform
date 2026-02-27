@@ -126,6 +126,25 @@ class WebSocketHub:
     async def publish(self, session_id: str, payload: dict[str, Any]) -> None:
         await self.pubsub.publish(f"session:{session_id}", payload)
 
+    async def broadcast(
+        self,
+        session_id: str,
+        payload: dict[str, Any],
+        *,
+        exclude: WebSocket | None = None,
+    ) -> None:
+        """Send *payload* to every local connection except *exclude*."""
+        dead: set[WebSocket] = set()
+        for connection in self.connections.get(session_id, set()):
+            if connection is exclude:
+                continue
+            try:
+                await connection.send_json(payload)
+            except RuntimeError:
+                dead.add(connection)
+        for connection in dead:
+            self.connections.get(session_id, set()).discard(connection)
+
     async def _fanout(self, session_id: str, payload: dict[str, Any]) -> None:
         dead: set[WebSocket] = set()
         for connection in self.connections.get(session_id, set()):
@@ -164,7 +183,7 @@ def _paginate(items: list[Any], *, offset: int, limit: int) -> tuple[list[Any], 
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="Realtime Coedit Service", version=API_VERSION, openapi_prefix="/v1")
+    app = FastAPI(title="Realtime Coedit Service", version=API_VERSION)
     api_router = APIRouter(prefix="/v1")
     hub = WebSocketHub(backend)
 
@@ -363,7 +382,7 @@ def create_app() -> FastAPI:
                             ),
                         )
                         session = updated_session
-                        await hub.publish(
+                        await hub.broadcast(
                             session_id,
                             {
                                 "type": "content_update",
@@ -372,6 +391,7 @@ def create_app() -> FastAPI:
                                 "sender": user_id,
                                 "conflict": conflict,
                             },
+                            exclude=websocket,
                         )
                     continue
 

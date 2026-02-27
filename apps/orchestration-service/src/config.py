@@ -21,21 +21,15 @@ from common.env_validation import build_validation_diagnostics, format_validatio
 
 
 class Settings(BaseSettings):
-    environment: Literal["development", "dev", "staging", "production"] = Field(
-        "development", env="ENVIRONMENT"
-    )
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
-        "INFO", env="LOG_LEVEL"
-    )
-    demo_mode: bool = Field(False, env="DEMO_MODE")
-    orchestration_state_backend: Literal["db", "memory"] = Field(
-        "db", env="ORCHESTRATION_STATE_BACKEND"
-    )
-    database_url: str = Field(..., env="DATABASE_URL")
-    workflow_engine_url: str = Field(..., env="WORKFLOW_ENGINE_URL")
-    auth_dev_mode: bool = Field(False, env="AUTH_DEV_MODE")
-    auth_dev_roles: str = Field("PMO_ADMIN", env="AUTH_DEV_ROLES")
-    auth_dev_tenant_id: str = Field("dev-tenant-local", env="AUTH_DEV_TENANT_ID")
+    environment: Literal["development", "dev", "staging", "production"] = "development"
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    demo_mode: bool = False
+    orchestration_state_backend: Literal["db", "memory"] = "db"
+    database_url: str
+    workflow_engine_url: str
+    auth_dev_mode: bool = False
+    auth_dev_roles: str = "PMO_ADMIN"
+    auth_dev_tenant_id: str = "dev-tenant-local"
 
     model_config = SettingsConfigDict(
         env_file=str(REPO_ROOT / ".env"),

@@ -20,7 +20,7 @@ class PromptRecord:
 
 class PromptRegistry:
     def __init__(self, prompts_root: Path | None = None) -> None:
-        self.prompts_root = prompts_root or (Path(__file__).resolve().parents[2] / "agents" / "runtime" / "prompts")
+        self.prompts_root = prompts_root or (Path(__file__).resolve().parents[2] / "prompts")
         self._prompt_cache: dict[tuple[str, int], PromptRecord] = {}
         self._agent_versions: dict[str, list[int]] = {}
 

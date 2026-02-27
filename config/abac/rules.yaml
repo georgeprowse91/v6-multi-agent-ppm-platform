@@ -1,0 +1,15 @@
+default_decision: allow
+rules:
+  - id: high-regulatory-project-guardrail
+    description: Restrict high regulatory category project access to compliance officers only.
+    effect: deny
+    when:
+      action_in:
+        - read
+        - update
+        - approve
+      resource_type: project
+      resource_attributes:
+        regulatory_category: high
+      subject_roles_allowed:
+        - compliance_officer

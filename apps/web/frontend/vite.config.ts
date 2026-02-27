@@ -18,7 +18,7 @@ export default defineConfig({
   server: {
     port: 5000,
     host: '0.0.0.0',
-    allowedHosts: true,
+    allowedHosts: ['localhost', '127.0.0.1', '.local'],
     proxy: {
       '/v1': {
         target: 'http://localhost:8080',

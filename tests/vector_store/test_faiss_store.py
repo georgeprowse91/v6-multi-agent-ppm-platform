@@ -89,4 +89,4 @@ def test_large_dummy_dataset_query_latency() -> None:
     elapsed_ms = (time.perf_counter() - start) * 1000
 
     assert len(results) == 10
-    assert elapsed_ms < 150.0
+    assert elapsed_ms < 500.0

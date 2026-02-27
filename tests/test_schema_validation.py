@@ -6,7 +6,7 @@ from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "apps" / "analytics-service"))
-sys.path.insert(0, str(REPO_ROOT / "apps" / "connector-hub"))
+sys.path.insert(0, str(REPO_ROOT / "integrations" / "apps" / "connector-hub"))
 from job_registry import list_job_manifests, load_job_manifest  # noqa: E402
 from sandbox_registry import list_sandbox_configs, load_sandbox_config  # noqa: E402
 

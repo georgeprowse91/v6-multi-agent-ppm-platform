@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
 import httpx
-import structlog
 from observability.metrics import (
     agent_request_count,
     agent_request_latency,
@@ -274,9 +273,9 @@ class AgentOrchestrator:
         workflow_headers.setdefault("X-Tenant-ID", tenant_id)
         workflow_headers["X-Correlation-ID"] = correlation_id
         workflow_headers = inject_trace_headers(workflow_headers, correlation_id=correlation_id)
-        structlog.get_logger().bind(correlation_id=correlation_id).info(
+        logger.info(
             "workflow_request_headers_prepared",
-            tenant_id=tenant_id,
+            extra={"correlation_id": correlation_id, "tenant_id": tenant_id},
         )
         return workflow_headers
 

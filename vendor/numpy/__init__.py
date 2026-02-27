@@ -147,10 +147,11 @@ if not _USING_REAL_NUMPY:
             if isinstance(idx, slice):
                 return ndarray(self._data[idx])
             if isinstance(idx, ndarray):
-                mask = idx.tolist()
+                index_vals = idx.tolist()
+                # Integer fancy indexing (select elements by index).
                 if self.ndim == 1:
-                    return ndarray([v for v, m in zip(self._data, mask) if m])
-                return ndarray([row for row, m in zip(self._data, mask) if m])
+                    return ndarray([self._data[int(i)] for i in index_vals])
+                return ndarray([self._data[int(i)] for i in index_vals])
             value = self._data[idx]
             if isinstance(value, list):
                 return ndarray(value)

@@ -37,7 +37,7 @@ jobs:
       - name: Build Storybook
         run: npm run build-storybook
 
-      - name: Storybook a11y test runner (baseline: 0 axe violations)
+      - name: "Storybook a11y test runner (baseline: 0 axe violations)"
         run: npm run test-storybook
 
       - name: Publish visual regression to Chromatic

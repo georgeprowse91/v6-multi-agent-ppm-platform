@@ -15,32 +15,32 @@ def _run(script: str, *args: str) -> None:
 
 
 def test_validate_policies() -> None:
-    _run("scripts/validate-policies.py")
+    _run("ops/scripts/validate-policies.py")
 
 
 def test_validate_helm_charts() -> None:
-    _run("scripts/validate-helm-charts.py")
+    _run("ops/scripts/validate-helm-charts.py")
 
 
 def test_validate_analytics_jobs() -> None:
-    _run("scripts/validate-analytics-jobs.py")
+    _run("ops/scripts/validate-analytics-jobs.py")
 
 
 def test_validate_workflows() -> None:
-    _run("scripts/validate-workflows.py")
+    _run("ops/scripts/validate-workflows.py")
 
 
 def test_validate_connector_sandbox() -> None:
-    _run("scripts/validate-connector-sandbox.py")
+    _run("ops/scripts/validate-connector-sandbox.py")
 
 
 def test_validate_prompts() -> None:
-    _run("scripts/validate-prompts.py")
+    _run("ops/scripts/validate-prompts.py")
 
 
 def test_validate_examples() -> None:
-    _run("scripts/validate-examples.py")
+    _run("ops/scripts/validate-examples.py")
 
 
 def test_validate_github_workflows() -> None:
-    _run("scripts/validate-github-workflows.py")
+    _run("ops/scripts/validate-github-workflows.py")

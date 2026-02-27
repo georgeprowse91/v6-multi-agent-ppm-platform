@@ -5,8 +5,8 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-RBAC_PATH = REPO_ROOT / "policies" / "rbac" / "roles.yaml"
-ABAC_PATH = REPO_ROOT / "policies" / "abac" / "rules.yaml"
+RBAC_PATH = REPO_ROOT / "ops" / "config" / "rbac" / "roles.yaml"
+ABAC_PATH = REPO_ROOT / "ops" / "config" / "abac" / "rules.yaml"
 
 
 def _load_yaml(path: Path) -> dict:
@@ -15,7 +15,14 @@ def _load_yaml(path: Path) -> dict:
 
 def _rbac_allows(roles_cfg: dict, role: str, action: str, resource: str) -> bool:
     roles = {entry["id"]: entry.get("permissions", []) for entry in roles_cfg.get("roles", [])}
-    allowed_pairs = {(perm.get("action"), perm.get("resource")) for perm in roles.get(role, [])}
+    perms = roles.get(role, [])
+    allowed_pairs: set[tuple[str, str]] = set()
+    for perm in perms:
+        if isinstance(perm, dict):
+            allowed_pairs.add((perm.get("action", ""), perm.get("resource", "")))
+        elif isinstance(perm, str) and "." in perm:
+            res, act = perm.rsplit(".", 1)
+            allowed_pairs.add((act, res))
     return (action, resource) in allowed_pairs
 
 
@@ -42,10 +49,10 @@ def _abac_allows(abac_cfg: dict, role: str, action: str, resource: dict) -> bool
 def test_rbac_role_permissions_present() -> None:
     roles_cfg = _load_yaml(RBAC_PATH)
 
-    assert _rbac_allows(roles_cfg, "portfolio_manager", "update", "portfolio")
-    assert _rbac_allows(roles_cfg, "project_manager", "create", "task")
-    assert _rbac_allows(roles_cfg, "finance_controller", "approve", "budget")
-    assert _rbac_allows(roles_cfg, "compliance_officer", "update", "compliance_control")
+    assert _rbac_allows(roles_cfg, "portfolio_admin", "write", "portfolio")
+    assert _rbac_allows(roles_cfg, "project_manager", "write", "project")
+    assert _rbac_allows(roles_cfg, "portfolio_admin", "sync", "connector")
+    assert _rbac_allows(roles_cfg, "auditor", "read", "audit")
 
 
 def test_abac_denies_high_regulatory_project_for_non_compliance_role() -> None:

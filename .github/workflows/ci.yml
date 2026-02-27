@@ -358,7 +358,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
-      - name: Install dependencies (CI profile: ${{ env.CI_TEST_DEPENDENCY_PROFILE }})
+      - name: "Install dependencies (CI profile: ${{ env.CI_TEST_DEPENDENCY_PROFILE }})"
         run: |
           python -m pip install --upgrade pip
           pip install -r ops/requirements/requirements-dev.txt

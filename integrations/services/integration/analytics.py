@@ -17,13 +17,15 @@ _SAFE_IDENTIFIER_RE = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]{0,127}$")
 
 
 def _validate_table_name(name: str) -> str:
-    """Validate and return a safe SQL table name, raising on invalid input."""
+    """Validate and return a safely quoted SQL table name, raising on invalid input."""
     if not _SAFE_IDENTIFIER_RE.match(name):
         raise ValueError(
             f"Invalid SQL table name: {name!r}. "
             "Table names must be alphanumeric/underscore and <= 128 chars."
         )
-    return name
+    # Double-quote the identifier to prevent any SQL injection even if the
+    # regex were somehow bypassed.  Any embedded double-quotes are escaped.
+    return f'"{name.replace(chr(34), chr(34) + chr(34))}"'
 
 
 class AnalyticsSettings(BaseSettings):

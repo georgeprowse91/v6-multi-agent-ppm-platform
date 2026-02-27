@@ -1,0 +1,70 @@
+fields:
+  project:
+    budget:
+      allowed_roles:
+        - "PMO_ADMIN"
+        - "PM"
+        - "tenant_owner"
+        - "portfolio_admin"
+        - "project_manager"
+    financials.approval_limit:
+      allowed_roles:
+        - "PMO_ADMIN"
+        - "tenant_owner"
+        - "portfolio_admin"
+    risk_rating:
+      allowed_roles:
+        - "PMO_ADMIN"
+        - "AUDITOR"
+        - "tenant_owner"
+        - "portfolio_admin"
+        - "auditor"
+  portfolio:
+    strategic_score:
+      allowed_roles:
+        - "PMO_ADMIN"
+        - "TEAM_MEMBER"
+        - "tenant_owner"
+        - "portfolio_admin"
+        - "analyst"
+classification_access:
+  # Public data remains accessible to all standard roles and service integrations.
+  public:
+    allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "TEAM_MEMBER"
+      - "AUDITOR"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+      - "analyst"
+      - "auditor"
+      - "integration_service"
+      - "COLLABORATOR"
+  internal:
+    allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "TEAM_MEMBER"
+      - "AUDITOR"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+      - "analyst"
+      - "auditor"
+      - "COLLABORATOR"
+  confidential:
+    allowed_roles:
+      - "PMO_ADMIN"
+      - "PM"
+      - "AUDITOR"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+      - "auditor"
+  restricted:
+    allowed_roles:
+      - "PMO_ADMIN"
+      - "tenant_owner"
+      - "portfolio_admin"

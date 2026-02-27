@@ -5,7 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, ValidationError
+from pydantic import ValidationError, field_validator
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,31 +26,41 @@ from common.env_validation import (  # noqa: E402
 
 
 class Settings(BaseSettings):
-    database_url: str = Field(..., env="DATABASE_URL")
-    redis_url: str = Field(..., env="REDIS_URL")
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = Field(
-        "INFO", env="LOG_LEVEL"
-    )
-    environment: Literal["development", "dev", "staging", "production"] = Field(
-        "development", env="ENVIRONMENT"
-    )
-    llm_provider: str = Field("mock", env="LLM_PROVIDER")
-    demo_mode: bool = Field(False, env="DEMO_MODE")
-    llm_mock_response_path: str = Field(
-        "/app/examples/demo-scenarios/quickstart-llm-response.json", env="LLM_MOCK_RESPONSE_PATH"
-    )
-    auth_dev_mode: bool = Field(False, env="AUTH_DEV_MODE")
-    auth_dev_roles: str = Field("PMO_ADMIN", env="AUTH_DEV_ROLES")
-    auth_dev_tenant_id: str = Field("dev-tenant-local", env="AUTH_DEV_TENANT_ID")
+    database_url: str
+    redis_url: str
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    environment: Literal["development", "dev", "staging", "production"] = "development"
+    llm_provider: str = "mock"
+    demo_mode: bool = False
+    llm_mock_response_path: str = "/app/examples/demo-scenarios/quickstart-llm-response.json"
+    auth_dev_mode: bool = False
+    auth_dev_roles: str = "PMO_ADMIN"
+    auth_dev_tenant_id: str = "dev-tenant-local"
 
-    azure_openai_endpoint: str | None = Field(default=None, env="AZURE_OPENAI_ENDPOINT")
-    azure_openai_api_key: str | None = Field(default=None, env="AZURE_OPENAI_API_KEY")
-    azure_openai_deployment: str | None = Field(default=None, env="AZURE_OPENAI_DEPLOYMENT")
+    azure_openai_endpoint: str | None = None
+    azure_openai_api_key: str | None = None
+    azure_openai_deployment: str | None = None
 
-    search_api_endpoint: str | None = Field(default=None, env="SEARCH_API_ENDPOINT")
-    search_api_key: str | None = Field(default=None, env="SEARCH_API_KEY")
-    search_api_min_interval: float | None = Field(default=None, env="SEARCH_API_MIN_INTERVAL")
-    search_result_limit: int | None = Field(default=None, env="SEARCH_RESULT_LIMIT")
+    search_api_endpoint: str | None = None
+    search_api_key: str | None = None
+    search_api_min_interval: float | None = None
+    search_result_limit: int | None = None
+
+    @field_validator(
+        "azure_openai_endpoint",
+        "azure_openai_api_key",
+        "azure_openai_deployment",
+        "search_api_endpoint",
+        "search_api_key",
+        "search_api_min_interval",
+        "search_result_limit",
+        mode="before",
+    )
+    @classmethod
+    def empty_str_to_none(cls, v: object) -> object:
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
     model_config = SettingsConfigDict(
         env_file=str(REPO_ROOT / ".env"),
