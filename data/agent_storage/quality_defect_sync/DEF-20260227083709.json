@@ -1,0 +1,15 @@
+{
+  "defect_id": "DEF-20260227083709",
+  "action": "create",
+  "jira": {
+    "status": "queued",
+    "key": "JIRA-DEF-20260227083709"
+  },
+  "azure_devops": {
+    "status": "queued",
+    "work_item": "ADO-DEF-20260227083709"
+  },
+  "synced_at": "2026-02-27T08:37:09.676366+00:00",
+  "_id": "DEF-20260227083709",
+  "_updated_at": "2026-02-27T08:37:09.676629+00:00"
+}

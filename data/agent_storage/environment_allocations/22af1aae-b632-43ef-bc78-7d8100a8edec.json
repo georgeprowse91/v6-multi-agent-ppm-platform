@@ -1,0 +1,10 @@
+{
+  "allocation_id": "22af1aae-b632-43ef-bc78-7d8100a8edec",
+  "environment": "staging",
+  "release_id": "REL-20260227085928",
+  "reserved_at": "2026-02-27T08:59:28.724668+00:00",
+  "reserved_until": "2024-06-10T04:00:00",
+  "status": "reserved",
+  "_id": "22af1aae-b632-43ef-bc78-7d8100a8edec",
+  "_updated_at": "2026-02-27T08:59:28.724836+00:00"
+}

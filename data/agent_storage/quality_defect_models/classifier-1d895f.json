@@ -1,0 +1,31 @@
+{
+  "label_tokens": {
+    "integration_failure": [
+      "test",
+      "failure",
+      "test",
+      "1",
+      "test",
+      "tc1",
+      "failed",
+      "unknown",
+      "integrationfailure"
+    ]
+  },
+  "severity_tokens": {
+    "medium": [
+      "test",
+      "failure",
+      "test",
+      "1",
+      "test",
+      "tc1",
+      "failed",
+      "unknown",
+      "integrationfailure"
+    ]
+  },
+  "trained_at": "2026-02-27T08:57:12.751243+00:00",
+  "_id": "classifier-1d895f",
+  "_updated_at": "2026-02-27T08:57:12.751529+00:00"
+}

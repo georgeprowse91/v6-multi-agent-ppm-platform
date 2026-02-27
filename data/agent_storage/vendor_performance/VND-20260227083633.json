@@ -1,0 +1,37 @@
+{
+  "vendor_id": "VND-20260227083633",
+  "metrics": {
+    "delivery_timeliness": 95.0,
+    "quality_rating": 4.5,
+    "compliance_score": 100.0,
+    "sla_adherence": 97.0,
+    "dispute_count": 0,
+    "total_spend": 0,
+    "contract_count": 0,
+    "on_time_delivery_rate": 95.0,
+    "compliance_rating": 100.0,
+    "risk_adjusted_score": 50.0
+  },
+  "ml_analysis": {
+    "trend": "Stable",
+    "adjusted_metrics": {
+      "delivery_timeliness": 95.0,
+      "quality_rating": 4.5,
+      "compliance_score": 100.0,
+      "sla_adherence": 97.0,
+      "dispute_count": 0,
+      "total_spend": 0,
+      "contract_count": 0,
+      "on_time_delivery_rate": 95.0,
+      "compliance_rating": 100.0,
+      "risk_adjusted_score": 50.0
+    },
+    "insights": [
+      "ML model evaluated delivery and quality trends.",
+      "Risk-adjusted score updated for analytics dashboards."
+    ]
+  },
+  "updated_at": "2026-02-27T08:36:33.670755+00:00",
+  "_id": "VND-20260227083633",
+  "_updated_at": "2026-02-27T08:36:33.670935+00:00"
+}

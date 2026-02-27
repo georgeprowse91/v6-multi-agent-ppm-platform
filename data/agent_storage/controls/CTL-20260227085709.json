@@ -1,0 +1,16 @@
+{
+  "control_id": "CTL-20260227085709",
+  "description": "Access control",
+  "regulation": "REG-20260227085709",
+  "control_type": "preventive",
+  "owner": "compliance-owner",
+  "evidence_requirements": [],
+  "test_frequency": "quarterly",
+  "test_procedure": null,
+  "status": "Active",
+  "last_test_date": null,
+  "last_test_result": null,
+  "created_at": "2026-02-27T08:57:09.551243+00:00",
+  "_id": "CTL-20260227085709",
+  "_updated_at": "2026-02-27T08:57:09.551491+00:00"
+}

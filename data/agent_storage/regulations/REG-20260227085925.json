@@ -1,0 +1,24 @@
+{
+  "regulation_id": "REG-20260227085925",
+  "name": "SOX",
+  "description": "Controls",
+  "jurisdiction": [],
+  "industry": [],
+  "effective_date": null,
+  "obligations": [],
+  "related_controls": [],
+  "applicability_rules": {
+    "applies_to_all": false,
+    "jurisdiction_filter": [],
+    "industry_filter": []
+  },
+  "metadata": {
+    "text_analytics": {
+      "key_phrases": [],
+      "entities": []
+    }
+  },
+  "created_at": "2026-02-27T08:59:25.507801+00:00",
+  "_id": "REG-20260227085925",
+  "_updated_at": "2026-02-27T08:59:25.507966+00:00"
+}

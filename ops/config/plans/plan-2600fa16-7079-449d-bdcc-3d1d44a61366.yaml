@@ -1,0 +1,20 @@
+plan_id: plan-2600fa16-7079-449d-bdcc-3d1d44a61366
+tasks:
+- task_id: task-1
+  agent_id: schedule-planning
+  action: get_schedule
+  dependencies: []
+  metadata:
+    priority: null
+    intent: schedule_query
+- task_id: task-2
+  agent_id: schedule-planning
+  action: update_schedule
+  dependencies: []
+  metadata:
+    priority: null
+    intent: schedule_update
+status: approved
+modification_history: []
+created_at: '2026-02-27T08:38:30.535201Z'
+version: 279

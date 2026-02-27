@@ -1,0 +1,23 @@
+{
+  "event_id": "vendor.mitigation.initiated-6dc1137a-b7ec-477b-b1ba-9f34311c7672",
+  "event_type": "vendor.mitigation.initiated",
+  "entity_id": "VND-20260227083832",
+  "payload": {
+    "vendor_id": "VND-20260227083832",
+    "task": {
+      "task_id": "task-1",
+      "status": "queued"
+    },
+    "notification": {
+      "status": "sent",
+      "subject": "Vendor risk mitigation required: Risky Vendor"
+    },
+    "reason": "Compliance failures: sanctions_check"
+  },
+  "tenant_id": "tenant-x",
+  "correlation_id": "e182a397-141a-4297-8903-5d2263c0a41f",
+  "actor_id": "system",
+  "timestamp": "2026-02-27T08:38:32.811556+00:00",
+  "_id": "vendor.mitigation.initiated-6dc1137a-b7ec-477b-b1ba-9f34311c7672",
+  "_updated_at": "2026-02-27T08:38:32.812455+00:00"
+}

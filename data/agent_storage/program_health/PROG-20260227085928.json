@@ -1,0 +1,39 @@
+{
+  "program_id": "PROG-20260227085928",
+  "composite_score": 0.88,
+  "health_status": "Healthy",
+  "metrics": {
+    "schedule": 0.85,
+    "budget": 0.8,
+    "risk": 0.75,
+    "quality": 0.9,
+    "resource": 0.7
+  },
+  "benefit_metrics": {
+    "realization_rate": 0.65,
+    "benefits_realized": 125000,
+    "benefits_target": 190000,
+    "projects": [
+      "PROJ-1"
+    ]
+  },
+  "prediction": {
+    "score": 0.88,
+    "model": "mock-health-model"
+  },
+  "external_signals": {
+    "program_id": "PROG-20260227085928",
+    "health_index": 0.92,
+    "dependency_load": 2.0,
+    "sources": [
+      "planview",
+      "clarity"
+    ]
+  },
+  "concerns": [],
+  "recommendations": [],
+  "narrative": "Program narrative summary.",
+  "calculated_at": "2026-02-27T08:59:28.101291+00:00",
+  "_id": "PROG-20260227085928",
+  "_updated_at": "2026-02-27T08:59:28.101525+00:00"
+}

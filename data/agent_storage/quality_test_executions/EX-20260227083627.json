@@ -1,0 +1,65 @@
+{
+  "execution_id": "EX-20260227083627",
+  "suite_id": "TS-20260227083627",
+  "project_id": "project-1",
+  "execution_mode": "playwright",
+  "executed_by": "system",
+  "test_results": [
+    {
+      "test_case_id": "TC-20260227083627",
+      "name": "Login test",
+      "result": "fail",
+      "runner": "playwright",
+      "browser": "chromium",
+      "duration_ms": 1200,
+      "artifact": "TC-20260227083627.zip"
+    }
+  ],
+  "total_tests": 1,
+  "passed": 0,
+  "failed": 1,
+  "pass_rate": 0.0,
+  "code_coverage": 85.0,
+  "coverage_snapshot": {
+    "project_id": "project-1",
+    "coverage_pct": 85.0,
+    "captured_at": "2026-02-27T08:36:27.953259+00:00",
+    "_id": "2026-02-27T08:36:27.953259+00:00",
+    "_updated_at": "2026-02-27T08:36:27.954686+00:00"
+  },
+  "artifact_blob": {
+    "container": "quality-tests",
+    "blob_name": "TS-20260227083627/EX-20260227083627/results.json",
+    "uri": "https://blob.local/quality-tests/TS-20260227083627/EX-20260227083627/results.json",
+    "stored_at": "2026-02-27T08:36:27.955887+00:00"
+  },
+  "sync_status": {
+    "summary": {
+      "execution_id": "EX-20260227083627",
+      "results": 1,
+      "project_id": "project-1"
+    },
+    "targets": {
+      "azure_devops": "submitted",
+      "jira_xray": "submitted",
+      "testrail": "submitted"
+    },
+    "external_refs": {
+      "azure_devops": {
+        "run_id": "ado-run-EX-20260227083627",
+        "plan_id": "plan-1",
+        "suite_id": "suite-1",
+        "passed": 0,
+        "failed": 1,
+        "total": 1,
+        "synced_at": "2026-02-27T08:36:27.955908+00:00",
+        "_id": "ado-run-EX-20260227083627",
+        "_updated_at": "2026-02-27T08:36:27.956087+00:00"
+      }
+    },
+    "synced_at": "2026-02-27T08:36:27.956565+00:00"
+  },
+  "executed_at": "2026-02-27T08:36:27.957193+00:00",
+  "_id": "EX-20260227083627",
+  "_updated_at": "2026-02-27T08:36:27.957428+00:00"
+}

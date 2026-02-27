@@ -1,0 +1,25 @@
+{
+  "label_tokens": {
+    "integration_failure": [
+      "slow",
+      "response",
+      "in",
+      "api",
+      "api",
+      "integrationfailure"
+    ]
+  },
+  "severity_tokens": {
+    "high": [
+      "slow",
+      "response",
+      "in",
+      "api",
+      "api",
+      "integrationfailure"
+    ]
+  },
+  "trained_at": "2026-02-27T08:57:12.774933+00:00",
+  "_id": "classifier-04f578",
+  "_updated_at": "2026-02-27T08:57:12.775118+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "program_id": "PROG-20260227083824",
+  "optimization_score": 0.47334,
+  "objectives": {
+    "utilization": 0.3,
+    "cost": 0.2,
+    "risk": 0.2,
+    "schedule": 0.15,
+    "alignment": 0.1,
+    "synergy": 0.05
+  },
+  "_id": "PROG-20260227083824",
+  "_updated_at": "2026-02-27T08:38:25.002434+00:00"
+}

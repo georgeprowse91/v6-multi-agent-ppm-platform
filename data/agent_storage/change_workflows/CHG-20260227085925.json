@@ -1,0 +1,25 @@
+{
+  "change_id": "CHG-20260227085925",
+  "tenant_id": "tenant-chg",
+  "orchestrator": "durable_functions",
+  "tasks": [
+    {
+      "name": "peer_review",
+      "status": "pending"
+    },
+    {
+      "name": "automated_checks",
+      "status": "pending"
+    },
+    {
+      "name": "final_approval",
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-02-27T08:59:25.488337+00:00",
+  "orchestrator_status": {
+    "status": "unconfigured"
+  },
+  "_id": "CHG-20260227085925",
+  "_updated_at": "2026-02-27T08:59:25.488614+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "risks": [
+    {
+      "risk_id": "RISK-20260227083831",
+      "title": "Integration delay",
+      "trigger": {
+        "threshold": 5,
+        "current_value": 6,
+        "status": "triggered"
+      },
+      "old_score": 12,
+      "new_score": 11
+    }
+  ],
+  "checked_at": "2026-02-27T08:38:31.113053+00:00",
+  "_id": "trigger-20260227083831",
+  "_updated_at": "2026-02-27T08:38:31.113220+00:00"
+}

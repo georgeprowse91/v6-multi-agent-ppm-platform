@@ -1,0 +1,72 @@
+{
+  "change_id": "CHG-20260227083819",
+  "title": "Upgrade database",
+  "description": "Apply security patches",
+  "type": "emergency",
+  "classification": {
+    "category": "urgent",
+    "priority": "high",
+    "risk_category": "medium",
+    "impacted_ci_count": 0
+  },
+  "priority": "high",
+  "requester": "ops",
+  "project_id": null,
+  "tenant_id": "tenant-chg",
+  "correlation_id": "19d7b2ab-ee53-4c8a-882e-f4e0b0909961",
+  "actor_id": "system",
+  "impacted_cis": [],
+  "impact_assessment": null,
+  "risk_assessment": null,
+  "approval_status": "Pending",
+  "approval": {
+    "approval_id": "appr-change",
+    "status": "pending"
+  },
+  "status": "Submitted",
+  "version": 1,
+  "created_at": "2026-02-27T08:38:19.992484+00:00",
+  "repository_context": {
+    "status": "unavailable"
+  },
+  "iac_changes": {
+    "resources": [],
+    "status": "no_iac"
+  },
+  "knowledge_context": {
+    "documents": [],
+    "status": "ok"
+  },
+  "workflow": {
+    "change_id": "CHG-20260227083819",
+    "tenant_id": "tenant-chg",
+    "orchestrator": "durable_functions",
+    "tasks": [
+      {
+        "name": "peer_review",
+        "status": "pending"
+      },
+      {
+        "name": "automated_checks",
+        "status": "pending"
+      },
+      {
+        "name": "final_approval",
+        "status": "pending"
+      }
+    ],
+    "created_at": "2026-02-27T08:38:19.991821+00:00",
+    "orchestrator_status": {
+      "status": "unconfigured"
+    },
+    "_id": "CHG-20260227083819",
+    "_updated_at": "2026-02-27T08:38:19.992030+00:00"
+  },
+  "itsm_record": {
+    "status": "created_mock",
+    "change_id": "CHG-20260227083819",
+    "created_at": "2026-02-27T08:38:19.993094+00:00"
+  },
+  "_id": "CHG-20260227083819",
+  "_updated_at": "2026-02-27T08:38:19.993280+00:00"
+}

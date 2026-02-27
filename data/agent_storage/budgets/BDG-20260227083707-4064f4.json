@@ -1,0 +1,20 @@
+{
+  "budget_id": "BDG-20260227083707-4064f4",
+  "project_id": "proj-1",
+  "portfolio_id": "port-1",
+  "total_amount": 1200,
+  "currency": "AUD",
+  "fiscal_year": 2026,
+  "cost_breakdown": {
+    "labor": 1000
+  },
+  "cost_type": "mixed",
+  "status": "Pending Approval",
+  "created_at": "2026-02-27T08:37:07.661102+00:00",
+  "created_by": "finance-1",
+  "baseline_date": null,
+  "wbs_allocation": {},
+  "_id": "BDG-20260227083707-4064f4",
+  "_updated_at": "2026-02-27T08:37:07.663720+00:00",
+  "last_updated": "2026-02-27T08:37:07.662948+00:00"
+}

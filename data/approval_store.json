@@ -12944,5 +12944,1577 @@
       },
       "notifications": []
     }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083627-5a439f-c487fb_1772181387.130621": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083627-5a439f-c487fb_1772181387.130621",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.130652+00:00",
+    "updated_at": "2026-02-27T08:36:27.151604+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083627-5a439f-c487fb",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083627-5a439f",
+        "title": "Project Helios",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083627-5a439f-c487fb_1772181387.130621",
+        "request_id": "CHAR-PRJ-20260227083627-5a439f-c487fb",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.130629+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.130640+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083627-5a439f-WBS-001_1772181387.168562": {
+    "job_id": "tenant-a:approval_PRJ-20260227083627-5a439f-WBS-001_1772181387.168562",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.168600+00:00",
+    "updated_at": "2026-02-27T08:36:27.187983+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083627-5a439f-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083627-5a439f",
+        "wbs_id": "PRJ-20260227083627-5a439f-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083627-5a439f-WBS-001_1772181387.168562",
+        "request_id": "PRJ-20260227083627-5a439f-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.168572+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.168585+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083627-e6c9ae-22a43d_1772181387.222247": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083627-e6c9ae-22a43d_1772181387.222247",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.222274+00:00",
+    "updated_at": "2026-02-27T08:36:27.310159+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083627-e6c9ae-22a43d",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083627-e6c9ae",
+        "title": "Project Nova",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083627-e6c9ae-22a43d_1772181387.222247",
+        "request_id": "CHAR-PRJ-20260227083627-e6c9ae-22a43d",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.222256+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.222267+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083627-e6c9ae-WBS-001_1772181387.325988": {
+    "job_id": "tenant-a:approval_PRJ-20260227083627-e6c9ae-WBS-001_1772181387.325988",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.326014+00:00",
+    "updated_at": "2026-02-27T08:36:27.345001+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083627-e6c9ae-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083627-e6c9ae",
+        "wbs_id": "PRJ-20260227083627-e6c9ae-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083627-e6c9ae-WBS-001_1772181387.325988",
+        "request_id": "PRJ-20260227083627-e6c9ae-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.325997+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.326007+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083627-783300-5d3502_1772181387.405631": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083627-783300-5d3502_1772181387.405631",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.405655+00:00",
+    "updated_at": "2026-02-27T08:36:27.423400+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083627-783300-5d3502",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083627-783300",
+        "title": "Project Orion",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083627-783300-5d3502_1772181387.405631",
+        "request_id": "CHAR-PRJ-20260227083627-783300-5d3502",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.405638+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.405648+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083627-783300-WBS-001_1772181387.438904": {
+    "job_id": "tenant-a:approval_PRJ-20260227083627-783300-WBS-001_1772181387.438904",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.438929+00:00",
+    "updated_at": "2026-02-27T08:36:27.456433+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083627-783300-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083627-783300",
+        "wbs_id": "PRJ-20260227083627-783300-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083627-783300-WBS-001_1772181387.438904",
+        "request_id": "PRJ-20260227083627-783300-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.438911+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.438921+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083627-dc2532-618b6c_1772181387.504495": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083627-dc2532-618b6c_1772181387.504495",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.504519+00:00",
+    "updated_at": "2026-02-27T08:36:27.523103+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083627-dc2532-618b6c",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083627-dc2532",
+        "title": "Project Borealis",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083627-dc2532-618b6c_1772181387.504495",
+        "request_id": "CHAR-PRJ-20260227083627-dc2532-618b6c",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.504503+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.504512+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083627-85d1d4-fa95ce_1772181387.620787": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083627-85d1d4-fa95ce_1772181387.620787",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.620815+00:00",
+    "updated_at": "2026-02-27T08:36:27.640698+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083627-85d1d4-fa95ce",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083627-85d1d4",
+        "title": "Project Orion",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083627-85d1d4-fa95ce_1772181387.620787",
+        "request_id": "CHAR-PRJ-20260227083627-85d1d4-fa95ce",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.620796+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.620806+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083627-85d1d4-WBS-001_1772181387.654393": {
+    "job_id": "tenant-a:approval_PRJ-20260227083627-85d1d4-WBS-001_1772181387.654393",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.654433+00:00",
+    "updated_at": "2026-02-27T08:36:27.670304+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083627-85d1d4-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083627-85d1d4",
+        "wbs_id": "PRJ-20260227083627-85d1d4-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083627-85d1d4-WBS-001_1772181387.654393",
+        "request_id": "PRJ-20260227083627-85d1d4-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.654401+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.654424+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083627-5e9515-c74f3c_1772181387.717224": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083627-5e9515-c74f3c_1772181387.717224",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.717251+00:00",
+    "updated_at": "2026-02-27T08:36:27.737447+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083627-5e9515-c74f3c",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083627-5e9515",
+        "title": "Project Nova",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083627-5e9515-c74f3c_1772181387.717224",
+        "request_id": "CHAR-PRJ-20260227083627-5e9515-c74f3c",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.717232+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.717243+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083627-5e9515-WBS-001_1772181387.751585": {
+    "job_id": "tenant-a:approval_PRJ-20260227083627-5e9515-WBS-001_1772181387.751585",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.751611+00:00",
+    "updated_at": "2026-02-27T08:36:27.767463+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083627-5e9515-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083627-5e9515",
+        "wbs_id": "PRJ-20260227083627-5e9515-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083627-5e9515-WBS-001_1772181387.751585",
+        "request_id": "PRJ-20260227083627-5e9515-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.751594+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.751604+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-q:approval_QP-20260227083627_1772181387.914606": {
+    "job_id": "tenant-q:approval_QP-20260227083627_1772181387.914606",
+    "status": "pending",
+    "created_at": "2026-02-27T08:36:27.914642+00:00",
+    "updated_at": "2026-02-27T08:36:27.934627+00:00",
+    "connector": "tenant-q",
+    "details": {
+      "request_type": "quality_plan_approval",
+      "request_id": "QP-20260227083627",
+      "request_details": {
+        "project_id": "project-1",
+        "objectives": [
+          "zero defects"
+        ],
+        "metrics": [
+          {
+            "name": "defect_density",
+            "threshold": 0.05,
+            "unit": "defects/kloc"
+          },
+          {
+            "name": "test_coverage",
+            "threshold": 0.8,
+            "unit": "percentage"
+          },
+          {
+            "name": "pass_rate",
+            "threshold": 0.95,
+            "unit": "percentage"
+          },
+          {
+            "name": "mean_time_to_resolution",
+            "threshold": 48,
+            "unit": "hours"
+          }
+        ]
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_QP-20260227083627_1772181387.914606",
+        "request_id": "QP-20260227083627",
+        "request_type": "quality_plan_approval",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:36:27.914617+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:36:27.914633+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083708-ba61d8-ba4caa_1772181428.749778": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083708-ba61d8-ba4caa_1772181428.749778",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:08.749805+00:00",
+    "updated_at": "2026-02-27T08:37:08.769750+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083708-ba61d8-ba4caa",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083708-ba61d8",
+        "title": "Project Helios",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083708-ba61d8-ba4caa_1772181428.749778",
+        "request_id": "CHAR-PRJ-20260227083708-ba61d8-ba4caa",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:08.749786+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:08.749794+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083708-ba61d8-WBS-001_1772181428.783803": {
+    "job_id": "tenant-a:approval_PRJ-20260227083708-ba61d8-WBS-001_1772181428.783803",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:08.783832+00:00",
+    "updated_at": "2026-02-27T08:37:08.799577+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083708-ba61d8-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083708-ba61d8",
+        "wbs_id": "PRJ-20260227083708-ba61d8-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083708-ba61d8-WBS-001_1772181428.783803",
+        "request_id": "PRJ-20260227083708-ba61d8-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:08.783810+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:08.783820+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083708-3af88a-0f0c02_1772181428.828912": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083708-3af88a-0f0c02_1772181428.828912",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:08.828936+00:00",
+    "updated_at": "2026-02-27T08:37:08.844613+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083708-3af88a-0f0c02",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083708-3af88a",
+        "title": "Project Nova",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083708-3af88a-0f0c02_1772181428.828912",
+        "request_id": "CHAR-PRJ-20260227083708-3af88a-0f0c02",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:08.828918+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:08.828928+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083708-3af88a-WBS-001_1772181428.858065": {
+    "job_id": "tenant-a:approval_PRJ-20260227083708-3af88a-WBS-001_1772181428.858065",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:08.858085+00:00",
+    "updated_at": "2026-02-27T08:37:08.919611+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083708-3af88a-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083708-3af88a",
+        "wbs_id": "PRJ-20260227083708-3af88a-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083708-3af88a-WBS-001_1772181428.858065",
+        "request_id": "PRJ-20260227083708-3af88a-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:08.858071+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:08.858079+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083708-1cfa4a-1c98b7_1772181428.974483": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083708-1cfa4a-1c98b7_1772181428.974483",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:08.974515+00:00",
+    "updated_at": "2026-02-27T08:37:08.994557+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083708-1cfa4a-1c98b7",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083708-1cfa4a",
+        "title": "Project Orion",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083708-1cfa4a-1c98b7_1772181428.974483",
+        "request_id": "CHAR-PRJ-20260227083708-1cfa4a-1c98b7",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:08.974492+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:08.974505+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083708-1cfa4a-WBS-001_1772181429.014462": {
+    "job_id": "tenant-a:approval_PRJ-20260227083708-1cfa4a-WBS-001_1772181429.014462",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:09.014498+00:00",
+    "updated_at": "2026-02-27T08:37:09.033192+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083708-1cfa4a-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083708-1cfa4a",
+        "wbs_id": "PRJ-20260227083708-1cfa4a-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083708-1cfa4a-WBS-001_1772181429.014462",
+        "request_id": "PRJ-20260227083708-1cfa4a-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:09.014472+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:09.014487+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083709-791668-3135f2_1772181429.083654": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083709-791668-3135f2_1772181429.083654",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:09.083682+00:00",
+    "updated_at": "2026-02-27T08:37:09.102765+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083709-791668-3135f2",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083709-791668",
+        "title": "Project Borealis",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083709-791668-3135f2_1772181429.083654",
+        "request_id": "CHAR-PRJ-20260227083709-791668-3135f2",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:09.083663+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:09.083674+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083709-cb0718-b374a4_1772181429.206391": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083709-cb0718-b374a4_1772181429.206391",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:09.206434+00:00",
+    "updated_at": "2026-02-27T08:37:09.226478+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083709-cb0718-b374a4",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083709-cb0718",
+        "title": "Project Orion",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083709-cb0718-b374a4_1772181429.206391",
+        "request_id": "CHAR-PRJ-20260227083709-cb0718-b374a4",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:09.206402+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:09.206424+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083709-cb0718-WBS-001_1772181429.241788": {
+    "job_id": "tenant-a:approval_PRJ-20260227083709-cb0718-WBS-001_1772181429.241788",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:09.241814+00:00",
+    "updated_at": "2026-02-27T08:37:09.258472+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083709-cb0718-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083709-cb0718",
+        "wbs_id": "PRJ-20260227083709-cb0718-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083709-cb0718-WBS-001_1772181429.241788",
+        "request_id": "PRJ-20260227083709-cb0718-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:09.241795+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:09.241806+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083709-d9e476-4148ba_1772181429.304366": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083709-d9e476-4148ba_1772181429.304366",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:09.304392+00:00",
+    "updated_at": "2026-02-27T08:37:09.321585+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083709-d9e476-4148ba",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083709-d9e476",
+        "title": "Project Nova",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083709-d9e476-4148ba_1772181429.304366",
+        "request_id": "CHAR-PRJ-20260227083709-d9e476-4148ba",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:09.304374+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:09.304384+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083709-d9e476-WBS-001_1772181429.335863": {
+    "job_id": "tenant-a:approval_PRJ-20260227083709-d9e476-WBS-001_1772181429.335863",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:09.335897+00:00",
+    "updated_at": "2026-02-27T08:37:09.352085+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083709-d9e476-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083709-d9e476",
+        "wbs_id": "PRJ-20260227083709-d9e476-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083709-d9e476-WBS-001_1772181429.335863",
+        "request_id": "PRJ-20260227083709-d9e476-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:09.335873+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:09.335888+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-q:approval_QP-20260227083709_1772181429.47767": {
+    "job_id": "tenant-q:approval_QP-20260227083709_1772181429.47767",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:09.477695+00:00",
+    "updated_at": "2026-02-27T08:37:09.498832+00:00",
+    "connector": "tenant-q",
+    "details": {
+      "request_type": "quality_plan_approval",
+      "request_id": "QP-20260227083709",
+      "request_details": {
+        "project_id": "project-1",
+        "objectives": [
+          "zero defects"
+        ],
+        "metrics": [
+          {
+            "name": "defect_density",
+            "threshold": 0.05,
+            "unit": "defects/kloc"
+          },
+          {
+            "name": "test_coverage",
+            "threshold": 0.8,
+            "unit": "percentage"
+          },
+          {
+            "name": "pass_rate",
+            "threshold": 0.95,
+            "unit": "percentage"
+          },
+          {
+            "name": "mean_time_to_resolution",
+            "threshold": 48,
+            "unit": "hours"
+          }
+        ]
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_QP-20260227083709_1772181429.47767",
+        "request_id": "QP-20260227083709",
+        "request_type": "quality_plan_approval",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:09.477678+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:09.477688+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "unknown:approval_req-123_1772181470.573518": {
+    "job_id": "unknown:approval_req-123_1772181470.573518",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:50.573543+00:00",
+    "updated_at": "2026-02-27T08:37:50.607077+00:00",
+    "connector": "unknown",
+    "details": {
+      "request_type": "budget_change",
+      "request_id": "req-123",
+      "request_details": {
+        "amount": 1000,
+        "description": "Increase budget for Phase 2",
+        "justification": "Scope expansion",
+        "urgency": "medium"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 12.0,
+      "chain": {
+        "id": "approval_req-123_1772181470.573518",
+        "request_id": "req-123",
+        "request_type": "budget_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:50.573527+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:50.573536+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 12.0
+      },
+      "notifications": []
+    }
+  },
+  "unknown:approval_req-123_1772181479.561761": {
+    "job_id": "unknown:approval_req-123_1772181479.561761",
+    "status": "pending",
+    "created_at": "2026-02-27T08:37:59.561791+00:00",
+    "updated_at": "2026-02-27T08:37:59.582087+00:00",
+    "connector": "unknown",
+    "details": {
+      "request_type": "budget_change",
+      "request_id": "req-123",
+      "request_details": {
+        "amount": 1000,
+        "description": "Increase budget for Phase 2",
+        "justification": "Scope expansion",
+        "urgency": "medium"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 12.0,
+      "chain": {
+        "id": "approval_req-123_1772181479.561761",
+        "request_id": "req-123",
+        "request_type": "budget_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:37:59.561771+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:37:59.561782+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 12.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083825-8b0dc8-d0ccfc_1772181505.052662": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083825-8b0dc8-d0ccfc_1772181505.052662",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.052698+00:00",
+    "updated_at": "2026-02-27T08:38:25.074642+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083825-8b0dc8-d0ccfc",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083825-8b0dc8",
+        "title": "Project Helios",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083825-8b0dc8-d0ccfc_1772181505.052662",
+        "request_id": "CHAR-PRJ-20260227083825-8b0dc8-d0ccfc",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.052672+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.052685+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083825-8b0dc8-WBS-001_1772181505.095822": {
+    "job_id": "tenant-a:approval_PRJ-20260227083825-8b0dc8-WBS-001_1772181505.095822",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.095853+00:00",
+    "updated_at": "2026-02-27T08:38:25.196841+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083825-8b0dc8-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083825-8b0dc8",
+        "wbs_id": "PRJ-20260227083825-8b0dc8-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083825-8b0dc8-WBS-001_1772181505.095822",
+        "request_id": "PRJ-20260227083825-8b0dc8-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.095831+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.095842+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083825-3b56dc-adb76c_1772181505.236038": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083825-3b56dc-adb76c_1772181505.236038",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.236075+00:00",
+    "updated_at": "2026-02-27T08:38:25.255860+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083825-3b56dc-adb76c",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083825-3b56dc",
+        "title": "Project Nova",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083825-3b56dc-adb76c_1772181505.236038",
+        "request_id": "CHAR-PRJ-20260227083825-3b56dc-adb76c",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.236050+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.236066+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083825-3b56dc-WBS-001_1772181505.272521": {
+    "job_id": "tenant-a:approval_PRJ-20260227083825-3b56dc-WBS-001_1772181505.272521",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.272548+00:00",
+    "updated_at": "2026-02-27T08:38:25.290909+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083825-3b56dc-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083825-3b56dc",
+        "wbs_id": "PRJ-20260227083825-3b56dc-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083825-3b56dc-WBS-001_1772181505.272521",
+        "request_id": "PRJ-20260227083825-3b56dc-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.272529+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.272540+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083825-e6ba32-6ed2f4_1772181505.358133": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083825-e6ba32-6ed2f4_1772181505.358133",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.358168+00:00",
+    "updated_at": "2026-02-27T08:38:25.381147+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083825-e6ba32-6ed2f4",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083825-e6ba32",
+        "title": "Project Orion",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083825-e6ba32-6ed2f4_1772181505.358133",
+        "request_id": "CHAR-PRJ-20260227083825-e6ba32-6ed2f4",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.358142+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.358155+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083825-e6ba32-WBS-001_1772181505.397482": {
+    "job_id": "tenant-a:approval_PRJ-20260227083825-e6ba32-WBS-001_1772181505.397482",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.397507+00:00",
+    "updated_at": "2026-02-27T08:38:25.414931+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083825-e6ba32-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083825-e6ba32",
+        "wbs_id": "PRJ-20260227083825-e6ba32-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083825-e6ba32-WBS-001_1772181505.397482",
+        "request_id": "PRJ-20260227083825-e6ba32-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.397490+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.397500+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083825-c9e2f5-07fcb0_1772181505.475549": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083825-c9e2f5-07fcb0_1772181505.475549",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.475576+00:00",
+    "updated_at": "2026-02-27T08:38:25.494983+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083825-c9e2f5-07fcb0",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083825-c9e2f5",
+        "title": "Project Borealis",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083825-c9e2f5-07fcb0_1772181505.475549",
+        "request_id": "CHAR-PRJ-20260227083825-c9e2f5-07fcb0",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.475557+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.475568+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083825-b1b820-00fbdf_1772181505.631215": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083825-b1b820-00fbdf_1772181505.631215",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.631243+00:00",
+    "updated_at": "2026-02-27T08:38:25.651061+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083825-b1b820-00fbdf",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083825-b1b820",
+        "title": "Project Orion",
+        "methodology": "adaptive"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083825-b1b820-00fbdf_1772181505.631215",
+        "request_id": "CHAR-PRJ-20260227083825-b1b820-00fbdf",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.631225+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.631235+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083825-b1b820-WBS-001_1772181505.666908": {
+    "job_id": "tenant-a:approval_PRJ-20260227083825-b1b820-WBS-001_1772181505.666908",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.666931+00:00",
+    "updated_at": "2026-02-27T08:38:25.684734+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083825-b1b820-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083825-b1b820",
+        "wbs_id": "PRJ-20260227083825-b1b820-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083825-b1b820-WBS-001_1772181505.666908",
+        "request_id": "PRJ-20260227083825-b1b820-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.666915+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.666925+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_CHAR-PRJ-20260227083825-36e526-cdb7a3_1772181505.743302": {
+    "job_id": "tenant-a:approval_CHAR-PRJ-20260227083825-36e526-cdb7a3_1772181505.743302",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.743322+00:00",
+    "updated_at": "2026-02-27T08:38:25.763071+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "CHAR-PRJ-20260227083825-36e526-cdb7a3",
+      "request_details": {
+        "description": "Project charter sign-off",
+        "project_id": "PRJ-20260227083825-36e526",
+        "title": "Project Nova",
+        "methodology": "hybrid"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_CHAR-PRJ-20260227083825-36e526-cdb7a3_1772181505.743302",
+        "request_id": "CHAR-PRJ-20260227083825-36e526-cdb7a3",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.743308+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.743316+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-a:approval_PRJ-20260227083825-36e526-WBS-001_1772181505.779219": {
+    "job_id": "tenant-a:approval_PRJ-20260227083825-36e526-WBS-001_1772181505.779219",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.779250+00:00",
+    "updated_at": "2026-02-27T08:38:25.797916+00:00",
+    "connector": "tenant-a",
+    "details": {
+      "request_type": "scope_change",
+      "request_id": "PRJ-20260227083825-36e526-WBS-001",
+      "request_details": {
+        "description": "WBS sign-off",
+        "project_id": "PRJ-20260227083825-36e526",
+        "wbs_id": "PRJ-20260227083825-36e526-WBS-001"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_PRJ-20260227083825-36e526-WBS-001_1772181505.779219",
+        "request_id": "PRJ-20260227083825-36e526-WBS-001",
+        "request_type": "scope_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.779228+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.779241+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "tenant-q:approval_QP-20260227083825_1772181505.963455": {
+    "job_id": "tenant-q:approval_QP-20260227083825_1772181505.963455",
+    "status": "pending",
+    "created_at": "2026-02-27T08:38:25.963476+00:00",
+    "updated_at": "2026-02-27T08:38:25.983396+00:00",
+    "connector": "tenant-q",
+    "details": {
+      "request_type": "quality_plan_approval",
+      "request_id": "QP-20260227083825",
+      "request_details": {
+        "project_id": "project-1",
+        "objectives": [
+          "zero defects"
+        ],
+        "metrics": [
+          {
+            "name": "defect_density",
+            "threshold": 0.05,
+            "unit": "defects/kloc"
+          },
+          {
+            "name": "test_coverage",
+            "threshold": 0.8,
+            "unit": "percentage"
+          },
+          {
+            "name": "pass_rate",
+            "threshold": 0.95,
+            "unit": "percentage"
+          },
+          {
+            "name": "mean_time_to_resolution",
+            "threshold": 48,
+            "unit": "hours"
+          }
+        ]
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 48.0,
+      "chain": {
+        "id": "approval_QP-20260227083825_1772181505.963455",
+        "request_id": "QP-20260227083825",
+        "request_type": "quality_plan_approval",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:38:25.963461+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:38:25.963470+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 48.0
+      },
+      "notifications": []
+    }
+  },
+  "unknown:approval_req-123_1772181598.425919": {
+    "job_id": "unknown:approval_req-123_1772181598.425919",
+    "status": "pending",
+    "created_at": "2026-02-27T08:39:58.425944+00:00",
+    "updated_at": "2026-02-27T08:39:58.444791+00:00",
+    "connector": "unknown",
+    "details": {
+      "request_type": "budget_change",
+      "request_id": "req-123",
+      "request_details": {
+        "amount": 1000,
+        "description": "Increase budget for Phase 2",
+        "justification": "Scope expansion",
+        "urgency": "medium"
+      },
+      "approvers": [],
+      "user_roles": {},
+      "risk_score": "medium",
+      "criticality_level": "high",
+      "escalation_timeout_hours": 12.0,
+      "chain": {
+        "id": "approval_req-123_1772181598.425919",
+        "request_id": "req-123",
+        "request_type": "budget_change",
+        "type": "parallel",
+        "approvers": [],
+        "deadline": "2026-03-02T08:39:58.425928+00:00",
+        "current_step": 0,
+        "responses": {},
+        "created_at": "2026-02-27T08:39:58.425937+00:00",
+        "delegations": [],
+        "user_roles": {},
+        "risk_score": "medium",
+        "criticality_level": "high",
+        "escalation_timeout_hours": 12.0
+      },
+      "notifications": []
+    }
   }
 }

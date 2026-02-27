@@ -1,0 +1,20 @@
+{
+  "invoice_id": "INV-20260227085413",
+  "vendor_invoice_number": "INV-001",
+  "vendor_id": "VND-20260227085413",
+  "po_number": "PO-1",
+  "invoice_date": "2024-01-10",
+  "due_date": null,
+  "line_items": [],
+  "subtotal": null,
+  "tax": null,
+  "total_amount": 20000,
+  "currency": "AUD",
+  "payment_terms": null,
+  "attachments": [],
+  "reconciliation_status": "Pending",
+  "payment_status": "Unpaid",
+  "received_at": "2026-02-27T08:54:13.111261+00:00",
+  "_id": "INV-20260227085413",
+  "_updated_at": "2026-02-27T08:54:13.111851+00:00"
+}

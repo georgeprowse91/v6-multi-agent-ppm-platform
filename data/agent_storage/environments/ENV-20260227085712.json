@@ -1,0 +1,16 @@
+{
+  "environment_id": "ENV-20260227085712",
+  "name": "Prod",
+  "type": "production",
+  "configuration": {
+    "region": "eastus"
+  },
+  "version": null,
+  "status": "Available",
+  "owner": null,
+  "reserved_by": null,
+  "reserved_until": null,
+  "created_at": "2026-02-27T08:57:12.843774+00:00",
+  "_id": "ENV-20260227085712",
+  "_updated_at": "2026-02-27T08:57:12.843953+00:00"
+}

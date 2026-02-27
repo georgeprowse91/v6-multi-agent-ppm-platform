@@ -1,0 +1,17 @@
+{
+  "change_id": "CHG-20260227083622",
+  "action": "submitted",
+  "actor_id": "system",
+  "details": {
+    "approval_required": false,
+    "classification": {
+      "category": "routine",
+      "priority": "medium",
+      "risk_category": "medium",
+      "impacted_ci_count": 0
+    }
+  },
+  "timestamp": "2026-02-27T08:36:22.741722+00:00",
+  "_id": "CHG-20260227083622:2026-02-27T08:36:22.741722+00:00",
+  "_updated_at": "2026-02-27T08:36:22.741917+00:00"
+}

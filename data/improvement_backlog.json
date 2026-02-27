@@ -566,6 +566,132 @@
       "owner": null,
       "status": "Idea",
       "created_at": "2026-02-25T16:03:46.760639+00:00"
+    },
+    "IMP-20260227083626929006": {
+      "improvement_id": "IMP-20260227083626929006",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-02-27T08:36:26.929044+00:00"
+    },
+    "IMP-20260227083708586509": {
+      "improvement_id": "IMP-20260227083708586509",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-02-27T08:37:08.586536+00:00"
+    },
+    "IMP-20260227083824772599": {
+      "improvement_id": "IMP-20260227083824772599",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-02-27T08:38:24.772622+00:00"
+    },
+    "IMP-20260227085408134827": {
+      "improvement_id": "IMP-20260227085408134827",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-02-27T08:54:08.134851+00:00"
+    },
+    "IMP-20260227085712231767": {
+      "improvement_id": "IMP-20260227085712231767",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-02-27T08:57:12.231783+00:00"
+    },
+    "IMP-20260227085928038633": {
+      "improvement_id": "IMP-20260227085928038633",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-02-27T08:59:28.038656+00:00"
     }
   }
 }
