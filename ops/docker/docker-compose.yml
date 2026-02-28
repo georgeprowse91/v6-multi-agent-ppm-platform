@@ -5,10 +5,10 @@ version: '3.8'
 services:
   api:
     build:
-      context: ./apps/api-gateway
+      context: ../../apps/api-gateway
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [demo, core, full]
     ports:
       - "8000:8000"
@@ -39,13 +39,13 @@ services:
       identity-access:
         condition: service_healthy
     volumes:
-      - ./apps/api-gateway/src:/app/apps/api-gateway/src
-      - ./apps/orchestration-service/src:/app/apps/orchestration-service/src
-      - ./agents:/app/agents
-      - ./tools:/app/tools
-      - ./ops/config:/app/ops/config
-      - ./vendor:/app/vendor
-      - ./examples:/app/examples
+      - ../../apps/api-gateway/src:/app/apps/api-gateway/src
+      - ../../apps/orchestration-service/src:/app/apps/orchestration-service/src
+      - ../../agents:/app/agents
+      - ../../tools:/app/tools
+      - ../../ops/config:/app/ops/config
+      - ../../vendor:/app/vendor
+      - ../../examples:/app/examples
     networks:
       - ppm-network
     healthcheck:
@@ -58,10 +58,10 @@ services:
 
   workflow-engine:
     build:
-      context: ./apps/workflow-engine
+      context: ../../apps/workflow-engine
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [demo, core, full]
     ports:
       - "8080:8080"
@@ -73,7 +73,7 @@ services:
       - DEMO_MODE=${DEMO_MODE}
       - WORKFLOW_DB_PATH=${WORKFLOW_DB_PATH:-/app/apps/workflow-engine/storage/workflows.db}
     volumes:
-      - ./apps/workflow-engine:/app/apps/workflow-engine
+      - ../../apps/workflow-engine:/app/apps/workflow-engine
     depends_on:
       db:
         condition: service_healthy
@@ -91,10 +91,10 @@ services:
 
   identity-access:
     build:
-      context: ./services/identity-access
+      context: ../../services/identity-access
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [demo, core, full]
     ports:
       - "8081:8080"
@@ -120,10 +120,10 @@ services:
 
   orchestration-service:
     build:
-      context: ./apps/orchestration-service
+      context: ../../apps/orchestration-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [core, full]
     ports:
       - "8087:8080"
@@ -151,10 +151,10 @@ services:
 
   data-service:
     build:
-      context: ./services/data-service
+      context: ../../services/data-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [core, full]
     ports:
       - "8082:8080"
@@ -179,10 +179,10 @@ services:
 
   policy-engine:
     build:
-      context: ./services/policy-engine
+      context: ../../services/policy-engine
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [core, full]
     ports:
       - "8083:8080"
@@ -208,10 +208,10 @@ services:
 
   document-service:
     build:
-      context: ./apps/document-service
+      context: ../../apps/document-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [core, full]
     ports:
       - "8088:8080"
@@ -234,10 +234,10 @@ services:
 
   audit-log:
     build:
-      context: ./services/audit-log
+      context: ../../services/audit-log
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [core, full]
     ports:
       - "8085:8080"
@@ -260,10 +260,10 @@ services:
 
   notification-service:
     build:
-      context: ./services/notification-service
+      context: ../../services/notification-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [core, full]
     ports:
       - "8084:8080"
@@ -286,10 +286,10 @@ services:
 
   analytics-service:
     build:
-      context: ./apps/analytics-service
+      context: ../../apps/analytics-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [full]
     ports:
       - "8086:8080"
@@ -318,10 +318,10 @@ services:
 
   data-lineage-service:
     build:
-      context: ./services/data-lineage-service
+      context: ../../services/data-lineage-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [full]
     ports:
       - "8089:8080"
@@ -344,10 +344,10 @@ services:
 
   data-sync-service:
     build:
-      context: ./services/data-sync-service
+      context: ../../services/data-sync-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [full]
     ports:
       - "8090:8080"
@@ -370,10 +370,10 @@ services:
 
   telemetry-service:
     build:
-      context: ./services/telemetry-service
+      context: ../../services/telemetry-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [full]
     ports:
       - "8091:8080"
@@ -396,10 +396,10 @@ services:
 
   agent-runtime:
     build:
-      context: ./services/agent-runtime
+      context: ../../services/agent-runtime
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [full]
     ports:
       - "8092:8080"
@@ -422,10 +422,10 @@ services:
 
   auth-service:
     build:
-      context: ./services/auth-service
+      context: ../../services/auth-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [full]
     ports:
       - "8093:8080"
@@ -452,10 +452,10 @@ services:
 
   realtime-coedit-service:
     build:
-      context: ./services/realtime-coedit-service
+      context: ../../services/realtime-coedit-service
       dockerfile: Dockerfile
       additional_contexts:
-        repo-root: .
+        repo-root: ../..
     profiles: [full]
     ports:
       - "8094:8080"
@@ -480,13 +480,13 @@ services:
 
   web:
     build:
-      context: ./apps/web
+      context: ../../apps/web
       dockerfile: Dockerfile
     profiles: [demo, core, full]
     ports:
       - "8501:8501"
     volumes:
-      - ./apps/web:/app
+      - ../../apps/web:/app
     environment:
       - API_GATEWAY_URL=${API_GATEWAY_URL}
       - IDENTITY_ACCESS_URL=${IDENTITY_ACCESS_URL}
@@ -521,7 +521,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./ops/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../../ops/scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - ppm-network
     healthcheck:
