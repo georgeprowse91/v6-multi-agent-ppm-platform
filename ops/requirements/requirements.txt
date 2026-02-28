@@ -22,7 +22,7 @@ azure-monitor-query==1.4.0
 azure-ai-anomalydetector==3.0.0
 opentelemetry-sdk==1.28.2
 opentelemetry-exporter-otlp==1.28.2
-opentelemetry-exporter-azuremonitor==1.0.0b35
+azure-monitor-opentelemetry-exporter==1.0.0b35
 cryptography==43.0.3
 
 # Database

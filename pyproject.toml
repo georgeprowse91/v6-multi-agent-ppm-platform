@@ -39,7 +39,7 @@ dependencies = [
     "azure-ai-anomalydetector>=3.0.0,<4.0.0",
     "opentelemetry-sdk>=1.28.2,<2.0.0",
     "opentelemetry-exporter-otlp>=1.28.2,<2.0.0",
-    "opentelemetry-exporter-azuremonitor>=1.0.0b35,<2.0.0",
+    "azure-monitor-opentelemetry-exporter>=1.0.0b35,<2.0.0",
     "cryptography>=43.0.3,<46.0.0",
 
     # Database
