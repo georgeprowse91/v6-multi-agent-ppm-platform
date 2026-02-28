@@ -90,7 +90,7 @@ if "jsonschema" not in sys.modules:
     jsonschema.FormatChecker = _FormatChecker
     sys.modules["jsonschema"] = jsonschema
 
-from integrations.connectors.sap.src.main import SapConfig, app, send_to_external_system
+from connectors.sap.src.main import SapConfig, app, send_to_external_system
 
 
 def test_sap_outbound_sync(monkeypatch, caplog):
@@ -101,7 +101,7 @@ def test_sap_outbound_sync(monkeypatch, caplog):
         assert tenant_id == "test-tenant"
         assert isinstance(records, list)
 
-    monkeypatch.setattr("integrations.connectors.sap.src.main.send_to_external_system", mock_send)
+    monkeypatch.setattr("connectors.sap.src.main.send_to_external_system", mock_send)
 
     client = TestClient(app)
     payload = {
@@ -126,10 +126,10 @@ def test_send_to_external_system_posts_mapped_sap_keys(monkeypatch):
             return None
 
     monkeypatch.setattr(
-        "integrations.connectors.sap.src.main.SapConfig.from_env",
+        "connectors.sap.src.main.SapConfig.from_env",
         classmethod(lambda cls, rate_limit_per_minute: SapConfig("https://sap.example", "u", "p", "100", 120)),
     )
-    monkeypatch.setattr("integrations.connectors.sap.src.main._build_client", lambda config: FakeClient())
+    monkeypatch.setattr("connectors.sap.src.main._build_client", lambda config: FakeClient())
 
     send_to_external_system(
         [

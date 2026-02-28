@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from integrations.connectors.planview.src.mappers import PlanviewMappingError, map_to_planview
+from connectors.planview.src.mappers import PlanviewMappingError, map_to_planview
 
 
 def test_map_to_planview_happy_path_with_financials() -> None:

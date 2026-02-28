@@ -26,7 +26,7 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
 ensure_monorepo_paths(_REPO_ROOT)
 
-from integrations.connectors.sdk.src.auth import OAuth2TokenManager  # noqa: E402
+from connectors.sdk.src.auth import OAuth2TokenManager  # noqa: E402
 from base_connector import (  # noqa: E402
     BaseConnector,
     ConnectionStatus,

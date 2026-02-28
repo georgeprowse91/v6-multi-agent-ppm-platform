@@ -6,8 +6,8 @@ import os
 from typing import Any, Callable
 
 from base_connector import ConnectorConfig, ConnectorError, normalize_mcp_operation
-from integrations.connectors.mcp_client.client import MCPClient
-from integrations.connectors.mcp_client.errors import MCPClientError, MCPToolNotFoundError
+from connectors.mcp_client.client import MCPClient
+from connectors.mcp_client.errors import MCPClientError, MCPToolNotFoundError
 from observability.metrics import build_mcp_fallback_metrics
 
 logger = logging.getLogger(__name__)

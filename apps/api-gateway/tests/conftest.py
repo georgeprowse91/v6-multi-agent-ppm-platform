@@ -210,8 +210,8 @@ if "connector_registry" not in sys.modules:
     reg_mod.get_connectors_by_category = lambda _category: []
     sys.modules["connector_registry"] = reg_mod
 
-if "integrations.connectors.mcp_client.client" not in sys.modules:
-    client_mod = types.ModuleType("integrations.connectors.mcp_client.client")
+if "connectors.mcp_client.client" not in sys.modules:
+    client_mod = types.ModuleType("connectors.mcp_client.client")
 
     class MCPClient:
         def __init__(self, **_kwargs):
@@ -221,10 +221,10 @@ if "integrations.connectors.mcp_client.client" not in sys.modules:
             return []
 
     client_mod.MCPClient = MCPClient
-    sys.modules["integrations.connectors.mcp_client.client"] = client_mod
+    sys.modules["connectors.mcp_client.client"] = client_mod
 
-if "integrations.connectors.mcp_client.errors" not in sys.modules:
-    err_mod = types.ModuleType("integrations.connectors.mcp_client.errors")
+if "connectors.mcp_client.errors" not in sys.modules:
+    err_mod = types.ModuleType("connectors.mcp_client.errors")
 
     class MCPAuthenticationError(Exception):
         pass
@@ -242,7 +242,7 @@ if "integrations.connectors.mcp_client.errors" not in sys.modules:
     err_mod.MCPResponseError = MCPResponseError
     err_mod.MCPServerError = MCPServerError
     err_mod.MCPTransportError = MCPTransportError
-    sys.modules["integrations.connectors.mcp_client.errors"] = err_mod
+    sys.modules["connectors.mcp_client.errors"] = err_mod
 
 if "regulatory_compliance_connector" not in sys.modules:
     reg_connector_mod = types.ModuleType("regulatory_compliance_connector")

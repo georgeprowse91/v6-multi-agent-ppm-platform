@@ -71,8 +71,8 @@ else:
     MetaData = None
     JSON = None
 
-if _safe_find_spec("integrations.connectors.salesforce.src.main"):
-    from integrations.connectors.salesforce.src.main import (
+if _safe_find_spec("connectors.salesforce.src.main"):
+    from connectors.salesforce.src.main import (
         SalesforceConfig,
         _build_client,
         _build_token_manager,

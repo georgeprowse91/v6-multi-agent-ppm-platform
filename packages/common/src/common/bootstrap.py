@@ -35,8 +35,7 @@ def ensure_monorepo_paths(repo_root: Path | None = None) -> None:
     for base in (
         "agents",
         "packages",
-        "integrations/apps",
-        "integrations/connectors",
+        "connectors",
         "integrations/services",
         "apps",
         "services",

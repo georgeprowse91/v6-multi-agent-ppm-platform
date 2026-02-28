@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 
-from integrations.connectors.sdk.src.http_client import HttpClient, HttpClientError, RetryConfig
+from connectors.sdk.src.http_client import HttpClient, HttpClientError, RetryConfig
 
 
 def test_http_client_retries_transient_errors() -> None:

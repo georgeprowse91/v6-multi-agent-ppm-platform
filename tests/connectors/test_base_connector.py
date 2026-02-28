@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
+SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
 SDK_PATH_STR = str(SDK_PATH.resolve())
 if SDK_PATH_STR not in sys.path:
     sys.path.insert(0, SDK_PATH_STR)

@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
 
 
 WEBHOOK_CASES: list[tuple[str, Path]] = [

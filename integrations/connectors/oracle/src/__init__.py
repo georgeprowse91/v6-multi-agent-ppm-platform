@@ -1,1 +1,0 @@
-"""Oracle ERP connector package."""

@@ -13,8 +13,8 @@ sys.path = [path for path in sys.path if Path(path).resolve() != TESTS_ROOT]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from integrations.connectors.mcp_client import client as mcp_client_module
-from integrations.connectors.mcp_client.client import MCPClient
+from connectors.mcp_client import client as mcp_client_module
+from connectors.mcp_client.client import MCPClient
 
 
 class DummyAsyncClient:

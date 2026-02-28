@@ -3,7 +3,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from integrations.connectors.planview.src.mappers import map_to_planview
+from connectors.planview.src.mappers import map_to_planview
 
 
 def test_send_to_external_system_maps_payload_shape_for_mcp_and_non_mcp() -> None:
@@ -22,7 +22,7 @@ def test_send_to_external_system_maps_payload_shape_for_mcp_and_non_mcp() -> Non
 
 
 def test_send_to_external_system_uses_single_mapped_payload_contract() -> None:
-    source = Path("integrations/connectors/planview/src/main.py").read_text()
+    source = Path("connectors/planview/src/main.py").read_text()
     tree = ast.parse(source)
 
     send_fn = next(

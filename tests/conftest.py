@@ -62,8 +62,7 @@ def _bootstrap_paths() -> None:
     for base in (
         "agents",
         "packages",
-        "integrations/apps",
-        "integrations/connectors",
+        "connectors",
         "integrations/services",
         "apps",
         "services",

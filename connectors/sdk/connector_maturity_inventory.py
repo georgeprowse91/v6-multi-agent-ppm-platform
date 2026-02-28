@@ -8,7 +8,7 @@ from typing import Any
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
 
 
 def _read_manifest(path: Path) -> dict[str, Any]:

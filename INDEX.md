@@ -348,43 +348,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── manifest.yaml
 │   │   │   ├── README.md
 │   │   │   └── run_eval.py
-│   │   ├── prompts
-│   │   │   ├── approval-workflow
-│   │   │   │   └── approval_prompt_v1.md
-│   │   │   ├── examples
-│   │   │   │   └── intent-router.prompt.yaml
-│   │   │   ├── intent-router
-│   │   │   │   └── classification_prompt_v1.md
-│   │   │   ├── knowledge-agent
-│   │   │   │   └── summary_prompt_v1.md
-│   │   │   ├── response-orchestration
-│   │   │   │   └── orchestration_prompt_v1.md
-│   │   │   ├── schema
-│   │   │   │   └── prompt.schema.json
-│   │   │   ├── demand-intake-extraction.prompt.yaml
-│   │   │   ├── intake-assistant-attachments.prompt.yaml
-│   │   │   ├── intake-assistant-business.prompt.yaml
-│   │   │   ├── intake-assistant-sponsor.prompt.yaml
-│   │   │   ├── intake-assistant-success.prompt.yaml
-│   │   │   ├── project-intake-extraction.prompt.yaml
-│   │   │   ├── prompt_registry.py
-│   │   │   └── README.md
-│   │   ├── src
-│   │   │   ├── __init__.py
-│   │   │   ├── agent_catalog.py
-│   │   │   ├── audit.py
-│   │   │   ├── base_agent.py
-│   │   │   ├── data_service.py
-│   │   │   ├── event_bus.py
-│   │   │   ├── memory_store.py
-│   │   │   ├── models.py
-│   │   │   ├── notification_service.py
-│   │   │   ├── orchestrator.py
-│   │   │   ├── policy.py
-│   │   │   └── state_store.py
-│   │   ├── __init__.py
-│   │   ├── README.md
-│   │   └── timeout_harness.py
 │   ├── __init__.py
 │   ├── AGENT_CATALOG.md
 │   └── README.md
@@ -444,6 +407,35 @@ multi-agent-ppm-platform-v4/
 │   │   ├── Dockerfile
 │   │   ├── job_registry.py
 │   │   └── README.md
+│   ├── connector-hub
+│   │   ├── helm
+│   │   │   ├── templates
+│   │   │   │   ├── _helpers.tpl
+│   │   │   │   ├── certificate.yaml
+│   │   │   │   ├── configmap.yaml
+│   │   │   │   ├── deployment.yaml
+│   │   │   │   ├── hpa.yaml
+│   │   │   │   ├── ingress.yaml
+│   │   │   │   ├── pdb.yaml
+│   │   │   │   └── service.yaml
+│   │   │   ├── Chart.yaml
+│   │   │   ├── README.md
+│   │   │   └── values.yaml
+│   │   ├── registry
+│   │   │   └── README.md
+│   │   ├── sandbox
+│   │   │   ├── examples
+│   │   │   │   └── github-sandbox-connector.yaml
+│   │   │   └── schema
+│   │   │       └── sandbox-connector.schema.json
+│   │   ├── src
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── tests
+│   │   │   └── README.md
+│   │   ├── Dockerfile
+│   │   ├── README.md
+│   │   └── sandbox_registry.py
 │   ├── api-gateway
 │   │   ├── helm
 │   │   │   ├── templates
@@ -1050,240 +1042,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   │   │   ├── index.ts
 │   │   │   │   │   │   ├── useProjectConnectorStore.test.ts
 │   │   │   │   │   │   └── useProjectConnectorStore.ts
-│   │   │   │   │   ├── prompts
-│   │   │   │   │   │   ├── defaultPrompts.ts
-│   │   │   │   │   │   ├── index.ts
-│   │   │   │   │   │   └── usePromptStore.ts
-│   │   │   │   │   ├── realtime
-│   │   │   │   │   │   └── useRealtimeStore.ts
-│   │   │   │   │   ├── index.ts
-│   │   │   │   │   ├── types.ts
-│   │   │   │   │   ├── useAppStore.test.ts
-│   │   │   │   │   ├── useAppStore.ts
-│   │   │   │   │   ├── useCanvasStore.test.ts
-│   │   │   │   │   └── useCanvasStore.ts
-│   │   │   │   ├── styles
-│   │   │   │   │   ├── index.css
-│   │   │   │   │   └── tokens.css
-│   │   │   │   ├── test
-│   │   │   │   │   ├── accessibility.test.ts
-│   │   │   │   │   ├── assistantResponses.test.ts
-│   │   │   │   │   ├── prompts.test.ts
-│   │   │   │   │   ├── searchApi.test.ts
-│   │   │   │   │   ├── setup.ts
-│   │   │   │   │   └── tokenContrast.test.ts
-│   │   │   │   ├── types
-│   │   │   │   │   ├── agentRuns.ts
-│   │   │   │   │   ├── css-modules.d.ts
-│   │   │   │   │   ├── css-modules.typecheck.ts
-│   │   │   │   │   └── prompt.ts
-│   │   │   │   ├── utils
-│   │   │   │   │   ├── apiValidation.ts
-│   │   │   │   │   ├── assistantResponses.ts
-│   │   │   │   │   ├── prompts.ts
-│   │   │   │   │   └── schema.ts
-│   │   │   │   ├── App.demo.test.tsx
-│   │   │   │   ├── App.module.css
-│   │   │   │   ├── App.module.css.d.ts
-│   │   │   │   ├── App.tsx
-│   │   │   │   ├── main.tsx
-│   │   │   │   ├── README.md
-│   │   │   │   └── vite-env.d.ts
-│   │   │   ├── .eslintrc.cjs
-│   │   │   ├── .gitignore
-│   │   │   ├── index.html
-│   │   │   ├── package-lock.json
-│   │   │   ├── package.json
-│   │   │   ├── README.md
-│   │   │   ├── tsconfig.css-modules.json
-│   │   │   ├── tsconfig.json
-│   │   │   ├── tsconfig.node.json
-│   │   │   ├── vite.config.ts
-│   │   │   └── vitest.config.ts
-│   │   ├── helm
-│   │   │   ├── templates
-│   │   │   │   ├── _helpers.tpl
-│   │   │   │   ├── certificate.yaml
-│   │   │   │   ├── configmap.yaml
-│   │   │   │   ├── deployment.yaml
-│   │   │   │   ├── hpa.yaml
-│   │   │   │   ├── ingress.yaml
-│   │   │   │   ├── pdb.yaml
-│   │   │   │   └── service.yaml
-│   │   │   ├── Chart.yaml
-│   │   │   ├── README.md
-│   │   │   └── values.yaml
-│   │   ├── public
-│   │   │   └── README.md
-│   │   ├── scripts
-│   │   │   ├── check_legacy_workspace_artifacts.py
-│   │   │   ├── generate_metadata.py
-│   │   │   └── legacy_workspace_guard_allowlist.txt
-│   │   ├── src
-│   │   │   ├── routes
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── _deps.py
-│   │   │   │   ├── _models.py
-│   │   │   │   ├── agent_runs.py
-│   │   │   │   ├── agents.py
-│   │   │   │   ├── analytics.py
-│   │   │   │   ├── assistant.py
-│   │   │   │   ├── assistant_api.py
-│   │   │   │   ├── auth.py
-│   │   │   │   ├── connectors.py
-│   │   │   │   ├── connectors_api.py
-│   │   │   │   ├── dashboards.py
-│   │   │   │   ├── document_canvas.py
-│   │   │   │   ├── documents.py
-│   │   │   │   ├── enterprise.py
-│   │   │   │   ├── health.py
-│   │   │   │   ├── intake.py
-│   │   │   │   ├── knowledge.py
-│   │   │   │   ├── legacy_pages.py
-│   │   │   │   ├── llm.py
-│   │   │   │   ├── methodology.py
-│   │   │   │   ├── pipeline.py
-│   │   │   │   ├── roles.py
-│   │   │   │   ├── search.py
-│   │   │   │   ├── spreadsheets.py
-│   │   │   │   ├── templates_api.py
-│   │   │   │   ├── timeline.py
-│   │   │   │   ├── tree.py
-│   │   │   │   ├── wbs_schedule.py
-│   │   │   │   ├── workflow.py
-│   │   │   │   ├── workflows_api.py
-│   │   │   │   ├── workspace.py
-│   │   │   │   └── workspace_state.py
-│   │   │   ├── services
-│   │   │   │   ├── analytics.py
-│   │   │   │   ├── assistant.py
-│   │   │   │   ├── connectors.py
-│   │   │   │   ├── documents.py
-│   │   │   │   ├── workflow.py
-│   │   │   │   └── workspace.py
-│   │   │   ├── web_services
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── analytics.py
-│   │   │   │   ├── assistant.py
-│   │   │   │   ├── connectors.py
-│   │   │   │   ├── documents.py
-│   │   │   │   ├── workflow.py
-│   │   │   │   └── workspace.py
-│   │   │   ├── agent_registry.py
-│   │   │   ├── agent_settings_models.py
-│   │   │   ├── agent_settings_store.py
-│   │   │   ├── analytics_proxy.py
-│   │   │   ├── bootstrap.py
-│   │   │   ├── canonical_template_registry.py
-│   │   │   ├── config.py
-│   │   │   ├── connector_hub_proxy.py
-│   │   │   ├── data_service_proxy.py
-│   │   │   ├── demo_integrations.py
-│   │   │   ├── demo_seed.py
-│   │   │   ├── dependencies.py
-│   │   │   ├── document_proxy.py
-│   │   │   ├── gating.py
-│   │   │   ├── intake_models.py
-│   │   │   ├── intake_store.py
-│   │   │   ├── knowledge_store.py
-│   │   │   ├── legacy_main.py
-│   │   │   ├── lineage_proxy.py
-│   │   │   ├── llm_preferences_store.py
-│   │   │   ├── main.py
-│   │   │   ├── merge_review_models.py
-│   │   │   ├── merge_review_store.py
-│   │   │   ├── methodologies.py
-│   │   │   ├── methodology_node_runtime.py
-│   │   │   ├── middleware.py
-│   │   │   ├── oidc_client.py
-│   │   │   ├── orchestrator_proxy.py
-│   │   │   ├── pipeline_models.py
-│   │   │   ├── pipeline_store.py
-│   │   │   ├── README.md
-│   │   │   ├── runtime_lifecycle_store.py
-│   │   │   ├── search_service.py
-│   │   │   ├── spreadsheet_models.py
-│   │   │   ├── spreadsheet_store.py
-│   │   │   ├── template_mappings.py
-│   │   │   ├── template_models.py
-│   │   │   ├── template_registry.py
-│   │   │   ├── timeline_models.py
-│   │   │   ├── timeline_store.py
-│   │   │   ├── tree_models.py
-│   │   │   ├── tree_store.py
-│   │   │   ├── workflow_models.py
-│   │   │   ├── workflow_store.py
-│   │   │   ├── workspace_state.py
-│   │   │   └── workspace_state_store.py
-│   │   ├── static
-│   │   │   ├── index.html
-│   │   │   └── styles.css
-│   │   ├── storage
-│   │   │   ├── agile_backlog.json
-│   │   │   ├── agile_metrics.json
-│   │   │   ├── agile_pi.json
-│   │   │   ├── alerts.json
-│   │   │   ├── automations.json
-│   │   │   ├── board_configs.json
-│   │   │   ├── capacity.json
-│   │   │   ├── comments.json
-│   │   │   ├── demand.json
-│   │   │   ├── finance_actuals.json
-│   │   │   ├── finance_budget.json
-│   │   │   ├── finance_change_requests.json
-│   │   │   ├── finance_forecast.json
-│   │   │   ├── merge_review_cases.json
-│   │   │   ├── notifications.json
-│   │   │   ├── packs.json
-│   │   │   ├── prioritisation.json
-│   │   │   ├── roles.json
-│   │   │   ├── scenarios.json
-│   │   │   └── sync_center.json
-│   │   ├── tests
-│   │   │   ├── README.md
-│   │   │   ├── test_agent_gallery.py
-│   │   │   ├── test_architecture_guards.py
-│   │   │   ├── test_assistant_panel.py
-│   │   │   ├── test_assistant_suggestions.py
-│   │   │   ├── test_connector_gallery_proxy.py
-│   │   │   ├── test_dashboard_canvas_proxy.py
-│   │   │   ├── test_dashboard_canvas_rendering.py
-│   │   │   ├── test_demo_auto_auth.py
-│   │   │   ├── test_demo_mode.py
-│   │   │   ├── test_demo_seed_startup.py
-│   │   │   ├── test_document_canvas_proxy.py
-│   │   │   ├── test_enterprise_uplift_api.py
-│   │   │   ├── test_intake_assistant_api.py
-│   │   │   ├── test_llm_preferences_api.py
-│   │   │   ├── test_methodology_config_validation.py
-│   │   │   ├── test_methodology_gating.py
-│   │   │   ├── test_methodology_node_runtime.py
-│   │   │   ├── test_oidc_login_flow.py
-│   │   │   ├── test_orchestrator_proxy.py
-│   │   │   ├── test_portfolio_lifecycle_endpoints.py
-│   │   │   ├── test_program_views_api.py
-│   │   │   ├── test_program_views_canvas.py
-│   │   │   ├── test_router_contract_analytics.py
-│   │   │   ├── test_router_contract_assistant.py
-│   │   │   ├── test_router_contract_connectors.py
-│   │   │   ├── test_router_contract_documents.py
-│   │   │   ├── test_router_contract_workflow.py
-│   │   │   ├── test_router_contract_workspace.py
-│   │   │   ├── test_search_assistant_api.py
-│   │   │   ├── test_spreadsheet_canvas.py
-│   │   │   ├── test_template_gallery.py
-│   │   │   ├── test_template_mappings.py
-│   │   │   ├── test_template_models.py
-│   │   │   ├── test_timeline_canvas.py
-│   │   │   ├── test_tree_canvas.py
-│   │   │   ├── test_wbs_schedule_api.py
-│   │   │   ├── test_wbs_timeline_canvas.py
-│   │   │   ├── test_workspace_shell.py
-│   │   │   └── test_workspace_state_api.py
-│   │   ├── .dockerignore
-│   │   ├── Dockerfile
-│   │   ├── README.md
-│   │   └── requirements.txt
 │   ├── workflow-engine
 │   │   ├── helm
 │   │   │   ├── templates
@@ -1361,9 +1119,6 @@ multi-agent-ppm-platform-v4/
 │   │   └── k6-summary.json
 │   ├── release-gate
 │   │   └── quality-report-core.json
-│   ├── security
-│   │   ├── secret-scan-summary.json
-│   │   └── vulnerability-summary.json
 │   └── tests
 │       └── coverage-summary.json
 ├── config
@@ -2035,7 +1790,6 @@ multi-agent-ppm-platform-v4/
 ├── constraints
 │   └── py313.txt
 ├── data
-│   ├── agent_storage
 │   │   ├── budgets
 │   │   │   ├── BDG-20260222032300-bde686.json
 │   │   │   ├── BDG-20260222032450-2829f0.json
@@ -7201,8 +6955,6 @@ multi-agent-ppm-platform-v4/
 │   │   ├── models.py
 │   │   ├── README.md
 │   │   └── validate_registry_consistency.py
-│   ├── prompts
-│   │   └── registry.json
 │   ├── quality
 │   │   ├── README.md
 │   │   └── rules.yaml
@@ -7949,697 +7701,6 @@ multi-agent-ppm-platform-v4/
 │   ├── portfolio-intake-request.json
 │   └── README.md
 ├── integrations
-│   ├── apps
-│   │   └── connector-hub
-│   │       ├── helm
-│   │       │   ├── templates
-│   │       │   │   ├── _helpers.tpl
-│   │       │   │   ├── certificate.yaml
-│   │       │   │   ├── configmap.yaml
-│   │       │   │   ├── deployment.yaml
-│   │       │   │   ├── hpa.yaml
-│   │       │   │   ├── ingress.yaml
-│   │       │   │   ├── pdb.yaml
-│   │       │   │   └── service.yaml
-│   │       │   ├── Chart.yaml
-│   │       │   ├── README.md
-│   │       │   └── values.yaml
-│   │       ├── registry
-│   │       │   └── README.md
-│   │       ├── sandbox
-│   │       │   ├── examples
-│   │       │   │   └── github-sandbox-connector.yaml
-│   │       │   ├── fixtures
-│   │       │   │   ├── issues.json
-│   │       │   │   └── repo.json
-│   │       │   ├── schema
-│   │       │   │   └── sandbox-connector.schema.json
-│   │       │   └── README.md
-│   │       ├── src
-│   │       │   ├── connector_storage.py
-│   │       │   └── main.py
-│   │       ├── tests
-│   │       │   └── README.md
-│   │       ├── .dockerignore
-│   │       ├── Dockerfile
-│   │       ├── README.md
-│   │       └── sandbox_registry.py
-│   ├── connectors
-│   │   ├── adp
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── adp_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── archer
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── archer_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── asana
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── asana_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── azure_communication_services
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── azure_communication_services_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── router.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   └── test_contract.py
-│   │   │   ├── __init__.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── azure_devops
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   ├── README.md
-│   │   │   │   └── work-item.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── azure_devops_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   └── test_contract.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── clarity
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── clarity_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── mappers.py
-│   │   │   │   ├── router.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── test_clarity_connector.py
-│   │   │   │   ├── test_clarity_mcp.py
-│   │   │   │   ├── test_clarity_runtime.py
-│   │   │   │   ├── test_contract.py
-│   │   │   │   ├── test_mappers.py
-│   │   │   │   └── test_outbound_sync.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── clarity_mcp
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   └── manifest.yaml
-│   │   ├── confluence
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── confluence_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── google_calendar
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── google_calendar_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── router.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   └── test_contract.py
-│   │   │   ├── __init__.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── google_drive
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── google_drive_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── integration
-│   │   │   ├── __init__.py
-│   │   │   ├── framework.py
-│   │   │   ├── mcp_connectors.py
-│   │   │   └── README.md
-│   │   ├── iot
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── sensor-data.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── iot_connector.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   ├── test_contract.py
-│   │   │   │   └── test_iot_connector.py
-│   │   │   ├── __init__.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── jira
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   ├── README.md
-│   │   │   │   └── work-item.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── jira_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── mappers.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── conftest.py
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_contract.py
-│   │   │   │   ├── test_jira_connector.py
-│   │   │   │   └── test_jira_mcp.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── jira_mcp
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── work-item.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   └── manifest.yaml
-│   │   ├── logicgate
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── logicgate_connector.py
-│   │   │   │   ├── main.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── m365
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── resource.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── m365_connector.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── tool_map.yaml
-│   │   ├── mcp_client
-│   │   │   ├── __init__.py
-│   │   │   ├── auth.py
-│   │   │   ├── client.py
-│   │   │   ├── errors.py
-│   │   │   ├── models.py
-│   │   │   └── README.md
-│   │   ├── mock
-│   │   │   ├── azure_devops
-│   │   │   │   └── manifest.yaml
-│   │   │   ├── clarity
-│   │   │   │   └── manifest.yaml
-│   │   │   ├── jira
-│   │   │   │   └── manifest.yaml
-│   │   │   ├── planview
-│   │   │   │   └── manifest.yaml
-│   │   │   ├── sap
-│   │   │   │   └── manifest.yaml
-│   │   │   ├── servicenow
-│   │   │   │   └── manifest.yaml
-│   │   │   ├── teams
-│   │   │   │   └── manifest.yaml
-│   │   │   ├── workday
-│   │   │   │   └── manifest.yaml
-│   │   │   ├── __init__.py
-│   │   │   └── mock_connectors.py
-│   │   ├── monday
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── monday_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── ms_project_server
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── ms_project_server_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── netsuite
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── netsuite_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── notification_hubs
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── notification_hubs_connector.py
-│   │   │   │   ├── router.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   └── test_contract.py
-│   │   │   ├── __init__.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── oracle
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── oracle_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── outlook
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── outlook_connector.py
-│   │   │   │   ├── router.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   └── test_contract.py
-│   │   │   ├── __init__.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── planview
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── README.md
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── mappers.py
-│   │   │   │   ├── planview_connector.py
-│   │   │   │   ├── router.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_contract.py
-│   │   │   │   ├── test_mappers.py
-│   │   │   │   ├── test_outbound_sync.py
-│   │   │   │   ├── test_planview_connector.py
-│   │   │   │   ├── test_planview_mcp.py
-│   │   │   │   └── test_planview_runtime.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── planview_mcp
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   └── manifest.yaml
-│   │   ├── registry
-│   │   │   ├── schemas
-│   │   │   │   ├── auth-config.schema.json
-│   │   │   │   ├── capabilities.schema.json
-│   │   │   │   ├── connector-manifest.schema.json
-│   │   │   │   └── connector-mapping.schema.json
-│   │   │   ├── signing
-│   │   │   │   ├── public-keys
-│   │   │   │   │   └── README.md
-│   │   │   │   ├── README.md
-│   │   │   │   └── signing-policy.md
-│   │   │   ├── connectors.json
-│   │   │   └── README.md
-│   │   ├── salesforce
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── README.md
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   └── router.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_contract.py
-│   │   │   │   └── test_router.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── sap
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── README.md
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── mappers.py
-│   │   │   │   ├── router.py
-│   │   │   │   ├── sap_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_contract.py
-│   │   │   │   ├── test_mappers.py
-│   │   │   │   ├── test_outbound_sync.py
-│   │   │   │   └── test_sap_mcp.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── sap_mcp
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── purchase-order.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   └── manifest.yaml
-│   │   ├── sap_successfactors
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── sap_successfactors_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── sdk
-│   │   │   ├── src
-│   │   │   │   ├── clients
-│   │   │   │   │   ├── erp_client.py
-│   │   │   │   │   ├── hris_client.py
-│   │   │   │   │   └── ppm_client.py
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── auth.py
-│   │   │   │   ├── base_connector.py
-│   │   │   │   ├── classification.py
-│   │   │   │   ├── connector_registry.py
-│   │   │   │   ├── connector_secrets.py
-│   │   │   │   ├── data_service_client.py
-│   │   │   │   ├── http_client.py
-│   │   │   │   ├── iot_connector.py
-│   │   │   │   ├── mcp_client.py
-│   │   │   │   ├── operation_router.py
-│   │   │   │   ├── project_connector_store.py
-│   │   │   │   ├── quality.py
-│   │   │   │   ├── regulatory_compliance_connector.py
-│   │   │   │   ├── rest_connector.py
-│   │   │   │   ├── runtime.py
-│   │   │   │   ├── sync_controls.py
-│   │   │   │   ├── sync_router.py
-│   │   │   │   ├── telemetry.py
-│   │   │   │   └── transformations.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── connector_contract_fixture.json
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_auth.py
-│   │   │   │   ├── test_connector_contract_harness.py
-│   │   │   │   ├── test_connector_runtime.py
-│   │   │   │   ├── test_http_client.py
-│   │   │   │   ├── test_mcp_client.py
-│   │   │   │   ├── test_mcp_project_config.py
-│   │   │   │   └── test_rest_connector_docs.py
-│   │   │   ├── __init__.py
-│   │   │   ├── connector_maturity_inventory.py
-│   │   │   ├── connector_migration_tracker.md
-│   │   │   └── README.md
-│   │   ├── servicenow
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── README.md
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── router.py
-│   │   │   │   ├── servicenow_grc_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_contract.py
-│   │   │   │   └── test_router.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── sharepoint
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── README.md
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── sharepoint_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   └── test_contract.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── slack
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   ├── README.md
-│   │   │   │   └── resource.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── mappers.py
-│   │   │   │   ├── router.py
-│   │   │   │   ├── slack_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_contract.py
-│   │   │   │   └── test_slack_mcp.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── slack_mcp
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── resource.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   └── manifest.yaml
-│   │   ├── smartsheet
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── router.py
-│   │   │   │   ├── smartsheet_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   └── test_contract.py
-│   │   │   ├── __init__.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── teams
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── README.md
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── mappers.py
-│   │   │   │   ├── router.py
-│   │   │   │   ├── teams_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_contract.py
-│   │   │   │   └── test_teams_mcp.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── teams_mcp
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── resource.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   └── manifest.yaml
-│   │   ├── twilio
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── router.py
-│   │   │   │   ├── twilio_connector.py
-│   │   │   │   └── webhooks.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   └── test_contract.py
-│   │   │   ├── __init__.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── workday
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   ├── README.md
-│   │   │   │   └── resource.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── mappers.py
-│   │   │   │   ├── router.py
-│   │   │   │   ├── webhooks.py
-│   │   │   │   └── workday_connector.py
-│   │   │   ├── tests
-│   │   │   │   ├── fixtures
-│   │   │   │   │   └── projects.json
-│   │   │   │   ├── README.md
-│   │   │   │   ├── test_contract.py
-│   │   │   │   ├── test_router.py
-│   │   │   │   └── test_workday_mcp.py
-│   │   │   ├── __init__.py
-│   │   │   ├── Dockerfile
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── workday_mcp
-│   │   │   ├── mappings
-│   │   │   │   ├── project.yaml
-│   │   │   │   └── resource.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   └── main.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   └── manifest.yaml
-│   │   ├── zoom
-│   │   │   ├── mappings
-│   │   │   │   └── project.yaml
-│   │   │   ├── src
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── main.py
-│   │   │   │   ├── webhooks.py
-│   │   │   │   └── zoom_connector.py
-│   │   │   ├── tests
-│   │   │   │   └── test_contract.py
-│   │   │   ├── manifest.yaml
-│   │   │   └── README.md
-│   │   ├── __init__.py
-│   │   └── README.md
 │   ├── services
 │   │   ├── integration
 │   │   │   ├── __init__.py
@@ -9293,24 +8354,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   └── roles.yaml
 │   │   ├── retention
 │   │   │   └── policies.yaml
-│   │   ├── security
-│   │   │   └── dlp-policies.yaml
-│   │   ├── signing
-│   │   │   └── dev_signing_public.pem
-│   │   ├── tenants
-│   │   │   ├── default.yaml
-│   │   │   └── README.md
-│   │   ├── .env.demo
-│   │   ├── .env.example
-│   │   ├── alembic.ini
-│   │   ├── approval_policies.json
-│   │   ├── common.yaml
-│   │   ├── connector_maturity_policy.yaml
-│   │   ├── human_review.yaml
-│   │   ├── maturity_model.yaml
-│   │   ├── pricing.yaml
-│   │   ├── README.md
-│   │   └── vector_store.yaml
 │   ├── docker
 │   │   ├── docker-compose-demo.yml
 │   │   ├── docker-compose.test.yml
@@ -9386,72 +8429,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── README.md
 │   │   │   ├── schema
 │   │   │   │   └── policy-bundle.schema.json
-│   │   │   ├── security
-│   │   │   │   ├── bundles
-│   │   │   │   │   └── default-security-policy-bundle.yaml
-│   │   │   │   └── README.md
-│   │   │   └── README.md
-│   │   ├── tenancy
-│   │   │   ├── deprovision_tenant.sh
-│   │   │   └── provision_tenant.sh
-│   │   ├── terraform
-│   │   │   ├── dr
-│   │   │   │   ├── failover.sh
-│   │   │   │   ├── README.md
-│   │   │   │   └── restore.sh
-│   │   │   ├── envs
-│   │   │   │   ├── demo
-│   │   │   │   │   ├── main.tf
-│   │   │   │   │   ├── outputs.tf
-│   │   │   │   │   ├── terraform.tfvars.example
-│   │   │   │   │   ├── variables.tf
-│   │   │   │   │   └── versions.tf
-│   │   │   │   ├── dev
-│   │   │   │   │   ├── main.tf
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   └── terraform.tfvars
-│   │   │   │   ├── prod
-│   │   │   │   │   ├── backend.tfvars
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   └── terraform.tfvars
-│   │   │   │   ├── stage
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   └── terraform.tfvars
-│   │   │   │   ├── test
-│   │   │   │   │   └── README.md
-│   │   │   │   └── README.md
-│   │   │   ├── modules
-│   │   │   │   ├── aks
-│   │   │   │   │   ├── main.tf
-│   │   │   │   │   ├── outputs.tf
-│   │   │   │   │   └── variables.tf
-│   │   │   │   ├── cost-analysis
-│   │   │   │   │   ├── main.tf
-│   │   │   │   │   ├── outputs.tf
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   └── variables.tf
-│   │   │   │   ├── keyvault
-│   │   │   │   │   ├── main.tf
-│   │   │   │   │   ├── outputs.tf
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   └── variables.tf
-│   │   │   │   ├── monitoring
-│   │   │   │   │   ├── main.tf
-│   │   │   │   │   ├── outputs.tf
-│   │   │   │   │   └── variables.tf
-│   │   │   │   ├── networking
-│   │   │   │   │   ├── main.tf
-│   │   │   │   │   ├── outputs.tf
-│   │   │   │   │   └── variables.tf
-│   │   │   │   ├── postgresql
-│   │   │   │   │   ├── main.tf
-│   │   │   │   │   ├── outputs.tf
-│   │   │   │   │   ├── README.md
-│   │   │   │   │   └── variables.tf
-│   │   │   │   └── README.md
-│   │   │   ├── main.tf
-│   │   │   └── README.md
-│   │   └── README.md
 │   ├── requirements
 │   │   ├── requirements-demo.txt
 │   │   ├── requirements-dev.in
@@ -9639,26 +8616,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── hooks
 │   │   │   │   ├── index.ts
 │   │   │   │   └── useCanvasHost.ts
-│   │   │   ├── security
-│   │   │   │   ├── htmlSanitizer.test.ts
-│   │   │   │   ├── htmlSanitizer.ts
-│   │   │   │   ├── index.ts
-│   │   │   │   └── SANITIZATION_POLICY.md
-│   │   │   ├── test
-│   │   │   │   └── setup.ts
-│   │   │   ├── types
-│   │   │   │   ├── artifact.test.ts
-│   │   │   │   ├── artifact.ts
-│   │   │   │   ├── canvas.test.ts
-│   │   │   │   ├── canvas.ts
-│   │   │   │   └── index.ts
-│   │   │   ├── global.d.ts
-│   │   │   └── index.ts
-│   │   ├── .eslintrc.cjs
-│   │   ├── package.json
-│   │   ├── README.md
-│   │   ├── tsconfig.json
-│   │   └── vitest.config.ts
 │   ├── common
 │   │   ├── src
 │   │   │   └── common
@@ -9801,24 +8758,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── __init__.py
 │   │   │   └── policy.py
 │   │   └── README.md
-│   ├── security
-│   │   ├── src
-│   │   │   └── security
-│   │   │       ├── __init__.py
-│   │   │       ├── api_governance.py
-│   │   │       ├── audit_log.py
-│   │   │       ├── auth.py
-│   │   │       ├── config.py
-│   │   │       ├── crypto.py
-│   │   │       ├── dlp.py
-│   │   │       ├── errors.py
-│   │   │       ├── headers.py
-│   │   │       ├── iam.py
-│   │   │       ├── keyvault.py
-│   │   │       ├── lineage.py
-│   │   │       ├── prompt_safety.py
-│   │   │       └── secrets.py
-│   │   └── README.md
 │   ├── testing
 │   │   └── README.md
 │   ├── ui-kit
@@ -9855,10 +8794,8 @@ multi-agent-ppm-platform-v4/
 │   ├── memory_client.py
 │   ├── README.md
 │   └── version.py
-├── prompts
 │   └── intent-router
 │       └── classification_prompt_v1.md
-├── security
 │   ├── __init__.py
 │   └── config.py
 ├── services
@@ -10319,12 +9256,6 @@ multi-agent-ppm-platform-v4/
 │   │   ├── common
 │   │   │   ├── test_exceptions_package.py
 │   │   │   └── test_resilience_package.py
-│   │   └── security
-│   │       ├── conftest.py
-│   │       ├── test_auth_package.py
-│   │       ├── test_crypto_package.py
-│   │       ├── test_dlp_package.py
-│   │       └── test_prompt_safety_package.py
 │   ├── performance
 │   │   ├── baselines.json
 │   │   ├── config.yaml
@@ -10337,40 +9268,9 @@ multi-agent-ppm-platform-v4/
 │   │   └── test_event_bus_load.py
 │   ├── policies
 │   │   ├── test_dlp_rego.py
+│   │   ├── test_rbac_abac_policies.py
 │   │   └── validate_policies_test.py
-│   ├── policy
-│   │   └── test_rbac_abac_policies.py
-│   ├── prompts
-│   │   └── test_prompt_registry.py
 │   ├── runtime
-│   │   ├── prompts
-│   │   │   └── test_prompt_registry_redaction.py
-│   │   ├── test_eval_harness.py
-│   │   ├── test_orchestrator.py
-│   │   ├── test_service_bus_event_bus.py
-│   │   └── test_template_workflow.py
-│   ├── security
-│   │   ├── README.md
-│   │   ├── test_agent_config_rbac.py
-│   │   ├── test_auth_cache.py
-│   │   ├── test_auth_rbac.py
-│   │   ├── test_compliance.py
-│   │   ├── test_dast_integration.py
-│   │   ├── test_dlp_and_encryption.py
-│   │   ├── test_downstream_auth.py
-│   │   ├── test_field_level_masking.py
-│   │   ├── test_field_masking.py
-│   │   ├── test_jwt_delegation.py
-│   │   ├── test_key_rotation.py
-│   │   ├── test_lineage_masking.py
-│   │   ├── test_oidc_cache.py
-│   │   ├── test_policy_engine_integration.py
-│   │   ├── test_rate_limit_cors.py
-│   │   ├── test_retention_config.py
-│   │   ├── test_secret_resolution.py
-│   │   ├── test_secret_resolution_and_rbac.py
-│   │   ├── test_security_baseline_compliance.py
-│   │   └── test_security_headers.py
 │   ├── services
 │   │   ├── test_agent_config_service.py
 │   │   └── test_scope_baseline_service.py

@@ -7,8 +7,8 @@ from typing import Any
 
 from fastapi import FastAPI
 from connector_secrets import resolve_secret
-from integrations.connectors.integration import ClarityMcpConnector, IntegrationAuthType, IntegrationConfig
-from integrations.connectors.sdk.src.runtime import ConnectorRuntime
+from connectors.integration import ClarityMcpConnector, IntegrationAuthType, IntegrationConfig
+from connectors.sdk.src.runtime import ConnectorRuntime
 
 from .clarity_connector import ClarityConnector, create_clarity_connector
 from .mappers import map_to_clarity

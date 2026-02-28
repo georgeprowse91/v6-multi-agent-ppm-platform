@@ -8,7 +8,7 @@ from api.routes import connectors
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from integrations.connectors.mcp_client.errors import MCPAuthenticationError, MCPResponseError
+from connectors.mcp_client.errors import MCPAuthenticationError, MCPResponseError
 
 
 class _DummyConfigStore:

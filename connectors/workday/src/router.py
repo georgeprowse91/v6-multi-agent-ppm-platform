@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from integrations.connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
+from connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
 
 from .main import (
     CONNECTOR_ROOT,
@@ -15,7 +15,7 @@ from .main import (
     _request_with_refresh,
     run_sync,
 )
-from integrations.connectors.sdk.src.http_client import HttpClientError
+from connectors.sdk.src.http_client import HttpClientError
 
 router = APIRouter(prefix="/connectors/workday", tags=["connectors"])
 

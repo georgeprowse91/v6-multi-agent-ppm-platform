@@ -10,15 +10,15 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
-from integrations.connectors.sdk.src.classification import infer_classification
-from integrations.connectors.sdk.src.data_service_client import (
+from connectors.sdk.src.classification import infer_classification
+from connectors.sdk.src.data_service_client import (
     DataLineageClient,
     DataServiceClient,
     LineageEventEmitter,
 )
-from integrations.connectors.sdk.src.quality import evaluate_quality
-from integrations.connectors.sdk.src.transformations import apply_transformation
-from integrations.connectors.sdk.src.telemetry import get_connector_telemetry
+from connectors.sdk.src.quality import evaluate_quality
+from connectors.sdk.src.transformations import apply_transformation
+from connectors.sdk.src.telemetry import get_connector_telemetry
 
 
 @dataclass

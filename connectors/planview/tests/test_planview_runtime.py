@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from integrations.connectors.planview.src.main import run_sync
+from connectors.planview.src.main import run_sync
 
 
 def test_planview_runtime_mapping_projects() -> None:

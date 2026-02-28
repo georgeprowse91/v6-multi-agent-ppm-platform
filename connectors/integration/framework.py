@@ -386,7 +386,7 @@ class MockIntegrationConnector(BaseIntegrationConnector):
 
 def default_registry() -> ConnectorRegistry:
     registry = ConnectorRegistry()
-    from integrations.connectors.integration.mcp_connectors import (
+    from connectors.integration.mcp_connectors import (
         AsanaMcpConnector,
         ClarityMcpConnector,
         PlanviewMcpConnector,

@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 import pytest
 
-from integrations.connectors.sap.src.mappers import map_to_sap
+from connectors.sap.src.mappers import map_to_sap
 
 
 def test_map_to_sap_has_expected_shape() -> None:

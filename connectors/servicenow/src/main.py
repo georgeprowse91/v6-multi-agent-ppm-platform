@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from integrations.connectors.sdk.src.auth import OAuth2TokenManager
-from integrations.connectors.sdk.src.http_client import HttpClient, HttpClientError
-from integrations.connectors.sdk.src.runtime import ConnectorRuntime
+from connectors.sdk.src.auth import OAuth2TokenManager
+from connectors.sdk.src.http_client import HttpClient, HttpClientError
+from connectors.sdk.src.runtime import ConnectorRuntime
 from connector_secrets import fetch_keyvault_secret, resolve_secret
 
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]

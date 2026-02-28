@@ -41,21 +41,21 @@ if str(_COMMON_SRC) not in sys.path:
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(REPO_ROOT)
 
-CONNECTOR_SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+CONNECTOR_SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
 
 from regulatory_compliance_connector import RegulatoryComplianceConnector
 from security.audit_log import build_event, get_audit_log_store
 
 from api.webhook_storage import WebhookEvent, WebhookEventStore
-from integrations.connectors.mcp_client.client import MCPClient
-from integrations.connectors.mcp_client.errors import (
+from connectors.mcp_client.client import MCPClient
+from connectors.mcp_client.errors import (
     MCPAuthenticationError,
     MCPResponseError,
     MCPServerError,
     MCPTransportError,
 )
-from integrations.connectors.sdk.src.base_connector import (
+from connectors.sdk.src.base_connector import (
     ConnectionStatus,
     ConnectorCategory,
     ConnectorConfig,
@@ -63,13 +63,13 @@ from integrations.connectors.sdk.src.base_connector import (
     SyncDirection,
     SyncFrequency,
 )
-from integrations.connectors.sdk.src.connector_registry import (
+from connectors.sdk.src.connector_registry import (
     ConnectorStatus,
     get_all_connectors,
     get_connector_definition,
     get_connectors_by_category,
 )
-from integrations.connectors.sdk.src.project_connector_store import (
+from connectors.sdk.src.project_connector_store import (
     ProjectConnectorConfig,
     ProjectConnectorConfigStore,
 )

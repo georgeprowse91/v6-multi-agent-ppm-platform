@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from integrations.connectors.clarity.src.mappers import map_to_clarity
+from connectors.clarity.src.mappers import map_to_clarity
 
 
 def test_map_to_clarity_happy_path() -> None:

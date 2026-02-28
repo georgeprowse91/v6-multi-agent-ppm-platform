@@ -5,9 +5,9 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from integrations.connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
+from connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
 
-from integrations.connectors.sdk.src.http_client import HttpClient, HttpClientError
+from connectors.sdk.src.http_client import HttpClient, HttpClientError
 
 from .main import (
     CONNECTOR_ROOT,

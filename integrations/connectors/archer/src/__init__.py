@@ -1,1 +1,0 @@
-"""RSA Archer connector package."""

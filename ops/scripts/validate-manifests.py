@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CONNECTORS_DIR = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_DIR = REPO_ROOT / "connectors"
 
 REQUIRED_MANIFEST_FIELDS = {"id", "name", "version", "category"}
 

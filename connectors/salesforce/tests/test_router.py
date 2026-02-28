@@ -21,20 +21,20 @@ class _HttpClientError(Exception):
 
 
 def _load_router() -> types.ModuleType:
-    module_name = "integrations.connectors.salesforce.src.router"
+    module_name = "connectors.salesforce.src.router"
     sys.modules.pop(module_name, None)
 
-    sync_router_stub = types.ModuleType("integrations.connectors.sdk.src.sync_router")
+    sync_router_stub = types.ModuleType("connectors.sdk.src.sync_router")
     sync_router_stub.InboundSyncRequest = object
     sync_router_stub.OutboundSyncRequest = object
     sync_router_stub.map_records = lambda *_args, **_kwargs: [{"id": "mapped-1"}]
     sys.modules[sync_router_stub.__name__] = sync_router_stub
 
-    http_stub = types.ModuleType("integrations.connectors.sdk.src.http_client")
+    http_stub = types.ModuleType("connectors.sdk.src.http_client")
     http_stub.HttpClientError = _HttpClientError
     sys.modules[http_stub.__name__] = http_stub
 
-    main_stub = types.ModuleType("integrations.connectors.salesforce.src.main")
+    main_stub = types.ModuleType("connectors.salesforce.src.main")
     main_stub.CONNECTOR_ROOT = Path(".")
 
     class _Config:

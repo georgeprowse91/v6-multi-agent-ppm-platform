@@ -11,7 +11,7 @@ from agents.runtime.src.orchestrator import AgentTask, Orchestrator
 from tests.helpers.service_bus import build_test_event_bus
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
+SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
 SDK_PATH_STR = str(SDK_PATH.resolve())
 if SDK_PATH_STR not in sys.path:
     sys.path.insert(0, SDK_PATH_STR)

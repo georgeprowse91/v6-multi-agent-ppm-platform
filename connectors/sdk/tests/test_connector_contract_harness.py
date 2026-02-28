@@ -7,10 +7,10 @@ import sys
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"))
+sys.path.insert(0, str(REPO_ROOT / "connectors" / "sdk" / "src"))
 from runtime import ConnectorRuntime
 
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
 REGISTRY_PATH = CONNECTORS_ROOT / "registry" / "connectors.json"
 
 

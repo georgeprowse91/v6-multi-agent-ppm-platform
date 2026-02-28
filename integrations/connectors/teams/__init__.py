@@ -1,1 +1,0 @@
-"""Microsoft Teams connector package."""

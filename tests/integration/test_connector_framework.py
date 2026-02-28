@@ -1,4 +1,4 @@
-from integrations.connectors.integration.framework import (
+from connectors.integration.framework import (
     ConnectorRegistry,
     IntegrationAuthType,
     IntegrationConfig,

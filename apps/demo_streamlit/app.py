@@ -82,7 +82,7 @@ DATASET_FILES: dict[str, Path] = {
 }
 
 AGENT_CATALOG_PATH = REPO_ROOT / "agents/AGENT_CATALOG.md"
-CONNECTOR_MANIFEST_GLOB = REPO_ROOT / "integrations/connectors/*/manifest.yaml"
+CONNECTOR_MANIFEST_GLOB = REPO_ROOT / "connectors/*/manifest.yaml"
 TEMPLATES_PATH = REPO_ROOT / "apps/web/data/templates.json"
 
 
@@ -156,7 +156,7 @@ def parse_agent_capabilities() -> list[AgentCapability]:
 
 def load_connector_registry() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for manifest in sorted(REPO_ROOT.glob("integrations/connectors/*/manifest.yaml")):
+    for manifest in sorted(REPO_ROOT.glob("connectors/*/manifest.yaml")):
         connector_id = manifest.parent.name
         raw = manifest.read_text(encoding="utf-8")
         payload: dict[str, Any] = {}

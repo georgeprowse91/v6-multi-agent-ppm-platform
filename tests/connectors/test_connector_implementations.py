@@ -12,7 +12,7 @@ import httpx
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
 SDK_PATH = CONNECTORS_ROOT / "sdk" / "src"
 connector_src_paths = [
     path / "src" for path in CONNECTORS_ROOT.iterdir() if (path / "src").is_dir()

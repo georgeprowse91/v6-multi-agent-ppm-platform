@@ -1,6 +1,6 @@
 import logging
 from fastapi.testclient import TestClient
-from integrations.connectors.clarity.src.main import app
+from connectors.clarity.src.main import app
 
 
 def test_clarity_outbound_sync(monkeypatch, caplog):
@@ -10,7 +10,7 @@ def test_clarity_outbound_sync(monkeypatch, caplog):
         assert tenant_id == "test-tenant"
         assert isinstance(records, list)
 
-    monkeypatch.setattr("integrations.connectors.clarity.src.main.send_to_external_system", mock_send)
+    monkeypatch.setattr("connectors.clarity.src.main.send_to_external_system", mock_send)
 
     client = TestClient(app)
     payload = {

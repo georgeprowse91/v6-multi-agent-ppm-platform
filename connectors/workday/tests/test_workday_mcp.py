@@ -10,8 +10,8 @@ from unittest.mock import patch
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-CONNECTOR_SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
-WORKDAY_CONNECTOR_PATH = REPO_ROOT / "integrations" / "connectors" / "workday" / "src"
+CONNECTOR_SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
+WORKDAY_CONNECTOR_PATH = REPO_ROOT / "connectors" / "workday" / "src"
 for path in (REPO_ROOT, CONNECTOR_SDK_PATH, WORKDAY_CONNECTOR_PATH):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))

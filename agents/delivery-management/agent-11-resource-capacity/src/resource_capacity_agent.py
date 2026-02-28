@@ -2322,11 +2322,11 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _fetch_workday_profiles(self) -> list[dict[str, Any]]:
         try:
-            from integrations.connectors.sdk.src.base_connector import (
+            from connectors.sdk.src.base_connector import (
                 ConnectorCategory,
                 ConnectorConfig,
             )
-            from integrations.connectors.workday.src.workday_connector import WorkdayConnector
+            from connectors.workday.src.workday_connector import WorkdayConnector
         except (
             ConnectionError,
             TimeoutError,
@@ -2371,10 +2371,10 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _fetch_sap_profiles(self) -> list[dict[str, Any]]:
         try:
-            from integrations.connectors.sap_successfactors.src.sap_successfactors_connector import (
+            from connectors.sap_successfactors.src.sap_successfactors_connector import (
                 SapSuccessFactorsConnector,
             )
-            from integrations.connectors.sdk.src.base_connector import (
+            from connectors.sdk.src.base_connector import (
                 ConnectorCategory,
                 ConnectorConfig,
             )
@@ -2518,8 +2518,8 @@ class ResourceCapacityAgent(BaseAgent):
 
     async def _fetch_planview_allocations(self) -> list[dict[str, Any]]:
         try:
-            from integrations.connectors.planview.src.planview_connector import PlanviewConnector
-            from integrations.connectors.sdk.src.base_connector import (
+            from connectors.planview.src.planview_connector import PlanviewConnector
+            from connectors.sdk.src.base_connector import (
                 ConnectorCategory,
                 ConnectorConfig,
             )

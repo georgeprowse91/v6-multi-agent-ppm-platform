@@ -13,7 +13,7 @@ pytest.importorskip("aiosqlite")
 pytest.importorskip("opentelemetry")
 
 from agents.runtime.src.data_service import DataServiceClient as AgentDataServiceClient
-from integrations.connectors.sdk.src.data_service_client import (
+from connectors.sdk.src.data_service_client import (
     DataServiceClient as ConnectorDataServiceClient,
 )
 

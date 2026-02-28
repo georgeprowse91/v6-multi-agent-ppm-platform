@@ -1,1 +1,0 @@
-"""ADP connector package."""

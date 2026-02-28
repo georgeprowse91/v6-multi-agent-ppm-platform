@@ -19,10 +19,10 @@ import httpx
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-sys.modules.pop("integrations.connectors", None)
+sys.modules.pop("connectors", None)
 sys.modules.pop("integrations", None)
 
-from integrations.connectors.servicenow.src.main import ServiceNowConfig, run_sync
+from connectors.servicenow.src.main import ServiceNowConfig, run_sync
 
 
 def test_servicenow_live_sync_refreshes_token() -> None:

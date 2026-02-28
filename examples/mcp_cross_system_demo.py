@@ -14,7 +14,7 @@ import asyncio
 import os
 from typing import Any
 
-from integrations.connectors.mcp_client import MCPClient
+from connectors.mcp_client import MCPClient
 
 
 def _build_client(server_id: str, server_url: str, tool_map: dict[str, str]) -> MCPClient:

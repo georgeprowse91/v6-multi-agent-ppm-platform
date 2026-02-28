@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from integrations.connectors.sdk.src.http_client import HttpClient
-from integrations.connectors.sdk.src.runtime import ConnectorRuntime
+from connectors.sdk.src.http_client import HttpClient
+from connectors.sdk.src.runtime import ConnectorRuntime
 from connector_secrets import resolve_secret
 
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]

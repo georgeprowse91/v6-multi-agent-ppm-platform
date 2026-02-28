@@ -80,12 +80,6 @@ def integrations_dir() -> Path:
     return safe_join(repo_root(), "integrations", require_exists=True, should_be_dir=True)
 
 
-def integrations_apps_dir() -> Path:
-    """Return the integrations/apps/ directory."""
-
-    return safe_join(integrations_dir(), "apps", require_exists=True, should_be_dir=True)
-
-
 def integrations_services_dir() -> Path:
     """Return the integrations/services/ directory."""
 
@@ -105,10 +99,10 @@ def agents_dir() -> Path:
 
 
 def connectors_dir() -> Path:
-    """Return the integrations/connectors/ directory."""
+    """Return the connectors/ directory."""
 
     return safe_join(
-        repo_root(), "integrations", "connectors", require_exists=True, should_be_dir=True
+        repo_root(), "connectors", require_exists=True, should_be_dir=True
     )
 
 

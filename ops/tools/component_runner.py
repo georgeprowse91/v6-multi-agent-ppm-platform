@@ -27,8 +27,7 @@ def _path_fn(name: str):
         "apps_dir": lambda: root / "apps",
         "services_dir": lambda: root / "services",
         "agents_dir": lambda: root / "agents",
-        "connectors_dir": lambda: root / "integrations" / "connectors",
-        "integrations_apps_dir": lambda: root / "integrations" / "apps",
+        "connectors_dir": lambda: root / "connectors",
         "integrations_services_dir": lambda: root / "integrations" / "services",
     }
     if name not in fallbacks:
@@ -53,10 +52,6 @@ def discover_apps() -> list[Component]:
     """Discover application components under apps/."""
 
     app_roots = [_path_fn("apps_dir")()]
-    try:
-        app_roots.append(_path_fn("integrations_apps_dir")())
-    except FileNotFoundError:
-        pass
     return [
         Component(path.name, "app", path)
         for root in app_roots

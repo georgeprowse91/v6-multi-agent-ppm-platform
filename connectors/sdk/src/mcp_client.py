@@ -30,7 +30,7 @@ from observability.tracing import inject_trace_headers, start_agent_span  # noqa
 logger = logging.getLogger(__name__)
 
 DEFAULT_API_KEY_HEADER = "X-API-Key"
-DEFAULT_TRACE_SPAN = "integrations.connectors.sdk.mcp"
+DEFAULT_TRACE_SPAN = "connectors.sdk.mcp"
 TraceHook = Callable[[str, dict[str, Any]], None | Coroutine[Any, Any, None]]
 
 

@@ -1954,10 +1954,10 @@ class ProgramManagementAgent(BaseAgent):
         if self.planview_connector is None:
             planview_config = self.config.get("planview_config") if self.config else None
             if planview_config:
-                from integrations.connectors.planview.src.planview_connector import (
+                from connectors.planview.src.planview_connector import (
                     PlanviewConnector,
                 )
-                from integrations.connectors.sdk.src.base_connector import ConnectorConfig
+                from connectors.sdk.src.base_connector import ConnectorConfig
 
                 self.planview_connector = PlanviewConnector(
                     ConnectorConfig.from_dict(planview_config)
@@ -1965,8 +1965,8 @@ class ProgramManagementAgent(BaseAgent):
         if self.clarity_connector is None:
             clarity_config = self.config.get("clarity_config") if self.config else None
             if clarity_config:
-                from integrations.connectors.clarity.src.clarity_connector import ClarityConnector
-                from integrations.connectors.sdk.src.base_connector import ConnectorConfig
+                from connectors.clarity.src.clarity_connector import ClarityConnector
+                from connectors.sdk.src.base_connector import ConnectorConfig
 
                 self.clarity_connector = ClarityConnector(ConnectorConfig.from_dict(clarity_config))
         self.jira_base_url = self.jira_base_url or os.getenv("JIRA_BASE_URL")

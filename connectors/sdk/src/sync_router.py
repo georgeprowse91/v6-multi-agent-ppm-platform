@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from integrations.connectors.sdk.src.runtime import ConnectorRuntime
+from connectors.sdk.src.runtime import ConnectorRuntime
 
 
 class InboundSyncRequest(BaseModel):

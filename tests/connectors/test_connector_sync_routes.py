@@ -16,17 +16,17 @@ if str(REPO_ROOT) not in sys.path:
 
 os.environ.setdefault("CONNECTOR_TELEMETRY_DISABLED", "1")
 
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
 
 
 def _load_router(connector_id: str):  # noqa: ANN001
     integrations_pkg = sys.modules.setdefault("integrations", types.ModuleType("integrations"))
     integrations_pkg.__path__ = [str(REPO_ROOT / "integrations")]
     connectors_pkg = sys.modules.setdefault(
-        "integrations.connectors", types.ModuleType("integrations.connectors")
+        "connectors", types.ModuleType("connectors")
     )
     connectors_pkg.__path__ = [str(CONNECTORS_ROOT)]
-    connector_pkg_name = f"integrations.connectors.{connector_id}"
+    connector_pkg_name = f"connectors.{connector_id}"
     connector_pkg = sys.modules.setdefault(connector_pkg_name, types.ModuleType(connector_pkg_name))
     connector_pkg.__path__ = [str(CONNECTORS_ROOT / connector_id)]
     src_pkg_name = f"{connector_pkg_name}.src"

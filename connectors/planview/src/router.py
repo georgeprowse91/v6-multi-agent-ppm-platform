@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from pathlib import Path
 
-from integrations.connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
+from connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
 
 # Compute CONNECTOR_ROOT locally to avoid circular import with .main
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]

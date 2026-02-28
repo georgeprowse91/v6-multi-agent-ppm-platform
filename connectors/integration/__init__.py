@@ -1,6 +1,6 @@
 """Shared connector integration framework."""
 
-from integrations.connectors.integration.framework import (
+from connectors.integration.framework import (
     AzureCommunicationConnector,
     AzureDevOpsConnector,
     BaseIntegrationConnector,
@@ -16,7 +16,7 @@ from integrations.connectors.integration.framework import (
     ServiceNowConnector,
     SmartsheetConnector,
 )
-from integrations.connectors.integration.mcp_connectors import (
+from connectors.integration.mcp_connectors import (
     AsanaMcpConnector,
     ClarityMcpConnector,
     PlanviewMcpConnector,

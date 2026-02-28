@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from integrations.connectors.mock.mock_connectors import app
+from connectors.mock.mock_connectors import app
 
 client = TestClient(app)
 

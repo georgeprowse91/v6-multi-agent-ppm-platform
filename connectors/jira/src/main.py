@@ -6,11 +6,11 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 from typing import Any
-from integrations.connectors.sdk.src.http_client import HttpClient
-from integrations.connectors.sdk.src.runtime import ConnectorRuntime
+from connectors.sdk.src.http_client import HttpClient
+from connectors.sdk.src.runtime import ConnectorRuntime
 from connector_secrets import resolve_secret
-from integrations.connectors.jira.src.jira_connector import JiraConnector
-from integrations.connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig, SyncDirection, SyncFrequency
+from connectors.jira.src.jira_connector import JiraConnector
+from connectors.sdk.src.base_connector import ConnectorCategory, ConnectorConfig, SyncDirection, SyncFrequency
 
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
 

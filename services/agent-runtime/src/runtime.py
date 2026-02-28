@@ -16,7 +16,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PACKAGES_ROOT = REPO_ROOT / "packages"
 AGENTS_ROOT = REPO_ROOT / "agents"
-CONNECTOR_REGISTRY_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "connectors.json"
+CONNECTOR_REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
 RUNTIME_CONFIG_DIR = Path(__file__).resolve().parent / "config"
 
 _COMMON_SRC = PACKAGES_ROOT / "common" / "src"
@@ -37,7 +37,7 @@ from common.resilience import (  # noqa: E402
 )
 
 try:  # noqa: E402
-    from integrations.connectors.sdk.src.base_connector import (
+    from connectors.sdk.src.base_connector import (
         CircuitBreakerOpenError,
         ConnectorCallFailedError,
         ConnectorSchemaValidationError,

@@ -738,7 +738,7 @@ _CANONICAL_MAPPING_CACHE: dict[str, dict[str, set[str]]] = {}
 def _load_canonical_mappings(connector_name: str) -> dict[str, set[str]]:
     if connector_name in _CANONICAL_MAPPING_CACHE:
         return _CANONICAL_MAPPING_CACHE[connector_name]
-    connector_root = REPO_ROOT / "integrations" / "connectors" / connector_name
+    connector_root = REPO_ROOT / "connectors" / connector_name
     manifest_path = connector_root / "manifest.yaml"
     if not manifest_path.exists():
         raise HTTPException(status_code=404, detail="Connector manifest not found")
@@ -803,7 +803,7 @@ async def _resolve_schema(
 
 def _load_connector_module(connector_name: str):
     try:
-        return importlib.import_module(f"integrations.connectors.{connector_name}.src.main")
+        return importlib.import_module(f"connectors.{connector_name}.src.main")
     except ModuleNotFoundError as exc:
         raise HTTPException(status_code=404, detail="Connector not found") from exc
 

@@ -9,7 +9,7 @@ import yaml
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
-    manifests = sorted((root / "integrations" / "connectors").glob("*/manifest.yaml"))
+    manifests = sorted((root / "connectors").glob("*/manifest.yaml"))
     failures: list[str] = []
     for manifest_path in manifests:
         data = yaml.safe_load(manifest_path.read_text())

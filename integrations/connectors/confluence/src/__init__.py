@@ -1,1 +1,0 @@
-"""Confluence connector package."""

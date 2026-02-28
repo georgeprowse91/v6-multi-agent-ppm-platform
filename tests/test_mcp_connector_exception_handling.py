@@ -5,8 +5,8 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from integrations.connectors.integration.framework import IntegrationConfig
-from integrations.connectors.integration.mcp_connectors import PlanviewMcpConnector
+from connectors.integration.framework import IntegrationConfig
+from connectors.integration.mcp_connectors import PlanviewMcpConnector
 
 
 class _RaisingRestConnector:

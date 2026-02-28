@@ -10,17 +10,17 @@ sys.path = [path for path in sys.path if Path(path).resolve() != TESTS_ROOT]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from integrations.connectors.integration.framework import (
+from connectors.integration.framework import (
     BaseIntegrationConnector,
     ConnectorRegistry,
     IntegrationAuthType,
     IntegrationConfig,
 )
-from integrations.connectors.integration.mcp_connectors import (
+from connectors.integration.mcp_connectors import (
     PlanviewMcpConnector,
     SlackMcpConnector,
 )
-from integrations.connectors.mcp_client.errors import MCPToolNotFoundError
+from connectors.mcp_client.errors import MCPToolNotFoundError
 
 
 class DummyMcpClient:

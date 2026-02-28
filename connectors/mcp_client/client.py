@@ -12,7 +12,7 @@ from typing import Any, Callable, Iterable
 
 import httpx
 
-from integrations.connectors.sdk.src.base_connector import ConnectorConfig
+from connectors.sdk.src.base_connector import ConnectorConfig
 from observability.metrics import build_mcp_client_metrics
 from observability.tracing import inject_trace_headers, start_agent_span
 

@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
 SDK_PATH = CONNECTORS_ROOT / "sdk" / "src"
 
 
@@ -78,7 +78,7 @@ def bootstrap_connector_imports() -> None:
     def _noop_use_span(span: _DummySpan, end_on_exit: bool = True) -> _DummySpan:
         yield span
 
-    for module_name in ("http_client", "integrations.connectors.sdk.src.http_client"):
+    for module_name in ("http_client", "connectors.sdk.src.http_client"):
         module = importlib.import_module(module_name)
         module.tracer = _DummyTracer()
         module.trace.use_span = _noop_use_span

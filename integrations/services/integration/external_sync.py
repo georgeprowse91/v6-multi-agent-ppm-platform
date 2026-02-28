@@ -20,7 +20,7 @@ if str(_COMMON_SRC) not in sys.path:
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(REPO_ROOT)
 
-CONNECTORS_ROOT = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_ROOT = REPO_ROOT / "connectors"
 CONNECTOR_SDK_PATH = CONNECTORS_ROOT / "sdk" / "src"
 
 

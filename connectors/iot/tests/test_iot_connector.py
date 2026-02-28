@@ -17,8 +17,8 @@ import httpx
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-CONNECTOR_SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
-IOT_CONNECTOR_PATH = REPO_ROOT / "integrations" / "connectors" / "iot" / "src"
+CONNECTOR_SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
+IOT_CONNECTOR_PATH = REPO_ROOT / "connectors" / "iot" / "src"
 for path in (CONNECTOR_SDK_PATH, IOT_CONNECTOR_PATH):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))

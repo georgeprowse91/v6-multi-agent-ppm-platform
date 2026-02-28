@@ -6,12 +6,12 @@ import sys
 REPO_ROOT = Path(__file__).resolve().parents[4]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-SDK_PATH = REPO_ROOT / "integrations" / "connectors" / "sdk" / "src"
+SDK_PATH = REPO_ROOT / "connectors" / "sdk" / "src"
 if str(SDK_PATH) not in sys.path:
     sys.path.insert(0, str(SDK_PATH))
 
-from integrations.connectors.sdk.src.connector_registry import get_connector_definition
-from integrations.connectors.sdk.src.project_connector_store import (
+from connectors.sdk.src.connector_registry import get_connector_definition
+from connectors.sdk.src.project_connector_store import (
     ProjectConnectorConfig,
     ProjectConnectorConfigStore,
 )

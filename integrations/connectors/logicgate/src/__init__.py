@@ -1,1 +1,0 @@
-"""LogicGate connector package."""

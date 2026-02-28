@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
-from integrations.connectors.sdk.src.base_connector import ConnectorConfig
+from connectors.sdk.src.base_connector import ConnectorConfig
 
 DEFAULT_API_KEY_HEADER = "X-API-Key"
 

@@ -19,7 +19,7 @@ if str(_COMMON_SRC) not in sys.path:
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(REPO_ROOT)
 
-from integrations.connectors.sdk.connector_maturity_inventory import build_inventory
+from connectors.sdk.connector_maturity_inventory import build_inventory
 
 DEFAULT_POLICY_PATH = REPO_ROOT / "ops" / "config" / "connector_maturity_policy.yaml"
 

@@ -4,14 +4,14 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
-from integrations.connectors.sdk.src.base_connector import (
+from connectors.sdk.src.base_connector import (
     ConnectorCategory,
     ConnectorConfig,
     SyncDirection,
     SyncFrequency,
 )
-from integrations.connectors.sdk.src.runtime import ConnectorRuntime
-from integrations.connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
+from connectors.sdk.src.runtime import ConnectorRuntime
+from connectors.sdk.src.sync_router import InboundSyncRequest, OutboundSyncRequest, map_records
 
 from .smartsheet_connector import SmartsheetConnector
 

@@ -15,7 +15,7 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 TEMPLATES_PATH = DATA_DIR / "templates.json"
 TEMPLATE_MAPPINGS_JSON_PATH = DATA_DIR / "template_mappings.json"
 TEMPLATE_MAPPINGS_YAML_PATH = DATA_DIR / "template_mappings.yaml"
-CONNECTOR_REGISTRY_PATH = REPO_ROOT / "integrations" / "connectors" / "registry" / "connectors.json"
+CONNECTOR_REGISTRY_PATH = REPO_ROOT / "connectors" / "registry" / "connectors.json"
 
 LIFECYCLE_EVENTS = ("generate", "update", "review", "approve", "publish")
 CANVAS_TYPES = (

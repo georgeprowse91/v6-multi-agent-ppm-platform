@@ -8,9 +8,9 @@ from typing import Any, Dict, Iterable
 
 import httpx
 
-from integrations.connectors.mcp_client.auth import AuthConfig
-from integrations.connectors.mcp_client.client import MCPClient
-from integrations.connectors.mcp_client.errors import MCPToolNotFoundError
+from connectors.mcp_client.auth import AuthConfig
+from connectors.mcp_client.client import MCPClient
+from connectors.mcp_client.errors import MCPToolNotFoundError
 
 from .framework import BaseIntegrationConnector, ConnectorSettings, IntegrationConfig
 

@@ -35,7 +35,7 @@ try:
     from telemetry import get_connector_telemetry
 except Exception:  # pragma: no cover - package import path fallback
     try:
-        from integrations.connectors.sdk.src.telemetry import get_connector_telemetry
+        from connectors.sdk.src.telemetry import get_connector_telemetry
     except Exception:  # pragma: no cover - optional observability dependencies
         class _NoopMetric:
             def add(self, *_args: object, **_kwargs: object) -> None:

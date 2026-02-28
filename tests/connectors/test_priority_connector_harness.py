@@ -26,19 +26,19 @@ from monday_connector import MondayConnector
 from rest_connector import RestConnector
 from servicenow_grc_connector import ServiceNowGrcConnector
 
-from integrations.connectors.salesforce.src import router as salesforce_router
-from integrations.connectors.salesforce.src.main import (
+from connectors.salesforce.src import router as salesforce_router
+from connectors.salesforce.src.main import (
     SalesforceConfig,
 )
-from integrations.connectors.salesforce.src.main import (
+from connectors.salesforce.src.main import (
     _fetch_projects as salesforce_fetch_projects,
 )
-from integrations.connectors.salesforce.src.main import (
+from connectors.salesforce.src.main import (
     _request_with_refresh as salesforce_request_with_refresh,
 )
-from integrations.connectors.sdk.src.auth import OAuthToken
-from integrations.connectors.sdk.src.http_client import HttpClient
-from integrations.connectors.sdk.src.sync_router import OutboundSyncRequest
+from connectors.sdk.src.auth import OAuthToken
+from connectors.sdk.src.http_client import HttpClient
+from connectors.sdk.src.sync_router import OutboundSyncRequest
 
 
 @dataclass

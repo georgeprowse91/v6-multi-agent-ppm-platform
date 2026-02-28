@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CONNECTORS_DIR = REPO_ROOT / "integrations" / "connectors"
+CONNECTORS_DIR = REPO_ROOT / "connectors"
 
 MCP_REQUIRED_FIELDS = {"mcp_server_url", "mcp_tools"}
 

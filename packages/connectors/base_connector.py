@@ -4,7 +4,7 @@ This module exposes the standard :class:`BaseConnector` used by connector
 implementations across the platform.
 """
 
-from integrations.connectors.sdk.src.base_connector import (  # noqa: F401
+from connectors.sdk.src.base_connector import (  # noqa: F401
     BaseConnector,
     CircuitBreakerOpenError,
     ConnectorCallFailedError,

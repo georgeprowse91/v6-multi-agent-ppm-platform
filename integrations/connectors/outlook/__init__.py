@@ -1,1 +1,0 @@
-"""Outlook connector package."""

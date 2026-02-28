@@ -1,1 +1,0 @@
-"""SAP SuccessFactors connector package."""

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from integrations.connectors.sdk.src.runtime import ConnectorRuntime
+from connectors.sdk.src.runtime import ConnectorRuntime
 
 CONNECTOR_ROOT = Path(__file__).resolve().parents[1]
 
