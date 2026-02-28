@@ -7,8 +7,11 @@
 # Common binaries
 *.pdf filter=lfs diff=lfs merge=lfs -text
 *.png filter=lfs diff=lfs merge=lfs -text
-# Override: store this screenshot directly (LFS object was lost — replaced with placeholder)
+# Override: store these files directly (LFS objects were lost — replaced with placeholders)
 docs/assets/ui/screenshots/web-intake-new-project-form-default-20260208.png !filter !diff !merge -text
+docs/assets/ui/screenshots/web-login-default-20260208.png !filter !diff !merge -text
+docs/assets/ui/screenshots/web-project-workspace-three-panel-default-20260208.png !filter !diff !merge -text
+"docs/connectors/Connector & Integration Specifications.docx" !filter !diff !merge -text
 *.jpg binary
 *.jpeg binary
 *.gif binary
