@@ -1,0 +1,38 @@
+id: google_calendar
+version: 1.0.0
+name: Google Calendar
+description: Sync calendar events using Google Calendar APIs.
+owner: integration-team
+category: collaboration
+auth:
+  type: oauth2
+  token_url: https://oauth2.googleapis.com/token
+  scopes:
+  - https://www.googleapis.com/auth/calendar
+  fields:
+  - client_id
+  - client_secret
+  - refresh_token
+sync:
+  modes:
+  - full
+  - incremental
+  default_schedule: '*/30 * * * *'
+  supports_webhooks: true
+  rate_limit_per_minute: 60
+mappings:
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+maturity:
+  level: 1
+  tier: core
+  business_priority: 99
+  capabilities:
+    read: true
+    write: false
+    webhook: true
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Baseline declarative mapping coverage

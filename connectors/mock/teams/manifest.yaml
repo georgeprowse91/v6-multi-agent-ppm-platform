@@ -1,0 +1,17 @@
+id: teams_mock
+version: 1.0.0
+name: Microsoft Teams (Mock)
+description: Mock Microsoft Teams connector for demo mode.
+owner: integration-team
+category: mock
+auth:
+  type: demo
+supported_objects:
+- projects
+- messages
+- tasks
+sync:
+  modes:
+  - read
+  - write
+  - bi-directional

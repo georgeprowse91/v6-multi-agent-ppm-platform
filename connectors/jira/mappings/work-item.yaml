@@ -1,0 +1,24 @@
+source: work_item
+schema: work-item
+target: work-item
+fields:
+  - source: id
+    target: id
+  - source: project_id
+    target: project_id
+  - source: title
+    target: title
+  - source: type
+    target: type
+  - source: status
+    target: status
+  - source: assigned_to
+    target: assigned_to
+  - source: due_date
+    target: due_date
+  - source: classification
+    target: classification
+  - source: created_at
+    target: created_at
+  - source: updated_at
+    target: updated_at

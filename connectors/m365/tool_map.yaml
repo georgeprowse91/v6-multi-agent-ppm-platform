@@ -1,0 +1,114 @@
+version: 1
+workloads:
+  exchange:
+    user_list:
+      mcp_tool_key: "users.list"
+      rest_endpoint: "/users"
+    last_activity:
+      mcp_tool_key: "exchange.last_activity"
+      rest_endpoint: "/reports/getEmailActivityUserDetail"
+    subscription_data:
+      mcp_tool_key: "subscriptions.list"
+      rest_endpoint: "/subscribedSkus"
+    cost_data:
+      mcp_tool_key: "billing.costs"
+      rest_endpoint: "/reports/getOffice365ActivationCounts"
+    last_login:
+      mcp_tool_key: "signins.list"
+      rest_endpoint: "/auditLogs/signIns"
+  teams:
+    user_list:
+      mcp_tool_key: "users.list"
+      rest_endpoint: "/users"
+    last_activity:
+      mcp_tool_key: "teams.last_activity"
+      rest_endpoint: "/reports/getTeamsUserActivityUserDetail"
+    subscription_data:
+      mcp_tool_key: "subscriptions.list"
+      rest_endpoint: "/subscribedSkus"
+    cost_data:
+      mcp_tool_key: "billing.costs"
+      rest_endpoint: "/reports/getOffice365ActivationCounts"
+    last_login:
+      mcp_tool_key: "signins.list"
+      rest_endpoint: "/auditLogs/signIns"
+  sharepoint:
+    user_list:
+      mcp_tool_key: "users.list"
+      rest_endpoint: "/users"
+    last_activity:
+      mcp_tool_key: "sharepoint.last_activity"
+      rest_endpoint: "/reports/getSharePointActivityUserDetail"
+    subscription_data:
+      mcp_tool_key: "subscriptions.list"
+      rest_endpoint: "/subscribedSkus"
+    cost_data:
+      mcp_tool_key: "billing.costs"
+      rest_endpoint: "/reports/getOffice365ActivationCounts"
+    last_login:
+      mcp_tool_key: "signins.list"
+      rest_endpoint: "/auditLogs/signIns"
+  planner:
+    user_list:
+      mcp_tool_key: "users.list"
+      rest_endpoint: "/users"
+    last_activity:
+      mcp_tool_key: "planner.last_activity"
+      rest_endpoint: "/reports/getOffice365ActiveUserDetail"
+    subscription_data:
+      mcp_tool_key: "subscriptions.list"
+      rest_endpoint: "/subscribedSkus"
+    cost_data:
+      mcp_tool_key: "billing.costs"
+      rest_endpoint: "/reports/getOffice365ActivationCounts"
+    last_login:
+      mcp_tool_key: "signins.list"
+      rest_endpoint: "/auditLogs/signIns"
+  onedrive:
+    user_list:
+      mcp_tool_key: "users.list"
+      rest_endpoint: "/users"
+    last_activity:
+      mcp_tool_key: "onedrive.last_activity"
+      rest_endpoint: "/reports/getOneDriveActivityUserDetail"
+    subscription_data:
+      mcp_tool_key: "subscriptions.list"
+      rest_endpoint: "/subscribedSkus"
+    cost_data:
+      mcp_tool_key: "billing.costs"
+      rest_endpoint: "/reports/getOffice365ActivationCounts"
+    last_login:
+      mcp_tool_key: "signins.list"
+      rest_endpoint: "/auditLogs/signIns"
+  power_bi:
+    user_list:
+      mcp_tool_key: "users.list"
+      rest_endpoint: "/users"
+    last_activity:
+      mcp_tool_key: "power_bi.last_activity"
+      rest_endpoint: "/reports/getPowerBIActivityUserDetail"
+    subscription_data:
+      mcp_tool_key: "subscriptions.list"
+      rest_endpoint: "/subscribedSkus"
+    cost_data:
+      mcp_tool_key: "billing.costs"
+      rest_endpoint: "/reports/getOffice365ActivationCounts"
+    last_login:
+      mcp_tool_key: "signins.list"
+      rest_endpoint: "/auditLogs/signIns"
+  viva:
+    user_list:
+      mcp_tool_key: "users.list"
+      rest_endpoint: "/users"
+    last_activity:
+      mcp_tool_key: "viva.last_activity"
+      rest_endpoint: "/reports/getOffice365ActiveUserDetail"
+    subscription_data:
+      mcp_tool_key: "subscriptions.list"
+      rest_endpoint: "/subscribedSkus"
+    cost_data:
+      mcp_tool_key: "billing.costs"
+      rest_endpoint: "/reports/getOffice365ActivationCounts"
+    last_login:
+      mcp_tool_key: "signins.list"
+      rest_endpoint: "/auditLogs/signIns"

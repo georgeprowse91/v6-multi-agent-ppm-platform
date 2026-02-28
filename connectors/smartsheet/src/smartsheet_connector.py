@@ -1,0 +1,72 @@
+"""
+Smartsheet Connector Implementation.
+
+Supports:
+- API token authentication
+- Reading sheets
+- Writing sheets
+"""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parents[4]
+_COMMON_SRC = _REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths(_REPO_ROOT)
+
+from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from rest_connector import ApiKeyRestConnector  # noqa: E402
+from connector_secrets import resolve_secret  # noqa: E402
+
+DEFAULT_SMARTSHEET_URL = "https://api.smartsheet.com/2.0"
+
+
+class SmartsheetConnector(ApiKeyRestConnector):
+    CONNECTOR_ID = "smartsheet"
+    CONNECTOR_NAME = "Smartsheet"
+    CONNECTOR_VERSION = "1.0.0"
+    CONNECTOR_CATEGORY = ConnectorCategory.PM
+    SUPPORTS_WRITE = True
+    IDEMPOTENCY_FIELDS = ("id", "rowId", "sheetId")
+    CONFLICT_TIMESTAMP_FIELD = "modifiedAt"
+
+    INSTANCE_URL_ENV = "SMARTSHEET_API_URL"
+    API_KEY_ENV = "SMARTSHEET_API_TOKEN"
+    API_KEY_HEADER = "Authorization"
+    API_KEY_PREFIX = "Bearer"
+    RATE_LIMIT_PER_MINUTE = 60
+
+    AUTH_TEST_ENDPOINT = "/users/me"
+    RESOURCE_PATHS = {
+        "sheets": {
+            "path": "/sheets",
+            "items_path": "data",
+            "write_path": "/sheets",
+            "write_method": "POST",
+        },
+        "workspaces": {"path": "/workspaces", "items_path": "data"},
+    }
+    SCHEMA = {
+        "sheets": {"id": "string", "name": "string"},
+        "workspaces": {"id": "string", "name": "string"},
+    }
+
+    def _get_credentials(self) -> tuple[str, str]:
+        instance_url = resolve_secret(os.getenv(self.INSTANCE_URL_ENV)) or self.config.instance_url
+        if not instance_url:
+            instance_url = DEFAULT_SMARTSHEET_URL
+        api_token = resolve_secret(os.getenv(self.API_KEY_ENV))
+        if not api_token:
+            raise ValueError(f"{self.API_KEY_ENV} environment variable is required")
+        return instance_url, api_token
+
+    def __init__(self, config: ConnectorConfig, **kwargs: object) -> None:
+        super().__init__(config, **kwargs)

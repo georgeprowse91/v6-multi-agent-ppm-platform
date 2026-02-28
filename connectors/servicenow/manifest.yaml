@@ -1,0 +1,40 @@
+id: servicenow
+version: 1.0.0
+name: ServiceNow
+description: Sync incidents, change requests, and project records from ServiceNow.
+owner: integration-team
+category: it-service
+auth:
+  type: oauth2
+  token_url: https://example.service-now.com/oauth_token.do
+  scopes:
+  - useraccount
+  - project.read
+  fields:
+  - client_id
+  - client_secret
+  - refresh_token
+  - instance_url
+sync:
+  modes:
+  - full
+  - incremental
+  default_schedule: 0 */6 * * *
+  supports_webhooks: true
+  rate_limit_per_minute: 300
+mappings:
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+maturity:
+  level: 2
+  tier: strategic
+  business_priority: 3
+  capabilities:
+    read: true
+    write: true
+    webhook: true
+    declarative_mapping: true
+    idempotent_write: true
+    conflict_handling: true
+  notes: Level 2 priority connector baseline

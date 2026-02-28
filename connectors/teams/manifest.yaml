@@ -1,0 +1,40 @@
+id: teams
+version: 1.0.0
+name: Microsoft Teams
+description: Sync Teams channels and meeting metadata for project collaboration.
+owner: integration-team
+category: collaboration
+auth:
+  type: oauth2
+  token_url: https://login.microsoftonline.com/common/oauth2/v2.0/token
+  scopes:
+  - Channel.ReadBasic.All
+  fields:
+  - client_id
+  - client_secret
+  - refresh_token
+  - tenant_id
+  - team_id
+sync:
+  modes:
+  - full
+  - incremental
+  default_schedule: '*/20 * * * *'
+  supports_webhooks: true
+  rate_limit_per_minute: 600
+mappings:
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+maturity:
+  level: 2
+  tier: strategic
+  business_priority: 8
+  capabilities:
+    read: true
+    write: true
+    webhook: true
+    declarative_mapping: true
+    idempotent_write: true
+    conflict_handling: true
+  notes: Level 2 priority connector baseline

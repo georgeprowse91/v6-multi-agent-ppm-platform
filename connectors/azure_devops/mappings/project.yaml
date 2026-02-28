@@ -1,0 +1,16 @@
+source: project
+schema: project
+target: project
+fields:
+  - source: id
+    target: id
+  - source: name
+    target: name
+  - source: status
+    target: status
+  - source: start_date
+    target: start_date
+  - source: end_date
+    target: end_date
+  - source: owner
+    target: owner

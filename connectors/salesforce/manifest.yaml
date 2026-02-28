@@ -1,0 +1,39 @@
+id: salesforce
+version: 1.0.0
+name: Salesforce
+description: Sync demand intake and account initiatives from Salesforce.
+owner: integration-team
+category: crm
+auth:
+  type: oauth2
+  token_url: https://login.salesforce.com/services/oauth2/token
+  scopes:
+  - api
+  fields:
+  - client_id
+  - client_secret
+  - refresh_token
+  - instance_url
+sync:
+  modes:
+  - full
+  - incremental
+  default_schedule: 0 */3 * * *
+  supports_webhooks: true
+  rate_limit_per_minute: 300
+mappings:
+- source: project
+  target: project
+  mapping_file: mappings/project.yaml
+maturity:
+  level: 2
+  tier: strategic
+  business_priority: 4
+  capabilities:
+    read: true
+    write: true
+    webhook: true
+    declarative_mapping: true
+    idempotent_write: true
+    conflict_handling: true
+  notes: Level 2 priority connector baseline

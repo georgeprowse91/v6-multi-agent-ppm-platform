@@ -1,0 +1,17 @@
+id: planview_mock
+version: 1.0.0
+name: Planview (Mock)
+description: Mock Planview connector for demo mode.
+owner: integration-team
+category: mock
+auth:
+  type: none
+supported_objects:
+- portfolios
+- programs
+- projects
+sync:
+  modes:
+  - read
+  - write
+  - bi-directional
