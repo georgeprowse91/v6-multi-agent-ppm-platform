@@ -110,7 +110,7 @@ make dev-up
 Equivalent Docker Compose command:
 
 ```bash
-DEMO_MODE=true docker compose up --build
+docker compose --env-file .env -f ops/docker/docker-compose.yml --profile demo up --build
 ```
 
 ### Full platform client demo (25 agents)
