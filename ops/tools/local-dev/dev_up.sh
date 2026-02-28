@@ -6,11 +6,13 @@ cd "$repo_root"
 
 profile="${1:-core}"
 
-compose_cmd="docker-compose"
-if command -v docker-compose >/dev/null 2>&1; then
-  compose_cmd="docker-compose"
-elif command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+compose_cmd=""
+project_dir_flag=""
+if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
   compose_cmd="docker compose"
+  project_dir_flag="--project-directory ."
+elif command -v docker-compose >/dev/null 2>&1; then
+  compose_cmd="docker-compose"
 else
   echo "Docker Compose is not available. Install Docker Desktop or the docker-compose plugin."
   exit 1
@@ -36,4 +38,4 @@ if [[ ! -f .env ]]; then
 fi
 
 echo "Starting local development stack (profile=${profile})..."
-${compose_cmd} -f ops/docker/docker-compose.yml --profile "${profile}" up --build
+${compose_cmd} ${project_dir_flag} --env-file .env -f ops/docker/docker-compose.yml --profile "${profile}" up --build
