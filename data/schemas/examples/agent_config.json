@@ -62,7 +62,7 @@
   },
   "project_configs": {
     "project-apollo": {
-      "risk-management": {
+      "risk-management-agent": {
         "project_id": "project-apollo",
         "agent_id": "risk-management-agent",
         "enabled": true,

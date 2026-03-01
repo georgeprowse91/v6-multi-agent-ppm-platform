@@ -4,15 +4,15 @@
   "total_agents": 25,
   "agents": [
     {
-      "agent_id": "agent-01-intent-router",
+      "agent_id": "intent-router-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-02-response-orchestration",
+      "agent_id": "response-orchestration-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-03-approval-workflow",
+      "agent_id": "approval-workflow-agent",
       "status": "completed"
     },
     {
@@ -20,87 +20,87 @@
       "status": "completed"
     },
     {
-      "agent_id": "agent-05-business-case-investment",
+      "agent_id": "business-case-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-06-portfolio-strategy-optimisation",
+      "agent_id": "portfolio-optimisation-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-07-program-management",
+      "agent_id": "program-management-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-08-project-definition-scope",
+      "agent_id": "scope-definition-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-09-lifecycle-governance",
+      "agent_id": "lifecycle-governance-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-10-schedule-planning",
+      "agent_id": "schedule-planning-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-11-resource-capacity",
+      "agent_id": "resource-management-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-12-financial-management",
+      "agent_id": "financial-management-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-13-vendor-procurement",
+      "agent_id": "vendor-procurement-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-14-quality-management",
+      "agent_id": "quality-management-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-15-risk-issue-management",
+      "agent_id": "risk-management-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-16-compliance-regulatory",
+      "agent_id": "compliance-governance-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-17-change-configuration",
+      "agent_id": "change-control-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-18-release-deployment",
+      "agent_id": "release-deployment-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-19-knowledge-document-management",
+      "agent_id": "knowledge-management-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-20-continuous-improvement-process-mining",
+      "agent_id": "continuous-improvement-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-21-stakeholder-comms",
+      "agent_id": "stakeholder-communications-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-22-analytics-insights",
+      "agent_id": "analytics-insights-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-23-data-synchronisation-quality",
+      "agent_id": "data-synchronisation-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-24-workflow-process-engine",
+      "agent_id": "workflow-engine-agent",
       "status": "completed"
     },
     {
-      "agent_id": "agent-25-system-health-monitoring",
+      "agent_id": "system-health-agent",
       "status": "completed"
     }
   ],

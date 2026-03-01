@@ -4,7 +4,7 @@ metadata:
   name: intent-router-v1
   owner: core-orchestration
   version: "1.0.0"
-  agent: intent-router
+  agent: intent-router-agent
   purpose: intent-routing
   description: System and user prompt scaffolding for intent routing.
 prompt:

@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 RUNTIME_CATALOG_PATH = REPO_ROOT / "agents" / "runtime" / "src" / "agent_catalog.py"
 DOC_CATALOG_PATH = REPO_ROOT / "docs" / "agents" / "agent-catalog.md"
 
-REQUIRED_AGENT_IDS = {"intent-router", "response-orchestration"}
+REQUIRED_AGENT_IDS = {"intent-router-agent", "response-orchestration-agent"}
 
 
 def _normalize_name(value: str) -> str:

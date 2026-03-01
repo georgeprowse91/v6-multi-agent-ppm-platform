@@ -147,7 +147,7 @@ async def run_orchestration(request: OrchestrationRunRequest) -> dict[str, Any]:
         "correlation_id": request.correlation_id,
         "tenant_id": request.tenant_id,
     }
-    return await runtime.execute_agent("response-orchestration", payload)
+    return await runtime.execute_agent("response-orchestration-agent", payload)
 
 
 @api_router.get("/connectors")
