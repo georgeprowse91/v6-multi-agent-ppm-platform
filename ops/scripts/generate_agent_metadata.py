@@ -13,7 +13,7 @@ from typing import Iterable
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-AGENT_README_GLOB = "agents/**/agent-*/README.md"
+AGENT_README_GLOB = "agents/**/*-agent/README.md"
 CATALOG_PATH = ROOT_DIR / "agents" / "AGENT_CATALOG.md"
 AGENTS_JSON_PATH = ROOT_DIR / "apps" / "web" / "data" / "agents.json"
 

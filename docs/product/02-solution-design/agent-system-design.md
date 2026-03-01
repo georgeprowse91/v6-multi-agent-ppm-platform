@@ -47,7 +47,7 @@
 
 ---
 
-# Agent 01 — Intent Router
+# the Intent Router agent — Intent Router
 
 **Category:** Core Orchestration
 **Role:** Platform Dispatcher
@@ -120,12 +120,12 @@ It also provides resilience: by maintaining a fallback classifier alongside the 
 
 ## How It Connects to Other Agents
 
-The Intent Router feeds its output directly into **Agent 02 — Response Orchestration**, which takes the routing plan and executes it by calling the relevant domain agents. Every request that enters the platform flows through Agent 01 first. It does not communicate directly with domain agents; that is the responsibility of the orchestration layer.
+The Intent Router feeds its output directly into **The Response Orchestration agent — Response Orchestration**, which takes the routing plan and executes it by calling the relevant domain agents. Every request that enters the platform flows through the Intent Router agent first. It does not communicate directly with domain agents; that is the responsibility of the orchestration layer.
 
 
 ---
 
-# Agent 02 — Response Orchestration
+# the Response Orchestration agent — Response Orchestration
 
 **Category:** Core Orchestration
 **Role:** Execution Coordinator
@@ -168,7 +168,7 @@ All activity is recorded in the platform's observability layer, including per-ta
 
 ## What It Uses
 
-- The routing plan produced by Agent 01 — Intent Router
+- The routing plan produced by the Intent Router agent — Intent Router
 - HTTP connections to each domain agent service
 - An internal service registry for agent discovery
 - The platform's event bus as a fallback communication channel
@@ -205,12 +205,12 @@ The caching mechanism also means that the platform is operationally efficient: h
 
 ## How It Connects to Other Agents
 
-The Response Orchestration agent connects to every domain agent in the platform. It receives its instructions from **Agent 01 — Intent Router** and calls any combination of agents 03 through 25 depending on what the routing plan requires. It is the central coordination hub of the entire agent network.
+The Response Orchestration agent connects to every domain agent in the platform. It receives its instructions from **The Intent Router agent — Intent Router** and calls any combination of agents 03 through 25 depending on what the routing plan requires. It is the central coordination hub of the entire agent network.
 
 
 ---
 
-# Agent 03 — Approval Workflow
+# the Approval Workflow agent — Approval Workflow
 
 **Category:** Core Orchestration
 **Role:** Governance and Decision Routing
@@ -294,12 +294,12 @@ For regulated industries, this is not a convenience feature — it is a complian
 
 ## How It Connects to Other Agents
 
-The Approval Workflow agent is called by virtually every other agent in the platform whenever a step in a process requires human authorisation. Requests that originate from the **Business Case and Investment** agent, the **Vendor Procurement** agent, the **Change and Configuration** agent, the **Project Definition and Scope** agent, and many others are routed through Agent 03 when they reach a decision gate. It feeds its outputs — approval decisions and status updates — back to the requesting agent so that the downstream workflow can continue.
+The Approval Workflow agent is called by virtually every other agent in the platform whenever a step in a process requires human authorisation. Requests that originate from the **Business Case and Investment** agent, the **Vendor Procurement** agent, the **Change and Configuration** agent, the **Project Definition and Scope** agent, and many others are routed through the Approval Workflow agent when they reach a decision gate. It feeds its outputs — approval decisions and status updates — back to the requesting agent so that the downstream workflow can continue.
 
 
 ---
 
-# Agent 04 — Demand and Intake
+# the Demand Intake agent — Demand and Intake
 
 **Category:** Portfolio Management
 **Role:** Project Request Handler
@@ -382,12 +382,12 @@ For portfolio managers, having a structured, classified, deduplicated demand pip
 
 ## How It Connects to Other Agents
 
-Once a demand item has been approved for development, the Demand and Intake agent hands off to **Agent 05 — Business Case and Investment Analysis**, which takes the enriched demand record and builds out the financial and strategic case for the initiative. The agent also works with **Agent 03 — Approval Workflow** to manage the review and approval of intake submissions, and surfaces its outputs in the portfolio-level views managed by **Agent 06 — Portfolio Strategy and Optimisation**.
+Once a demand item has been approved for development, the Demand and Intake agent hands off to **The Business Case agent — Business Case and Investment Analysis**, which takes the enriched demand record and builds out the financial and strategic case for the initiative. The agent also works with **The Approval Workflow agent — Approval Workflow** to manage the review and approval of intake submissions, and surfaces its outputs in the portfolio-level views managed by **The Portfolio Optimisation agent — Portfolio Strategy and Optimisation**.
 
 
 ---
 
-# Agent 05 — Business Case and Investment Analysis
+# the Business Case agent — Business Case and Investment Analysis
 
 **Category:** Portfolio Management
 **Role:** Financial Justification and Investment Advisor
@@ -422,7 +422,7 @@ This is the agent that makes the case for or against investing in a project. It 
 
 ## How It Works
 
-The agent draws on the enriched demand record produced by Agent 04 as its starting point. It uses the platform's LLM gateway to generate narrative sections of the business case from structured data inputs, and applies financial calculation libraries to produce the quantitative analysis. Where external market data is available — such as benchmark costs for a particular type of technology project — the agent can retrieve and incorporate that information to ground the estimates in real-world comparisons.
+The agent draws on the enriched demand record produced by the Demand Intake agent as its starting point. It uses the platform's LLM gateway to generate narrative sections of the business case from structured data inputs, and applies financial calculation libraries to produce the quantitative analysis. Where external market data is available — such as benchmark costs for a particular type of technology project — the agent can retrieve and incorporate that information to ground the estimates in real-world comparisons.
 
 The generated business case is stored in the platform's document canvas as a versioned document, allowing it to be reviewed, commented on, and revised through the platform's document editing workflow. Changes to assumptions trigger a recalculation of the financial metrics so that the document always reflects the most current analysis.
 
@@ -430,7 +430,7 @@ The generated business case is stored in the platform's document canvas as a ver
 
 ## What It Uses
 
-- The demand record from Agent 04 as the starting input
+- The demand record from the Demand Intake agent as the starting input
 - Business case document templates from the platform's template library
 - Financial calculation logic for NPV, IRR, payback period, TCO and multi-currency conversion
 - Monte Carlo simulation for probabilistic analysis
@@ -439,7 +439,7 @@ The generated business case is stored in the platform's document canvas as a ver
 - External market data for grounding cost and benefit estimates
 - The platform's LLM gateway for narrative generation
 - The document canvas for storing and presenting the business case
-- Agent 03 — Approval Workflow for routing the completed business case for sign-off
+- the Approval Workflow agent — Approval Workflow for routing the completed business case for sign-off
 
 ---
 
@@ -475,12 +475,12 @@ For investment committees and portfolio boards, the consistency of the output me
 
 ## How It Connects to Other Agents
 
-The Business Case and Investment Analysis agent receives its input from **Agent 04 — Demand and Intake** and routes completed business cases to **Agent 03 — Approval Workflow** for sign-off. Approved business cases feed into **Agent 06 — Portfolio Strategy and Optimisation**, which uses the financial metrics and strategic alignment scores to rank and prioritise the portfolio. The financial baseline established in the business case also forms the starting point for **Agent 12 — Financial Management** once the project is approved and enters delivery.
+The Business Case and Investment Analysis agent receives its input from **The Demand Intake agent — Demand and Intake** and routes completed business cases to **The Approval Workflow agent — Approval Workflow** for sign-off. Approved business cases feed into **The Portfolio Optimisation agent — Portfolio Strategy and Optimisation**, which uses the financial metrics and strategic alignment scores to rank and prioritise the portfolio. The financial baseline established in the business case also forms the starting point for **The Financial Management agent — Financial Management** once the project is approved and enters delivery.
 
 
 ---
 
-# Agent 06 — Portfolio Strategy and Optimisation
+# the Portfolio Optimisation agent — Portfolio Strategy and Optimisation
 
 **Category:** Portfolio Management
 **Role:** Investment Prioritisation and Portfolio Advisor
@@ -513,7 +513,7 @@ This is the agent that answers the hardest questions in portfolio management: "G
 
 ## How It Works
 
-The agent ingests the scored outputs of individual business cases from Agent 05, the resource capacity picture from Agent 11, and the current portfolio status from the platform's data store. It applies its optimisation algorithms to this combined dataset and produces both a portfolio health assessment and a set of recommendations.
+The agent ingests the scored outputs of individual business cases from the Business Case agent, the resource capacity picture from the Resource Management agent, and the current portfolio status from the platform's data store. It applies its optimisation algorithms to this combined dataset and produces both a portfolio health assessment and a set of recommendations.
 
 The agent's scoring model is configurable per tenant: the weight given to strategic alignment versus financial return versus risk versus urgency can be adjusted to match the organisation's current priorities. This means the same platform can serve an organisation that prioritises financial return above all else and one that prioritises regulatory compliance, without requiring any code changes.
 
@@ -523,13 +523,13 @@ All recommendations are versioned and auditable — the agent records the inputs
 
 ## What It Uses
 
-- Business case data and financial metrics from Agent 05
-- Resource capacity and constraint data from Agent 11
+- Business case data and financial metrics from the Business Case agent
+- Resource capacity and constraint data from the Resource Management agent
 - Current portfolio status from the platform's data store
 - Configurable scoring weights and strategic objective definitions
 - Multiple optimisation algorithms: integer programming, mean-variance, AHP, multi-objective
 - Policy guardrail definitions
-- Agent 03 — Approval Workflow for routing portfolio recommendations for executive sign-off
+- the Approval Workflow agent — Approval Workflow for routing portfolio recommendations for executive sign-off
 - The platform's event bus for publishing portfolio change events
 
 ---
@@ -563,12 +563,12 @@ The Portfolio Strategy and Optimisation agent replaces that process with evidenc
 
 ## How It Connects to Other Agents
 
-The Portfolio Strategy and Optimisation agent draws on business case data from **Agent 05** and resource capacity data from **Agent 11**. Its outputs inform the programme structure that **Agent 07 — Programme Management** creates and the financial baselines that **Agent 12 — Financial Management** tracks. Portfolio decisions approved through this agent are surfaced in the analytics dashboards managed by **Agent 22 — Analytics and Insights**.
+The Portfolio Strategy and Optimisation agent draws on business case data from **The Business Case agent** and resource capacity data from **The Resource Management agent**. Its outputs inform the programme structure that **The Program Management agent — Programme Management** creates and the financial baselines that **The Financial Management agent — Financial Management** tracks. Portfolio decisions approved through this agent are surfaced in the analytics dashboards managed by **The Analytics Insights agent — Analytics and Insights**.
 
 
 ---
 
-# Agent 07 — Programme Management
+# the Program Management agent — Programme Management
 
 **Category:** Portfolio Management
 **Role:** Programme Coordinator and Benefits Tracker
@@ -613,13 +613,13 @@ The agent persists all programme data to the platform's database, and publishes 
 
 ## What It Uses
 
-- Portfolio optimisation outputs from Agent 06 to identify groupings of related projects
+- Portfolio optimisation outputs from the Portfolio Optimisation agent to identify groupings of related projects
 - Project records from the platform's data store for each constituent project
-- Schedule and milestone data from Agent 10 — Schedule and Planning
-- Resource capacity data from Agent 11 — Resource and Capacity Management
-- Financial data from Agent 12 — Financial Management
+- Schedule and milestone data from the Schedule Planning agent — Schedule and Planning
+- Resource capacity data from the Resource Management agent — Resource and Capacity Management
+- Financial data from the Financial Management agent — Financial Management
 - The platform's LLM gateway for narrative generation
-- Agent 03 — Approval Workflow for programme governance decisions
+- the Approval Workflow agent — Approval Workflow for programme governance decisions
 - The event bus for publishing programme status updates
 
 ---
@@ -658,12 +658,12 @@ For organisations running large transformation programmes — technology moderni
 
 ## How It Connects to Other Agents
 
-The Programme Management agent draws on portfolio decisions from **Agent 06**, schedule data from **Agent 10**, resource data from **Agent 11**, and financial data from **Agent 12**. It coordinates with **Agent 03 — Approval Workflow** for programme governance, and its outputs — health dashboards, benefits reports, roadmap views — feed into **Agent 22 — Analytics and Insights** for portfolio-level reporting. Change impact assessments are produced in coordination with **Agent 17 — Change and Configuration Management**.
+The Programme Management agent draws on portfolio decisions from **The Portfolio Optimisation agent**, schedule data from **The Schedule Planning agent**, resource data from **The Resource Management agent**, and financial data from **The Financial Management agent**. It coordinates with **The Approval Workflow agent — Approval Workflow** for programme governance, and its outputs — health dashboards, benefits reports, roadmap views — feed into **The Analytics Insights agent — Analytics and Insights** for portfolio-level reporting. Change impact assessments are produced in coordination with **The Change Control agent — Change and Configuration Management**.
 
 
 ---
 
-# Agent 08 — Project Definition and Scope
+# the Scope Definition agent — Project Definition and Scope
 
 **Category:** Delivery Management
 **Role:** Project Charter and Scope Baseline Manager
@@ -706,14 +706,14 @@ The scope baseline is stored separately from the working scope documents, ensuri
 
 ## What It Uses
 
-- Approved business case from Agent 05 as the primary input
-- Demand record from Agent 04 for context
+- Approved business case from the Business Case agent as the primary input
+- Demand record from the Demand Intake agent for context
 - Document templates for charters, scope statements, WBS, and RACI matrices
 - The platform's LLM gateway for narrative generation
 - External research capability for supplementary scope context
 - The document canvas for storing all outputs
-- Agent 03 — Approval Workflow for charter and scope baseline sign-off
-- Agent 10 — Schedule and Planning as the consumer of the WBS
+- the Approval Workflow agent — Approval Workflow for charter and scope baseline sign-off
+- the Schedule Planning agent — Schedule and Planning as the consumer of the WBS
 
 ---
 
@@ -750,12 +750,12 @@ The Project Definition and Scope agent addresses this by producing a comprehensi
 
 ## How It Connects to Other Agents
 
-The project charter and scope baseline produced by this agent feed directly into **Agent 09 — Project Lifecycle and Governance**, which uses them as the reference for gate assessments. The WBS is consumed by **Agent 10 — Schedule and Planning** to build the project schedule. Scope change requests are processed by **Agent 17 — Change and Configuration Management**, which assesses their impact against the baselined scope. The stakeholder register is used by **Agent 21 — Stakeholder Communications** to plan and execute project communications.
+The project charter and scope baseline produced by this agent feed directly into **The Lifecycle Governance agent — Project Lifecycle and Governance**, which uses them as the reference for gate assessments. The WBS is consumed by **The Schedule Planning agent — Schedule and Planning** to build the project schedule. Scope change requests are processed by **The Change Control agent — Change and Configuration Management**, which assesses their impact against the baselined scope. The stakeholder register is used by **The Stakeholder Communications agent — Stakeholder Communications** to plan and execute project communications.
 
 
 ---
 
-# Agent 09 — Project Lifecycle and Governance
+# the Lifecycle Governance agent — Project Lifecycle and Governance
 
 **Category:** Delivery Management
 **Role:** Stage-Gate Enforcer and Project Health Monitor
@@ -792,7 +792,7 @@ The agent maintains a persistent record of each project's lifecycle state — cu
 
 Stage transitions initiate a set of downstream actions: notifying stakeholders, updating the methodology map view in the UI, triggering the appropriate document and artefact checklist for the new stage, and publishing a lifecycle event to the event bus so that other agents can respond.
 
-Governance decisions — particularly gate approvals where a manual review is required — are routed through **Agent 03 — Approval Workflow**, ensuring that stage transitions are formally authorised and recorded.
+Governance decisions — particularly gate approvals where a manual review is required — are routed through **The Approval Workflow agent — Approval Workflow**, ensuring that stage transitions are formally authorised and recorded.
 
 ---
 
@@ -802,9 +802,9 @@ Governance decisions — particularly gate approvals where a manual review is re
 - Methodology definitions for each project type (Predictive, Adaptive, Hybrid)
 - Stage-gate criteria definitions configured per methodology and organisation
 - A machine learning readiness scoring model trained on historical project data
-- Health dimension data: schedule performance from Agent 10, financial performance from Agent 12, risk status from Agent 15, quality data from Agent 14
+- Health dimension data: schedule performance from the Schedule Planning agent, financial performance from the Financial Management agent, risk status from the Risk Management agent, quality data from the Quality Management agent
 - External tool synchronisation: Planview, Clarity, Jira, Azure DevOps
-- Agent 03 — Approval Workflow for gate governance
+- the Approval Workflow agent — Approval Workflow for gate governance
 - Azure Monitor for operational monitoring and alerting
 
 ---
@@ -842,12 +842,12 @@ The readiness scoring adds a layer of proactive intelligence that most governanc
 
 ## How It Connects to Other Agents
 
-The Lifecycle and Governance agent draws health data from **Agents 10, 12, 14 and 15** (Schedule, Financial, Quality, and Risk) to calculate its composite health score. It uses **Agent 03 — Approval Workflow** for gate governance. Its lifecycle stage data drives the methodology map navigation visible to users, and its outputs feed into **Agent 22 — Analytics and Insights** for portfolio-level governance reporting. When it detects a methodology mismatch, it can engage **Agent 08 — Project Definition and Scope** to update the project definition accordingly.
+The Lifecycle and Governance agent draws health data from **Agents 10, 12, 14 and 15** (Schedule, Financial, Quality, and Risk) to calculate its composite health score. It uses **The Approval Workflow agent — Approval Workflow** for gate governance. Its lifecycle stage data drives the methodology map navigation visible to users, and its outputs feed into **The Analytics Insights agent — Analytics and Insights** for portfolio-level governance reporting. When it detects a methodology mismatch, it can engage **The Scope Definition agent — Project Definition and Scope** to update the project definition accordingly.
 
 
 ---
 
-# Agent 10 — Schedule and Planning
+# the Schedule Planning agent — Schedule and Planning
 
 **Category:** Delivery Management
 **Role:** Schedule Builder and Milestone Manager
@@ -864,13 +864,13 @@ It is also the agent that keeps the schedule current throughout delivery — upd
 
 ## What It Does
 
-**It converts the WBS into a schedule.** Working from the Work Breakdown Structure provided by Agent 08, the agent creates a task list with durations, dependencies, assigned resources, and scheduled dates. Duration estimates are generated using a combination of AI-based estimation (drawing on historical data from similar projects) and any estimates provided directly by the project team.
+**It converts the WBS into a schedule.** Working from the Work Breakdown Structure provided by the Scope Definition agent, the agent creates a task list with durations, dependencies, assigned resources, and scheduled dates. Duration estimates are generated using a combination of AI-based estimation (drawing on historical data from similar projects) and any estimates provided directly by the project team.
 
 **It maps dependencies.** The agent supports all standard task dependency types — finish-to-start, start-to-start, finish-to-finish, and start-to-finish — and maps them across the schedule to create a dependency network. This network is used for critical path analysis and schedule risk assessment.
 
 **It runs Critical Path Method analysis.** The agent identifies the critical path through the schedule — the sequence of tasks that determines the minimum possible project duration. Any delay to a task on the critical path will delay the project. Understanding the critical path allows project managers to focus their attention where it matters most.
 
-**It performs resource-constrained scheduling.** An unconstrained schedule assumes that every task can be resourced whenever it is needed. A realistic schedule reflects the fact that resources are limited. The agent applies resource constraints from Agent 11 to produce a schedule that reflects actual availability — delaying tasks or extending durations when the required resources are not available.
+**It performs resource-constrained scheduling.** An unconstrained schedule assumes that every task can be resourced whenever it is needed. A realistic schedule reflects the fact that resources are limited. The agent applies resource constraints from the Resource Management agent to produce a schedule that reflects actual availability — delaying tasks or extending durations when the required resources are not available.
 
 **It runs Monte Carlo risk simulations.** Schedule estimates are inherently uncertain. The agent can run probabilistic simulations — testing the schedule against thousands of possible combinations of task duration variations — to produce a probability distribution of completion dates rather than a single deterministic end date. This gives project managers an honest picture of schedule risk: not just the plan, but the confidence interval around it.
 
@@ -884,7 +884,7 @@ It is also the agent that keeps the schedule current throughout delivery — upd
 
 ## How It Works
 
-The agent takes the WBS from Agent 08 and resource availability from Agent 11 as its primary inputs. Duration estimates are generated using a hybrid approach: an AI model trained on historical project data produces initial estimates, which can be overridden or supplemented by team input. The dependency network is built from the task structure and any dependency relationships defined in the WBS.
+The agent takes the WBS from the Scope Definition agent and resource availability from the Resource Management agent as its primary inputs. Duration estimates are generated using a hybrid approach: an AI model trained on historical project data produces initial estimates, which can be overridden or supplemented by team input. The dependency network is built from the task structure and any dependency relationships defined in the WBS.
 
 Schedule data is synchronised bidirectionally with connected project management tools — Azure DevOps, Jira, and Microsoft Project — so that the schedule in the platform reflects the current state of work as tracked in the tools the delivery team uses.
 
@@ -892,15 +892,15 @@ Schedule data is synchronised bidirectionally with connected project management 
 
 ## What It Uses
 
-- WBS from Agent 08 — Project Definition and Scope
-- Resource availability data from Agent 11 — Resource and Capacity Management
+- WBS from the Scope Definition agent — Project Definition and Scope
+- Resource availability data from the Resource Management agent — Resource and Capacity Management
 - Historical project data for AI-based duration estimation
 - Dependency type definitions (FS, SS, FF, SF)
 - Critical Path Method algorithm
 - Monte Carlo simulation engine
 - Azure DevOps, Jira, and Microsoft Project connectors for bidirectional synchronisation
-- Agent 03 — Approval Workflow for baseline change approvals
-- Agent 09 — Project Lifecycle and Governance as a consumer of schedule performance data
+- the Approval Workflow agent — Approval Workflow for baseline change approvals
+- the Lifecycle Governance agent — Project Lifecycle and Governance as a consumer of schedule performance data
 
 ---
 
@@ -938,12 +938,12 @@ The Monte Carlo capability, in particular, adds a level of honesty to schedule r
 
 ## How It Connects to Other Agents
 
-The Schedule and Planning agent receives its WBS input from **Agent 08** and resource constraints from **Agent 11**. Its schedule performance data feeds into **Agent 09 — Lifecycle and Governance** for health scoring and **Agent 22 — Analytics and Insights** for portfolio-level schedule reporting. Baseline change requests are processed by **Agent 17 — Change and Configuration Management**. For agile projects, sprint data connects to **Agent 14 — Quality Management** for definition-of-done tracking.
+The Schedule and Planning agent receives its WBS input from **The Scope Definition agent** and resource constraints from **The Resource Management agent**. Its schedule performance data feeds into **The Lifecycle Governance agent — Lifecycle and Governance** for health scoring and **The Analytics Insights agent — Analytics and Insights** for portfolio-level schedule reporting. Baseline change requests are processed by **The Change Control agent — Change and Configuration Management**. For agile projects, sprint data connects to **The Quality Management agent — Quality Management** for definition-of-done tracking.
 
 
 ---
 
-# Agent 11 — Resource and Capacity Management
+# the Resource Management agent — Resource and Capacity Management
 
 **Category:** Delivery Management
 **Role:** Resource Allocator and Capacity Planner
@@ -978,7 +978,7 @@ The Resource and Capacity Management agent manages the people side of project de
 
 The agent maintains a tenant-scoped resource pool that is updated through scheduled synchronisation with connected HR systems and through manual updates where direct integration is not available. When a resource request is received, the agent runs a skill-matching algorithm to score and rank available candidates, applies constraint checks to eliminate invalid options, and presents a ranked shortlist for review.
 
-Capacity forecasting draws on the scheduled demand from Agent 10 — Schedule and Planning across all active projects, combined with the available supply from the resource pool, to produce forward-looking supply-demand views at the portfolio level.
+Capacity forecasting draws on the scheduled demand from the Schedule Planning agent — Schedule and Planning across all active projects, combined with the available supply from the resource pool, to produce forward-looking supply-demand views at the portfolio level.
 
 ---
 
@@ -986,11 +986,11 @@ Capacity forecasting draws on the scheduled demand from Agent 10 — Schedule an
 
 - HR and workforce system integrations: Workday, SAP SuccessFactors
 - Resource pool definitions with skills, roles, cost rates, and calendars
-- Schedule demand data from Agent 10 — Schedule and Planning
-- Portfolio-level resource demand from Agent 06 — Portfolio Strategy and Optimisation
+- Schedule demand data from the Schedule Planning agent — Schedule and Planning
+- Portfolio-level resource demand from the Portfolio Optimisation agent — Portfolio Strategy and Optimisation
 - Skill matching and ranking algorithm
 - Constraint rule definitions configured per organisation
-- Agent 03 — Approval Workflow for resource allocation approvals
+- the Approval Workflow agent — Approval Workflow for resource allocation approvals
 - The platform's event bus for publishing allocation and capacity events
 
 ---
@@ -1027,12 +1027,12 @@ The integration with HR systems means that the resource picture always reflects 
 
 ## How It Connects to Other Agents
 
-The Resource and Capacity Management agent is a dependency for multiple other agents. **Agent 06 — Portfolio Strategy and Optimisation** uses its capacity data for portfolio optimisation. **Agent 07 — Programme Management** uses it for cross-project resource coordination. **Agent 10 — Schedule and Planning** uses it for resource-constrained scheduling. **Agent 12 — Financial Management** uses resource cost rate data for budget modelling. Resource utilisation data also feeds into **Agent 22 — Analytics and Insights** for portfolio health reporting.
+The Resource and Capacity Management agent is a dependency for multiple other agents. **The Portfolio Optimisation agent — Portfolio Strategy and Optimisation** uses its capacity data for portfolio optimisation. **The Program Management agent — Programme Management** uses it for cross-project resource coordination. **The Schedule Planning agent — Schedule and Planning** uses it for resource-constrained scheduling. **The Financial Management agent — Financial Management** uses resource cost rate data for budget modelling. Resource utilisation data also feeds into **The Analytics Insights agent — Analytics and Insights** for portfolio health reporting.
 
 
 ---
 
-# Agent 12 — Financial Management
+# the Financial Management agent — Financial Management
 
 **Category:** Delivery Management
 **Role:** Budget Tracker and Financial Controller
@@ -1069,7 +1069,7 @@ It replaces the manual reconciliation processes that consume so much time in mos
 
 ## How It Works
 
-The agent's financial baseline is derived from the business case approved through Agent 05, adjusted for any changes approved through Agent 17 — Change and Configuration Management. Actual cost data flows in from connected ERP systems on a scheduled synchronisation cycle and through manual cost entry in the platform. The agent applies accrual logic, performs currency conversion, and recalculates all financial metrics whenever new data is received.
+The agent's financial baseline is derived from the business case approved through the Business Case agent, adjusted for any changes approved through the Change Control agent — Change and Configuration Management. Actual cost data flows in from connected ERP systems on a scheduled synchronisation cycle and through manual cost entry in the platform. The agent applies accrual logic, performs currency conversion, and recalculates all financial metrics whenever new data is received.
 
 Budget threshold rules can be configured to trigger alerts automatically — for example, alerting the project manager when actuals reach 80% of the approved budget, or alerting the programme director when the forecast exceeds the baseline by more than 10%.
 
@@ -1077,15 +1077,15 @@ Budget threshold rules can be configured to trigger alerts automatically — for
 
 ## What It Uses
 
-- Approved business case cost estimates from Agent 05 as the financial baseline
+- Approved business case cost estimates from the Business Case agent as the financial baseline
 - ERP system integrations: SAP, Oracle, NetSuite for actual cost data
 - Workday and ADP for labour cost data
-- Change records from Agent 17 for budget adjustments
-- Schedule data from Agent 10 for earned value calculations
-- Resource cost rate data from Agent 11
+- Change records from the Change Control agent for budget adjustments
+- Schedule data from the Schedule Planning agent for earned value calculations
+- Resource cost rate data from the Resource Management agent
 - Configurable exchange rates for multi-currency handling
 - Budget threshold and alert rules
-- Agent 03 — Approval Workflow for budget change approvals
+- the Approval Workflow agent — Approval Workflow for budget change approvals
 
 ---
 
@@ -1123,12 +1123,12 @@ For portfolio leaders, the aggregated financial view across all projects — bud
 
 ## How It Connects to Other Agents
 
-The Financial Management agent receives its baseline from **Agent 05** (business case) and adjustments from **Agent 17** (change management). It provides financial performance data to **Agent 09 — Lifecycle and Governance** for health scoring and to **Agent 22 — Analytics and Insights** for portfolio financial reporting. Budget overrun risks are surfaced to **Agent 15 — Risk and Issue Management** as financial risks. **Agent 07 — Programme Management** uses it for programme-level financial consolidation.
+The Financial Management agent receives its baseline from **The Business Case agent** (business case) and adjustments from **The Change Control agent** (change management). It provides financial performance data to **The Lifecycle Governance agent — Lifecycle and Governance** for health scoring and to **The Analytics Insights agent — Analytics and Insights** for portfolio financial reporting. Budget overrun risks are surfaced to **The Risk Management agent — Risk and Issue Management** as financial risks. **The Program Management agent — Programme Management** uses it for programme-level financial consolidation.
 
 
 ---
 
-# Agent 13 — Vendor and Procurement Management
+# the Vendor Procurement agent — Vendor and Procurement Management
 
 **Category:** Delivery Management
 **Role:** Vendor Lifecycle and Procurement Coordinator
@@ -1147,7 +1147,7 @@ It is one of the most comprehensive agents in the platform, managing a process t
 
 **It onboards vendors.** When a new supplier needs to be engaged, the agent manages the onboarding process: capturing vendor details, running risk assessments (including credit checks and sanctions screening), validating that the vendor meets the organisation's procurement standards, and creating a vendor record in the platform and connected procurement systems. It uses Azure Form Recognizer to extract structured data from submitted vendor documents, reducing manual data entry.
 
-**It manages procurement requests.** When a project needs to buy something — a service, a product, a licence, a consultancy engagement — the project team raises a procurement request through the platform. The agent classifies the request by category and complexity, validates it against the available budget (checking with Agent 12), and routes it through the appropriate procurement pathway: a simple purchase for small items, a competitive quotation for medium-value purchases, or a formal RFP process for significant engagements.
+**It manages procurement requests.** When a project needs to buy something — a service, a product, a licence, a consultancy engagement — the project team raises a procurement request through the platform. The agent classifies the request by category and complexity, validates it against the available budget (checking with the Financial Management agent), and routes it through the appropriate procurement pathway: a simple purchase for small items, a competitive quotation for medium-value purchases, or a formal RFP process for significant engagements.
 
 **It generates Requests for Proposal.** For competitive procurement, the agent drafts a Request for Proposal (RFP) document, drawing on the project's scope definition and the procurement request to specify the requirement clearly. The RFP is stored in the document canvas and can be reviewed and edited before being issued to shortlisted suppliers.
 
@@ -1171,13 +1171,13 @@ The agent integrates with enterprise procurement systems — SAP Ariba, Coupa, O
 
 ## What It Uses
 
-- The project's budget from Agent 12 for financial validation of procurement requests
-- The project's scope definition from Agent 08 for RFP drafting
+- The project's budget from the Financial Management agent for financial validation of procurement requests
+- The project's scope definition from the Scope Definition agent for RFP drafting
 - Integrations with SAP Ariba, Coupa, Oracle Procurement, Microsoft Dynamics 365
 - Azure Form Recognizer for document data extraction
 - ML-based vendor scoring model for capability and risk assessment
 - Risk database client for credit and sanctions screening
-- Agent 03 — Approval Workflow for procurement approvals and contract sign-off
+- the Approval Workflow agent — Approval Workflow for procurement approvals and contract sign-off
 - The event bus for publishing procurement lifecycle events
 - ERP integrations (SAP, Oracle, NetSuite) for purchase order synchronisation
 
@@ -1217,12 +1217,12 @@ For organisations with significant third-party spend, the combination of automat
 
 ## How It Connects to Other Agents
 
-The Vendor and Procurement agent draws on budget data from **Agent 12** and scope context from **Agent 08**. All approval decisions are managed by **Agent 03 — Approval Workflow**. Vendor performance data feeds into **Agent 22 — Analytics and Insights** for portfolio-level supplier reporting. Contracts and procurement records contribute to the compliance evidence tracked by **Agent 16 — Compliance and Regulatory**.
+The Vendor and Procurement agent draws on budget data from **The Financial Management agent** and scope context from **The Scope Definition agent**. All approval decisions are managed by **The Approval Workflow agent — Approval Workflow**. Vendor performance data feeds into **The Analytics Insights agent — Analytics and Insights** for portfolio-level supplier reporting. Contracts and procurement records contribute to the compliance evidence tracked by **The Compliance Governance agent — Compliance and Regulatory**.
 
 
 ---
 
-# Agent 14 — Quality Management
+# the Quality Management agent — Quality Management
 
 **Category:** Delivery Management
 **Role:** Quality Planner and Test Coordinator
@@ -1259,21 +1259,21 @@ Its presence means that quality does not depend on a single person remembering t
 
 ## How It Works
 
-The agent creates its quality plan from the project's requirements register (from Agent 08) and methodology configuration. Test case generation uses the requirements as inputs, applying the platform's LLM to produce test scenarios from requirement descriptions. Defect prediction uses an Azure ML model to identify areas of the project most likely to generate defects based on historical patterns — allowing the test effort to be directed where it is most needed.
+The agent creates its quality plan from the project's requirements register (from the Scope Definition agent) and methodology configuration. Test case generation uses the requirements as inputs, applying the platform's LLM to produce test scenarios from requirement descriptions. Defect prediction uses an Azure ML model to identify areas of the project most likely to generate defects based on historical patterns — allowing the test effort to be directed where it is most needed.
 
 ---
 
 ## What It Uses
 
-- Requirements register from Agent 08 — Project Definition and Scope
+- Requirements register from the Scope Definition agent — Project Definition and Scope
 - Methodology configuration for quality gate thresholds
 - Azure DevOps and Jira integrations for bidirectional defect synchronisation
 - Playwright automation integration for automated test result ingestion
 - Azure ML model for defect prediction and test prioritisation
 - TestRail integration for test management
 - Code coverage metrics from connected code repositories
-- Agent 09 — Project Lifecycle and Governance as the consumer of quality gate assessments
-- Agent 03 — Approval Workflow for formal review and audit approvals
+- the Lifecycle Governance agent — Project Lifecycle and Governance as the consumer of quality gate assessments
+- the Approval Workflow agent — Approval Workflow for formal review and audit approvals
 
 ---
 
@@ -1310,12 +1310,12 @@ For organisations operating in regulated sectors where quality evidence is requi
 
 ## How It Connects to Other Agents
 
-The Quality Management agent receives requirements from **Agent 08** and provides quality gate assessments to **Agent 09 — Lifecycle and Governance**. For agile projects, it connects to **Agent 10 — Schedule and Planning** for sprint definition-of-done tracking. Quality metrics feed into **Agent 22 — Analytics and Insights** for portfolio-level quality reporting. Release readiness assessments for **Agent 18 — Release and Deployment** depend on quality gate status from this agent.
+The Quality Management agent receives requirements from **The Scope Definition agent** and provides quality gate assessments to **The Lifecycle Governance agent — Lifecycle and Governance**. For agile projects, it connects to **The Schedule Planning agent — Schedule and Planning** for sprint definition-of-done tracking. Quality metrics feed into **The Analytics Insights agent — Analytics and Insights** for portfolio-level quality reporting. Release readiness assessments for **The Release Deployment agent — Release and Deployment** depend on quality gate status from this agent.
 
 
 ---
 
-# Agent 15 — Risk and Issue Management
+# the Risk Management agent — Risk and Issue Management
 
 **Category:** Delivery Management
 **Role:** Risk Identifier, Assessor, and Issue Tracker
@@ -1367,8 +1367,8 @@ The agent uses a BERT-based natural language model, fine-tuned on risk language,
 - Monte Carlo simulation engine for quantitative risk analysis
 - GRC system integrations: ServiceNow, RSA Archer
 - PM tool integrations: Planview, Microsoft Project, Jira, Azure DevOps
-- Agent 03 — Approval Workflow for escalation decisions
-- Agent 09 — Lifecycle and Governance as a consumer of risk status data
+- the Approval Workflow agent — Approval Workflow for escalation decisions
+- the Lifecycle Governance agent — Lifecycle and Governance as a consumer of risk status data
 - Azure Synapse and Data Lake for risk dataset storage
 
 ---
@@ -1391,7 +1391,7 @@ The agent uses a BERT-based natural language model, fine-tuned on risk language,
 
 The risk register is accessible from the risk management stage in the **Methodology Map** navigation, and the content is presented in the **Spreadsheet Canvas** where individual risks can be reviewed, updated, and filtered. The risk matrix heat map is displayed in the **Dashboard Canvas**, with colour coding indicating the concentration of risk in each likelihood/impact zone.
 
-The risk dashboard — top risks, exposure trend, open issues — is available both in the project dashboard and as a summary in the portfolio-level dashboard managed by Agent 22. The assistant panel supports risk queries: "What are our top five risks?" "Are there any escalated issues?" "What is our current risk exposure trend?"
+The risk dashboard — top risks, exposure trend, open issues — is available both in the project dashboard and as a summary in the portfolio-level dashboard managed by the Analytics Insights agent. The assistant panel supports risk queries: "What are our top five risks?" "Are there any escalated issues?" "What is our current risk exposure trend?"
 
 ---
 
@@ -1405,12 +1405,12 @@ The quantitative analysis capabilities — ML-based probability estimation and M
 
 ## How It Connects to Other Agents
 
-The Risk and Issue Management agent draws on scope, schedule, and financial data from **Agents 08, 10, and 12**. Risk status feeds into **Agent 09 — Lifecycle and Governance** for project health scoring and stage-gate assessments. The risk portfolio feeds into **Agent 22 — Analytics and Insights** for portfolio risk reporting. Risk-related compliance implications are surfaced to **Agent 16 — Compliance and Regulatory**. Budget risk data connects to **Agent 12 — Financial Management**.
+The Risk and Issue Management agent draws on scope, schedule, and financial data from **Agents 08, 10, and 12**. Risk status feeds into **The Lifecycle Governance agent — Lifecycle and Governance** for project health scoring and stage-gate assessments. The risk portfolio feeds into **The Analytics Insights agent — Analytics and Insights** for portfolio risk reporting. Risk-related compliance implications are surfaced to **The Compliance Governance agent — Compliance and Regulatory**. Budget risk data connects to **The Financial Management agent — Financial Management**.
 
 
 ---
 
-# Agent 16 — Compliance and Regulatory
+# the Compliance Governance agent — Compliance and Regulatory
 
 **Category:** Delivery Management
 **Role:** Regulatory Framework Manager and Compliance Monitor
@@ -1460,8 +1460,8 @@ The agent integrates with GRC systems — ServiceNow and RSA Archer — for orga
 - A compliance rule engine for automated assessment against evidence
 - GRC system integrations: ServiceNow, RSA Archer
 - Document management integration: SharePoint for evidence storage
-- Agent 03 — Approval Workflow for audit preparation and compliance approvals
-- Agent 09 — Lifecycle and Governance for gate compliance assessments
+- the Approval Workflow agent — Approval Workflow for audit preparation and compliance approvals
+- the Lifecycle Governance agent — Lifecycle and Governance for gate compliance assessments
 - The platform's immutable audit log as a compliance evidence source
 - The platform's event bus for compliance status events
 
@@ -1501,12 +1501,12 @@ For PwC-delivered programmes, this agent provides a ready-made compliance eviden
 
 ## How It Connects to Other Agents
 
-The Compliance and Regulatory agent draws evidence from the platform's immutable audit log, from quality test records from **Agent 14**, and from risk registers from **Agent 15**. Compliance gate assessments are provided to **Agent 09 — Lifecycle and Governance**. Release compliance clearance is provided to **Agent 18 — Release and Deployment**. Compliance posture data feeds into **Agent 22 — Analytics and Insights** for portfolio-level compliance reporting.
+The Compliance and Regulatory agent draws evidence from the platform's immutable audit log, from quality test records from **The Quality Management agent**, and from risk registers from **The Risk Management agent**. Compliance gate assessments are provided to **The Lifecycle Governance agent — Lifecycle and Governance**. Release compliance clearance is provided to **The Release Deployment agent — Release and Deployment**. Compliance posture data feeds into **The Analytics Insights agent — Analytics and Insights** for portfolio-level compliance reporting.
 
 
 ---
 
-# Agent 17 — Change and Configuration Management
+# the Change Control agent — Change and Configuration Management
 
 **Category:** Operations Management
 **Role:** Change Controller and Configuration Authority
@@ -1556,10 +1556,10 @@ Change workflows are persisted through Durable Functions or Logic Apps, ensuring
 - Neo4j dependency graph for impact propagation analysis
 - Impact model using linear regression trained on historical change data
 - Durable Functions and Logic Apps for workflow orchestration
-- Agent 03 — Approval Workflow for change approval routing
-- Agent 08 — Project Definition and Scope for scope baseline updates
-- Agent 10 — Schedule and Planning for schedule baseline updates
-- Agent 12 — Financial Management for budget baseline updates
+- the Approval Workflow agent — Approval Workflow for change approval routing
+- the Scope Definition agent — Project Definition and Scope for scope baseline updates
+- the Schedule Planning agent — Schedule and Planning for schedule baseline updates
+- the Financial Management agent — Financial Management for budget baseline updates
 - Azure Service Bus for change event publishing
 
 ---
@@ -1597,12 +1597,12 @@ The IaC change analysis capability is particularly valuable for technology progr
 
 ## How It Connects to Other Agents
 
-The Change and Configuration agent coordinates with **Agents 08, 10, and 12** to update scope, schedule, and budget baselines when changes are approved. It works closely with **Agent 09 — Lifecycle and Governance** to assess whether approved changes require a gate review. **Agent 18 — Release and Deployment** relies on its configuration record for deployment readiness assessments. **Agent 07 — Programme Management** uses it for programme-level change impact analysis.
+The Change and Configuration agent coordinates with **Agents 08, 10, and 12** to update scope, schedule, and budget baselines when changes are approved. It works closely with **The Lifecycle Governance agent — Lifecycle and Governance** to assess whether approved changes require a gate review. **The Release Deployment agent — Release and Deployment** relies on its configuration record for deployment readiness assessments. **The Program Management agent — Programme Management** uses it for programme-level change impact analysis.
 
 
 ---
 
-# Agent 18 — Release and Deployment
+# the Release Deployment agent — Release and Deployment
 
 **Category:** Operations Management
 **Role:** Release Coordinator and Deployment Orchestrator
@@ -1621,7 +1621,7 @@ For technology delivery programmes in particular, the release process is where m
 
 **It plans releases.** The agent manages a release calendar, coordinating multiple planned releases across projects and environments. It considers scheduling constraints — maintenance windows, blackout periods, dependencies on other releases — and recommends optimal deployment windows that minimise risk and disruption. Calendar integration ensures that release windows appear alongside other commitments.
 
-**It assesses release readiness.** Before a release can proceed, the agent performs a structured readiness assessment. It checks that all quality gate criteria have been met (from Agent 14), that all relevant change requests have been approved and incorporated (from Agent 17), that compliance clearance has been obtained (from Agent 16), that the target environment is available and correctly provisioned, and that the deployment plan has been reviewed and approved. Only when all readiness criteria are satisfied — a go/no-go decision — does the agent authorise the deployment to proceed.
+**It assesses release readiness.** Before a release can proceed, the agent performs a structured readiness assessment. It checks that all quality gate criteria have been met (from the Quality Management agent), that all relevant change requests have been approved and incorporated (from the Change Control agent), that compliance clearance has been obtained (from the Compliance Governance agent), that the target environment is available and correctly provisioned, and that the deployment plan has been reviewed and approved. Only when all readiness criteria are satisfied — a go/no-go decision — does the agent authorise the deployment to proceed.
 
 **It orchestrates deployments.** Once a deployment is approved to proceed, the agent manages its execution through a structured deployment plan. The plan defines the sequence of deployment steps, the verification checks at each step, the parties responsible for each action, and the conditions that would trigger a rollback. The agent monitors execution against the plan in real time, recording the outcome of each step.
 
@@ -1645,15 +1645,15 @@ The agent integrates with version control systems (GitHub, GitLab, Azure Repos) 
 
 ## What It Uses
 
-- Quality gate status from Agent 14 — Quality Management
-- Change approval records from Agent 17 — Change and Configuration Management
-- Compliance clearance from Agent 16 — Compliance and Regulatory
+- Quality gate status from the Quality Management agent — Quality Management
+- Change approval records from the Change Control agent — Change and Configuration Management
+- Compliance clearance from the Compliance Governance agent — Compliance and Regulatory
 - Repository integrations: GitHub, GitLab, Azure Repos
 - CI/CD pipeline integrations: Azure DevOps
 - Environment configuration and drift checking
 - Release calendar with maintenance window and blackout period rules
-- Agent 03 — Approval Workflow for deployment authorisation
-- Agent 25 — System Health and Monitoring for post-deployment health checks
+- the Approval Workflow agent — Approval Workflow for deployment authorisation
+- the System Health agent — System Health and Monitoring for post-deployment health checks
 
 ---
 
@@ -1688,12 +1688,12 @@ The rollback capability provides a safety net that gives teams the confidence to
 
 ## How It Connects to Other Agents
 
-The Release and Deployment agent is a consumer of quality, compliance, and change data from **Agents 14, 16, and 17**. Deployment success is monitored by **Agent 25 — System Health and Monitoring** post-deployment. Deployment events are recorded in the change log maintained by **Agent 17**. Release metrics feed into **Agent 20 — Continuous Improvement** for DevOps maturity analysis, and into **Agent 22 — Analytics and Insights** for portfolio-level delivery reporting.
+The Release and Deployment agent is a consumer of quality, compliance, and change data from **Agents 14, 16, and 17**. Deployment success is monitored by **The System Health agent — System Health and Monitoring** post-deployment. Deployment events are recorded in the change log maintained by **The Change Control agent**. Release metrics feed into **The Continuous Improvement agent — Continuous Improvement** for DevOps maturity analysis, and into **The Analytics Insights agent — Analytics and Insights** for portfolio-level delivery reporting.
 
 
 ---
 
-# Agent 19 — Knowledge and Document Management
+# the Knowledge Management agent — Knowledge and Document Management
 
 **Category:** Operations Management
 **Role:** Document Librarian and Knowledge Curator
@@ -1744,8 +1744,8 @@ A test suite for this agent verifies the accuracy of entity extraction, the qual
 - Vector-based similarity search for semantic search ranking
 - SQLite knowledge database for document storage and indexing
 - A curation workflow for formal document review and approval
-- Agent 21 — Stakeholder Communications as a consumer of document content for communications
-- Agent 22 — Analytics and Insights for knowledge base analytics
+- the Stakeholder Communications agent — Stakeholder Communications as a consumer of document content for communications
+- the Analytics Insights agent — Analytics and Insights for knowledge base analytics
 
 ---
 
@@ -1782,12 +1782,12 @@ The lessons learned capability in particular addresses a chronic weakness in pro
 
 ## How It Connects to Other Agents
 
-The Knowledge and Document Management agent receives documents from every other agent in the platform — charters from **Agent 08**, risk registers from **Agent 15**, quality plans from **Agent 14**, procurement records from **Agent 13**, and so on. It provides document content to **Agent 21 — Stakeholder Communications** for communications drafting and to **Agent 02 — Response Orchestration** for context enrichment. Its knowledge base feeds **Agent 20 — Continuous Improvement** with the lessons and process data needed for improvement analysis.
+The Knowledge and Document Management agent receives documents from every other agent in the platform — charters from **The Scope Definition agent**, risk registers from **The Risk Management agent**, quality plans from **The Quality Management agent**, procurement records from **The Vendor Procurement agent**, and so on. It provides document content to **The Stakeholder Communications agent — Stakeholder Communications** for communications drafting and to **The Response Orchestration agent — Response Orchestration** for context enrichment. Its knowledge base feeds **The Continuous Improvement agent — Continuous Improvement** with the lessons and process data needed for improvement analysis.
 
 
 ---
 
-# Agent 20 — Continuous Improvement and Process Mining
+# the Continuous Improvement agent — Continuous Improvement and Process Mining
 
 **Category:** Operations Management
 **Role:** Process Analyst and Improvement Engine
@@ -1834,13 +1834,13 @@ A test suite verifies the event ingestion logic, the accuracy of process discove
 
 - Event logs from the platform's audit trail and workflow engine
 - Process events from all domain agents
-- Analytics reports from Agent 22 — Analytics and Insights
-- The knowledge base from Agent 19 — Knowledge and Document Management for best practice recommendations
+- Analytics reports from the Analytics Insights agent — Analytics and Insights
+- The knowledge base from the Knowledge Management agent — Knowledge and Document Management for best practice recommendations
 - Process mining algorithms for model discovery and conformance checking
 - Waiting time analysis for bottleneck detection
 - Correlation analysis for root cause identification
 - Industry benchmark data for performance comparison
-- Agent 24 — Workflow Process Engine for improvement workflow automation
+- the Workflow Engine agent — Workflow Process Engine for improvement workflow automation
 
 ---
 
@@ -1877,12 +1877,12 @@ The process mining capability, in particular, provides a level of organisational
 
 ## How It Connects to Other Agents
 
-The Continuous Improvement agent ingests data from virtually every other agent via the audit log and event streams. It draws on knowledge from **Agent 19** for best practice comparisons and recommendations. Its findings feed into **Agent 22 — Analytics and Insights** for portfolio-level improvement reporting. Improvement workflow automation is handled by **Agent 24 — Workflow Process Engine**. Process improvement insights may trigger updates to methodology definitions, which are reflected in **Agent 09 — Lifecycle and Governance**.
+The Continuous Improvement agent ingests data from virtually every other agent via the audit log and event streams. It draws on knowledge from **The Knowledge Management agent** for best practice comparisons and recommendations. Its findings feed into **The Analytics Insights agent — Analytics and Insights** for portfolio-level improvement reporting. Improvement workflow automation is handled by **The Workflow Engine agent — Workflow Process Engine**. Process improvement insights may trigger updates to methodology definitions, which are reflected in **The Lifecycle Governance agent — Lifecycle and Governance**.
 
 
 ---
 
-# Agent 21 — Stakeholder Communications
+# the Stakeholder Communications agent — Stakeholder Communications
 
 **Category:** Operations Management
 **Role:** Communications Planner and Engagement Manager
@@ -1931,7 +1931,7 @@ A test suite verifies channel resolution logic, digest queue behaviour, template
 
 ## What It Uses
 
-- Stakeholder register from Agent 08 — Project Definition and Scope (initial population)
+- Stakeholder register from the Scope Definition agent — Project Definition and Scope (initial population)
 - Current project status data from multiple agents for message content
 - The platform's LLM gateway for message drafting and personalisation
 - Localised communication templates (English, French, and extensible to other languages)
@@ -1939,7 +1939,7 @@ A test suite verifies channel resolution logic, digest queue behaviour, template
 - Microsoft Calendar integration for event scheduling
 - Sentiment analysis for feedback processing
 - Salesforce CRM integration for stakeholder profile synchronisation
-- Agent 03 — Approval Workflow for communications that require sign-off before sending
+- the Approval Workflow agent — Approval Workflow for communications that require sign-off before sending
 - The notification service for outbound message delivery
 
 ---
@@ -1978,12 +1978,12 @@ The sentiment tracking and engagement metrics provide an early warning system fo
 
 ## How It Connects to Other Agents
 
-The Stakeholder Communications agent draws content from project data across the platform — health scores from **Agent 09**, financial data from **Agent 12**, risk updates from **Agent 15**, milestone data from **Agent 10**. It uses the knowledge base from **Agent 19** for context. Formal communications requiring approval are routed through **Agent 03 — Approval Workflow**. Engagement and sentiment data feeds into **Agent 22 — Analytics and Insights** for stakeholder health reporting.
+The Stakeholder Communications agent draws content from project data across the platform — health scores from **The Lifecycle Governance agent**, financial data from **The Financial Management agent**, risk updates from **The Risk Management agent**, milestone data from **The Schedule Planning agent**. It uses the knowledge base from **The Knowledge Management agent** for context. Formal communications requiring approval are routed through **The Approval Workflow agent — Approval Workflow**. Engagement and sentiment data feeds into **The Analytics Insights agent — Analytics and Insights** for stakeholder health reporting.
 
 
 ---
 
-# Agent 22 — Analytics and Insights
+# the Analytics Insights agent — Analytics and Insights
 
 **Category:** Operations Management
 **Role:** Portfolio Intelligence and Reporting Engine
@@ -2038,9 +2038,9 @@ KPI computation is event-driven for real-time metrics and batch-processed for pe
 - Azure ML for predictive KPI models
 - Power BI Embedded for rich dashboard visualisation
 - The platform's LLM gateway for narrative generation and NL query
-- Agent 09 — Lifecycle and Governance for project health data
-- Agent 12 — Financial Management for financial performance data
-- Agent 25 — System Health and Monitoring for platform operational data
+- the Lifecycle Governance agent — Lifecycle and Governance for project health data
+- the Financial Management agent — Financial Management for financial performance data
+- the System Health agent — System Health and Monitoring for platform operational data
 
 ---
 
@@ -2078,12 +2078,12 @@ The natural language query capability means that executives do not need to learn
 
 ## How It Connects to Other Agents
 
-The Analytics and Insights agent is a consumer of data from every other agent in the platform. It has a particularly close relationship with **Agent 09** (project health), **Agent 12** (financial performance), **Agent 15** (risk exposure), and **Agent 25** (platform operational health). It provides data and dashboards back to the platform's UI layer and supports **Agent 21 — Stakeholder Communications** with the performance data needed to produce communications.
+The Analytics and Insights agent is a consumer of data from every other agent in the platform. It has a particularly close relationship with **The Lifecycle Governance agent** (project health), **The Financial Management agent** (financial performance), **The Risk Management agent** (risk exposure), and **The System Health agent** (platform operational health). It provides data and dashboards back to the platform's UI layer and supports **The Stakeholder Communications agent — Stakeholder Communications** with the performance data needed to produce communications.
 
 
 ---
 
-# Agent 23 — Data Synchronisation and Quality
+# the Data Synchronisation agent — Data Synchronisation and Quality
 
 **Category:** Operations Management
 **Role:** Data Integrity Guardian and Sync Coordinator
@@ -2138,7 +2138,7 @@ The agent uses rapidfuzz for fuzzy matching in duplicate detection, providing pr
 - Azure Cosmos DB and SQL for data storage
 - Azure Log Analytics for sync monitoring and telemetry
 - rapidfuzz for duplicate detection via fuzzy matching
-- Agent 22 — Analytics and Insights for data quality reporting
+- the Analytics Insights agent — Analytics and Insights for data quality reporting
 
 ---
 
@@ -2176,12 +2176,12 @@ For organisations that have invested in multiple PPM, ERP, and collaboration sys
 
 ## How It Connects to Other Agents
 
-The Data Synchronisation and Quality agent is a foundational service that supports every other agent in the platform by maintaining the data quality of the shared data store. It publishes quality metrics to **Agent 22 — Analytics and Insights** for reporting. Quality threshold breaches may trigger remediation workflows managed by **Agent 24 — Workflow Process Engine**. Lineage data maintained by this agent supports the compliance evidence managed by **Agent 16 — Compliance and Regulatory**.
+The Data Synchronisation and Quality agent is a foundational service that supports every other agent in the platform by maintaining the data quality of the shared data store. It publishes quality metrics to **The Analytics Insights agent — Analytics and Insights** for reporting. Quality threshold breaches may trigger remediation workflows managed by **The Workflow Engine agent — Workflow Process Engine**. Lineage data maintained by this agent supports the compliance evidence managed by **The Compliance Governance agent — Compliance and Regulatory**.
 
 
 ---
 
-# Agent 24 — Workflow and Process Engine
+# the Workflow Engine agent — Workflow and Process Engine
 
 **Category:** Operations Management
 **Role:** Process Automation Coordinator
@@ -2212,7 +2212,7 @@ While the Approval Workflow agent manages the specific pattern of routing a deci
 
 **It supports workflow versioning.** As business processes evolve, workflow definitions are updated and versioned. The engine maintains a version history for each workflow definition, ensuring that in-flight instances continue on the version they were started with while new instances use the current version.
 
-**It provides monitoring and reporting.** For each workflow definition, the engine tracks instance counts, success rates, average execution time, and step-level performance metrics. This data is accessible through the workflow monitoring view and feeds into the continuous improvement analysis managed by Agent 20.
+**It provides monitoring and reporting.** For each workflow definition, the engine tracks instance counts, success rates, average execution time, and step-level performance metrics. This data is accessible through the workflow monitoring view and feeds into the continuous improvement analysis managed by the Continuous Improvement agent.
 
 ---
 
@@ -2233,10 +2233,10 @@ The event subscription system uses deterministic criteria matching — evaluatin
 - Azure Monitor and Azure Event Grid for event integration
 - Azure Service Bus for event publishing
 - Task dependency graph with cycle detection
-- Agent 03 — Approval Workflow for approval-type steps
-- Agent 17 — Change and Configuration Management for change-triggered workflows
-- Agent 20 — Continuous Improvement for process performance analysis
-- Agent 23 — Data Synchronisation and Quality for sync retry workflows
+- the Approval Workflow agent — Approval Workflow for approval-type steps
+- the Change Control agent — Change and Configuration Management for change-triggered workflows
+- the Continuous Improvement agent — Continuous Improvement for process performance analysis
+- the Data Synchronisation agent — Data Synchronisation and Quality for sync retry workflows
 
 ---
 
@@ -2273,12 +2273,12 @@ The event-driven architecture means that workflows respond intelligently to what
 
 ## How It Connects to Other Agents
 
-The Workflow and Process Engine is used by virtually every other agent in the platform to automate multi-step processes. **Agent 03 — Approval Workflow** uses it for complex approval chains. **Agent 17 — Change and Configuration Management** triggers change workflows through it. **Agent 23 — Data Synchronisation and Quality** uses it to manage sync retry workflows. **Agent 20 — Continuous Improvement** analyses its execution data for process mining. **Agent 18 — Release and Deployment** uses it to orchestrate deployment workflows.
+The Workflow and Process Engine is used by virtually every other agent in the platform to automate multi-step processes. **The Approval Workflow agent — Approval Workflow** uses it for complex approval chains. **The Change Control agent — Change and Configuration Management** triggers change workflows through it. **The Data Synchronisation agent — Data Synchronisation and Quality** uses it to manage sync retry workflows. **The Continuous Improvement agent — Continuous Improvement** analyses its execution data for process mining. **The Release Deployment agent — Release and Deployment** uses it to orchestrate deployment workflows.
 
 
 ---
 
-# Agent 25 — System Health and Monitoring
+# the System Health agent — System Health and Monitoring
 
 **Category:** Operations Management
 **Role:** Platform Reliability Guardian
@@ -2363,7 +2363,7 @@ The **Performance Dashboard** page in the platform provides the operations-facin
 
 Alerts surface in the platform's **Notification Centre** and are pushed to the configured on-call channels (PagerDuty, OpsGenie). Incident status is visible through the platform's admin console.
 
-The pre-deployment environment check integrates with **Agent 18 — Release and Deployment**, appearing as a readiness criterion in the deployment approval workflow. A failed environment health check blocks the deployment and displays the specific issues that need to be resolved.
+The pre-deployment environment check integrates with **The Release Deployment agent — Release and Deployment**, appearing as a readiness criterion in the deployment approval workflow. A failed environment health check blocks the deployment and displays the specific issues that need to be resolved.
 
 ---
 
@@ -2377,4 +2377,4 @@ The SLO monitoring capability, in particular, shifts the operations posture from
 
 ## How It Connects to Other Agents
 
-The System Health and Monitoring agent is the operational guardian for the entire platform, so it connects to every other agent indirectly through its health monitoring. Directly, it provides pre-deployment environment health checks to **Agent 18 — Release and Deployment**, publishes platform health data to **Agent 22 — Analytics and Insights** for operational reporting, and records incidents in ServiceNow alongside the compliance evidence managed by **Agent 16 — Compliance and Regulatory**. Operational metrics feed into the continuous improvement analysis managed by **Agent 20 — Continuous Improvement and Process Mining**.
+The System Health and Monitoring agent is the operational guardian for the entire platform, so it connects to every other agent indirectly through its health monitoring. Directly, it provides pre-deployment environment health checks to **The Release Deployment agent — Release and Deployment**, publishes platform health data to **The Analytics Insights agent — Analytics and Insights** for operational reporting, and records incidents in ServiceNow alongside the compliance evidence managed by **The Compliance Governance agent — Compliance and Regulatory**. Operational metrics feed into the continuous improvement analysis managed by **The Continuous Improvement agent — Continuous Improvement and Process Mining**.

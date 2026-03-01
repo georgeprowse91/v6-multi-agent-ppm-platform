@@ -1,8 +1,8 @@
-# Agent 11: Resource Capacity Specification
+# Resource Capacity Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 11: Resource Capacity. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Resource Capacity. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -69,15 +69,15 @@ If any check fails, return a validation error and do not persist or publish allo
 
 ## Overlap & handoff boundaries (Agents 10 & 12)
 
-### Agent 10 (Schedule Planning)
+### the Schedule Planning agent (Schedule Planning)
 **Overlap:** Resource-constrained scheduling, allocation feasibility, and calendar-aware planning.  
-**Handoff boundary:** Agent 11 owns resource availability, allocation validation, and utilization. Agent 10 owns schedule creation, dependency mapping, critical path, and baseline management.  
-**Integration expectation:** Agent 10 consumes allocation events (`resource.allocation.created`) and availability data (`get_availability`) rather than revalidating or mutating allocations.
+**Handoff boundary:** the Resource Management agent owns resource availability, allocation validation, and utilization. the Schedule Planning agent owns schedule creation, dependency mapping, critical path, and baseline management.  
+**Integration expectation:** the Schedule Planning agent consumes allocation events (`resource.allocation.created`) and availability data (`get_availability`) rather than revalidating or mutating allocations.
 
-### Agent 12 (Financial Management)
+### the Financial Management agent (Financial Management)
 **Overlap:** Labor cost implications, forecast inputs, and resource cost rates.  
-**Handoff boundary:** Agent 11 provides allocation/capacity facts and cost rates per resource; Agent 12 owns budgeting, cost tracking, and financial forecasting/variance analysis.  
-**Integration expectation:** Agent 12 should treat Agent 11 as the system of record for allocations and resource availability, and request updates via `get_utilization`, `forecast_capacity`, or allocation events.
+**Handoff boundary:** the Resource Management agent provides allocation/capacity facts and cost rates per resource; the Financial Management agent owns budgeting, cost tracking, and financial forecasting/variance analysis.  
+**Integration expectation:** the Financial Management agent should treat the Resource Management agent as the system of record for allocations and resource availability, and request updates via `get_utilization`, `forecast_capacity`, or allocation events.
 
 ## Gaps, inconsistencies, and alignment requirements
 

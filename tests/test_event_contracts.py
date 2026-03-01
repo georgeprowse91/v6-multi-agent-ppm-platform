@@ -177,7 +177,7 @@ def test_audit_event_validate() -> None:
             "action": "policy.evaluated",
             "outcome": "success",
             "classification": "internal",
-            "actor": {"id": "agent-1", "type": "service", "roles": []},
+            "actor": {"id": "test-agent-alpha", "type": "service", "roles": []},
             "resource": {"id": "policy-bundle", "type": "policy_bundle"},
             "metadata": {"decision": "allow"},
             "trace_id": "trace-1",

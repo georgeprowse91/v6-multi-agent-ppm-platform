@@ -1,8 +1,8 @@
-# Agent 08: Project Definition Scope Specification
+# Project Definition Scope Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 08: Project Definition Scope. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Project Definition Scope. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -34,11 +34,11 @@ Agent runtime configuration is centralized in `.env` (see `ops/config/.env.examp
 
 For optional external scope research, set `SEARCH_API_ENDPOINT` and `SEARCH_API_KEY`, and enable the agent flag `enable_external_research` in project configuration to allow outbound queries.
 
-## Scope baseline (Agent 08)
+## Scope baseline (The Scope Definition agent)
 
 ### Intended scope
 
-Agent 08 owns project definition artifacts through the approved scope baseline. It is responsible for creating and maintaining:
+The Scope Definition agent owns project definition artifacts through the approved scope baseline. It is responsible for creating and maintaining:
 
 - Project charter (business case, objectives, high-level constraints, success criteria).
 - Scope statement (in/out of scope, deliverables).
@@ -88,14 +88,14 @@ Must not:
 
 ### Overlap / leakage risks
 
-- **Agent 10 (Schedule Planning):** WBS output can overlap with schedule work packages. Agent 08 must stop at scope/WBS definition and avoid sequencing, durations, or dependency calculations.
-- **Agent 11 (Resource Capacity):** RACI and stakeholder inputs can overlap with resource staffing. Agent 08 must not assign named resources or capacity commitments.
+- **The Schedule Planning agent (Schedule Planning):** WBS output can overlap with schedule work packages. the Scope Definition agent must stop at scope/WBS definition and avoid sequencing, durations, or dependency calculations.
+- **The Resource Management agent (Resource Capacity):** RACI and stakeholder inputs can overlap with resource staffing. the Scope Definition agent must not assign named resources or capacity commitments.
 
 ### Handoff boundaries
 
-- **To Agent 10:** Provide WBS, scope baseline, and requirements traceability as inputs for activity definition, dependency mapping, and schedule development.
-- **To Agent 11:** Provide RACI roles, stakeholder register, and WBS deliverables as inputs for role-based capacity planning and allocation constraints.
-- **From Agent 09 (Lifecycle Governance):** Receive approved baseline flags and governance gates before freezing scope.
+- **To the Schedule Planning agent:** Provide WBS, scope baseline, and requirements traceability as inputs for activity definition, dependency mapping, and schedule development.
+- **To the Resource Management agent:** Provide RACI roles, stakeholder register, and WBS deliverables as inputs for role-based capacity planning and allocation constraints.
+- **From the Lifecycle Governance agent (Lifecycle Governance):** Receive approved baseline flags and governance gates before freezing scope.
 
 ## Functional gaps & alignment checklist
 
@@ -115,11 +115,11 @@ Must not:
 
 **Upstream dependencies**
 - Project initiation context (sponsor, objectives, methodology).
-- Governance approvals from Agent 09 for baseline freezing.
+- Governance approvals from the Lifecycle Governance agent for baseline freezing.
 
 **Downstream dependencies**
-- Agent 10 consumes WBS + baseline scope for schedule planning.
-- Agent 11 consumes RACI roles + deliverables for capacity planning.
+- the Schedule Planning agent consumes WBS + baseline scope for schedule planning.
+- the Resource Management agent consumes RACI roles + deliverables for capacity planning.
 
 **Critical gating artifact**
 - Scope baseline snapshot + approval status (must exist before schedule/resource planning).
@@ -127,7 +127,7 @@ Must not:
 
 ### Baseline repository and traceability matrix
 
-Agent 08 now persists scope baselines in a SQL-backed repository (`services/scope_baseline`) using SQLAlchemy. By default it uses SQLite at `data/scope_baselines.db`, and can be overridden with `SCOPE_BASELINE_DB_URL`.
+The Scope Definition agent now persists scope baselines in a SQL-backed repository (`services/scope_baseline`) using SQLAlchemy. By default it uses SQLite at `data/scope_baselines.db`, and can be overridden with `SCOPE_BASELINE_DB_URL`.
 
 Key operations:
 

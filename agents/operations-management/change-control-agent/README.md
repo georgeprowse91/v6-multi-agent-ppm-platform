@@ -1,8 +1,8 @@
-# Agent 17: Change Configuration Specification
+# Change Configuration Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 17: Change Configuration. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Change Configuration. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -98,7 +98,7 @@ Example payload:
 
 ## Scope validation
 
-### Intended scope (what Agent 17 owns)
+### Intended scope (what the Change Control agent owns)
 
 - Change request intake, classification, and risk/impact assessment.
 - Approval workflow coordination and auditing.
@@ -122,7 +122,7 @@ Example payload:
 ### Decision responsibilities
 
 - **Must decide**: change classification, approval routing, approval requirement, risk/impact recommendations, and whether to proceed/roll back based on staging/tests.
-- **Must not decide**: final deployment scheduling mechanics (delegated to Agent 18), workflow orchestration definition/templating (delegated to Agent 24), or approval policy governance beyond configured thresholds.
+- **Must not decide**: final deployment scheduling mechanics (delegated to the Release Deployment agent), workflow orchestration definition/templating (delegated to the Workflow Engine agent), or approval policy governance beyond configured thresholds.
 
 ### Must / must-not behaviors
 
@@ -139,36 +139,36 @@ Example payload:
 
 ## Overlap analysis and handoff boundaries
 
-### Agent 18: Release Deployment
+### Release Deployment
 
 **Potential overlap**
 - Change implementation and deployment coordination are adjacent to release orchestration.
 
 **Handoff boundary**
-- Agent 17 **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`).
-- Agent 18 **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.
+- the Change Control agent **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`).
+- the Release Deployment agent **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.
 
-### Agent 24: Workflow Process Engine
+### Workflow Process Engine
 
 **Potential overlap**
-- Both handle workflow orchestration; Agent 17 builds a change workflow instance.
+- Both handle workflow orchestration; the Change Control agent builds a change workflow instance.
 
 **Handoff boundary**
-- Agent 17 **requests** workflow creation and manages change state; Agent 24 **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence.
+- the Change Control agent **requests** workflow creation and manages change state; the Workflow Engine agent **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence.
 
 ## Gaps, inconsistencies, and alignment requirements
 
-- **Workflow orchestration alignment**: Agent 17 uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while Agent 24 defines workflow specs/templates. Align on a shared workflow schema and ensure Agent 17 payloads conform to the templates/versions maintained by Agent 24.
-- **Deployment status contract**: Agent 17 expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with Agent 18, including intermediate states (queued, in-progress, rolled-back).
-- **Approval policy governance**: Agent 17 uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.
-- **Event taxonomy**: Agent 17 emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by Agents 18 and 24.
+- **Workflow orchestration alignment**: the Change Control agent uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while the Workflow Engine agent defines workflow specs/templates. Align on a shared workflow schema and ensure the Change Control agent payloads conform to the templates/versions maintained by the Workflow Engine agent.
+- **Deployment status contract**: the Change Control agent expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with the Release Deployment agent, including intermediate states (queued, in-progress, rolled-back).
+- **Approval policy governance**: the Change Control agent uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.
+- **Event taxonomy**: the Change Control agent emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by Agents 18 and 24.
 - **Connector/UI alignment**: Ensure UI fields for change intake map to the expected input keys (`repo_provider`, `repo_slug`, IaC paths) and that connectors (ITSM, repo APIs, Service Bus) are configured consistently across environments.
 
 ### Checkpoint: change control handoffs
 
-- Agent 17 submits change workflows (creates/updates change state).
-- Agent 24 runs and governs workflow definitions/execution.
-- Agent 18 executes deployment and reports status.
+- the Change Control agent submits change workflows (creates/updates change state).
+- the Workflow Engine agent runs and governs workflow definitions/execution.
+- the Release Deployment agent executes deployment and reports status.
 
 ## Troubleshooting
 

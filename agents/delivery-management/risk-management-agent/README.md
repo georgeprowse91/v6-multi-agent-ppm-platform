@@ -1,8 +1,8 @@
-# Agent 15: Risk Issue Management Specification
+# Risk Issue Management Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 15: Risk Issue Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Risk Issue Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Scope, intent, and decision rights
 
@@ -37,24 +37,24 @@ Define the responsibilities, workflows, and integration points for Agent 15: Ris
 - Must capture source/provenance for extracted risks (connector, doc, model).
 - Must emit event updates when risk status, scoring, or triggers change materially.
 - Must not change project scope, schedule baselines, or financial forecasts directly (handoff to Agents 09/10/12).
-- Must not triage or close defects directly (handoff to Agent 14).
-- Must not approve compliance exceptions (handoff to Agent 16).
+- Must not triage or close defects directly (handoff to the Quality Management agent).
+- Must not approve compliance exceptions (handoff to the Compliance Governance agent).
 
 ## Overlap and handoff boundaries
 
-### Agent 14: Quality Management
+### Quality Management
 - Overlap: quality defects, test failures, and quality KPIs are risk signals.
-- Handoff boundary: Agent 14 owns defect triage and quality remediation. Agent 15 only interprets those signals to update risk scores, create risk entries, and trigger escalation when thresholds are exceeded.
+- Handoff boundary: the Quality Management agent owns defect triage and quality remediation. the Risk Management agent only interprets those signals to update risk scores, create risk entries, and trigger escalation when thresholds are exceeded.
 - Required interface: structured quality signals (defect rate, severity, trend) and QA milestone outcomes.
 
-### Agent 09: Lifecycle Governance
+### Lifecycle Governance
 - Overlap: project health and governance escalations depend on risk status.
-- Handoff boundary: Agent 09 owns phase-gate decisions and portfolio health reporting. Agent 15 supplies risk status, trigger events, and mitigation readiness for inclusion in governance scorecards.
+- Handoff boundary: the Lifecycle Governance agent owns phase-gate decisions and portfolio health reporting. the Risk Management agent supplies risk status, trigger events, and mitigation readiness for inclusion in governance scorecards.
 - Required interface: governance receives `risk.triggered`/`risk.updated` events and risk summaries per project/portfolio.
 
 ## Gaps, inconsistencies, and alignment needs
 
-- Escalation taxonomy: ensure event names and severity labels are consistent with the governance event catalog so Agent 09 can consume them without translation.
+- Escalation taxonomy: ensure event names and severity labels are consistent with the governance event catalog so the Lifecycle Governance agent can consume them without translation.
 - Issue vs. risk distinction: clarify in UI/templates when an item is a realized issue versus a potential risk; current implementation emphasizes risks and may need explicit “issue” status mapping.
 - Connector alignment: PM connectors use heterogeneous fields (priority/severity/labels). Normalize into a shared risk signal schema for UI and reporting consistency.
 - Mitigation ownership: mitigation plans are stored but require explicit ownership/approval workflow; align with governance templates for accountability and follow-through.
@@ -63,10 +63,10 @@ Define the responsibilities, workflows, and integration points for Agent 15: Ris
 
 | Trigger type | Threshold signal | Risk action | Escalation event | Governance handoff |
 | --- | --- | --- | --- | --- |
-| Cost overrun | overrun_pct ≥ threshold | increase score, update status | `risk.triggered` | Agent 09 updates health/phase gating |
-| Schedule delay | delay_days ≥ threshold | increase score, update status | `risk.triggered` | Agent 09 updates health/phase gating |
-| Quality defect rate | defect_rate ≥ threshold | increase score, update status | `risk.triggered` | Agent 14 notified; Agent 09 consumes summary |
-| Resource utilization | utilization ≥ threshold | increase score, update status | `risk.triggered` | Agent 11 notified; Agent 09 consumes summary |
+| Cost overrun | overrun_pct ≥ threshold | increase score, update status | `risk.triggered` | the Lifecycle Governance agent updates health/phase gating |
+| Schedule delay | delay_days ≥ threshold | increase score, update status | `risk.triggered` | the Lifecycle Governance agent updates health/phase gating |
+| Quality defect rate | defect_rate ≥ threshold | increase score, update status | `risk.triggered` | the Quality Management agent notified; the Lifecycle Governance agent consumes summary |
+| Resource utilization | utilization ≥ threshold | increase score, update status | `risk.triggered` | the Resource Management agent notified; the Lifecycle Governance agent consumes summary |
 | High risk score | score ≥ high_risk_threshold | flag as high severity | `risk.updated` | Governance escalation workflow |
 
 ## What's inside

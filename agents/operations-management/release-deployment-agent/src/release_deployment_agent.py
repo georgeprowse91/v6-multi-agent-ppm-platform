@@ -1,5 +1,5 @@
 """
-Agent 18: Release & Deployment Agent
+Release & Deployment Agent
 
 Purpose:
 Manages the planning, coordination and execution of software and project deliverable releases

@@ -1,5 +1,5 @@
 """
-Agent 16: Compliance & Regulatory Agent
+Compliance & Regulatory Agent
 
 Purpose:
 Ensures projects, programs and portfolios adhere to internal policies, external regulations

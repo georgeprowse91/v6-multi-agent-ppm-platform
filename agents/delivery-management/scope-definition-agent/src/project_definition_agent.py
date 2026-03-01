@@ -1,5 +1,5 @@
 """
-Agent 8: Project Definition & Scope Agent
+Project Definition & Scope Agent
 
 Purpose:
 Establishes foundational artifacts for a project including project charter, scope statement,

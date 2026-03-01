@@ -32,13 +32,13 @@ This document provides a comprehensive architectural critique of the Multi-Agent
 
 **1.2.1 - No Agent Versioning or Canary Deployment Model**
 
-Agents are loaded as singletons at startup without any concept of versioning. If Agent-05 (Business Case) is updated with a new ROI calculation formula, there is no mechanism to run old and new versions side-by-side, perform A/B testing, or gradually roll out changes. The agent catalog in `agents/runtime/src/agent_catalog.py` maps static IDs to agents with no version field.
+Agents are loaded as singletons at startup without any concept of versioning. If the Business Case agent (Business Case) is updated with a new ROI calculation formula, there is no mechanism to run old and new versions side-by-side, perform A/B testing, or gradually roll out changes. The agent catalog in `agents/runtime/src/agent_catalog.py` maps static IDs to agents with no version field.
 
 *Recommendation:* Add a `version` field to the agent catalog and support routing a percentage of traffic to specific agent versions. This enables canary releases and rollbacks without full redeployments.
 
 **1.2.2 - Tight Coupling Between Orchestrator and Agent Instances**
 
-The `AgentTask` dataclass (`orchestrator.py:54-58`) holds a direct reference to a `BaseAgent` instance. This means the orchestrator can only invoke agents that are co-located in the same process. The Response Orchestration Agent (Agent-02) addresses this partially with HTTP invocation, but the core `Orchestrator` class itself cannot natively dispatch to remote agents.
+The `AgentTask` dataclass (`orchestrator.py:54-58`) holds a direct reference to a `BaseAgent` instance. This means the orchestrator can only invoke agents that are co-located in the same process. The Response Orchestration Agent (The Response Orchestration agent) addresses this partially with HTTP invocation, but the core `Orchestrator` class itself cannot natively dispatch to remote agents.
 
 *Recommendation:* Introduce an `AgentProxy` abstraction that the orchestrator uses instead of direct `BaseAgent` references. An `AgentProxy` can resolve to a local instance, an HTTP endpoint, or an event bus topic, making the orchestration engine deployment-topology agnostic.
 
@@ -79,7 +79,7 @@ The `get_event_bus()` function (`packages/event-bus/src/event_bus/__init__.py:15
 
 **2.2.2 - No Event Schema Registry or Versioning**
 
-Event payloads are untyped `dict[str, Any]`. There is no schema registry, no schema evolution strategy, and no backward compatibility guarantees. If Agent-03 changes the shape of `approval.created` events, consumers silently break.
+Event payloads are untyped `dict[str, Any]`. There is no schema registry, no schema evolution strategy, and no backward compatibility guarantees. If the Approval Workflow agent changes the shape of `approval.created` events, consumers silently break.
 
 *Recommendation:* Define Pydantic models for all event payloads (e.g., `ApprovalCreatedEvent`, `TaskCompletedEvent`). Publish events through a typed helper that validates the payload against the model before sending. Version the event schemas and include a `schema_version` field in every published event.
 
@@ -208,7 +208,7 @@ The `ConnectorConfig` dataclass (`base_connector.py:109-252`) stores `mcp_client
 
 Connectors have a `test_connection()` method, but it's only invoked on-demand. There is no periodic health check that proactively detects when an external system becomes unreachable, or when OAuth tokens expire.
 
-*Recommendation:* Implement a background health-check scheduler that periodically calls `test_connection()` on all enabled connectors and updates their `health_status` field. Surface unhealthy connectors through the monitoring dashboard and Agent-25 (System Health).
+*Recommendation:* Implement a background health-check scheduler that periodically calls `test_connection()` on all enabled connectors and updates their `health_status` field. Surface unhealthy connectors through the monitoring dashboard and the System Health agent (System Health).
 
 **5.2.4 - No Rate Limiting for Outbound Connector Calls**
 
@@ -231,13 +231,13 @@ Connectors make outbound HTTP calls to external systems (Jira, Azure DevOps, SAP
 
 **6.2.1 - Circuit Breaker State is In-Memory Per Instance**
 
-The circuit breaker in Agent-02 tracks `failure_counts` in instance memory. In a multi-replica deployment, each pod maintains its own circuit breaker state. One pod may have an open circuit while others continue sending requests to the failing agent.
+The circuit breaker in the Response Orchestration agent tracks `failure_counts` in instance memory. In a multi-replica deployment, each pod maintains its own circuit breaker state. One pod may have an open circuit while others continue sending requests to the failing agent.
 
 *Recommendation:* Share circuit breaker state in Redis so all replicas have a consistent view of agent health. Alternatively, use the health check infrastructure to centrally track agent availability.
 
 **6.2.2 - No Graceful Degradation Strategy**
 
-When an agent fails, the orchestrator records the failure and moves on. But there is no defined degradation strategy - for example, if Agent-22 (Analytics) is unavailable, the system could still return partial results from other agents rather than failing the entire orchestration.
+When an agent fails, the orchestrator records the failure and moves on. But there is no defined degradation strategy - for example, if the Analytics Insights agent (Analytics) is unavailable, the system could still return partial results from other agents rather than failing the entire orchestration.
 
 *Recommendation:* Define per-agent criticality levels (critical, important, optional). The orchestrator should require critical agents to succeed, warn on important agent failures, and silently skip optional agents. This allows the system to provide partial results rather than total failure.
 

@@ -1,8 +1,8 @@
-# Agent 13: Vendor Procurement Specification
+# Vendor Procurement Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 13: Vendor Procurement. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Vendor Procurement. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 

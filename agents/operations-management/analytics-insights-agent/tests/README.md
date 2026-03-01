@@ -1,8 +1,8 @@
-# Agent 22: Analytics Insights Tests
+# Analytics Insights Tests
 
 ## Purpose
 
-Hold test assets for Agent 22: Analytics Insights to validate prompts, policies, and orchestration behavior.
+Hold test assets for Analytics Insights to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

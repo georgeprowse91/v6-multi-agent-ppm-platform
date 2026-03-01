@@ -1,5 +1,5 @@
 """
-Agent 2: Response Orchestration Agent
+Response Orchestration Agent
 
 Purpose:
 Coordinates multi-agent queries, manages parallel/sequential execution,

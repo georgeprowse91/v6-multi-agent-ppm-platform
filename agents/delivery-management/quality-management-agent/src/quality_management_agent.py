@@ -1,5 +1,5 @@
 """
-Agent 14: Quality Management Agent
+Quality Management Agent
 
 Purpose:
 Ensures deliverables meet defined quality standards and satisfy stakeholder expectations.

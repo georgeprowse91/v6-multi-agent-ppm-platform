@@ -407,7 +407,7 @@ export const useAgentConfigStore = create<AgentConfigStoreState>((set, get) => (
 export function getMockAgents(): AgentConfig[] {
   return [
     {
-      catalog_id: 'agent-01-intent-router',
+      catalog_id: 'intent-router-agent',
       agent_id: 'intent-router',
       display_name: 'Intent Router',
       description: 'Routes user queries to appropriate specialized agents',
@@ -417,7 +417,7 @@ export function getMockAgents(): AgentConfig[] {
       parameters: [],
     },
     {
-      catalog_id: 'agent-10-schedule-planning',
+      catalog_id: 'schedule-planning-agent',
       agent_id: 'schedule-planning',
       display_name: 'Schedule & Planning',
       description: 'Manages project schedules, timelines, and critical path analysis',
@@ -450,7 +450,7 @@ export function getMockAgents(): AgentConfig[] {
       ],
     },
     {
-      catalog_id: 'agent-12-financial-management',
+      catalog_id: 'financial-management-agent',
       agent_id: 'financial-management',
       display_name: 'Financial Management',
       description: 'Manages project finances, budgets, forecasts, and cost tracking',
@@ -482,8 +482,8 @@ export function getMockAgents(): AgentConfig[] {
       ],
     },
     {
-      catalog_id: 'agent-15-risk-issue-management',
-      agent_id: 'agent_015',
+      catalog_id: 'risk-management-agent',
+      agent_id: 'risk-management-agent',
       display_name: 'Risk & Issue Management',
       description: 'Identifies, assesses, and manages project risks and issues',
       category: 'operations',

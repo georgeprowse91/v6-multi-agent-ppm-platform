@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Continuous improvement is a core principle of the multi‑agent PPM platform:** data insights and lessons learned feed back into process optimisation, product evolution and organisational learning. This document outlines a structured framework for gathering feedback, analysing performance, identifying improvement opportunities and implementing changes in a controlled manner. It leverages the Continuous Improvement & Process Mining Agent (Agent 20) and the Knowledge & Document Management Agent (Agent 19) to create a virtuous cycle of learning and refinement.
+**Continuous improvement is a core principle of the multi‑agent PPM platform:** data insights and lessons learned feed back into process optimisation, product evolution and organisational learning. This document outlines a structured framework for gathering feedback, analysing performance, identifying improvement opportunities and implementing changes in a controlled manner. It leverages the Continuous Improvement & Process Mining Agent (The Continuous Improvement agent) and the Knowledge & Document Management Agent (The Knowledge Management agent) to create a virtuous cycle of learning and refinement.
 
 ## Guiding Principles
 
@@ -42,7 +42,7 @@ The Continuous Improvement & Process Mining Agent uses event logs, trace data an
 
 **Validate & Measure:** define success metrics (e.g., reduction in cycle time, improvement in on‑time delivery, adoption rate). Monitor performance through dashboards and analytics tools. Conduct user surveys and focus groups.
 
-**Document & Share:** capture lessons learned, including what worked and what didn’t. Update knowledge bases via Agent 19 (Knowledge & Document Management) to ensure organisational learning.
+**Document & Share:** capture lessons learned, including what worked and what didn’t. Update knowledge bases via the Knowledge Management agent (Knowledge & Document Management) to ensure organisational learning.
 
 **Repeat:** feed results back into the backlog, closing the loop.
 

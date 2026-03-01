@@ -6,7 +6,7 @@ Define how the platform collects logs, metrics, and traces, and document the pro
 
 ## Architecture-level context
 
-Observability spans the API gateway, orchestration runtime, and connector layer. Telemetry feeds the System Health agent (Agent 25) and the Continuous Improvement agent (Agent 20) so they can detect degradations and drive improvements.
+Observability spans the API gateway, orchestration runtime, and connector layer. Telemetry feeds the System Health agent (The System Health agent) and the Continuous Improvement agent (The Continuous Improvement agent) so they can detect degradations and drive improvements.
 
 ## Telemetry standards
 

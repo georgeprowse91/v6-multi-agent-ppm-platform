@@ -1,8 +1,8 @@
-# Agent 25: System Health Monitoring Specification
+# System Health Monitoring Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 25: System Health Monitoring. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for System Health Monitoring. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 

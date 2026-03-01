@@ -4,7 +4,7 @@ import { ConfigPage } from './ConfigPage';
 
 const mockAgents = [
   {
-    catalog_id: 'agent-1',
+    catalog_id: 'intent-router-agent',
     agent_id: 'intent-router',
     display_name: 'Intent Router',
     description: 'Routes user intent.',

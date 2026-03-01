@@ -35,7 +35,7 @@ python -m tools.agent_runner list-agents
 ## Agent metadata generation
 
 The agent catalog markdown and the web UI metadata JSON are generated from the
-individual agent README files. After editing any `agents/**/agent-*/README.md`,
+individual agent README files. After editing any `agents/**/*-agent/README.md`,
 refresh the outputs with:
 
 ```bash
@@ -54,5 +54,5 @@ Agent runtime settings live in `.env` (see `ops/config/.env.example`) and shared
 
 ## Troubleshooting
 
-- Agent not listed: ensure it lives under `agents/**/agent-*`.
+- Agent not listed: ensure it lives under `agents/**/*-agent`.
 - Runtime failures: verify required environment variables are set.

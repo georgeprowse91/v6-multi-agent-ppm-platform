@@ -24,7 +24,7 @@ def test_low_score_feedback_auto_flags_prompt(monkeypatch, tmp_path: Path) -> No
     service.save_feedback(
         Feedback(
             correlation_id="corr-1",
-            agent_id="agent-1",
+            agent_id="test-agent-alpha",
             user_rating=1,
             comments="bad",
             prompt_name="summarizer",

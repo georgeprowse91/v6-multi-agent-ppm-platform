@@ -1,8 +1,8 @@
-# Agent 22: Analytics Insights Specification
+# Analytics Insights Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 22: Analytics Insights. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Analytics Insights. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Scope, inputs, and outputs
 
@@ -58,24 +58,24 @@ Define the responsibilities, workflows, and integration points for Agent 22: Ana
 
 ## Overlap, leakage, and handoff boundaries
 
-**Coordination with Agent 25 (System Health Monitoring)**
+**Coordination with the System Health agent (System Health Monitoring)**
 
-- Agent 22 focuses on portfolio health analytics, narrative generation, and orchestration of Azure services; it also handles Power BI embed configs and cross-domain scenario simulations.
-- Agent 25 focuses on system health telemetry, alerts, and SLO monitoring; Agent 22 can consume these health signals as inputs to dashboards or narrative summaries.
+- the Analytics Insights agent focuses on portfolio health analytics, narrative generation, and orchestration of Azure services; it also handles Power BI embed configs and cross-domain scenario simulations.
+- the System Health agent focuses on system health telemetry, alerts, and SLO monitoring; the Analytics Insights agent can consume these health signals as inputs to dashboards or narrative summaries.
 
 **Handoff boundaries**
 
-- Agent 22 remains the analytics/reporting orchestrator (dashboards, reports, narratives, scenario analysis, Power BI embedding).
-- Agent 25 owns system health alerting, telemetry aggregation, and incident escalation workflows.
+- the Analytics Insights agent remains the analytics/reporting orchestrator (dashboards, reports, narratives, scenario analysis, Power BI embedding).
+- the System Health agent owns system health alerting, telemetry aggregation, and incident escalation workflows.
 
-**Overlap with Agent 20 (Continuous Improvement Process Mining)**
+**Overlap with the Continuous Improvement agent (Continuous Improvement Process Mining)**
 
-- Agent 20 focuses on process mining and improvement opportunities; Agent 22 focuses on analytics consumption and storytelling.
-- Handoff: Agent 20 provides mined process insights and cycle-time metrics that Agent 22 can surface in dashboards and reports.
+- the Continuous Improvement agent focuses on process mining and improvement opportunities; the Analytics Insights agent focuses on analytics consumption and storytelling.
+- Handoff: the Continuous Improvement agent provides mined process insights and cycle-time metrics that the Analytics Insights agent can surface in dashboards and reports.
 
 ## Gaps, inconsistencies, and alignment needs
 
-- **Naming/roles clarity**: Ensure documentation consistently assigns analytics ownership to Agent 22 and reserves system health telemetry and alerting for Agent 25.
+- **Naming/roles clarity**: Ensure documentation consistently assigns analytics ownership to the Analytics Insights agent and reserves system health telemetry and alerting for the System Health agent.
 - **Action documentation vs. runtime behavior**: Ensure orchestration docs list the full action set (including ETL/power BI/realtime ingestion actions).
 - **Event taxonomy alignment**: The analytics event topics list should be aligned with upstream agents’ emitted event names (schedule, deployment, risk, quality, resource).
 - **Connector parity**: Ensure the Azure services referenced (Synapse, Data Factory, Event Hub, Power BI, OpenAI) have corresponding connectors and secrets defined in `ops/config/ops/config/.env.example` and runtime docs.
@@ -119,13 +119,11 @@ Key workflows now include:
 - Provisioning Synapse pools, Data Lake file systems, and Data Factory pipelines via `provision_analytics_stack`.
 - Ingesting Planview, Jira, Workday, and SAP data via `ingest_sources` and storing ingestion manifests in ADLS.
 - Streaming real-time events through Event Hub and Stream Analytics with `ingest_realtime_event`.
-- Generating monthly/periodic portfolio reports through `generate_periodic_report`, including trend/anomaly detection and recommendation outputs for Agent 20 backlog ingestion.
+- Generating monthly/periodic portfolio reports through `generate_periodic_report`, including trend/anomaly detection and recommendation outputs for the Continuous Improvement agent backlog ingestion.
 
-## Continuous improvement loop integration (Agent 20 handoff)
+## Continuous improvement loop integration (The Continuous Improvement agent handoff)
 
-Agent 22 now supports a closed-loop handoff to Agent 20:
-
-1. Build periodic analytics payloads using `generate_periodic_report`.
+The Analytics Insights agent now supports a closed-loop handoff to 1. Build periodic analytics payloads using `generate_periodic_report`.
 2. Include `project_metrics` in `filters` (e.g., `cycle_time_days`, `risk_occurrences`, `budget_variance_pct`, `late_task_ratio`, `scope_creep_count`).
 3. The response includes:
    - `summary` rollups,
@@ -134,7 +132,7 @@ Agent 22 now supports a closed-loop handoff to Agent 20:
    - `report_id` for traceability.
 4. Agent emits `analytics.periodic_report.generated` for downstream subscribers.
 
-This output is designed to be consumed by Agent 20 via `ingest_analytics_report`.
+This output is designed to be consumed by the Continuous Improvement agent via `ingest_analytics_report`.
 
 ## How to run / develop / test
 

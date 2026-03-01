@@ -52,12 +52,12 @@ def test_celery_workflow_completes(tmp_path, monkeypatch) -> None:
                 "id": "step-1",
                 "type": "task",
                 "next": "step-2",
-                "config": {"agent": "agent-1", "action": "do"},
+                "config": {"agent": "test-agent-alpha", "action": "do"},
             },
             {
                 "id": "step-2",
                 "type": "task",
-                "config": {"agent": "agent-1", "action": "finish"},
+                "config": {"agent": "test-agent-alpha", "action": "finish"},
             },
         ],
     }
@@ -93,7 +93,7 @@ def test_celery_workflow_retries(tmp_path, monkeypatch) -> None:
                 "id": "step-1",
                 "type": "task",
                 "config": {
-                    "agent": "agent-1",
+                    "agent": "test-agent-alpha",
                     "action": "do",
                     "failures_before_success": 2,
                 },

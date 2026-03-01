@@ -1,5 +1,5 @@
 """
-Agent 22: Analytics & Insights Agent
+Analytics & Insights Agent
 
 Purpose:
 Delivers comprehensive analytics, reporting and decision-support across the entire project

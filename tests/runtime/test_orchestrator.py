@@ -135,7 +135,7 @@ async def test_orchestrator_persists_memory_across_calls() -> None:
         event_bus=build_test_event_bus(),
         memory_client=memory_client,
     )
-    tasks = [AgentTask(task_id="first", agent=SleepAgent("agent-1", 0, "one"))]
+    tasks = [AgentTask(task_id="first", agent=SleepAgent("test-agent-alpha", 0, "one"))]
 
     await orchestrator.run(tasks, memory_key="conversation-1")
     await orchestrator.run(tasks, memory_key="conversation-1")

@@ -1,5 +1,5 @@
 version: 1
-description: Baseline orchestration prompt contract for Agent 02 metadata enrichment.
+description: Baseline orchestration prompt contract for the Response Orchestration agent metadata enrichment.
 agent_id: response-orchestration-agent
 prompt_name: orchestration_prompt
 ---

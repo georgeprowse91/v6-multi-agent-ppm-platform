@@ -1,5 +1,5 @@
 version: 1
-description: Baseline approval workflow prompt contract for Agent 03 notification/approval summaries.
+description: Baseline approval workflow prompt contract for the Approval Workflow agent notification/approval summaries.
 agent_id: approval-workflow-agent
 prompt_name: approval_prompt
 ---

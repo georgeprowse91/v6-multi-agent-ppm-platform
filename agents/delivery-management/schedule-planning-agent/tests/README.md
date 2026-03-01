@@ -1,8 +1,8 @@
-# Agent 10: Schedule Planning Tests
+# Schedule Planning Tests
 
 ## Purpose
 
-Hold test assets for Agent 10: Schedule Planning to validate prompts, policies, and orchestration behavior.
+Hold test assets for Schedule Planning to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

@@ -18,14 +18,14 @@ gates:
       - id: intake-1
         description: Demand is scoped with objectives, constraints, and owner.
         evidence: Intake form fields completed.
-        check: "Agent 03 confirms sponsor and owner assignment."
+        check: "the Approval Workflow agent confirms sponsor and owner assignment."
       - id: intake-2
         description: Business case shows positive value or justified strategic need.
         evidence: ROI/NPV worksheet completed.
         check: "Finance partner validation logged."
     approvals:
       - role: Executive Sponsor
-        approver: Agent 03 Approval Workflow
+        approver: the Approval Workflow agent Approval Workflow
         required: true
     decision:
       approve: Proceed to sprint planning.
@@ -51,7 +51,7 @@ gates:
         check: "Delivery lead confirms mitigation ownership."
     approvals:
       - role: Product Owner
-        approver: Agent 03 Approval Workflow
+        approver: the Approval Workflow agent Approval Workflow
         required: true
     decision:
       approve: Start sprint execution.
@@ -77,7 +77,7 @@ gates:
         check: "Release manager confirms readiness."
     approvals:
       - role: Release Manager
-        approver: Agent 03 Approval Workflow
+        approver: the Approval Workflow agent Approval Workflow
         required: true
     decision:
       approve: Proceed to retrospective and/or release.
@@ -96,7 +96,7 @@ gates:
         check: "Scrum master confirms follow-up plan."
     approvals:
       - role: Scrum Master
-        approver: Agent 03 Approval Workflow
+        approver: the Approval Workflow agent Approval Workflow
         required: true
     decision:
       approve: Start next sprint cycle.

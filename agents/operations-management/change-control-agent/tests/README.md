@@ -1,8 +1,8 @@
-# Agent 17: Change Configuration Tests
+# Change Configuration Tests
 
 ## Purpose
 
-Hold test assets for Agent 17: Change Configuration to validate prompts, policies, and orchestration behavior.
+Hold test assets for Change Configuration to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

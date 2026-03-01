@@ -1,8 +1,8 @@
-# Agent 18: Release Deployment Tests
+# Release Deployment Tests
 
 ## Purpose
 
-Hold test assets for Agent 18: Release Deployment to validate prompts, policies, and orchestration behavior.
+Hold test assets for Release Deployment to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

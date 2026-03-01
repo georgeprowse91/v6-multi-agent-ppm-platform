@@ -62,11 +62,11 @@ async def test_service_bus_event_bus_publishes_messages() -> None:
         message_cls=FakeServiceBusMessage,
     )
 
-    await bus.publish("agent.started", {"agent_id": "agent-1"})
+    await bus.publish("agent.started", {"agent_id": "test-agent-alpha"})
 
     assert client.sender.messages
     payload = json.loads(client.sender.messages[0].body)
     assert payload["topic"] == "agent.started"
-    assert payload["payload"]["agent_id"] == "agent-1"
+    assert payload["payload"]["agent_id"] == "test-agent-alpha"
     assert bus.get_metrics()["agent.started"] == 1
-    assert bus.get_recent_events("agent.started")[0].payload["agent_id"] == "agent-1"
+    assert bus.get_recent_events("agent.started")[0].payload["agent_id"] == "test-agent-alpha"

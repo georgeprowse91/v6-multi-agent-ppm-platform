@@ -1,8 +1,8 @@
-# Agent 14: Quality Management Specification
+# Quality Management Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 14: Quality Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Quality Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -34,9 +34,9 @@ Agent runtime configuration is centralized in `.env` (see `ops/config/.env.examp
 
 ## Scope validation & decision boundaries
 
-### Intended scope (Agent 14 owns)
+### Intended scope (The Quality Management agent owns)
 
-Agent 14 owns **quality planning, test management, defect tracking, and quality analytics** across delivery workstreams. Its scope includes:
+The Quality Management agent owns **quality planning, test management, defect tracking, and quality analytics** across delivery workstreams. Its scope includes:
 
 - Quality plan creation/approval, standards/acceptance criteria, and metric definitions.
 - Test case/suite management, execution tracking, and coverage reporting.
@@ -61,7 +61,7 @@ The agent validates required inputs for specific actions and returns structured 
   - Defects: defect ID + workflow status + trend analysis + RCA summaries.
   - Reporting: quality dashboards, quality reports, and gate readiness signals.
 
-### Decision responsibilities (what Agent 14 decides)
+### Decision responsibilities (what the Quality Management agent decides)
 
 - Approves or rejects quality plans **when the approval workflow agent is enabled** (status normalization and plan state transitions).
 - Computes quality metrics and determines **quality gate readiness** based on defined thresholds.
@@ -76,29 +76,29 @@ The agent validates required inputs for specific actions and returns structured 
 - Provide deterministic quality gate criteria and evaluation results for release decisions.
 
 **Must not:**
-- Make release deployment decisions (belongs to Agent 18).
-- Own risk/issue register decisions or enterprise risk treatment plans (belongs to Agent 15).
+- Make release deployment decisions (belongs to the Release Deployment agent).
+- Own risk/issue register decisions or enterprise risk treatment plans (belongs to the Risk Management agent).
 - Override stakeholder release governance without documented quality gate outputs.
 
 ## Overlap/leakage analysis & handoff boundaries
 
-### Agent 15 (Risk & Issue Management)
+### the Risk Management agent (Risk & Issue Management)
 
 **Overlap risk:** Defect trends and RCA recommendations can look like “issue management.”  
-**Boundary:** Agent 14 **tracks defects and quality-specific issues**; Agent 15 **owns enterprise risk/issue registers, mitigation plans, and escalation decisions**.  
-**Handoff:** When defect trends indicate delivery risk (e.g., defect density threshold breach or repeated escape patterns), Agent 14 must emit a risk signal to Agent 15 with severity, trend, and recommended mitigation options.
+**Boundary:** the Quality Management agent **tracks defects and quality-specific issues**; the Risk Management agent **owns enterprise risk/issue registers, mitigation plans, and escalation decisions**.  
+**Handoff:** When defect trends indicate delivery risk (e.g., defect density threshold breach or repeated escape patterns), the Quality Management agent must emit a risk signal to the Risk Management agent with severity, trend, and recommended mitigation options.
 
-### Agent 18 (Release Deployment)
+### the Release Deployment agent (Release Deployment)
 
 **Overlap risk:** Quality gates are part of release readiness.  
-**Boundary:** Agent 14 **defines and evaluates quality gates**, while Agent 18 **decides release sequencing, deployment approvals, and rollout mechanics**.  
-**Handoff:** Agent 14 provides gate results (pass/fail + metrics + defects summary) to Agent 18 for final release decisioning and deployment orchestration.
+**Boundary:** the Quality Management agent **defines and evaluates quality gates**, while the Release Deployment agent **decides release sequencing, deployment approvals, and rollout mechanics**.  
+**Handoff:** the Quality Management agent provides gate results (pass/fail + metrics + defects summary) to the Release Deployment agent for final release decisioning and deployment orchestration.
 
 ## Functional gaps / inconsistencies & alignment needs
 
 - **Prompt alignment:** Ensure prompts request “quality gate evidence” (coverage, defect density, pass rate, outstanding critical defects) instead of generic “go/no-go” language.
-- **Tool alignment:** Map quality actions to existing integration mocks (Azure DevOps Test Plans, Jira Xray, TestRail, Playwright) and ensure identifiers are passed through to Agent 18 for release tickets.
-- **Template alignment:** Standardize report templates so that quality gate outputs are formatted for Agent 18 consumption (gate status + thresholds + exceptions).
+- **Tool alignment:** Map quality actions to existing integration mocks (Azure DevOps Test Plans, Jira Xray, TestRail, Playwright) and ensure identifiers are passed through to the Release Deployment agent for release tickets.
+- **Template alignment:** Standardize report templates so that quality gate outputs are formatted for the Release Deployment agent consumption (gate status + thresholds + exceptions).
 - **Connector alignment:** Confirm connectors can ingest/emit defect IDs and test run artifacts for cross-agent traceability.
 - **UI alignment:** UI components should surface “Quality Gate Status,” “Coverage %,” “Defect Density,” and “Open Critical Defects” with drill-down to test and defect artifacts.
 

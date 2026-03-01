@@ -1,8 +1,8 @@
-# Agent 03: Approval Workflow Specification
+# Approval Workflow Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 03: Approval Workflow. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Approval Workflow. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -89,7 +89,7 @@ To add a new locale:
 
 ## Intended scope and responsibilities
 
-**Agent 03 owns the approval workflow control loop.** It is responsible for:
+**The Approval Workflow agent owns the approval workflow control loop.** It is responsible for:
 
 - Validating approval requests and decision payloads.
 - Resolving approvers (roles, delegation, escalation) and building approval chains.
@@ -99,7 +99,7 @@ To add a new locale:
 **It must not:**
 
 - Determine user intent or orchestrate multi-agent response composition (owned by Agents 01–02).
-- Execute downstream governance state transitions (owned by governance agents such as Agent 09).
+- Execute downstream governance state transitions (owned by governance agents such as the Lifecycle Governance agent).
 - Mutate project/system data outside the approval record, audit trail, and notification preferences.
 
 ## Inputs, outputs, and decision responsibilities
@@ -124,26 +124,26 @@ To add a new locale:
 
 ## Overlap boundaries and handoffs
 
-**Agent 01 (Intent Router):**
+**The Intent Router agent (Intent Router):**
 
-- **Upstream handoff:** Agent 01 routes approval-intent requests here based on intent routing.
-- **Boundary:** Agent 03 does not reclassify intent; it assumes intent is already validated.
+- **Upstream handoff:** the Intent Router agent routes approval-intent requests here based on intent routing.
+- **Boundary:** the Approval Workflow agent does not reclassify intent; it assumes intent is already validated.
 
-**Agent 02 (Response Orchestration):**
+**The Response Orchestration agent (Response Orchestration):**
 
-- **Upstream handoff:** Agent 02 may request approval creation or decision recording when assembling responses.
-- **Boundary:** Agent 03 does not craft user-facing narrative responses; it returns approval metadata/events for Agent 02 to present.
+- **Upstream handoff:** the Response Orchestration agent may request approval creation or decision recording when assembling responses.
+- **Boundary:** the Approval Workflow agent does not craft user-facing narrative responses; it returns approval metadata/events for the Response Orchestration agent to present.
 
-**Downstream governance agents (e.g., Agent 09 Lifecycle Governance):**
+**Downstream governance agents (e.g., the Lifecycle Governance agent Lifecycle Governance):**
 
 - **Downstream handoff:** Approval events (`approval.created`, `approval.decision`, `approval.approved/rejected`) are published for governance agents to act on.
-- **Boundary:** Agent 03 does not execute lifecycle transitions or enforce governance gates beyond recording decisions and escalation.
+- **Boundary:** the Approval Workflow agent does not execute lifecycle transitions or enforce governance gates beyond recording decisions and escalation.
 
 ## Functional gaps and alignment checkpoints
 
 **Gaps / inconsistencies to track:**
 
-- Approval gate definitions must be aligned with governance stage gates (Agent 09) and intent routing schema (Agent 01).
+- Approval gate definitions must be aligned with governance stage gates (The Lifecycle Governance agent) and intent routing schema (The Intent Router agent).
 - Notification templates and escalation timing must align with UI and notification service capabilities.
 - Event payload schemas must remain compatible with Event Bus and analytics consumers.
 
@@ -162,8 +162,8 @@ To add a new locale:
 
 | Entry | Details |
 | --- | --- |
-| **Upstream dependencies** | Agent 01 intent routing; Agent 02 response orchestration; Notification service; Role directory lookup. |
-| **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., Agent 09 lifecycle governance). |
+| **Upstream dependencies** | the Intent Router agent intent routing; the Response Orchestration agent response orchestration; Notification service; Role directory lookup. |
+| **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., the Lifecycle Governance agent lifecycle governance). |
 | **Data contracts** | Approval request schema, decision schema, and event payloads (approval lifecycle events). |
 
 ## Troubleshooting

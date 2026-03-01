@@ -13,19 +13,19 @@ The platform uses a canonical schema layer to normalize data from multiple syste
 | Entity | Schema file | Primary owner (agent/service) |
 | --- | --- | --- |
 | Audit event | `data/schemas/audit-event.schema.json` | Audit Log Service |
-| Budget | `data/schemas/budget.schema.json` | Agent 12 – Financial Management |
-| Demand | `data/schemas/demand.schema.json` | Agent 04 – Demand & Intake |
-| Document | `data/schemas/document.schema.json` | Agent 19 – Knowledge & Document |
-| Issue | `data/schemas/issue.schema.json` | Agent 15 – Risk & Issue Management |
-| Portfolio | `data/schemas/portfolio.schema.json` | Agent 06 – Portfolio Strategy & Optimization |
-| Program | `data/schemas/program.schema.json` | Agent 07 – Program Management |
-| Project | `data/schemas/project.schema.json` | Agent 08 – Project Definition & Scope |
-| Resource | `data/schemas/resource.schema.json` | Agent 11 – Resource & Capacity |
-| Risk | `data/schemas/risk.schema.json` | Agent 15 – Risk & Issue Management |
-| ROI | `data/schemas/roi.schema.json` | Agent 05 – Business Case & Investment |
-| Scenario | `data/schemas/scenario.schema.json` | Agent 06 – Portfolio Strategy & Optimization |
-| Vendor | `data/schemas/vendor.schema.json` | Agent 13 – Vendor & Procurement |
-| Work item | `data/schemas/work-item.schema.json` | Agent 10 – Schedule & Planning |
+| Budget | `data/schemas/budget.schema.json` | the Financial Management agent – Financial Management |
+| Demand | `data/schemas/demand.schema.json` | the Demand Intake agent – Demand & Intake |
+| Document | `data/schemas/document.schema.json` | the Knowledge Management agent – Knowledge & Document |
+| Issue | `data/schemas/issue.schema.json` | the Risk Management agent – Risk & Issue Management |
+| Portfolio | `data/schemas/portfolio.schema.json` | the Portfolio Optimisation agent – Portfolio Strategy & Optimization |
+| Program | `data/schemas/program.schema.json` | the Program Management agent – Program Management |
+| Project | `data/schemas/project.schema.json` | the Scope Definition agent – Project Definition & Scope |
+| Resource | `data/schemas/resource.schema.json` | the Resource Management agent – Resource & Capacity |
+| Risk | `data/schemas/risk.schema.json` | the Risk Management agent – Risk & Issue Management |
+| ROI | `data/schemas/roi.schema.json` | the Business Case agent – Business Case & Investment |
+| Scenario | `data/schemas/scenario.schema.json` | the Portfolio Optimisation agent – Portfolio Strategy & Optimization |
+| Vendor | `data/schemas/vendor.schema.json` | the Vendor Procurement agent – Vendor & Procurement |
+| Work item | `data/schemas/work-item.schema.json` | the Schedule Planning agent – Schedule & Planning |
 
 ## Platform schemas (runtime/infrastructure)
 

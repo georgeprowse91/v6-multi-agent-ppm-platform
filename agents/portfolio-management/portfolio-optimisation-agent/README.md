@@ -1,8 +1,8 @@
-# Agent 06: Portfolio Strategy Optimisation Specification
+# Portfolio Strategy Optimisation Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 06: Portfolio Strategy Optimisation. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Portfolio Strategy Optimisation. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Scope validation (intended behaviors)
 
@@ -42,17 +42,17 @@ Define the responsibilities, workflows, and integration points for Agent 06: Por
 
 ## Overlap & handoff boundaries
 
-### Agent 05 (Business Case Investment)
+### the Business Case agent (Business Case Investment)
 
-**Overlap risk:** Both agents touch ROI and investment sizing. Agent 06 consumes project financials and produces portfolio recommendations; Agent 05 owns the detailed business-case build and investment decision inputs.
+**Overlap risk:** Both agents touch ROI and investment sizing. the Portfolio Optimisation agent consumes project financials and produces portfolio recommendations; the Business Case agent owns the detailed business-case build and investment decision inputs.
 
-**Handoff boundary:** Agent 05 should provide validated project-level financials (cost, ROI, expected value, benefits) to Agent 06. Agent 06 must not recalculate core business cases; it only uses those outputs for prioritization and optimization. This keeps case ownership with Agent 05 and portfolio composition ownership with Agent 06.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L221-L369】
+**Handoff boundary:** the Business Case agent should provide validated project-level financials (cost, ROI, expected value, benefits) to the Portfolio Optimisation agent. the Portfolio Optimisation agent must not recalculate core business cases; it only uses those outputs for prioritization and optimization. This keeps case ownership with the Business Case agent and portfolio composition ownership with the Portfolio Optimisation agent.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L221-L369】
 
-### Agent 07 (Program Management)
+### the Program Management agent (Program Management)
 
 **Overlap risk:** Program governance can overlap with portfolio rebalancing and scenario planning.
 
-**Handoff boundary:** Agent 06 outputs portfolio compositions, scenario outcomes, and rebalancing recommendations. Agent 07 consumes the approved portfolio and coordinates execution sequencing, dependencies, and benefits realization. Agent 06 must not own delivery scheduling or program dependency management beyond high-level resource capacity checks.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L279-L1067】
+**Handoff boundary:** the Portfolio Optimisation agent outputs portfolio compositions, scenario outcomes, and rebalancing recommendations. the Program Management agent consumes the approved portfolio and coordinates execution sequencing, dependencies, and benefits realization. the Portfolio Optimisation agent must not own delivery scheduling or program dependency management beyond high-level resource capacity checks.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L279-L1067】
 
 ## Functional gaps & alignment needs
 
@@ -75,7 +75,7 @@ Define the responsibilities, workflows, and integration points for Agent 06: Por
 
 | Dependency | Source | Required By | Notes |
 | --- | --- | --- | --- |
-| Business-case financials (cost, ROI, expected value) | Agent 05 | Prioritization/Optimization | Required for scoring and value calculations; Agent 06 does not own business case creation.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L221-L369】 |
+| Business-case financials (cost, ROI, expected value) | the Business Case agent | Prioritization/Optimization | Required for scoring and value calculations; the Portfolio Optimisation agent does not own business case creation.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L221-L369】 |
 | Resource capacity & feasibility signals | Resource agent integration | Optimization/Rebalancing | Optional integration; falls back to project data if missing.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L746-L772】 |
 | Portfolio approval decision | Approval agent integration | Submit/Record approval | Requires portfolio ID and decision payloads for audit trail continuity.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L119-L189】 |
 | Event bus & audit trail | Runtime/event bus | Downstream orchestration | Required for portfolio.prioritized and policy audit events.【F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py†L1190-L1263】 |

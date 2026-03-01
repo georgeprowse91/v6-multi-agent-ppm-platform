@@ -16,8 +16,8 @@ These planes are orchestrated through intent routing, task planning, and policy 
 
 ## Key components
 
-- **Intent Router (Agent 01)**: classifies user intent and routes to domain agents.
-- **Response Orchestrator (Agent 02)**: builds multi-step plans and composes responses.
+- **Intent Router (The Intent Router agent)**: classifies user intent and routes to domain agents.
+- **Response Orchestrator (The Response Orchestration agent)**: builds multi-step plans and composes responses.
 - **Domain agents (Agents 03–25)**: own specific PPM domain processes (see the [Agent Catalog](../agents/agent-catalog.md)).
 - **Connector runtime**: translates between canonical schemas and external APIs.
 - **Data services**: enforce schema validation, lineage capture, and quality scoring.

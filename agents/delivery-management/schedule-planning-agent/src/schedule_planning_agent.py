@@ -1,5 +1,5 @@
 """
-Agent 10: Schedule & Planning Agent
+Schedule & Planning Agent
 
 Purpose:
 Constructs and manages project timelines, transforms WBS into schedules, maps task dependencies

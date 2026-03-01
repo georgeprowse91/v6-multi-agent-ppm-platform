@@ -1,8 +1,8 @@
-# Agent 19: Knowledge Document Management Tests
+# Knowledge Document Management Tests
 
 ## Purpose
 
-Hold test assets for Agent 19: Knowledge Document Management to validate prompts, policies, and orchestration behavior.
+Hold test assets for Knowledge Document Management to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

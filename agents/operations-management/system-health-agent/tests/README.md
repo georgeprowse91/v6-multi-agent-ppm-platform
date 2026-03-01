@@ -1,8 +1,8 @@
-# Agent 25: System Health Monitoring Tests
+# System Health Monitoring Tests
 
 ## Purpose
 
-Hold test assets for Agent 25: System Health Monitoring to validate prompts, policies, and orchestration behavior.
+Hold test assets for System Health Monitoring to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

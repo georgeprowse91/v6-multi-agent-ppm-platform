@@ -1,10 +1,10 @@
-# Agent 24: Workflow Process Engine Specification
+# Workflow Process Engine Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 24: Workflow Process Engine. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Workflow Process Engine. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
-## Scope validation (Agent 24)
+## Scope validation (The Workflow Engine agent)
 
 ### Intended scope
 - Orchestrate workflow definitions (JSON/YAML/BPMN) into executable task graphs, persist them, and manage workflow instances (start, pause, resume, cancel).【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L90-L437】
@@ -12,8 +12,8 @@ Define the responsibilities, workflows, and integration points for Agent 24: Wor
 - Emit workflow events for audit/telemetry and integrate with event bus topics (workflow notifications, Azure Monitor/Event Grid).【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L1351-L1512】
 
 ### Out of scope (explicit non-responsibilities)
-- Source-control change governance, CI/CD policy enforcement, or repo compliance checks (belongs to Agent 17 change configuration).【F:agents/operations-management/change-control-agent/README.md†L1-L97】
-- Process mining and improvement analytics (belongs to Agent 20 continuous improvement/process mining).【F:agents/operations-management/continuous-improvement-agent/README.md†L1-L31】
+- Source-control change governance, CI/CD policy enforcement, or repo compliance checks (belongs to the Change Control agent change configuration).【F:agents/operations-management/change-control-agent/README.md†L1-L97】
+- Process mining and improvement analytics (belongs to the Continuous Improvement agent continuous improvement/process mining).【F:agents/operations-management/continuous-improvement-agent/README.md†L1-L31】
 - UI ownership: this agent emits events and tasks, but does not define UI/UX workflows or render task experiences directly (no UI modules in scope).【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L1351-L2017】
 
 ### Inputs
@@ -37,15 +37,15 @@ Define the responsibilities, workflows, and integration points for Agent 24: Wor
 - Must not start workflows or execute tasks if authorization fails (RBAC enforcement).【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L1845-L1857】
 - Must evaluate event payload criteria with deterministic matching semantics, including nested field-path lookups and fail-closed handling for malformed definitions.【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L1491-L1654】
 
-## Handoff boundaries with Agent 17 and Agent 20
+## Handoff boundaries with the Change Control agent and the Continuous Improvement agent
 
-### Agent 17 (Change Configuration)
-- Agent 17 owns change requests, approvals, repo integrations, and CI/CD change status workflows. Agent 24 should only orchestrate the workflow steps once a change request is created and should receive change metadata as workflow inputs (e.g., `workflow_spec` + repository/PR metadata).【F:agents/operations-management/change-control-agent/README.md†L1-L92】【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L214-L292】
-- Boundary: Agent 24 must not author or evaluate change approvals; it should create/route tasks for approvals, then await completion via `complete_task` events.【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L607-L744】
+### the Change Control agent (Change Configuration)
+- the Change Control agent owns change requests, approvals, repo integrations, and CI/CD change status workflows. the Workflow Engine agent should only orchestrate the workflow steps once a change request is created and should receive change metadata as workflow inputs (e.g., `workflow_spec` + repository/PR metadata).【F:agents/operations-management/change-control-agent/README.md†L1-L92】【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L214-L292】
+- Boundary: the Workflow Engine agent must not author or evaluate change approvals; it should create/route tasks for approvals, then await completion via `complete_task` events.【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L607-L744】
 
-### Agent 20 (Continuous Improvement Process Mining)
-- Agent 20 consumes workflow execution events/telemetry for process mining and continuous improvement insights. Agent 24 publishes `workflow.events`/monitoring payloads which Agent 20 can ingest.【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L1351-L1512】
-- Boundary: Agent 24 should not analyze or optimize workflows based on historical performance; those insights should be owned by Agent 20 and fed back via new/updated workflow definitions.【F:agents/operations-management/continuous-improvement-agent/README.md†L1-L31】
+### the Continuous Improvement agent (Continuous Improvement Process Mining)
+- the Continuous Improvement agent consumes workflow execution events/telemetry for process mining and continuous improvement insights. the Workflow Engine agent publishes `workflow.events`/monitoring payloads which the Continuous Improvement agent can ingest.【F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py†L1351-L1512】
+- Boundary: the Workflow Engine agent should not analyze or optimize workflows based on historical performance; those insights should be owned by the Continuous Improvement agent and fed back via new/updated workflow definitions.【F:agents/operations-management/continuous-improvement-agent/README.md†L1-L31】
 
 ## Functional gaps, inconsistencies, and alignment needs
 

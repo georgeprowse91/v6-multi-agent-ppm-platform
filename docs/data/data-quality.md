@@ -6,7 +6,7 @@ Define the quality scoring approach for canonical data and provide example rules
 
 ## Architecture-level context
 
-Data quality scoring is executed by the Data Synchronization & Quality agent (Agent 23). Rules are stored in `data/quality/rules.yaml` and applied to incoming data before it is persisted. Scores are captured in lineage artifacts for auditability.
+Data quality scoring is executed by the Data Synchronization & Quality agent (The Data Synchronisation agent). Rules are stored in `data/quality/rules.yaml` and applied to incoming data before it is persisted. Scores are captured in lineage artifacts for auditability.
 
 ## Quality dimensions
 

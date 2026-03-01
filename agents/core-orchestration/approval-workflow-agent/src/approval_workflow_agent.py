@@ -1,5 +1,5 @@
 """
-Agent 3: Approval Workflow Agent
+Approval Workflow Agent
 
 Orchestrates human-in-the-loop approval processes across the PPM platform.
 Handles routing, escalation, delegation, and audit trail for governance compliance.

@@ -1,8 +1,8 @@
-# Agent 23: Data Synchronisation Quality Tests
+# Data Synchronisation Quality Tests
 
 ## Purpose
 
-Hold test assets for Agent 23: Data Synchronisation Quality to validate prompts, policies, and orchestration behavior.
+Hold test assets for Data Synchronisation Quality to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 
