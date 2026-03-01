@@ -1,8 +1,8 @@
-# Agent 10: Schedule Planning Specification
+# Schedule Planning Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 10: Schedule Planning. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Schedule Planning. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -34,7 +34,7 @@ Agent runtime configuration is centralized in `.env` (see `ops/config/.env.examp
 
 ## Scope, I/O contract, and decision responsibilities
 
-### Intended scope (what Agent 10 owns)
+### Intended scope (what the Schedule Planning agent owns)
 - Convert WBS into a schedule, including task sequencing, dependencies, and milestone identification.
 - Estimate task durations using AI/historical signals and apply them to schedules.
 - Calculate CPM metrics (early/late dates, critical path, total duration).
@@ -73,27 +73,27 @@ The agent processes a single `action` per request. Required inputs are enforced 
 - **Must** treat resource availability as an input or external dependency (do not invent HR data).
 - **Must** publish schedule updates and baseline events when integrations are enabled.
 - **Must not** create or edit the enterprise risk register; only simulate schedule risk signals.
-- **Must not** override resource allocations owned by Resource Capacity (Agent 11).
-- **Must not** change governance policies managed by Lifecycle Governance (Agent 9) or Risk (Agent 15).
+- **Must not** override resource allocations owned by Resource Capacity (The Resource Management agent).
+- **Must not** change governance policies managed by Lifecycle Governance (The Lifecycle Governance agent) or Risk (The Risk Management agent).
 
 ### Checkpoint
 ✅ **Planning I/O contract ready for execution.**
 
 ## Overlap analysis and handoff boundaries
 
-### Agent 11 (Resource Capacity) overlap
+### the Resource Management agent (Resource Capacity) overlap
 - **Overlap area:** resource-constrained scheduling, utilization reporting, and allocation feasibility.
-- **Handoff boundary:** Agent 10 consumes capacity/availability inputs from Agent 11 and returns schedule adjustments. Agent 11 remains the source of truth for allocations, calendars, and skill availability.
-- **Escalation trigger:** when scheduling requires new/changed allocations, route to Agent 11 for approval or creation of allocations.
+- **Handoff boundary:** the Schedule Planning agent consumes capacity/availability inputs from the Resource Management agent and returns schedule adjustments. the Resource Management agent remains the source of truth for allocations, calendars, and skill availability.
+- **Escalation trigger:** when scheduling requires new/changed allocations, route to the Resource Management agent for approval or creation of allocations.
 
-### Agent 15 (Risk/Issue Management) overlap
+### the Risk Management agent (Risk/Issue Management) overlap
 - **Overlap area:** schedule risk scoring and delay impacts.
-- **Handoff boundary:** Agent 10 outputs schedule risk metrics and simulation results; Agent 15 owns risk register updates, mitigation plans, and issue escalation workflows.
-- **Escalation trigger:** if schedule risk exceeds threshold or repeated delays are detected, notify Agent 15 with the risk signal.
+- **Handoff boundary:** the Schedule Planning agent outputs schedule risk metrics and simulation results; the Risk Management agent owns risk register updates, mitigation plans, and issue escalation workflows.
+- **Escalation trigger:** if schedule risk exceeds threshold or repeated delays are detected, notify the Risk Management agent with the risk signal.
 
 ## Gaps, inconsistencies, and alignment needs
-- **Resource availability stub:** current availability intake is a pass-through. Align inputs from Agent 11 so `resources` includes capacity calendars and allocation constraints.
-- **Event payload schema:** schedule risk/resource event payloads should be documented and shared with Agent 11/15 to avoid mismatch.
+- **Resource availability stub:** current availability intake is a pass-through. Align inputs from the Resource Management agent so `resources` includes capacity calendars and allocation constraints.
+- **Event payload schema:** schedule risk/resource event payloads should be documented and shared with the Resource Management agent/15 to avoid mismatch.
 - **External sync toggles:** MS Project/Jira/Smartsheet sync is configured but requires connector mappings and UI indicators of sync status.
 - **Prompt/tool alignment:** scheduling actions need prompt templates that enforce required fields and surface dependency types (FS/SS/FF/SF).
 - **UI alignment:** surface critical path, baseline variance, and Monte Carlo percentiles in timeline UI cards.

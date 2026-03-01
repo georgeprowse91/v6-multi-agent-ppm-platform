@@ -1,8 +1,8 @@
-# Agent 09: Lifecycle Governance Tests
+# Lifecycle Governance Tests
 
 ## Purpose
 
-Hold test assets for Agent 09: Lifecycle Governance to validate prompts, policies, and orchestration behavior.
+Hold test assets for Lifecycle Governance to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

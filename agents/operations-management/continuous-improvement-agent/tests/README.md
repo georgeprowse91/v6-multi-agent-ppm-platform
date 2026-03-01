@@ -1,8 +1,8 @@
-# Agent 20: Continuous Improvement Process Mining Tests
+# Continuous Improvement Process Mining Tests
 
 ## Purpose
 
-Hold test assets for Agent 20: Continuous Improvement Process Mining to validate prompts, policies, and orchestration behavior.
+Hold test assets for Continuous Improvement Process Mining to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

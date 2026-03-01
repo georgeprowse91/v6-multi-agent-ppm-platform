@@ -1,5 +1,5 @@
 """
-Agent 19: Knowledge & Document Management Agent
+Knowledge & Document Management Agent
 
 Purpose:
 Serves as the central hub for creating, storing, classifying, retrieving and sharing

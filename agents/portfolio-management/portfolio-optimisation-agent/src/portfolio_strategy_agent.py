@@ -1,5 +1,5 @@
 """
-Agent 6: Portfolio Strategy & Optimization Agent
+Portfolio Strategy & Optimization Agent
 
 Purpose:
 Manages the composition and allocation of the project and program portfolio.

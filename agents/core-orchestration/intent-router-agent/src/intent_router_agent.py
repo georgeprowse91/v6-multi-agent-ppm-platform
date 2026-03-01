@@ -1,5 +1,5 @@
 """
-Agent 1: Intent Router Agent
+Intent Router Agent
 
 Purpose:
 The Intent Router Agent classifies user queries and determines which domain agents

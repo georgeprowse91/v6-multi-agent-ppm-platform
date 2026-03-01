@@ -1,8 +1,8 @@
-# Agent 12: Financial Management Specification
+# Financial Management Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 12: Financial Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Financial Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -44,7 +44,7 @@ Additional configuration options supported by the Financial Management Agent:
 
 ## Intended scope
 
-Agent 12 owns financial execution for in-flight portfolios, programs, and projects. It focuses on budget baselines, cost tracking, forecasts, variance analysis, earned value, and profitability reporting. The agent integrates with ERP systems to reconcile funding and actuals, and publishes finance events to the service bus for downstream consumers. It also supports multi-currency conversions and tax handling where required by the portfolio. Source of truth for business-case creation and procurement decisions stays with other agents (see handoffs below).
+The Financial Management agent owns financial execution for in-flight portfolios, programs, and projects. It focuses on budget baselines, cost tracking, forecasts, variance analysis, earned value, and profitability reporting. The agent integrates with ERP systems to reconcile funding and actuals, and publishes finance events to the service bus for downstream consumers. It also supports multi-currency conversions and tax handling where required by the portfolio. Source of truth for business-case creation and procurement decisions stays with other agents (see handoffs below).
 
 ## Inputs & outputs
 
@@ -94,15 +94,15 @@ Agent 12 owns financial execution for in-flight portfolios, programs, and projec
 
 ## Handoffs and overlap boundaries
 
-**Agent 05 – Business Case & Investment**
+**The Business Case agent – Business Case & Investment**
 
-Overlap risk: profitability and ROI metrics are calculated here for live performance, while Agent 05 owns initial business case creation and investment recommendations.  
-**Handoff boundary:** Agent 12 consumes approved business case cash flow inputs (via agent integration or related agent endpoint) and tracks actuals/variance against the approved baseline. Agent 05 remains the source of truth for business-case narratives, scenario modeling, and investment decisions.
+Overlap risk: profitability and ROI metrics are calculated here for live performance, while the Business Case agent owns initial business case creation and investment recommendations.  
+**Handoff boundary:** the Financial Management agent consumes approved business case cash flow inputs (via agent integration or related agent endpoint) and tracks actuals/variance against the approved baseline. the Business Case agent remains the source of truth for business-case narratives, scenario modeling, and investment decisions.
 
-**Agent 13 – Vendor & Procurement**
+**The Vendor Procurement agent – Vendor & Procurement**
 
 Overlap risk: vendor invoices, contracts, and purchase orders influence actual costs.  
-**Handoff boundary:** Agent 13 owns vendor onboarding, contract management, invoice capture, and procurement approvals. Agent 12 consumes invoice/actuals data (ERP/AP connectors or events) to update cost tracking and forecasts, and provides budget availability checks back to Agent 13.
+**Handoff boundary:** the Vendor Procurement agent owns vendor onboarding, contract management, invoice capture, and procurement approvals. the Financial Management agent consumes invoice/actuals data (ERP/AP connectors or events) to update cost tracking and forecasts, and provides budget availability checks back to the Vendor Procurement agent.
 
 ## Functional gaps and alignment requirements
 
@@ -115,7 +115,7 @@ Overlap risk: vendor invoices, contracts, and purchase orders influence actual c
 ## Execution checkpoints
 
 - **Financial controls ready:** approval workflow integration, audit events, variance thresholds, and ERP funding validation enabled.
-- **Dependency map entry ready:** Agent 12 depends on ERP finance connectors, approval workflow, service bus eventing, key vault secrets, and related agent endpoints for resource plans, schedule progress, and benefits.
+- **Dependency map entry ready:** the Financial Management agent depends on ERP finance connectors, approval workflow, service bus eventing, key vault secrets, and related agent endpoints for resource plans, schedule progress, and benefits.
 
 ## Troubleshooting
 

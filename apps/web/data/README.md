@@ -24,7 +24,7 @@ Static data files and database used by the web console application.
 
 The `agents.json` file is generated from the agent README files alongside the
 catalog markdown. Regenerate it after updating any
-`agents/**/agent-*/README.md` file:
+`agents/**/*-agent/README.md` file:
 
 ```bash
 python scripts/generate_agent_metadata.py

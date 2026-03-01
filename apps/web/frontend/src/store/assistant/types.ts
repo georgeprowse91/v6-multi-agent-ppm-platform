@@ -359,8 +359,8 @@ export const ACTION_AGENT_MAPPING: Record<string, string> = {
   'view-schedule-status': 'schedule-planning',
 
   // Risk-related actions -> Risk & Issue Management Agent
-  'open-risk-register': 'agent_015',
-  'risk-analysis': 'agent_015',
+  'open-risk-register': 'risk-management',
+  'risk-analysis': 'risk-management',
 };
 
 /**
@@ -395,7 +395,7 @@ export function getAgentForAction(chipId: string): string | undefined {
     return 'schedule-planning';
   }
   if (chipId.startsWith('risk-') || chipId.includes('-risk')) {
-    return 'agent_015';
+    return 'risk-management';
   }
 
   return undefined;

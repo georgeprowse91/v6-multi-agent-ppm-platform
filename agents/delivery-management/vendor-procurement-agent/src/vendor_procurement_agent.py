@@ -1,5 +1,5 @@
 """
-Agent 13: Vendor & Procurement Management Agent
+Vendor & Procurement Management Agent
 
 Purpose:
 Streamlines end-to-end procurement lifecycle from vendor onboarding and contract management

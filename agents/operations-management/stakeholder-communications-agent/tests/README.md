@@ -1,8 +1,8 @@
-# Agent 21: Stakeholder Comms Tests
+# Stakeholder Comms Tests
 
 ## Purpose
 
-Hold test assets for Agent 21: Stakeholder Comms to validate prompts, policies, and orchestration behavior.
+Hold test assets for Stakeholder Comms to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

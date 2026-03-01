@@ -10,17 +10,17 @@ Agent orchestration sits between the experience layer (`apps/`) and domain agent
 
 ## Orchestration flow
 
-1. **Intent routing**: Agent 01 classifies the user request and selects candidate agents.
-2. **Plan creation**: Agent 02 builds a multi-step plan and enforces policy guardrails.
+1. **Intent routing**: the Intent Router agent classifies the user request and selects candidate agents.
+2. **Plan creation**: the Response Orchestration agent builds a multi-step plan and enforces policy guardrails.
 3. **Tool execution**: Domain agents invoke connectors and data services using canonical schemas.
 4. **State management**: Results are stored in short-term state (request context) and long-term knowledge (data/lineage).
-5. **Response composition**: Agent 02 synthesizes a final response and cites source data.
+5. **Response composition**: the Response Orchestration agent synthesizes a final response and cites source data.
 
 ## Guardrails and escalation
 
 - **Policy guardrails**: RBAC/ABAC checks before tool execution.
 - **Safety gates**: approvals required for high-impact actions (budget changes, scope changes).
-- **Escalation**: if confidence is low or data is missing, the Approval Workflow agent (Agent 03) requests human input.
+- **Escalation**: if confidence is low or data is missing, the Approval Workflow agent (The Approval Workflow agent) requests human input.
 
 ## Event bus
 

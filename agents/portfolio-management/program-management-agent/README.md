@@ -1,8 +1,8 @@
-# Agent 07: Program Management Specification
+# Program Management Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 07: Program Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Program Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Scope validation (intended behavior)
 
@@ -33,9 +33,9 @@ Define the responsibilities, workflows, and integration points for Agent 07: Pro
 ## Overlap / leakage analysis
 
 ### Portfolio agents (04–06)
-- **Agent 04 Demand Intake** handles intake and initial demand capture; Program Management should not accept demand intake directly beyond `create_program` for already-approved demand packages.【F:agents/portfolio-management/program-management-agent/src/program_management_agent.py†L240-L309】
-- **Agent 05 Business Case Investment** owns project-level benefit/cost baselines; Program Management aggregates benefits from project business cases and must avoid duplicating business case creation logic.【F:agents/portfolio-management/program-management-agent/src/program_management_agent.py†L506-L603】
-- **Agent 06 Portfolio Strategy Optimisation** optimizes across the portfolio; Program Management optimizes within a program. Ensure program optimization outputs roll up to portfolio-level optimization without altering portfolio-wide priorities.【F:agents/portfolio-management/program-management-agent/src/program_management_agent.py†L2460-L2617】
+- **The Demand Intake agent Demand Intake** handles intake and initial demand capture; Program Management should not accept demand intake directly beyond `create_program` for already-approved demand packages.【F:agents/portfolio-management/program-management-agent/src/program_management_agent.py†L240-L309】
+- **The Business Case agent Business Case Investment** owns project-level benefit/cost baselines; Program Management aggregates benefits from project business cases and must avoid duplicating business case creation logic.【F:agents/portfolio-management/program-management-agent/src/program_management_agent.py†L506-L603】
+- **The Portfolio Optimisation agent Portfolio Strategy Optimisation** optimizes across the portfolio; Program Management optimizes within a program. Ensure program optimization outputs roll up to portfolio-level optimization without altering portfolio-wide priorities.【F:agents/portfolio-management/program-management-agent/src/program_management_agent.py†L2460-L2617】
 
 ### Delivery agents (08–16)
 - **Project Definition (08)** supplies charters and scope; Program Management consumes project detail for synergy analysis and must not alter scope baselines directly.【F:agents/portfolio-management/program-management-agent/src/program_management_agent.py†L896-L1005】【F:agents/delivery-management/scope-definition-agent/src/project_definition_agent.py†L1-L83】

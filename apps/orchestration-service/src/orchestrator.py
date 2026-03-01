@@ -394,7 +394,7 @@ class AgentOrchestrator:
         """Initialize governance agents."""
         logger.info("Loading governance agents...")
 
-        # Agent 3: Approval Workflow
+        # Approval Workflow
         from approval_workflow_agent import ApprovalWorkflowAgent
         from compliance_regulatory_agent import ComplianceRegulatoryAgent
 
@@ -402,7 +402,7 @@ class AgentOrchestrator:
 
         await self._initialize_and_register_agent(approval_agent)
 
-        # Agent 16: Compliance & Regulatory
+        # Compliance & Regulatory
 
         compliance_agent = ComplianceRegulatoryAgent()
         await self._initialize_and_register_agent(compliance_agent)
@@ -413,7 +413,7 @@ class AgentOrchestrator:
         """Initialize portfolio management agents."""
         logger.info("Loading portfolio agents...")
 
-        # Agent 4: Demand & Intake
+        # Demand & Intake
         from business_case_investment_agent import BusinessCaseInvestmentAgent
         from demand_intake_agent import DemandIntakeAgent
         from financial_management_agent import FinancialManagementAgent
@@ -422,15 +422,15 @@ class AgentOrchestrator:
         demand_agent = DemandIntakeAgent()
         await self._initialize_and_register_agent(demand_agent)
 
-        # Agent 5: Business Case & Investment Analysis
+        # Business Case & Investment Analysis
         business_case_agent = BusinessCaseInvestmentAgent()
         await self._initialize_and_register_agent(business_case_agent)
 
-        # Agent 6: Portfolio Strategy & Optimization
+        # Portfolio Strategy & Optimization
         portfolio_strategy_agent = PortfolioStrategyAgent()
         await self._initialize_and_register_agent(portfolio_strategy_agent)
 
-        # Agent 12: Financial Management
+        # Financial Management
         financial_agent = FinancialManagementAgent()
         await self._initialize_and_register_agent(financial_agent)
 
@@ -440,7 +440,7 @@ class AgentOrchestrator:
         """Initialize delivery agents."""
         logger.info("Loading delivery agents...")
 
-        # Agent 7: Program Management
+        # Program Management
         from program_management_agent import ProgramManagementAgent
         from project_definition_agent import ProjectDefinitionAgent
         from project_lifecycle_agent import ProjectLifecycleAgent
@@ -450,19 +450,19 @@ class AgentOrchestrator:
         program_agent = ProgramManagementAgent()
         await self._initialize_and_register_agent(program_agent)
 
-        # Agent 8: Project Definition & Scope
+        # Project Definition & Scope
         project_definition_agent = ProjectDefinitionAgent()
         await self._initialize_and_register_agent(project_definition_agent)
 
-        # Agent 9: Project Lifecycle & Governance
+        # Project Lifecycle & Governance
         lifecycle_agent = ProjectLifecycleAgent()
         await self._initialize_and_register_agent(lifecycle_agent)
 
-        # Agent 10: Schedule & Planning
+        # Schedule & Planning
         schedule_agent = SchedulePlanningAgent()
         await self._initialize_and_register_agent(schedule_agent)
 
-        # Agent 11: Resource & Capacity Management
+        # Resource & Capacity Management
         resource_agent = ResourceCapacityAgent()
         await self._initialize_and_register_agent(resource_agent)
 
@@ -472,7 +472,7 @@ class AgentOrchestrator:
         """Initialize operations agents."""
         logger.info("Loading operations agents...")
 
-        # Agent 13: Vendor & Procurement Management
+        # Vendor & Procurement Management
         from change_configuration_agent import ChangeConfigurationAgent
         from quality_management_agent import QualityManagementAgent
         from risk_management_agent import RiskManagementAgent
@@ -482,19 +482,19 @@ class AgentOrchestrator:
         vendor_agent = VendorProcurementAgent()
         await self._initialize_and_register_agent(vendor_agent)
 
-        # Agent 14: Quality Management
+        # Quality Management
         quality_agent = QualityManagementAgent()
         await self._initialize_and_register_agent(quality_agent)
 
-        # Agent 15: Risk Management
+        # Risk Management
         risk_agent = RiskManagementAgent()
         await self._initialize_and_register_agent(risk_agent)
 
-        # Agent 17: Change & Configuration Management
+        # Change & Configuration Management
         change_agent = ChangeConfigurationAgent()
         await self._initialize_and_register_agent(change_agent)
 
-        # Agent 21: Stakeholder & Communications Management
+        # Stakeholder & Communications Management
         stakeholder_agent = StakeholderCommunicationsAgent()
         await self._initialize_and_register_agent(stakeholder_agent)
 
@@ -504,7 +504,7 @@ class AgentOrchestrator:
         """Initialize platform agents."""
         logger.info("Loading platform agents...")
 
-        # Agent 18: Release & Deployment
+        # Release & Deployment
         from analytics_insights_agent import AnalyticsInsightsAgent
         from data_sync_agent import DataSyncAgent
         from knowledge_management_agent import KnowledgeManagementAgent
@@ -516,27 +516,27 @@ class AgentOrchestrator:
         release_agent = ReleaseDeploymentAgent()
         await self._initialize_and_register_agent(release_agent)
 
-        # Agent 19: Knowledge & Document Management
+        # Knowledge & Document Management
         knowledge_agent = KnowledgeManagementAgent()
         await self._initialize_and_register_agent(knowledge_agent)
 
-        # Agent 20: Continuous Improvement & Process Mining
+        # Continuous Improvement & Process Mining
         process_mining_agent = ProcessMiningAgent()
         await self._initialize_and_register_agent(process_mining_agent)
 
-        # Agent 22: Analytics & Insights
+        # Analytics & Insights
         analytics_agent = AnalyticsInsightsAgent()
         await self._initialize_and_register_agent(analytics_agent)
 
-        # Agent 23: Data Synchronization & Consistency
+        # Data Synchronization & Consistency
         data_sync_agent = DataSyncAgent()
         await self._initialize_and_register_agent(data_sync_agent)
 
-        # Agent 24: Workflow & Process Engine
+        # Workflow & Process Engine
         workflow_agent = WorkflowEngineAgent()
         await self._initialize_and_register_agent(workflow_agent)
 
-        # Agent 25: System Health & Monitoring
+        # System Health & Monitoring
         health_agent = SystemHealthAgent()
         await self._initialize_and_register_agent(health_agent)
 

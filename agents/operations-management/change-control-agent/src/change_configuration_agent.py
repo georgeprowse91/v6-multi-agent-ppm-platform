@@ -1,5 +1,5 @@
 """
-Agent 17: Change & Configuration Management Agent
+Change & Configuration Management Agent
 
 Purpose:
 Governs controlled introduction of changes to projects, programs and configuration items.

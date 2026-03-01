@@ -1,8 +1,8 @@
-# Agent 16: Compliance Regulatory Tests
+# Compliance Regulatory Tests
 
 ## Purpose
 
-Hold test assets for Agent 16: Compliance Regulatory to validate prompts, policies, and orchestration behavior.
+Hold test assets for Compliance Regulatory to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

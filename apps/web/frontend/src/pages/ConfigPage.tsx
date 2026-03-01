@@ -871,7 +871,7 @@ export function ConfigPage({ type }: ConfigPageProps) {
                               name: 'depends_on',
                               label: 'Depends On',
                               type: 'text',
-                              placeholder: 'agent-1, agent-2',
+                              placeholder: 'intent-router-agent, approval-workflow-agent',
                             },
                           ]}
                           initialValues={{

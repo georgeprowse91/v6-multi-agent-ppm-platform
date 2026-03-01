@@ -1,5 +1,5 @@
 """
-Agent 25: System Health & Monitoring Agent
+System Health & Monitoring Agent
 
 Purpose:
 Ensures the operational reliability, performance and availability of the PPM platform through

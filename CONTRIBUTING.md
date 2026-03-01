@@ -416,9 +416,7 @@ Closes #123
 
 ## Agent Development
 
-### Creating a New Agent
-
-1. Create agent file in appropriate domain:
+### Creating a New the Intent Router agent. Create agent file in appropriate domain:
 
 ```bash
 mkdir -p agents/portfolio-management/agent-XX-your-agent/src

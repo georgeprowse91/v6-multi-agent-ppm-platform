@@ -58,7 +58,7 @@ async def test_circuit_breaker_opens_and_recovers(tmp_path) -> None:
                 "next": None,
                 "retry": {"max_attempts": 3, "delay_seconds": 0},
                 "config": {
-                    "agent": "agent-1",
+                    "agent": "test-agent-alpha",
                     "action": "run",
                     "circuit_breaker": {
                         "failure_threshold": 2,

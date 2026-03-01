@@ -6,9 +6,9 @@ This platform extends human oversight to critical autonomous decisions, not only
 
 The orchestrator now evaluates agent-proposed actions against `ops/ops/config/human_review.yaml` rules. Current high-impact checkpoints include:
 
-- **Risk mitigation recommendations** from Agent 15 when `risk_score` is above threshold.
-- **Schedule adjustments** from Agent 10 when timeline impact is material.
-- **Resource reallocations** from Agent 11 when a significant percentage shift is proposed.
+- **Risk mitigation recommendations** from the Risk Management agent when `risk_score` is above threshold.
+- **Schedule adjustments** from the Schedule Planning agent when timeline impact is material.
+- **Resource reallocations** from the Resource Management agent when a significant percentage shift is proposed.
 
 ## Review configuration
 

@@ -1,5 +1,5 @@
 """
-Agent 21: Stakeholder & Communications Management Agent
+Stakeholder & Communications Management Agent
 
 Purpose:
 Manages stakeholder identification, classification, engagement planning and communication

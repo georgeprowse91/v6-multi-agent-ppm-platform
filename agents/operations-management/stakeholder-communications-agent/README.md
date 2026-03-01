@@ -1,12 +1,12 @@
-# Agent 21: Stakeholder Comms Specification
+# Stakeholder Comms Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 21: Stakeholder Comms. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Stakeholder Comms. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Intended scope
 
-Agent 21 owns stakeholder communication operations, including:
+The Stakeholder Communications agent owns stakeholder communication operations, including:
 
 - Maintaining the stakeholder register and engagement profiles.
 - Classifying stakeholders (influence/interest) and recommending engagement strategies.
@@ -17,8 +17,8 @@ Agent 21 owns stakeholder communication operations, including:
 
 Out of scope:
 
-- Approving outbound communications (handled by Agent 03).
-- Authoring/curating official knowledge artifacts (handled by Agent 19).
+- Approving outbound communications (handled by the Approval Workflow agent).
+- Authoring/curating official knowledge artifacts (handled by the Knowledge Management agent).
 - Portfolio governance decisions or delivery lifecycle approvals (handled by other agents).
 
 ## Inputs and outputs
@@ -46,7 +46,7 @@ Out of scope:
 
 ## Decision responsibilities
 
-Agent 21 is responsible for:
+The Stakeholder Communications agent is responsible for:
 
 - Determining stakeholder classifications and engagement strategies.
 - Selecting delivery channels based on preferences, consent, and channel availability.
@@ -54,7 +54,7 @@ Agent 21 is responsible for:
 - Generating and personalizing message content.
 - Triggering workflow automation and publishing comms events/metrics.
 
-Approval decisions and policy enforcement (beyond consent) remain with Agent 03.
+Approval decisions and policy enforcement (beyond consent) remain with the Approval Workflow agent.
 
 ## Must / must-not behaviors
 
@@ -67,44 +67,44 @@ Must:
 
 Must not:
 
-- Send outbound communications requiring approval before Agent 03 approval is granted.
-- Modify or overwrite authoritative knowledge documents owned by Agent 19.
+- Send outbound communications requiring approval before the Approval Workflow agent approval is granted.
+- Modify or overwrite authoritative knowledge documents owned by the Knowledge Management agent.
 - Exfiltrate or log secrets; use configured secret providers only.
 
 ## Overlap and handoff boundaries (Agents 19 & 03)
 
-### Agent 03: Approval Workflow
+### Approval Workflow
 
 **Overlap risk:** outbound communications that require approval or escalation.  
-**Handoff:** Agent 21 submits message drafts + metadata to Agent 03 for approval when policy or content flags require it. Agent 21 resumes delivery only after approval status is returned.  
-**Boundary:** Agent 03 owns approval decisions, audit trails, and approval notifications. Agent 21 owns message preparation, delivery execution, and delivery telemetry.
+**Handoff:** the Stakeholder Communications agent submits message drafts + metadata to the Approval Workflow agent for approval when policy or content flags require it. the Stakeholder Communications agent resumes delivery only after approval status is returned.  
+**Boundary:** the Approval Workflow agent owns approval decisions, audit trails, and approval notifications. the Stakeholder Communications agent owns message preparation, delivery execution, and delivery telemetry.
 
-### Agent 19: Knowledge Document Management
+### Knowledge Document Management
 
 **Overlap risk:** content summaries or reports that could become knowledge artifacts.  
-**Handoff:** Agent 21 can request approved knowledge snippets or finalized documents from Agent 19 to use in communications; Agent 21 can submit post-communication summaries for capture.  
-**Boundary:** Agent 19 manages canonical documents, versioning, and distribution repositories; Agent 21 only references or links those artifacts in outbound messages.
+**Handoff:** the Stakeholder Communications agent can request approved knowledge snippets or finalized documents from the Knowledge Management agent to use in communications; the Stakeholder Communications agent can submit post-communication summaries for capture.  
+**Boundary:** the Knowledge Management agent manages canonical documents, versioning, and distribution repositories; the Stakeholder Communications agent only references or links those artifacts in outbound messages.
 
 ## Functional gaps, inconsistencies, and alignment needs
 
-- **Approval enforcement:** current implementation flags `review_required` but does not block send; align with Agent 03 by adding a required approval state gate.
+- **Approval enforcement:** current implementation flags `review_required` but does not block send; align with the Approval Workflow agent by adding a required approval state gate.
 - **CRM alignment:** README lists Salesforce-specific variables while implementation supports generic CRM endpoints; document precedence and mapping.
 - **Connector alignment:** Notification/Calendar integrations are used in code but not documented in required env vars; add connector configuration or defaults.
 - **Templates/UI alignment:** communication templates and digest batching lack UI/portal configuration detail; define where templates live and how they are reviewed.
-- **Telemetry alignment:** define how delivery events map to analytics (Agent 22) and knowledge capture (Agent 19).
+- **Telemetry alignment:** define how delivery events map to analytics (The Analytics Insights agent) and knowledge capture (The Knowledge Management agent).
 
 ## Communications trigger matrix (execution-ready)
 
 | Trigger | Inputs | Action | Approval required | Output/records | Handoff |
 | --- | --- | --- | --- | --- | --- |
-| Stakeholder added | `stakeholder` payload | Register stakeholder + classify | No (unless policy) | Stakeholder profile, classification | Optionally send profile summary to Agent 19 |
-| Project status update | `report`/summary source | Generate update message | Yes if external audience | Draft message, summary, delivery plan | Send draft to Agent 03 for approval |
-| Risk/issue escalation | Risk payload + audience | Send escalation comms | Yes | Delivery results + history | Coordinate approvals with Agent 03 |
-| Change request | Change details + audience | Compose change notice | Yes | Message + delivery telemetry | Agent 03 approval, Agent 19 update |
-| Release milestone | Release notes | Broadcast release update | Yes if external | Message + schedule | Agent 03 approval; Agent 19 docs link |
+| Stakeholder added | `stakeholder` payload | Register stakeholder + classify | No (unless policy) | Stakeholder profile, classification | Optionally send profile summary to the Knowledge Management agent |
+| Project status update | `report`/summary source | Generate update message | Yes if external audience | Draft message, summary, delivery plan | Send draft to the Approval Workflow agent for approval |
+| Risk/issue escalation | Risk payload + audience | Send escalation comms | Yes | Delivery results + history | Coordinate approvals with the Approval Workflow agent |
+| Change request | Change details + audience | Compose change notice | Yes | Message + delivery telemetry | the Approval Workflow agent approval, the Knowledge Management agent update |
+| Release milestone | Release notes | Broadcast release update | Yes if external | Message + schedule | the Approval Workflow agent approval; the Knowledge Management agent docs link |
 | Stakeholder feedback received | Feedback payload | Analyze sentiment + update engagement | No | Sentiment score, engagement update | Feed analytics/knowledge |
 | Event/meeting scheduled | Event details | Send invites/notifications | No (internal) | Calendar event, notifications | Calendar integration |
-| Engagement drop | Engagement metrics | Trigger re-engagement plan | Maybe (policy) | New plan + draft message | Agent 03 approval if required |
+| Engagement drop | Engagement metrics | Trigger re-engagement plan | Maybe (policy) | New plan + draft message | the Approval Workflow agent approval if required |
 
 ## What's inside
 

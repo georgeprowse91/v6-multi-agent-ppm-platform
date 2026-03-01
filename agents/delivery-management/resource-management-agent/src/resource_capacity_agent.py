@@ -1,5 +1,5 @@
 """
-Agent 11: Resource & Capacity Management Agent
+Resource & Capacity Management Agent
 
 Purpose:
 Manages both supply of resources (people, equipment, skills) and demand from projects

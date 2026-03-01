@@ -1,5 +1,5 @@
 """
-Agent 5: Business Case & Investment Analysis Agent
+Business Case & Investment Analysis Agent
 
 Purpose:
 Develops comprehensive business cases for proposed projects or change initiatives.

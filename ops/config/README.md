@@ -9,8 +9,8 @@ This directory contains configuration assets consumed by services, agents, and t
 | Folder | Description |
 | --- | --- |
 | [abac/](./abac/) | Attribute-based access control policies |
-| [data-synchronisation-agent/](./data-synchronisation-agent/) | Agent 23 specific configuration |
-| [workflow-engine-agent/](./workflow-engine-agent/) | Agent 24 specific configuration |
+| [data-synchronisation-agent/](./data-synchronisation-agent/) | the Data Synchronisation agent specific configuration |
+| [workflow-engine-agent/](./workflow-engine-agent/) | the Workflow Engine agent specific configuration |
 | [agents/](./agents/) | Agent runtime and routing configuration (has schema/ subdir) |
 | [integrations/connectors/](../../integrations/connectors/) | Connector integration configuration |
 | [data-classification/](./data-classification/) | Data classification levels |

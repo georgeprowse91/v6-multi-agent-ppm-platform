@@ -1,5 +1,5 @@
 """
-Agent 4: Demand & Intake Agent
+Demand & Intake Agent
 
 Purpose:
 Captures incoming project requests, ideas, and change initiatives from stakeholders.

@@ -42,7 +42,7 @@ async def test_workflow_retries_task_failures(tmp_path) -> None:
                 "type": "task",
                 "next": None,
                 "retry": {"max_attempts": 3, "delay_seconds": 0},
-                "config": {"agent": "agent-1", "action": "run"},
+                "config": {"agent": "test-agent-alpha", "action": "run"},
             }
         ],
     }

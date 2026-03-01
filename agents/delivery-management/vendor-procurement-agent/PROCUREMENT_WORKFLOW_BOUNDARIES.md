@@ -1,9 +1,9 @@
-# Agent 13 Vendor Procurement — Scope & Boundary Checkpoint
+# the Vendor Procurement agent Vendor Procurement — Scope & Boundary Checkpoint
 
 Checkpoint goal: procurement workflow boundaries ready for execution, with clear ownership,
 inputs/outputs, decision responsibilities, and inter-agent handoffs.
 
-## 1) Intended scope (Agent 13)
+## 1) Intended scope (The Vendor Procurement agent)
 
 **Primary mission:** manage the vendor/procurement lifecycle from onboarding through
 invoicing/payment initiation, with vendor performance tracking and procurement eventing. This
@@ -34,7 +34,7 @@ publishes lifecycle events to downstream systems. 【F:agents/delivery-managemen
 
 ### Supported actions (inputs)
 
-Agent 13 accepts the following actions and input payload shapes:
+The Vendor Procurement agent accepts the following actions and input payload shapes:
 
 - `onboard_vendor` → `vendor` profile payload (legal name, contact, category, etc.). 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1048-L1138】
 - `create_procurement_request` → `request` payload (requester, description, estimated_cost,
@@ -70,7 +70,7 @@ Outputs are standardized per action (ID, status, and key metadata). Examples:
   status. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1340-L1438】【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2681-L2729】
 - **Must** determine procurement approval routing based on estimated cost and
   `procurement_threshold`. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2732-L2756】
-- **Must** check budget availability for requests via the financial client (or future Agent 12
+- **Must** check budget availability for requests via the financial client (or future the Financial Management agent
   integration). 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2732-L2768】
 - **Must** publish procurement lifecycle events (vendor onboarding, RFP publish, vendor
   selection, contract creation, invoice reconciliation, performance updates). 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2622-L2678】【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1548-L1664】
@@ -80,35 +80,35 @@ Outputs are standardized per action (ID, status, and key metadata). Examples:
 ### Must-not responsibilities
 
 - **Must not** be the enterprise system of record for budgets, forecasts, or cost variance
-  analytics (belongs to Agent 12). Agent 13 only consumes budget availability as a gating signal.
+  analytics (belongs to the Financial Management agent). the Vendor Procurement agent only consumes budget availability as a gating signal.
   【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2732-L2768】【F:agents/delivery-management/financial-management-agent/src/financial_management_agent.py†L12-L52】
 - **Must not** own enterprise regulatory frameworks, controls, or audit evidence
-  (belongs to Agent 16). Agent 13 focuses on vendor-specific compliance screening and sanctions
+  (belongs to the Compliance Governance agent). the Vendor Procurement agent focuses on vendor-specific compliance screening and sanctions
   checks. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2681-L2729】【F:agents/delivery-management/compliance-governance-agent/src/compliance_regulatory_agent.py†L1-L56】
 - **Must not** override formal approvals outside its approval workflow integration; if external
   approvals are enabled, it must defer to that agent for approval outcomes. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L939-L1034】
 
 ## 4) Overlap & leakage analysis + handoff boundaries
 
-### Agent 12 (Financial Management)
+### the Financial Management agent (Financial Management)
 
 **Potential overlap**
 
-- Budget availability checks in procurement intake vs. budget ownership in Agent 12. Agent 13
+- Budget availability checks in procurement intake vs. budget ownership in the Financial Management agent. the Vendor Procurement agent
   currently uses `FinancialManagementClient` with `budget_data` or API configuration. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L805-L830】【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2732-L2768】
-- Invoice reconciliation/payment initiation overlaps with Agent 12’s cost tracking and financial
-  reporting. Agent 13 initiates payments after three‑way match; Agent 12 should record those
+- Invoice reconciliation/payment initiation overlaps with the Financial Management agent’s cost tracking and financial
+  reporting. the Vendor Procurement agent initiates payments after three‑way match; the Financial Management agent should record those
   payments as actuals and update variance. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L3089-L3185】【F:agents/delivery-management/financial-management-agent/src/financial_management_agent.py†L20-L55】
 
 **Handoff boundary**
 
-- **Agent 13 → Agent 12:** send budget check requests at procurement intake and send “PO created,”
-  “invoice reconciled,” and “payment initiated” events for Agent 12 to record actuals and update
+- **The Vendor Procurement agent → the Financial Management agent:** send budget check requests at procurement intake and send “PO created,”
+  “invoice reconciled,” and “payment initiated” events for the Financial Management agent to record actuals and update
   forecast/variance. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1454-L1549】【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L3089-L3185】
-- **Agent 12 → Agent 13:** return budget availability and funding allocation decisions that gate
+- **The Financial Management agent → the Vendor Procurement agent:** return budget availability and funding allocation decisions that gate
   procurement approvals. 【F:agents/delivery-management/financial-management-agent/src/financial_management_agent.py†L194-L244】
 
-### Agent 16 (Compliance & Regulatory)
+### the Compliance Governance agent (Compliance & Regulatory)
 
 **Potential overlap**
 
@@ -117,24 +117,24 @@ Outputs are standardized per action (ID, status, and key metadata). Examples:
 
 **Handoff boundary**
 
-- **Agent 13 → Agent 16:** supply vendor compliance outcomes and sanctions hits as evidence or
+- **The Vendor Procurement agent → the Compliance Governance agent:** supply vendor compliance outcomes and sanctions hits as evidence or
   control inputs (e.g., “Vendor compliance failed” events). 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1408-L1423】【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2554-L2608】
-- **Agent 16 → Agent 13:** provide regulatory policy updates that may change procurement
+- **The Compliance Governance agent → the Vendor Procurement agent:** provide regulatory policy updates that may change procurement
   compliance policy thresholds or required checks. 【F:agents/delivery-management/compliance-governance-agent/src/compliance_regulatory_agent.py†L292-L360】
 
 ## 5) Functional gaps / inconsistencies + required alignment
 
 ### Gaps / inconsistencies
 
-- **Budget ownership gap:** Agent 13 runs budget checks locally; formal budget ownership and
-  variance logic live in Agent 12. Align to always query Agent 12 or a shared finance service
+- **Budget ownership gap:** the Vendor Procurement agent runs budget checks locally; formal budget ownership and
+  variance logic live in the Financial Management agent. Align to always query the Financial Management agent or a shared finance service
   for budget availability in production. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L805-L830】【F:agents/delivery-management/financial-management-agent/src/financial_management_agent.py†L20-L55】
-- **Compliance policy split:** Agent 13 uses its own compliance policy and sanctions/risk checks,
-  while Agent 16 manages frameworks, controls, and audit evidence. Define a shared event and
+- **Compliance policy split:** the Vendor Procurement agent uses its own compliance policy and sanctions/risk checks,
+  while the Compliance Governance agent manages frameworks, controls, and audit evidence. Define a shared event and
   evidence schema so compliance outcomes are auditable and consistent. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L2681-L2729】【F:agents/delivery-management/compliance-governance-agent/src/compliance_regulatory_agent.py†L38-L92】
-- **Document management divergence:** RFPs and contracts are optionally published in Agent 13 via
+- **Document management divergence:** RFPs and contracts are optionally published in the Vendor Procurement agent via
   `DocumentManagementService`, but there is no explicit tie‑back to compliance evidence or audit
-  storage. Cross‑link documents to Agent 16 evidence records. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1588-L1657】【F:agents/delivery-management/compliance-governance-agent/src/compliance_regulatory_agent.py†L1-L56】
+  storage. Cross‑link documents to the Compliance Governance agent evidence records. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1588-L1657】【F:agents/delivery-management/compliance-governance-agent/src/compliance_regulatory_agent.py†L1-L56】
 - **Approval integration:** Procurement approval routing is computed locally; if external
   approvals are enabled, ensure the approval workflow agent is configured and that UI surfaces
   the approval record. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L939-L1034】【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1454-L1549】
@@ -156,11 +156,11 @@ Outputs are standardized per action (ID, status, and key metadata). Examples:
 
 ## 6) Execution checkpoint (ready-to-run boundary statement)
 
-- **Agent 13 owns** vendor onboarding, RFP/proposal/contract/PO/invoice workflows and vendor
+- **The Vendor Procurement agent owns** vendor onboarding, RFP/proposal/contract/PO/invoice workflows and vendor
   performance analytics.
-- **Agent 12 owns** budgets, cost/actuals/variance/forecasting, and financial reporting.
-- **Agent 16 owns** regulatory frameworks, controls, evidence, audits, and compliance dashboards.
+- **The Financial Management agent owns** budgets, cost/actuals/variance/forecasting, and financial reporting.
+- **The Compliance Governance agent owns** regulatory frameworks, controls, evidence, audits, and compliance dashboards.
 
-Agent 13 should only proceed with procurement approvals and vendor selection once budget
-availability (Agent 12) and compliance screening (Agent 13 with evidence surfaced to Agent 16)
+The Vendor Procurement agent should only proceed with procurement approvals and vendor selection once budget
+availability (The Financial Management agent) and compliance screening (The Vendor Procurement agent with evidence surfaced to the Compliance Governance agent)
 are confirmed. 【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1340-L1438】【F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py†L1454-L1549】【F:agents/delivery-management/financial-management-agent/src/financial_management_agent.py†L194-L244】【F:agents/delivery-management/compliance-governance-agent/src/compliance_regulatory_agent.py†L292-L360】

@@ -1,14 +1,14 @@
 {
-  "source_dir": "agents/**/agent-*/README.md",
+  "source_dir": "agents/**/*-agent/README.md",
   "agents": [
     {
       "id": 1,
-      "title": "Agent 01: Intent Router Specification",
+      "title": "Intent Router Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 01: Intent Router. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Intent Router. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -21,8 +21,8 @@
             "Extract basic parameters from the query to pass downstream (project/portfolio IDs, currency, amount, schedule focus).",
             "Emit audit events for classifications and fallback usage.",
             "**Out of scope (must-not behaviors)**",
-            "Do **not** generate the final user response; downstream domain agents and Agent 02 handle response assembly.",
-            "Do **not** execute domain logic or approvals; Agent 03 (approval workflow) and domain agents own those flows.",
+            "Do **not** generate the final user response; downstream domain agents and the Response Orchestration agent handle response assembly.",
+            "Do **not** execute domain logic or approvals; the Approval Workflow agent (approval workflow) and domain agents own those flows.",
             "Do **not** route intents that are not present in the routing configuration or below confidence thresholds."
           ]
         },
@@ -40,17 +40,17 @@
           ]
         },
         {
-          "heading": "Handoff boundaries with Agent 02 and Agent 03",
+          "heading": "Handoff boundaries with the Response Orchestration agent and the Approval Workflow agent",
           "content": [
-            "**Agent 02 (Response Orchestration)**: consumes `routing`, `intents`, and `parameters` from Agent 01 to orchestrate calls to downstream agents and merge their outputs. Agent 01 must not format final responses or merge downstream outputs.",
-            "**Agent 03 (Approval Workflow)**: triggered only when routing rules or downstream agents indicate a governance requirement. Agent 01 should only route to Agent 03 when the configured intent routes include approval dependencies; Agent 03 owns escalation, policy checks, and approval state transitions."
+            "**The Response Orchestration agent (Response Orchestration)**: consumes `routing`, `intents`, and `parameters` from the Intent Router agent to orchestrate calls to downstream agents and merge their outputs. the Intent Router agent must not format final responses or merge downstream outputs.",
+            "**The Approval Workflow agent (Approval Workflow)**: triggered only when routing rules or downstream agents indicate a governance requirement. the Intent Router agent should only route to the Approval Workflow agent when the configured intent routes include approval dependencies; the Approval Workflow agent owns escalation, policy checks, and approval state transitions."
           ]
         },
         {
           "heading": "Functional gaps / inconsistencies to resolve",
           "content": [
             "**Prompt configuration coupling**: intent recognition depends on `agents/runtime/prompts/examples/intent-router.prompt.yaml`. Update both the routing config and prompt examples when adding new intents to avoid mismatches.",
-            "**Routing config drift**: routing is driven by `config/agents/intent-routing.yaml`. If this config omits an intent returned by the LLM, Agent 01 will drop it; ensure config and prompts stay aligned.",
+            "**Routing config drift**: routing is driven by `config/agents/intent-routing.yaml`. If this config omits an intent returned by the LLM, the Intent Router agent will drop it; ensure config and prompts stay aligned.",
             "**Fallback behavior**: when LLM output is invalid/low-confidence, the fallback classifier only uses static keyword signals; expand or tune signals to avoid under-classification for new intents.",
             "**Parameter schema limits**: extracted parameters are currently minimal (project/portfolio IDs, currency, amount, schedule focus). Downstream agents requiring richer inputs must extend extraction logic or supply their own enrichment."
           ]
@@ -59,7 +59,7 @@
           "heading": "Required prompt/tool/template/connector/UI alignment",
           "content": [
             "**Prompt**: `agents/runtime/prompts/examples/intent-router.prompt.yaml` must enumerate the same intent names defined in `config/agents/intent-routing.yaml`.",
-            "**Routing config**: `config/agents/intent-routing.yaml` must include routes for any intent the prompt can emit; otherwise Agent 01 will not dispatch to downstream agents.",
+            "**Routing config**: `config/agents/intent-routing.yaml` must include routes for any intent the prompt can emit; otherwise the Intent Router agent will not dispatch to downstream agents.",
             "**Audit/observability**: classification and fallback audit events must be consumed by observability tooling to support traceability."
           ]
         },
@@ -128,31 +128,31 @@
     },
     {
       "id": 2,
-      "title": "Agent 02: Response Orchestration Specification",
+      "title": "Response Orchestration Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 02: Response Orchestration. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Response Orchestration. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
           "heading": "Scope and responsibilities",
           "content": [
-            "Agent 02 is responsible for executing the multi-agent plan created by the intent router, coordinating parallel/sequential agent execution, and aggregating responses into a single payload for the caller. It owns orchestration-specific behaviors such as retry logic, caching, circuit breaking, and audit event emission. It does **not** decide which intents/agents to run, nor does it enforce approval policies beyond invoking downstream agents that require approvals.",
+            "the Response Orchestration agent is responsible for executing the multi-agent plan created by the intent router, coordinating parallel/sequential agent execution, and aggregating responses into a single payload for the caller. It owns orchestration-specific behaviors such as retry logic, caching, circuit breaking, and audit event emission. It does **not** decide which intents/agents to run, nor does it enforce approval policies beyond invoking downstream agents that require approvals.",
             "### Inputs",
-            "Agent 02 accepts an orchestration request with:",
+            "the Response Orchestration agent accepts an orchestration request with:",
             "`routing`: ordered routing entries (agent id, optional action, dependencies).",
             "`parameters`: shared parameters for downstream agents (including optional `prompt` metadata).",
             "`query`: original user query (informational).",
             "`context`: tenant/correlation metadata and project context.",
             "`correlation_id`, `tenant_id`, `prompt_id`, `prompt_description`, `prompt_tags`: optional prompt context when not already embedded in `parameters.prompt`.",
             "### Outputs",
-            "Agent 02 returns:",
+            "the Response Orchestration agent returns:",
             "`aggregated_response`: merged text output from successful agent calls.",
             "`agent_results`: per-agent status and payloads (success/failure, cached status).",
             "`execution_summary`: counts of total/successful/failed agents.",
-            "### Decisions owned by Agent 02",
+            "### Decisions owned by the Response Orchestration agent",
             "Execution grouping derived from dependencies (parallel vs sequential).",
             "Retry/backoff policy for each agent invocation.",
             "Circuit breaker state and cache usage.",
@@ -165,38 +165,38 @@
             "Emit audit events for invocations, failures, and aggregation.",
             "Respect configured timeouts, retries, and concurrency limits.",
             "Must not:",
-            "Re-route or reinterpret intents (owned by Agent 01).",
-            "Initiate approval workflows directly (owned by Agent 03).",
+            "Re-route or reinterpret intents (owned by the Intent Router agent).",
+            "Initiate approval workflows directly (owned by the Approval Workflow agent).",
             "Override downstream agent responses beyond aggregation and lightweight summarization."
           ]
         },
         {
           "heading": "Orchestration flow + dependency map entry",
           "content": [
-            "**Flow:** `Agent 01 (Intent Router) \u2192 Agent 02 (Response Orchestration) \u2192 Downstream Agents \u2192 Aggregated Response`",
+            "**Flow:** `the Intent Router agent (Intent Router) \u2192 the Response Orchestration agent (Response Orchestration) \u2192 Downstream Agents \u2192 Aggregated Response`",
             "**Dependencies:**",
-            "Upstream: Agent 01 provides `routing` entries and shared parameters.",
-            "Downstream: Specialized agents execute tasks; Agent 03 is invoked only if the routing plan includes approval-specific agents/actions.",
+            "Upstream: the Intent Router agent provides `routing` entries and shared parameters.",
+            "Downstream: Specialized agents execute tasks; the Approval Workflow agent is invoked only if the routing plan includes approval-specific agents/actions.",
             "Shared services: event bus (publish `agent.requested`, `agent.completed`, `agent.failed`), audit logging, and observability metrics.",
             "**Handoff boundaries:**",
-            "Agent 01 hands off the routing plan and parameters; Agent 02 executes exactly what is provided and returns results + summary.",
-            "Agent 03 owns approval gating and state transitions; Agent 02 only invokes the approval agent when included in routing."
+            "the Intent Router agent hands off the routing plan and parameters; the Response Orchestration agent executes exactly what is provided and returns results + summary.",
+            "the Approval Workflow agent owns approval gating and state transitions; the Response Orchestration agent only invokes the approval agent when included in routing."
           ]
         },
         {
           "heading": "Overlap / leakage considerations",
           "content": [
-            "**Routing vs orchestration:** Agent 02 should not choose or reorder intents; if it receives empty or cyclic routing, it must return an error (cycle detection) rather than attempt to infer intent.",
-            "**Approval workflows:** Agent 02 should not implement approval logic itself; ensure the routing plan includes the approval agent for guarded actions.",
-            "**Prompt enrichment:** Agent 02 enriches parameters with external research based on prompt metadata; prompt ownership remains with prompt templates and Agent 01 configuration."
+            "**Routing vs orchestration:** the Response Orchestration agent should not choose or reorder intents; if it receives empty or cyclic routing, it must return an error (cycle detection) rather than attempt to infer intent.",
+            "**Approval workflows:** the Response Orchestration agent should not implement approval logic itself; ensure the routing plan includes the approval agent for guarded actions.",
+            "**Prompt enrichment:** the Response Orchestration agent enriches parameters with external research based on prompt metadata; prompt ownership remains with prompt templates and the Intent Router agent configuration."
           ]
         },
         {
           "heading": "Gaps, inconsistencies, and alignment needs",
           "content": [
             "**Prompt metadata alignment:** Ensure prompt templates and UI inputs supply `prompt_id`, `prompt_description`, and `prompt_tags` consistently so external research behavior is deterministic.",
-            "**Routing contract:** `depends_on` should be validated upstream in Agent 01 and/or `config/agents/intent-routing.yaml` to avoid runtime dependency cycles.",
-            "**Connector alignment:** Downstream agents that require approval should expose explicit actions so the routing plan can include Agent 03 prior to execution.",
+            "**Routing contract:** `depends_on` should be validated upstream in the Intent Router agent and/or `config/agents/intent-routing.yaml` to avoid runtime dependency cycles.",
+            "**Connector alignment:** Downstream agents that require approval should expose explicit actions so the routing plan can include the Approval Workflow agent prior to execution.",
             "**UI/UX alignment:** Surface partial-failure aggregation messaging to users so they understand which agents succeeded vs failed."
           ]
         },
@@ -240,12 +240,12 @@
     },
     {
       "id": 3,
-      "title": "Agent 03: Approval Workflow Specification",
+      "title": "Approval Workflow Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 03: Approval Workflow. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Approval Workflow. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -313,14 +313,14 @@
         {
           "heading": "Intended scope and responsibilities",
           "content": [
-            "**Agent 03 owns the approval workflow control loop.** It is responsible for:",
+            "**The Approval Workflow agent owns the approval workflow control loop.** It is responsible for:",
             "Validating approval requests and decision payloads.",
             "Resolving approvers (roles, delegation, escalation) and building approval chains.",
             "Emitting notifications, reminders, and audit events.",
             "Recording decisions and publishing approval lifecycle events.",
             "**It must not:**",
             "Determine user intent or orchestrate multi-agent response composition (owned by Agents 01\u201302).",
-            "Execute downstream governance state transitions (owned by governance agents such as Agent 09).",
+            "Execute downstream governance state transitions (owned by governance agents such as the Lifecycle Governance agent).",
             "Mutate project/system data outside the approval record, audit trail, and notification preferences."
           ]
         },
@@ -344,22 +344,22 @@
         {
           "heading": "Overlap boundaries and handoffs",
           "content": [
-            "**Agent 01 (Intent Router):**",
-            "**Upstream handoff:** Agent 01 routes approval-intent requests here based on intent routing.",
-            "**Boundary:** Agent 03 does not reclassify intent; it assumes intent is already validated.",
-            "**Agent 02 (Response Orchestration):**",
-            "**Upstream handoff:** Agent 02 may request approval creation or decision recording when assembling responses.",
-            "**Boundary:** Agent 03 does not craft user-facing narrative responses; it returns approval metadata/events for Agent 02 to present.",
-            "**Downstream governance agents (e.g., Agent 09 Lifecycle Governance):**",
+            "**The Intent Router agent (Intent Router):**",
+            "**Upstream handoff:** the Intent Router agent routes approval-intent requests here based on intent routing.",
+            "**Boundary:** the Approval Workflow agent does not reclassify intent; it assumes intent is already validated.",
+            "**The Response Orchestration agent (Response Orchestration):**",
+            "**Upstream handoff:** the Response Orchestration agent may request approval creation or decision recording when assembling responses.",
+            "**Boundary:** the Approval Workflow agent does not craft user-facing narrative responses; it returns approval metadata/events for the Response Orchestration agent to present.",
+            "**Downstream governance agents (e.g., the Lifecycle Governance agent Lifecycle Governance):**",
             "**Downstream handoff:** Approval events (`approval.created`, `approval.decision`, `approval.approved/rejected`) are published for governance agents to act on.",
-            "**Boundary:** Agent 03 does not execute lifecycle transitions or enforce governance gates beyond recording decisions and escalation."
+            "**Boundary:** the Approval Workflow agent does not execute lifecycle transitions or enforce governance gates beyond recording decisions and escalation."
           ]
         },
         {
           "heading": "Functional gaps and alignment checkpoints",
           "content": [
             "**Gaps / inconsistencies to track:**",
-            "Approval gate definitions must be aligned with governance stage gates (Agent 09) and intent routing schema (Agent 01).",
+            "Approval gate definitions must be aligned with governance stage gates (The Lifecycle Governance agent) and intent routing schema (The Intent Router agent).",
             "Notification templates and escalation timing must align with UI and notification service capabilities.",
             "Event payload schemas must remain compatible with Event Bus and analytics consumers.",
             "**Required alignment:** Prompting, tool schemas, and UI should use the same approval decision vocabulary (`pending`, `approved`, `rejected`) and include `approval_id`, `tenant_id`, and `correlation_id` where applicable."
@@ -374,7 +374,7 @@
         {
           "heading": "Checkpoint: dependency map entry",
           "content": [
-            "| Entry | Details | | --- | --- | | **Upstream dependencies** | Agent 01 intent routing; Agent 02 response orchestration; Notification service; Role directory lookup. | | **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., Agent 09 lifecycle governance). | | **Data contracts** | Approval request schema, decision schema, and event payloads (approval lifecycle events). |"
+            "| Entry | Details | | --- | --- | | **Upstream dependencies** | the Intent Router agent intent routing; the Response Orchestration agent response orchestration; Notification service; Role directory lookup. | | **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., the Lifecycle Governance agent lifecycle governance). | | **Data contracts** | Approval request schema, decision schema, and event payloads (approval lifecycle events). |"
           ]
         },
         {
@@ -390,12 +390,12 @@
     },
     {
       "id": 4,
-      "title": "Agent 04: Demand Intake Specification",
+      "title": "Demand Intake Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 04: Demand Intake. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Demand Intake. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -433,15 +433,15 @@
         {
           "heading": "Overlap & handoff boundaries (Agents 05\u201307)",
           "content": [
-            "### Agent 05: Business Case Investment",
+            "### Business Case Investment",
             "**Overlap risk**: early cost/benefit or ROI estimation during intake.",
-            "**Boundary**: Demand Intake captures the request and triage metadata only. It hands off a validated demand record for Agent 05 to build the business case and investment recommendation.",
-            "### Agent 06: Portfolio Strategy Optimisation",
+            "**Boundary**: Demand Intake captures the request and triage metadata only. It hands off a validated demand record for the Business Case agent to build the business case and investment recommendation.",
+            "### Portfolio Strategy Optimisation",
             "**Overlap risk**: intake-level prioritization, portfolio scoring, or portfolio fit analysis.",
-            "**Boundary**: Demand Intake should provide categorization and urgency only; strategic scoring and optimization are performed by Agent 06 after a business case exists.",
-            "### Agent 07: Program Management",
+            "**Boundary**: Demand Intake should provide categorization and urgency only; strategic scoring and optimization are performed by the Portfolio Optimisation agent after a business case exists.",
+            "### Program Management",
             "**Overlap risk**: dependency mapping or program-level scheduling at intake.",
-            "**Boundary**: Demand Intake does not define program structure. It delivers clean demand records for Agent 07 to manage dependencies once the demand is accepted into a program of work."
+            "**Boundary**: Demand Intake does not define program structure. It delivers clean demand records for the Program Management agent to manage dependencies once the demand is accepted into a program of work."
           ]
         },
         {
@@ -449,7 +449,7 @@
           "content": [
             "**Intake criteria gaps**: current schema does not capture scope size, estimated cost/benefit, regulatory impact, or dependency signals needed by downstream agents. Add optional fields or linked templates for these details.",
             "**Duplication logic**: duplicate detection is heuristic-only; add a manual review flag or human confirmation step to avoid false merges.",
-            "**Triage routing**: no explicit routing rule set for which demands go to Agent 05 vs. Agent 07 (e.g., issues vs. initiatives). Add a routing table or decision matrix.",
+            "**Triage routing**: no explicit routing rule set for which demands go to the Business Case agent vs. the Program Management agent (e.g., issues vs. initiatives). Add a routing table or decision matrix.",
             "**Prompt/template alignment**: ensure intake templates (forms, chat prompts, email ingestion) match required fields and the demand schema.",
             "**Connector alignment**: validate connectors for intake sources (email/forms/Slack/Teams) pass `tenant_id`, `requester`, and `source` consistently.",
             "**UI alignment**: intake UI should surface required fields, duplicate suggestions, and `next_steps` messaging."
@@ -465,7 +465,7 @@
             "### Dependency map entry (ready for execution)",
             "**Upstream**: Intake channels (forms/email/chat), requester identity, tenant context.",
             "**Core services**: schema validator, rule engine, notification service, embedding + vector search index, tenant state store, event bus.",
-            "**Downstream**: `demand.created` event \u2192 Agent 05 for business case; portfolio intake reporting \u2192 Agent 06; accepted program candidates \u2192 Agent 07."
+            "**Downstream**: `demand.created` event \u2192 the Business Case agent for business case; portfolio intake reporting \u2192 the Portfolio Optimisation agent; accepted program candidates \u2192 the Program Management agent."
           ]
         },
         {
@@ -508,12 +508,12 @@
     },
     {
       "id": 5,
-      "title": "Agent 05: Business Case Investment Specification",
+      "title": "Business Case Investment Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 05: Business Case Investment. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Business Case Investment. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -573,12 +573,12 @@
     },
     {
       "id": 6,
-      "title": "Agent 06: Portfolio Strategy Optimisation Specification",
+      "title": "Portfolio Strategy Optimisation Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 06: Portfolio Strategy Optimisation. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Portfolio Strategy Optimisation. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -613,12 +613,12 @@
         {
           "heading": "Overlap & handoff boundaries",
           "content": [
-            "### Agent 05 (Business Case Investment)",
-            "**Overlap risk:** Both agents touch ROI and investment sizing. Agent 06 consumes project financials and produces portfolio recommendations; Agent 05 owns the detailed business-case build and investment decision inputs.",
-            "**Handoff boundary:** Agent 05 should provide validated project-level financials (cost, ROI, expected value, benefits) to Agent 06. Agent 06 must not recalculate core business cases; it only uses those outputs for prioritization and optimization. This keeps case ownership with Agent 05 and portfolio composition ownership with Agent 06.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L369\u3011",
-            "### Agent 07 (Program Management)",
+            "### the Business Case agent (Business Case Investment)",
+            "**Overlap risk:** Both agents touch ROI and investment sizing. the Portfolio Optimisation agent consumes project financials and produces portfolio recommendations; the Business Case agent owns the detailed business-case build and investment decision inputs.",
+            "**Handoff boundary:** the Business Case agent should provide validated project-level financials (cost, ROI, expected value, benefits) to the Portfolio Optimisation agent. the Portfolio Optimisation agent must not recalculate core business cases; it only uses those outputs for prioritization and optimization. This keeps case ownership with the Business Case agent and portfolio composition ownership with the Portfolio Optimisation agent.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L369\u3011",
+            "### the Program Management agent (Program Management)",
             "**Overlap risk:** Program governance can overlap with portfolio rebalancing and scenario planning.",
-            "**Handoff boundary:** Agent 06 outputs portfolio compositions, scenario outcomes, and rebalancing recommendations. Agent 07 consumes the approved portfolio and coordinates execution sequencing, dependencies, and benefits realization. Agent 06 must not own delivery scheduling or program dependency management beyond high-level resource capacity checks.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L279-L1067\u3011"
+            "**Handoff boundary:** the Portfolio Optimisation agent outputs portfolio compositions, scenario outcomes, and rebalancing recommendations. the Program Management agent consumes the approved portfolio and coordinates execution sequencing, dependencies, and benefits realization. the Portfolio Optimisation agent must not own delivery scheduling or program dependency management beyond high-level resource capacity checks.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L279-L1067\u3011"
           ]
         },
         {
@@ -640,7 +640,7 @@
             "Resource feasibility (default weight 0.15)",
             "Compliance (default weight 0.10)\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L42-L69\u3011",
             "### Dependency map (ready for execution)",
-            "| Dependency | Source | Required By | Notes | | --- | --- | --- | --- | | Business-case financials (cost, ROI, expected value) | Agent 05 | Prioritization/Optimization | Required for scoring and value calculations; Agent 06 does not own business case creation.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L369\u3011 | | Resource capacity & feasibility signals | Resource agent integration | Optimization/Rebalancing | Optional integration; falls back to project data if missing.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L746-L772\u3011 | | Portfolio approval decision | Approval agent integration | Submit/Record approval | Requires portfolio ID and decision payloads for audit trail continuity.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L119-L189\u3011 | | Event bus & audit trail | Runtime/event bus | Downstream orchestration | Required for portfolio.prioritized and policy audit events.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L1190-L1263\u3011 |"
+            "| Dependency | Source | Required By | Notes | | --- | --- | --- | --- | | Business-case financials (cost, ROI, expected value) | the Business Case agent | Prioritization/Optimization | Required for scoring and value calculations; the Portfolio Optimisation agent does not own business case creation.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L369\u3011 | | Resource capacity & feasibility signals | Resource agent integration | Optimization/Rebalancing | Optional integration; falls back to project data if missing.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L746-L772\u3011 | | Portfolio approval decision | Approval agent integration | Submit/Record approval | Requires portfolio ID and decision payloads for audit trail continuity.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L119-L189\u3011 | | Event bus & audit trail | Runtime/event bus | Downstream orchestration | Required for portfolio.prioritized and policy audit events.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L1190-L1263\u3011 |"
           ]
         },
         {
@@ -683,12 +683,12 @@
     },
     {
       "id": 7,
-      "title": "Agent 07: Program Management Specification",
+      "title": "Program Management Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 07: Program Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Program Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -720,9 +720,9 @@
           "heading": "Overlap / leakage analysis",
           "content": [
             "### Portfolio agents (04\u201306)",
-            "**Agent 04 Demand Intake** handles intake and initial demand capture; Program Management should not accept demand intake directly beyond `create_program` for already-approved demand packages.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L240-L309\u3011",
-            "**Agent 05 Business Case Investment** owns project-level benefit/cost baselines; Program Management aggregates benefits from project business cases and must avoid duplicating business case creation logic.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L506-L603\u3011",
-            "**Agent 06 Portfolio Strategy Optimisation** optimizes across the portfolio; Program Management optimizes within a program. Ensure program optimization outputs roll up to portfolio-level optimization without altering portfolio-wide priorities.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2460-L2617\u3011",
+            "**The Demand Intake agent Demand Intake** handles intake and initial demand capture; Program Management should not accept demand intake directly beyond `create_program` for already-approved demand packages.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L240-L309\u3011",
+            "**The Business Case agent Business Case Investment** owns project-level benefit/cost baselines; Program Management aggregates benefits from project business cases and must avoid duplicating business case creation logic.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L506-L603\u3011",
+            "**The Portfolio Optimisation agent Portfolio Strategy Optimisation** optimizes across the portfolio; Program Management optimizes within a program. Ensure program optimization outputs roll up to portfolio-level optimization without altering portfolio-wide priorities.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2460-L2617\u3011",
             "### Delivery agents (08\u201316)",
             "**Project Definition (08)** supplies charters and scope; Program Management consumes project detail for synergy analysis and must not alter scope baselines directly.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L896-L1005\u3011\u3010F:agents/delivery-management/scope-definition-agent/src/project_definition_agent.py\u2020L1-L83\u3011",
             "**Lifecycle Governance (09)** enforces phase gates/health; Program Management aggregates health and publishes program-level status without bypassing lifecycle gate controls.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/delivery-management/lifecycle-governance-agent/src/project_lifecycle_agent.py\u2020L1-L63\u3011",
@@ -807,12 +807,12 @@
     },
     {
       "id": 8,
-      "title": "Agent 08: Project Definition Scope Specification",
+      "title": "Project Definition Scope Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 08: Project Definition Scope. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Project Definition Scope. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -844,10 +844,10 @@
           ]
         },
         {
-          "heading": "Scope baseline (Agent 08)",
+          "heading": "Scope baseline (The Scope Definition agent)",
           "content": [
             "### Intended scope",
-            "Agent 08 owns project definition artifacts through the approved scope baseline. It is responsible for creating and maintaining:",
+            "the Scope Definition agent owns project definition artifacts through the approved scope baseline. It is responsible for creating and maintaining:",
             "Project charter (business case, objectives, high-level constraints, success criteria).",
             "Scope statement (in/out of scope, deliverables).",
             "WBS structure derived from the scope statement.",
@@ -888,12 +888,12 @@
           "heading": "Overlap & handoff boundaries (Agents 10\u201311)",
           "content": [
             "### Overlap / leakage risks",
-            "**Agent 10 (Schedule Planning):** WBS output can overlap with schedule work packages. Agent 08 must stop at scope/WBS definition and avoid sequencing, durations, or dependency calculations.",
-            "**Agent 11 (Resource Capacity):** RACI and stakeholder inputs can overlap with resource staffing. Agent 08 must not assign named resources or capacity commitments.",
+            "**The Schedule Planning agent (Schedule Planning):** WBS output can overlap with schedule work packages. the Scope Definition agent must stop at scope/WBS definition and avoid sequencing, durations, or dependency calculations.",
+            "**The Resource Management agent (Resource Capacity):** RACI and stakeholder inputs can overlap with resource staffing. the Scope Definition agent must not assign named resources or capacity commitments.",
             "### Handoff boundaries",
-            "**To Agent 10:** Provide WBS, scope baseline, and requirements traceability as inputs for activity definition, dependency mapping, and schedule development.",
-            "**To Agent 11:** Provide RACI roles, stakeholder register, and WBS deliverables as inputs for role-based capacity planning and allocation constraints.",
-            "**From Agent 09 (Lifecycle Governance):** Receive approved baseline flags and governance gates before freezing scope."
+            "**To the Schedule Planning agent:** Provide WBS, scope baseline, and requirements traceability as inputs for activity definition, dependency mapping, and schedule development.",
+            "**To the Resource Management agent:** Provide RACI roles, stakeholder register, and WBS deliverables as inputs for role-based capacity planning and allocation constraints.",
+            "**From the Lifecycle Governance agent (Lifecycle Governance):** Receive approved baseline flags and governance gates before freezing scope."
           ]
         },
         {
@@ -914,14 +914,14 @@
           "content": [
             "**Upstream dependencies**",
             "Project initiation context (sponsor, objectives, methodology).",
-            "Governance approvals from Agent 09 for baseline freezing.",
+            "Governance approvals from the Lifecycle Governance agent for baseline freezing.",
             "**Downstream dependencies**",
-            "Agent 10 consumes WBS + baseline scope for schedule planning.",
-            "Agent 11 consumes RACI roles + deliverables for capacity planning.",
+            "the Schedule Planning agent consumes WBS + baseline scope for schedule planning.",
+            "the Resource Management agent consumes RACI roles + deliverables for capacity planning.",
             "**Critical gating artifact**",
             "Scope baseline snapshot + approval status (must exist before schedule/resource planning).",
             "### Baseline repository and traceability matrix",
-            "Agent 08 now persists scope baselines in a SQL-backed repository (`services/scope_baseline`) using SQLAlchemy. By default it uses SQLite at `data/scope_baselines.db`, and can be overridden with `SCOPE_BASELINE_DB_URL`.",
+            "the Scope Definition agent now persists scope baselines in a SQL-backed repository (`services/scope_baseline`) using SQLAlchemy. By default it uses SQLite at `data/scope_baselines.db`, and can be overridden with `SCOPE_BASELINE_DB_URL`.",
             "Key operations:",
             "`manage_scope_baseline`: locks and persists a baseline snapshot and returns `baseline_id`.",
             "`get_baseline`: retrieves a persisted baseline by `baseline_id`.",
@@ -945,12 +945,12 @@
     },
     {
       "id": 9,
-      "title": "Agent 09: Lifecycle Governance Specification",
+      "title": "Lifecycle Governance Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 09: Lifecycle Governance. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Lifecycle Governance. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -984,7 +984,7 @@
           "heading": "Decision Responsibilities",
           "content": [
             "Enforce gate criteria before phase transitions; block transitions when criteria fail.",
-            "Escalate gate override decisions to Agent 03 (Approval Workflow) and record approvals.",
+            "Escalate gate override decisions to the Approval Workflow agent (Approval Workflow) and record approvals.",
             "Publish governance/health events for downstream analytics and UI consumption."
           ]
         },
@@ -1003,17 +1003,17 @@
         {
           "heading": "Overlaps & Handoff Boundaries",
           "content": [
-            "**Agent 03 (Approval Workflow):** Agent 09 owns gate evaluation but must hand off any override",
-            "request for approval; Agent 03 returns approval status and audit ID that Agent 09 records.",
-            "**Agent 16 (Compliance Regulatory):** Agent 09 owns lifecycle gating but relies on Agent 16 to",
+            "**The Approval Workflow agent (Approval Workflow):** the Lifecycle Governance agent owns gate evaluation but must hand off any override",
+            "request for approval; the Approval Workflow agent returns approval status and audit ID that the Lifecycle Governance agent records.",
+            "**The Compliance Governance agent (Compliance Regulatory):** the Lifecycle Governance agent owns lifecycle gating but relies on the Compliance Governance agent to",
             "supply regulatory/compliance attestations that become gate criteria evidence (e.g., compliance sign-offs, audit readiness)."
           ]
         },
         {
           "heading": "Functional Gaps / Alignment Needs",
           "content": [
-            "**Compliance monitoring gap:** Agent 09 declares compliance monitoring but currently has no",
-            "explicit connector to Agent 16 for compliance evidence; define an event contract or API call.",
+            "**Compliance monitoring gap:** the Lifecycle Governance agent declares compliance monitoring but currently has no",
+            "explicit connector to the Compliance Governance agent for compliance evidence; define an event contract or API call.",
             "**Gate evidence ingestion:** Gate criteria depend on artifacts/approvals stored on the project",
             "record; UI/forms must capture these fields and sync them into the lifecycle store.",
             "**Prompt/template alignment:** Gate summaries and readiness scoring should use standardized",
@@ -1070,12 +1070,12 @@
     },
     {
       "id": 10,
-      "title": "Agent 10: Schedule Planning Specification",
+      "title": "Schedule Planning Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 10: Schedule Planning. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Schedule Planning. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -1108,7 +1108,7 @@
         {
           "heading": "Scope, I/O contract, and decision responsibilities",
           "content": [
-            "### Intended scope (what Agent 10 owns)",
+            "### Intended scope (what the Schedule Planning agent owns)",
             "Convert WBS into a schedule, including task sequencing, dependencies, and milestone identification.",
             "Estimate task durations using AI/historical signals and apply them to schedules.",
             "Calculate CPM metrics (early/late dates, critical path, total duration).",
@@ -1128,29 +1128,29 @@
             "**Must** treat resource availability as an input or external dependency (do not invent HR data).",
             "**Must** publish schedule updates and baseline events when integrations are enabled.",
             "**Must not** create or edit the enterprise risk register; only simulate schedule risk signals.",
-            "**Must not** override resource allocations owned by Resource Capacity (Agent 11).",
-            "**Must not** change governance policies managed by Lifecycle Governance (Agent 9) or Risk (Agent 15).",
+            "**Must not** override resource allocations owned by Resource Capacity (The Resource Management agent).",
+            "**Must not** change governance policies managed by Lifecycle Governance (The Lifecycle Governance agent) or Risk (The Risk Management agent).",
             "### Checkpoint \u2705 **Planning I/O contract ready for execution.**"
           ]
         },
         {
           "heading": "Overlap analysis and handoff boundaries",
           "content": [
-            "### Agent 11 (Resource Capacity) overlap",
+            "### the Resource Management agent (Resource Capacity) overlap",
             "**Overlap area:** resource-constrained scheduling, utilization reporting, and allocation feasibility.",
-            "**Handoff boundary:** Agent 10 consumes capacity/availability inputs from Agent 11 and returns schedule adjustments. Agent 11 remains the source of truth for allocations, calendars, and skill availability.",
-            "**Escalation trigger:** when scheduling requires new/changed allocations, route to Agent 11 for approval or creation of allocations.",
-            "### Agent 15 (Risk/Issue Management) overlap",
+            "**Handoff boundary:** the Schedule Planning agent consumes capacity/availability inputs from the Resource Management agent and returns schedule adjustments. the Resource Management agent remains the source of truth for allocations, calendars, and skill availability.",
+            "**Escalation trigger:** when scheduling requires new/changed allocations, route to the Resource Management agent for approval or creation of allocations.",
+            "### the Risk Management agent (Risk/Issue Management) overlap",
             "**Overlap area:** schedule risk scoring and delay impacts.",
-            "**Handoff boundary:** Agent 10 outputs schedule risk metrics and simulation results; Agent 15 owns risk register updates, mitigation plans, and issue escalation workflows.",
-            "**Escalation trigger:** if schedule risk exceeds threshold or repeated delays are detected, notify Agent 15 with the risk signal."
+            "**Handoff boundary:** the Schedule Planning agent outputs schedule risk metrics and simulation results; the Risk Management agent owns risk register updates, mitigation plans, and issue escalation workflows.",
+            "**Escalation trigger:** if schedule risk exceeds threshold or repeated delays are detected, notify the Risk Management agent with the risk signal."
           ]
         },
         {
           "heading": "Gaps, inconsistencies, and alignment needs",
           "content": [
-            "**Resource availability stub:** current availability intake is a pass-through. Align inputs from Agent 11 so `resources` includes capacity calendars and allocation constraints.",
-            "**Event payload schema:** schedule risk/resource event payloads should be documented and shared with Agent 11/15 to avoid mismatch.",
+            "**Resource availability stub:** current availability intake is a pass-through. Align inputs from the Resource Management agent so `resources` includes capacity calendars and allocation constraints.",
+            "**Event payload schema:** schedule risk/resource event payloads should be documented and shared with the Resource Management agent/15 to avoid mismatch.",
             "**External sync toggles:** MS Project/Jira/Smartsheet sync is configured but requires connector mappings and UI indicators of sync status.",
             "**Prompt/tool alignment:** scheduling actions need prompt templates that enforce required fields and surface dependency types (FS/SS/FF/SF).",
             "**UI alignment:** surface critical path, baseline variance, and Monte Carlo percentiles in timeline UI cards."
@@ -1176,12 +1176,12 @@
     },
     {
       "id": 11,
-      "title": "Agent 11: Resource Capacity Specification",
+      "title": "Resource Capacity Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 11: Resource Capacity. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Resource Capacity. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -1251,8 +1251,8 @@
         {
           "heading": "Overlap & handoff boundaries (Agents 10 & 12)",
           "content": [
-            "### Agent 10 (Schedule Planning) **Overlap:** Resource-constrained scheduling, allocation feasibility, and calendar-aware planning. **Handoff boundary:** Agent 11 owns resource availability, allocation validation, and utilization. Agent 10 owns schedule creation, dependency mapping, critical path, and baseline management. **Integration expectation:** Agent 10 consumes allocation events (`resource.allocation.created`) and availability data (`get_availability`) rather than revalidating or mutating allocations.",
-            "### Agent 12 (Financial Management) **Overlap:** Labor cost implications, forecast inputs, and resource cost rates. **Handoff boundary:** Agent 11 provides allocation/capacity facts and cost rates per resource; Agent 12 owns budgeting, cost tracking, and financial forecasting/variance analysis. **Integration expectation:** Agent 12 should treat Agent 11 as the system of record for allocations and resource availability, and request updates via `get_utilization`, `forecast_capacity`, or allocation events."
+            "### the Schedule Planning agent (Schedule Planning) **Overlap:** Resource-constrained scheduling, allocation feasibility, and calendar-aware planning. **Handoff boundary:** the Resource Management agent owns resource availability, allocation validation, and utilization. the Schedule Planning agent owns schedule creation, dependency mapping, critical path, and baseline management. **Integration expectation:** the Schedule Planning agent consumes allocation events (`resource.allocation.created`) and availability data (`get_availability`) rather than revalidating or mutating allocations.",
+            "### the Financial Management agent (Financial Management) **Overlap:** Labor cost implications, forecast inputs, and resource cost rates. **Handoff boundary:** the Resource Management agent provides allocation/capacity facts and cost rates per resource; the Financial Management agent owns budgeting, cost tracking, and financial forecasting/variance analysis. **Integration expectation:** the Financial Management agent should treat the Resource Management agent as the system of record for allocations and resource availability, and request updates via `get_utilization`, `forecast_capacity`, or allocation events."
           ]
         },
         {
@@ -1335,12 +1335,12 @@
     },
     {
       "id": 12,
-      "title": "Agent 12: Financial Management Specification",
+      "title": "Financial Management Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 12: Financial Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Financial Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -1381,7 +1381,7 @@
         {
           "heading": "Intended scope",
           "content": [
-            "Agent 12 owns financial execution for in-flight portfolios, programs, and projects. It focuses on budget baselines, cost tracking, forecasts, variance analysis, earned value, and profitability reporting. The agent integrates with ERP systems to reconcile funding and actuals, and publishes finance events to the service bus for downstream consumers. It also supports multi-currency conversions and tax handling where required by the portfolio. Source of truth for business-case creation and procurement decisions stays with other agents (see handoffs below)."
+            "the Financial Management agent owns financial execution for in-flight portfolios, programs, and projects. It focuses on budget baselines, cost tracking, forecasts, variance analysis, earned value, and profitability reporting. The agent integrates with ERP systems to reconcile funding and actuals, and publishes finance events to the service bus for downstream consumers. It also supports multi-currency conversions and tax handling where required by the portfolio. Source of truth for business-case creation and procurement decisions stays with other agents (see handoffs below)."
           ]
         },
         {
@@ -1433,10 +1433,10 @@
         {
           "heading": "Handoffs and overlap boundaries",
           "content": [
-            "**Agent 05 \u2013 Business Case & Investment**",
-            "Overlap risk: profitability and ROI metrics are calculated here for live performance, while Agent 05 owns initial business case creation and investment recommendations. **Handoff boundary:** Agent 12 consumes approved business case cash flow inputs (via agent integration or related agent endpoint) and tracks actuals/variance against the approved baseline. Agent 05 remains the source of truth for business-case narratives, scenario modeling, and investment decisions.",
-            "**Agent 13 \u2013 Vendor & Procurement**",
-            "Overlap risk: vendor invoices, contracts, and purchase orders influence actual costs. **Handoff boundary:** Agent 13 owns vendor onboarding, contract management, invoice capture, and procurement approvals. Agent 12 consumes invoice/actuals data (ERP/AP connectors or events) to update cost tracking and forecasts, and provides budget availability checks back to Agent 13."
+            "**The Business Case agent \u2013 Business Case & Investment**",
+            "Overlap risk: profitability and ROI metrics are calculated here for live performance, while the Business Case agent owns initial business case creation and investment recommendations. **Handoff boundary:** the Financial Management agent consumes approved business case cash flow inputs (via agent integration or related agent endpoint) and tracks actuals/variance against the approved baseline. the Business Case agent remains the source of truth for business-case narratives, scenario modeling, and investment decisions.",
+            "**The Vendor Procurement agent \u2013 Vendor & Procurement**",
+            "Overlap risk: vendor invoices, contracts, and purchase orders influence actual costs. **Handoff boundary:** the Vendor Procurement agent owns vendor onboarding, contract management, invoice capture, and procurement approvals. the Financial Management agent consumes invoice/actuals data (ERP/AP connectors or events) to update cost tracking and forecasts, and provides budget availability checks back to the Vendor Procurement agent."
           ]
         },
         {
@@ -1453,7 +1453,7 @@
           "heading": "Execution checkpoints",
           "content": [
             "**Financial controls ready:** approval workflow integration, audit events, variance thresholds, and ERP funding validation enabled.",
-            "**Dependency map entry ready:** Agent 12 depends on ERP finance connectors, approval workflow, service bus eventing, key vault secrets, and related agent endpoints for resource plans, schedule progress, and benefits."
+            "**Dependency map entry ready:** the Financial Management agent depends on ERP finance connectors, approval workflow, service bus eventing, key vault secrets, and related agent endpoints for resource plans, schedule progress, and benefits."
           ]
         },
         {
@@ -1469,12 +1469,12 @@
     },
     {
       "id": 13,
-      "title": "Agent 13: Vendor Procurement Specification",
+      "title": "Vendor Procurement Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 13: Vendor Procurement. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Vendor Procurement. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -1540,12 +1540,12 @@
     },
     {
       "id": 14,
-      "title": "Agent 14: Quality Management Specification",
+      "title": "Quality Management Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 14: Quality Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Quality Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -1578,8 +1578,8 @@
         {
           "heading": "Scope validation & decision boundaries",
           "content": [
-            "### Intended scope (Agent 14 owns)",
-            "Agent 14 owns **quality planning, test management, defect tracking, and quality analytics** across delivery workstreams. Its scope includes:",
+            "### Intended scope (The Quality Management agent owns)",
+            "the Quality Management agent owns **quality planning, test management, defect tracking, and quality analytics** across delivery workstreams. Its scope includes:",
             "Quality plan creation/approval, standards/acceptance criteria, and metric definitions.",
             "Test case/suite management, execution tracking, and coverage reporting.",
             "Defect logging, updates, trend analysis, root cause analysis, and quality reporting.",
@@ -1599,7 +1599,7 @@
             "Tests: test case/suite IDs + execution results + coverage + artifacts.",
             "Defects: defect ID + workflow status + trend analysis + RCA summaries.",
             "Reporting: quality dashboards, quality reports, and gate readiness signals.",
-            "### Decision responsibilities (what Agent 14 decides)",
+            "### Decision responsibilities (what the Quality Management agent decides)",
             "Approves or rejects quality plans **when the approval workflow agent is enabled** (status normalization and plan state transitions).",
             "Computes quality metrics and determines **quality gate readiness** based on defined thresholds.",
             "Determines defect trend classifications and RCA recommendations.",
@@ -1610,26 +1610,26 @@
             "Publish quality events for downstream orchestration when plans/defects/tests are updated.",
             "Provide deterministic quality gate criteria and evaluation results for release decisions.",
             "**Must not:**",
-            "Make release deployment decisions (belongs to Agent 18).",
-            "Own risk/issue register decisions or enterprise risk treatment plans (belongs to Agent 15).",
+            "Make release deployment decisions (belongs to the Release Deployment agent).",
+            "Own risk/issue register decisions or enterprise risk treatment plans (belongs to the Risk Management agent).",
             "Override stakeholder release governance without documented quality gate outputs."
           ]
         },
         {
           "heading": "Overlap/leakage analysis & handoff boundaries",
           "content": [
-            "### Agent 15 (Risk & Issue Management)",
-            "**Overlap risk:** Defect trends and RCA recommendations can look like \u201cissue management.\u201d **Boundary:** Agent 14 **tracks defects and quality-specific issues**; Agent 15 **owns enterprise risk/issue registers, mitigation plans, and escalation decisions**. **Handoff:** When defect trends indicate delivery risk (e.g., defect density threshold breach or repeated escape patterns), Agent 14 must emit a risk signal to Agent 15 with severity, trend, and recommended mitigation options.",
-            "### Agent 18 (Release Deployment)",
-            "**Overlap risk:** Quality gates are part of release readiness. **Boundary:** Agent 14 **defines and evaluates quality gates**, while Agent 18 **decides release sequencing, deployment approvals, and rollout mechanics**. **Handoff:** Agent 14 provides gate results (pass/fail + metrics + defects summary) to Agent 18 for final release decisioning and deployment orchestration."
+            "### the Risk Management agent (Risk & Issue Management)",
+            "**Overlap risk:** Defect trends and RCA recommendations can look like \u201cissue management.\u201d **Boundary:** the Quality Management agent **tracks defects and quality-specific issues**; the Risk Management agent **owns enterprise risk/issue registers, mitigation plans, and escalation decisions**. **Handoff:** When defect trends indicate delivery risk (e.g., defect density threshold breach or repeated escape patterns), the Quality Management agent must emit a risk signal to the Risk Management agent with severity, trend, and recommended mitigation options.",
+            "### the Release Deployment agent (Release Deployment)",
+            "**Overlap risk:** Quality gates are part of release readiness. **Boundary:** the Quality Management agent **defines and evaluates quality gates**, while the Release Deployment agent **decides release sequencing, deployment approvals, and rollout mechanics**. **Handoff:** the Quality Management agent provides gate results (pass/fail + metrics + defects summary) to the Release Deployment agent for final release decisioning and deployment orchestration."
           ]
         },
         {
           "heading": "Functional gaps / inconsistencies & alignment needs",
           "content": [
             "**Prompt alignment:** Ensure prompts request \u201cquality gate evidence\u201d (coverage, defect density, pass rate, outstanding critical defects) instead of generic \u201cgo/no-go\u201d language.",
-            "**Tool alignment:** Map quality actions to existing integration mocks (Azure DevOps Test Plans, Jira Xray, TestRail, Playwright) and ensure identifiers are passed through to Agent 18 for release tickets.",
-            "**Template alignment:** Standardize report templates so that quality gate outputs are formatted for Agent 18 consumption (gate status + thresholds + exceptions).",
+            "**Tool alignment:** Map quality actions to existing integration mocks (Azure DevOps Test Plans, Jira Xray, TestRail, Playwright) and ensure identifiers are passed through to the Release Deployment agent for release tickets.",
+            "**Template alignment:** Standardize report templates so that quality gate outputs are formatted for the Release Deployment agent consumption (gate status + thresholds + exceptions).",
             "**Connector alignment:** Confirm connectors can ingest/emit defect IDs and test run artifacts for cross-agent traceability.",
             "**UI alignment:** UI components should surface \u201cQuality Gate Status,\u201d \u201cCoverage %,\u201d \u201cDefect Density,\u201d and \u201cOpen Critical Defects\u201d with drill-down to test and defect artifacts."
           ]
@@ -1661,12 +1661,12 @@
     },
     {
       "id": 15,
-      "title": "Agent 15: Risk Issue Management Specification",
+      "title": "Risk Issue Management Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 15: Risk Issue Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Risk Issue Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -1699,27 +1699,27 @@
             "Must capture source/provenance for extracted risks (connector, doc, model).",
             "Must emit event updates when risk status, scoring, or triggers change materially.",
             "Must not change project scope, schedule baselines, or financial forecasts directly (handoff to Agents 09/10/12).",
-            "Must not triage or close defects directly (handoff to Agent 14).",
-            "Must not approve compliance exceptions (handoff to Agent 16)."
+            "Must not triage or close defects directly (handoff to the Quality Management agent).",
+            "Must not approve compliance exceptions (handoff to the Compliance Governance agent)."
           ]
         },
         {
           "heading": "Overlap and handoff boundaries",
           "content": [
-            "### Agent 14: Quality Management",
+            "### Quality Management",
             "Overlap: quality defects, test failures, and quality KPIs are risk signals.",
-            "Handoff boundary: Agent 14 owns defect triage and quality remediation. Agent 15 only interprets those signals to update risk scores, create risk entries, and trigger escalation when thresholds are exceeded.",
+            "Handoff boundary: the Quality Management agent owns defect triage and quality remediation. the Risk Management agent only interprets those signals to update risk scores, create risk entries, and trigger escalation when thresholds are exceeded.",
             "Required interface: structured quality signals (defect rate, severity, trend) and QA milestone outcomes.",
-            "### Agent 09: Lifecycle Governance",
+            "### Lifecycle Governance",
             "Overlap: project health and governance escalations depend on risk status.",
-            "Handoff boundary: Agent 09 owns phase-gate decisions and portfolio health reporting. Agent 15 supplies risk status, trigger events, and mitigation readiness for inclusion in governance scorecards.",
+            "Handoff boundary: the Lifecycle Governance agent owns phase-gate decisions and portfolio health reporting. the Risk Management agent supplies risk status, trigger events, and mitigation readiness for inclusion in governance scorecards.",
             "Required interface: governance receives `risk.triggered`/`risk.updated` events and risk summaries per project/portfolio."
           ]
         },
         {
           "heading": "Gaps, inconsistencies, and alignment needs",
           "content": [
-            "Escalation taxonomy: ensure event names and severity labels are consistent with the governance event catalog so Agent 09 can consume them without translation.",
+            "Escalation taxonomy: ensure event names and severity labels are consistent with the governance event catalog so the Lifecycle Governance agent can consume them without translation.",
             "Issue vs. risk distinction: clarify in UI/templates when an item is a realized issue versus a potential risk; current implementation emphasizes risks and may need explicit \u201cissue\u201d status mapping.",
             "Connector alignment: PM connectors use heterogeneous fields (priority/severity/labels). Normalize into a shared risk signal schema for UI and reporting consistency.",
             "Mitigation ownership: mitigation plans are stored but require explicit ownership/approval workflow; align with governance templates for accountability and follow-through."
@@ -1728,7 +1728,7 @@
         {
           "heading": "Risk/issue escalation map (checkpoint)",
           "content": [
-            "| Trigger type | Threshold signal | Risk action | Escalation event | Governance handoff | | --- | --- | --- | --- | --- | | Cost overrun | overrun_pct \u2265 threshold | increase score, update status | `risk.triggered` | Agent 09 updates health/phase gating | | Schedule delay | delay_days \u2265 threshold | increase score, update status | `risk.triggered` | Agent 09 updates health/phase gating | | Quality defect rate | defect_rate \u2265 threshold | increase score, update status | `risk.triggered` | Agent 14 notified; Agent 09 consumes summary | | Resource utilization | utilization \u2265 threshold | increase score, update status | `risk.triggered` | Agent 11 notified; Agent 09 consumes summary | | High risk score | score \u2265 high_risk_threshold | flag as high severity | `risk.updated` | Governance escalation workflow |"
+            "| Trigger type | Threshold signal | Risk action | Escalation event | Governance handoff | | --- | --- | --- | --- | --- | | Cost overrun | overrun_pct \u2265 threshold | increase score, update status | `risk.triggered` | the Lifecycle Governance agent updates health/phase gating | | Schedule delay | delay_days \u2265 threshold | increase score, update status | `risk.triggered` | the Lifecycle Governance agent updates health/phase gating | | Quality defect rate | defect_rate \u2265 threshold | increase score, update status | `risk.triggered` | the Quality Management agent notified; the Lifecycle Governance agent consumes summary | | Resource utilization | utilization \u2265 threshold | increase score, update status | `risk.triggered` | the Resource Management agent notified; the Lifecycle Governance agent consumes summary | | High risk score | score \u2265 high_risk_threshold | flag as high severity | `risk.updated` | Governance escalation workflow |"
           ]
         },
         {
@@ -1788,12 +1788,12 @@
     },
     {
       "id": 16,
-      "title": "Agent 16: Compliance Regulatory Specification",
+      "title": "Compliance Regulatory Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 16: Compliance Regulatory. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Compliance Regulatory. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -1837,12 +1837,12 @@
     },
     {
       "id": 17,
-      "title": "Agent 17: Change Configuration Specification",
+      "title": "Change Configuration Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 17: Change Configuration. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Change Configuration. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -1890,7 +1890,7 @@
         {
           "heading": "Scope validation",
           "content": [
-            "### Intended scope (what Agent 17 owns)",
+            "### Intended scope (what the Change Control agent owns)",
             "Change request intake, classification, and risk/impact assessment.",
             "Approval workflow coordination and auditing.",
             "CMDB/CI registration, baselines, and dependency visualization.",
@@ -1907,7 +1907,7 @@
             "Published events for lifecycle steps (created, approved/rejected, implementation started, rolled back, metrics).",
             "### Decision responsibilities",
             "**Must decide**: change classification, approval routing, approval requirement, risk/impact recommendations, and whether to proceed/roll back based on staging/tests.",
-            "**Must not decide**: final deployment scheduling mechanics (delegated to Agent 18), workflow orchestration definition/templating (delegated to Agent 24), or approval policy governance beyond configured thresholds.",
+            "**Must not decide**: final deployment scheduling mechanics (delegated to the Release Deployment agent), workflow orchestration definition/templating (delegated to the Workflow Engine agent), or approval policy governance beyond configured thresholds.",
             "### Must / must-not behaviors",
             "**Must**",
             "Validate `action` and required fields for `submit_change_request`.",
@@ -1923,31 +1923,31 @@
         {
           "heading": "Overlap analysis and handoff boundaries",
           "content": [
-            "### Agent 18: Release Deployment",
+            "### Release Deployment",
             "**Potential overlap**",
             "Change implementation and deployment coordination are adjacent to release orchestration.",
             "**Handoff boundary**",
-            "Agent 17 **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`).",
-            "Agent 18 **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.",
-            "### Agent 24: Workflow Process Engine",
+            "the Change Control agent **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`).",
+            "the Release Deployment agent **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.",
+            "### Workflow Process Engine",
             "**Potential overlap**",
-            "Both handle workflow orchestration; Agent 17 builds a change workflow instance.",
+            "Both handle workflow orchestration; the Change Control agent builds a change workflow instance.",
             "**Handoff boundary**",
-            "Agent 17 **requests** workflow creation and manages change state; Agent 24 **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence."
+            "the Change Control agent **requests** workflow creation and manages change state; the Workflow Engine agent **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence."
           ]
         },
         {
           "heading": "Gaps, inconsistencies, and alignment requirements",
           "content": [
-            "**Workflow orchestration alignment**: Agent 17 uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while Agent 24 defines workflow specs/templates. Align on a shared workflow schema and ensure Agent 17 payloads conform to the templates/versions maintained by Agent 24.",
-            "**Deployment status contract**: Agent 17 expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with Agent 18, including intermediate states (queued, in-progress, rolled-back).",
-            "**Approval policy governance**: Agent 17 uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.",
-            "**Event taxonomy**: Agent 17 emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by Agents 18 and 24.",
+            "**Workflow orchestration alignment**: the Change Control agent uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while the Workflow Engine agent defines workflow specs/templates. Align on a shared workflow schema and ensure the Change Control agent payloads conform to the templates/versions maintained by the Workflow Engine agent.",
+            "**Deployment status contract**: the Change Control agent expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with the Release Deployment agent, including intermediate states (queued, in-progress, rolled-back).",
+            "**Approval policy governance**: the Change Control agent uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.",
+            "**Event taxonomy**: the Change Control agent emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by Agents 18 and 24.",
             "**Connector/UI alignment**: Ensure UI fields for change intake map to the expected input keys (`repo_provider`, `repo_slug`, IaC paths) and that connectors (ITSM, repo APIs, Service Bus) are configured consistently across environments.",
             "### Checkpoint: change control handoffs",
-            "Agent 17 submits change workflows (creates/updates change state).",
-            "Agent 24 runs and governs workflow definitions/execution.",
-            "Agent 18 executes deployment and reports status."
+            "the Change Control agent submits change workflows (creates/updates change state).",
+            "the Workflow Engine agent runs and governs workflow definitions/execution.",
+            "the Release Deployment agent executes deployment and reports status."
           ]
         },
         {
@@ -1963,12 +1963,12 @@
     },
     {
       "id": 18,
-      "title": "Agent 18: Release Deployment Specification",
+      "title": "Release Deployment Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 18: Release Deployment. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Release Deployment. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -2022,13 +2022,13 @@
             "### Must / must-not behaviors",
             "**Must:** enforce readiness gates when enabled; check approval requirements for protected environments; log and persist release/deployment state; emit events for readiness and rollback lifecycle updates.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L80-L705\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L842-L896\u3011",
             "**Must not:** proceed to deployment when readiness gates recommend NO-GO or approvals are missing/unapproved; must not skip rollback actions when auto-rollback triggers or verification fails if `auto_rollback_on_anomaly` is enabled.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L648-L705\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L792-L896\u3011",
-            "### Overlap / leakage with Agent 14 (Quality) & Agent 17 (Change/Configuration)",
-            "**Agent 14 overlap:** quality metrics, test results, defect density, and coverage gates are referenced by readiness checks (quality is a shared dependency). Release agent should consume quality signals from Agent 14 instead of duplicating test/defect management workflows.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011\u3010F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py\u2020L20-L174\u3011",
-            "**Agent 17 overlap:** change approvals and configuration drift checks intersect with change management and CMDB ownership. Release agent should request change approval status and configuration drift/CMDB baselines from Agent 17 rather than authoring change records itself.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L1350-L1536\u3011\u3010F:agents/operations-management/change-control-agent/src/change_configuration_agent.py\u2020L20-L174\u3011",
+            "### Overlap / leakage with the Quality Management agent (Quality) & the Change Control agent (Change/Configuration)",
+            "**The Quality Management agent overlap:** quality metrics, test results, defect density, and coverage gates are referenced by readiness checks (quality is a shared dependency). Release agent should consume quality signals from the Quality Management agent instead of duplicating test/defect management workflows.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011\u3010F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py\u2020L20-L174\u3011",
+            "**The Change Control agent overlap:** change approvals and configuration drift checks intersect with change management and CMDB ownership. Release agent should request change approval status and configuration drift/CMDB baselines from the Change Control agent rather than authoring change records itself.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L1350-L1536\u3011\u3010F:agents/operations-management/change-control-agent/src/change_configuration_agent.py\u2020L20-L174\u3011",
             "### Handoff boundaries",
-            "**From Agent 17 \u2192 Agent 18:** approved change tickets/config baselines + risk/impact summaries. Agent 18 consumes approvals to satisfy readiness gates and schedules deployments accordingly.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L477-L507\u3011\u3010F:agents/operations-management/change-control-agent/src/change_configuration_agent.py\u2020L20-L174\u3011",
-            "**From Agent 14 \u2192 Agent 18:** verified test execution results, coverage snapshots, and defect status to satisfy readiness criteria and post-deployment verification inputs.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011\u3010F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py\u2020L20-L174\u3011",
-            "**From Agent 18 \u2192 Agent 17:** deployment outcomes, rollback events, and configuration drift discoveries to update change records/CMDB for closure and audit trail.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L842-L896\u3011",
+            "**From the Change Control agent \u2192 the Release Deployment agent:** approved change tickets/config baselines + risk/impact summaries. the Release Deployment agent consumes approvals to satisfy readiness gates and schedules deployments accordingly.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L477-L507\u3011\u3010F:agents/operations-management/change-control-agent/src/change_configuration_agent.py\u2020L20-L174\u3011",
+            "**From the Quality Management agent \u2192 the Release Deployment agent:** verified test execution results, coverage snapshots, and defect status to satisfy readiness criteria and post-deployment verification inputs.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011\u3010F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py\u2020L20-L174\u3011",
+            "**From the Release Deployment agent \u2192 the Change Control agent:** deployment outcomes, rollback events, and configuration drift discoveries to update change records/CMDB for closure and audit trail.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L842-L896\u3011",
             "### Functional gaps / inconsistencies & alignment needs",
             "**Prompt/template alignment:** readiness criteria are partially implicit (approval/test/coverage/quality/environment readiness) but not surfaced as a formal checklist template; require a release readiness template to standardize inputs and outputs for orchestration UI/workflow.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011",
             "**Connector alignment:** readiness checks expect approval and change signals, but connectors are not enforced; add explicit connector requirements for quality/change systems (e.g., CI pipelines, test management, CMDB) to avoid silent \u201cpass\u201d defaults.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L1334-L1536\u3011",
@@ -2046,18 +2046,18 @@
     },
     {
       "id": 19,
-      "title": "Agent 19: Knowledge Document Management Specification",
+      "title": "Knowledge Document Management Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 19: Knowledge Document Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Knowledge Document Management. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
           "heading": "Intended scope",
           "content": [
-            "Agent 19 owns the knowledge/document lifecycle across the portfolio: ingesting, classifying, indexing, governing access, and serving documents/knowledge artifacts for downstream agents and humans. The agent operates as the system of record for document metadata, summaries, and knowledge graph relationships (projects, programs, risks, decisions, lessons learned). It does **not** originate stakeholder communications or analytics KPI narratives; it provides curated knowledge artifacts to those agents when requested.",
+            "the Knowledge Management agent owns the knowledge/document lifecycle across the portfolio: ingesting, classifying, indexing, governing access, and serving documents/knowledge artifacts for downstream agents and humans. The agent operates as the system of record for document metadata, summaries, and knowledge graph relationships (projects, programs, risks, decisions, lessons learned). It does **not** originate stakeholder communications or analytics KPI narratives; it provides curated knowledge artifacts to those agents when requested.",
             "### In-scope responsibilities",
             "Ingest documents from users, agent outputs, and connected repositories (e.g., Confluence, SharePoint, Git).",
             "Normalize metadata, enforce schema validation, and manage document versions/retention.",
@@ -2066,7 +2066,7 @@
             "Provide search (keyword + semantic) and recommendation services.",
             "Persist knowledge artifacts (lessons learned, decisions, risks) for reuse.",
             "### Out-of-scope responsibilities",
-            "Sending emails/messages or scheduling meetings (belongs to Agent 21).",
+            "Sending emails/messages or scheduling meetings (belongs to the Stakeholder Communications agent).",
             "Computing portfolio KPIs, predictive analytics, or dashboards (belongs to analytics agents).",
             "Executing workflow automations outside knowledge capture or storage."
           ]
@@ -2090,14 +2090,14 @@
         {
           "heading": "Decision responsibilities",
           "content": [
-            "Agent 19 is the decision-maker for:",
+            "the Knowledge Management agent is the decision-maker for:",
             "Document acceptance/rejection based on schema validation and required metadata.",
             "Auto-classification, tagging, and taxonomy placement.",
             "Access control enforcement (RBAC/ABAC).",
             "Knowledge graph relationship creation (document \u2192 project/program/portfolio, risk, decision).",
             "Whether to trigger asynchronous summarization/entity extraction tasks.",
-            "Agent 19 **does not** decide:",
-            "Who receives communications or how/when to notify stakeholders (Agent 21).",
+            "the Knowledge Management agent **does not** decide:",
+            "Who receives communications or how/when to notify stakeholders (The Stakeholder Communications agent).",
             "KPI definitions, analytics model outputs, or dashboard narrative framing (Analytics agents)."
           ]
         },
@@ -2120,10 +2120,10 @@
         {
           "heading": "Overlap analysis and handoff boundaries",
           "content": [
-            "### Agent 21: Stakeholder Comms",
-            "**Potential overlap:** Meeting minutes, decisions, and summaries may be both knowledge artifacts and communication payloads. **Boundary:** Agent 19 **stores and indexes** the documents; Agent 21 **delivers** communications. **Handoff:** Agent 19 provides curated artifacts (summaries, decision logs, lessons learned) to Agent 21 for distribution. Agent 21 should not modify source knowledge content; it may annotate distribution metadata in its own system.",
-            "### Analytics agent (Agent 22)",
-            "**Potential overlap:** Both domains handle insights, reports, and narrative summaries. **Boundary:** Agent 19 **curates content** and provides retrieval/search; Agent 22 **computes KPIs, predictive insights, and dashboards**. **Handoff:** Agent 22 requests document corpora or knowledge artifacts (lessons learned, decision/risk history) from Agent 19 to enrich models and narratives. Agent 19 should not compute KPIs or analytics metrics."
+            "### Stakeholder Comms",
+            "**Potential overlap:** Meeting minutes, decisions, and summaries may be both knowledge artifacts and communication payloads. **Boundary:** the Knowledge Management agent **stores and indexes** the documents; the Stakeholder Communications agent **delivers** communications. **Handoff:** the Knowledge Management agent provides curated artifacts (summaries, decision logs, lessons learned) to the Stakeholder Communications agent for distribution. the Stakeholder Communications agent should not modify source knowledge content; it may annotate distribution metadata in its own system.",
+            "### Analytics agent (The Analytics Insights agent)",
+            "**Potential overlap:** Both domains handle insights, reports, and narrative summaries. **Boundary:** the Knowledge Management agent **curates content** and provides retrieval/search; the Analytics Insights agent **computes KPIs, predictive insights, and dashboards**. **Handoff:** the Analytics Insights agent requests document corpora or knowledge artifacts (lessons learned, decision/risk history) from the Knowledge Management agent to enrich models and narratives. the Knowledge Management agent should not compute KPIs or analytics metrics."
           ]
         },
         {
@@ -2131,7 +2131,7 @@
           "content": [
             "**Prompt alignment:** Current system prompts should explicitly differentiate document curation vs. communications and analytics responsibilities to avoid duplicate summaries.",
             "**Tooling alignment:** Connectors (Confluence/SharePoint/Git) should share a common ingestion contract with analytics ETL pipelines to prevent double-ingestion.",
-            "**Template alignment:** Knowledge summaries and decision logs should follow a shared template so Agent 21 can reuse them verbatim in outbound comms.",
+            "**Template alignment:** Knowledge summaries and decision logs should follow a shared template so the Stakeholder Communications agent can reuse them verbatim in outbound comms.",
             "**UI alignment:** Knowledge search UI should expose access context and classification filters to avoid unauthorized disclosure.",
             "**Knowledge graph alignment:** Risk/decision extraction should include consistent identifiers so analytics agents can join knowledge artifacts with KPI datasets."
           ]
@@ -2144,7 +2144,7 @@
             "**Enrich**: summaries, entities, taxonomy labels, knowledge graph links.",
             "**Store**: versioned persistence + audit log; emit ingestion event.",
             "**Retrieve**: keyword/semantic search with access control.",
-            "**Share**: handoff curated artifacts to Agent 21 / analytics agents.",
+            "**Share**: handoff curated artifacts to the Stakeholder Communications agent / analytics agents.",
             "**Review**: annotations, approvals, retention and lifecycle updates.",
             "**Retire**: archive or delete with audit trail and compliance checks."
           ]
@@ -2187,7 +2187,7 @@
         {
           "heading": "Semantic search and summarization",
           "content": [
-            "Agent 19 now supports embedding-powered semantic search and concise result summaries:",
+            "the Knowledge Management agent now supports embedding-powered semantic search and concise result summaries:",
             "Embeddings are generated with `sentence-transformers` (default model: `all-MiniLM-L6-v2`) with automatic fallback to local embeddings if the model is unavailable.",
             "Vector search can run in-memory or via the FAISS-backed vector store (`vector_store_backend`).",
             "Search responses include per-document metadata (`title`, `date`, `relevance_score`) and an LLM-generated concise summary for each hit.",
@@ -2207,18 +2207,18 @@
     },
     {
       "id": 20,
-      "title": "Agent 20: Continuous Improvement Process Mining Specification",
+      "title": "Continuous Improvement Process Mining Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 20: Continuous Improvement Process Mining. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Continuous Improvement Process Mining. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
           "heading": "Intended scope",
           "content": [
-            "Agent 20 owns continuous improvement and process mining for operational workflows. It ingests execution event logs, discovers as-is process models, checks conformance against designed processes, detects bottlenecks/deviations, and turns findings into improvement initiatives with benefit tracking. It is not a general analytics warehouse or workflow engine; it is the process-insight-to-improvement loop.",
+            "the Continuous Improvement agent owns continuous improvement and process mining for operational workflows. It ingests execution event logs, discovers as-is process models, checks conformance against designed processes, detects bottlenecks/deviations, and turns findings into improvement initiatives with benefit tracking. It is not a general analytics warehouse or workflow engine; it is the process-insight-to-improvement loop.",
             "### Primary responsibilities",
             "Ingest and validate event logs for process instances.",
             "Discover process models and performance metrics from execution traces.",
@@ -2240,7 +2240,7 @@
             "`improvement` payload for creating improvement initiatives.",
             "`benchmark_criteria` or filters for benchmarking and reporting.",
             "Optional `tenant_id` for multi-tenant storage scoping.",
-            "`analytics_report` payload for `ingest_analytics_report` containing periodic trends, anomalies, and recommendations from Agent 22.",
+            "`analytics_report` payload for `ingest_analytics_report` containing periodic trends, anomalies, and recommendations from the Analytics Insights agent.",
             "### Outputs",
             "Process models (activities, transitions, BPMN/Petri net representations).",
             "Conformance reports with compliance rates and deviations.",
@@ -2255,13 +2255,13 @@
         {
           "heading": "Decision responsibilities",
           "content": [
-            "Agent 20 is responsible for:",
+            "the Continuous Improvement agent is responsible for:",
             "Selecting mining algorithms for discovery (defaulting to heuristic miner).",
             "Determining bottleneck thresholds and deviation thresholds for alerts.",
             "Prioritizing improvements based on benefits and feasibility scoring.",
             "Emitting workflow improvement recommendations to the workflow engine.",
-            "Agent 20 is not responsible for:",
-            "Approving or executing workflow changes (Agent 24 handles workflow execution).",
+            "the Continuous Improvement agent is not responsible for:",
+            "Approving or executing workflow changes (The Workflow Engine agent handles workflow execution).",
             "Curating enterprise-wide analytics models/warehouses (Agents 22/25).",
             "Authoring enterprise policy or compliance rules (handled by governance agents)."
           ]
@@ -2283,17 +2283,17 @@
         {
           "heading": "Overlap and handoff boundaries",
           "content": [
-            "### Analytics agent (Agent 22)",
-            "**Overlap**: Both Agent 20 and Agent 22 compute KPIs and performance metrics.",
-            "**Boundary**: Agent 20 computes process-level KPIs for improvement decisions; Agent 22",
+            "### Analytics agent (The Analytics Insights agent)",
+            "**Overlap**: Both the Continuous Improvement agent and the Analytics Insights agent compute KPIs and performance metrics.",
+            "**Boundary**: the Continuous Improvement agent computes process-level KPIs for improvement decisions; the Analytics Insights agent",
             "consolidate portfolio-wide KPIs, predictive analytics, and dashboarding.",
-            "**Handoff**: Agent 20 publishes process insights and benefit realization events; analytics",
+            "**Handoff**: the Continuous Improvement agent publishes process insights and benefit realization events; analytics",
             "agent consumes these events for enterprise reporting and forecasting.",
-            "### Workflow engine (Agent 24)",
+            "### Workflow engine (The Workflow Engine agent)",
             "**Overlap**: Both agents operate on process models.",
-            "**Boundary**: Agent 20 discovers as-is models and recommends improvements; Agent 24 owns the",
+            "**Boundary**: the Continuous Improvement agent discovers as-is models and recommends improvements; the Workflow Engine agent owns the",
             "execution of to-be workflows and orchestration definitions.",
-            "**Handoff**: Agent 20 emits `workflow.improvement.recommendation` events to Agent 24; Agent 24",
+            "**Handoff**: the Continuous Improvement agent emits `workflow.improvement.recommendation` events to the Workflow Engine agent; the Workflow Engine agent",
             "updates workflows, approvals, and execution state."
           ]
         },
@@ -2310,7 +2310,7 @@
             "analytics KPIs to avoid overlap with Agents 22/25.",
             "**Tooling**: Align event schemas with analytics ingestion (`events.ingested`,",
             "`process.discovered`, `benefits.realized`) to avoid schema drift.",
-            "**Templates**: Provide a standard improvement initiative template shared with Agent 24 to",
+            "**Templates**: Provide a standard improvement initiative template shared with the Workflow Engine agent to",
             "translate recommendations into workflow updates.",
             "**Connectors**: Ensure task-sync integration is configured for improvement backlog handoff.",
             "**UI**: Expose improvement backlog, conformance reports, and benefit tracking dashboards",
@@ -2325,16 +2325,16 @@
             "**Assess**: Run conformance, bottleneck, and deviation analyses.",
             "**Diagnose**: Perform root cause analysis for prioritized issues.",
             "**Recommend**: Generate improvement initiatives with expected benefits and priority scoring.",
-            "**Handoff**: Emit `workflow.improvement.recommendation` events to Agent 24 and create tasks.",
-            "**Implement**: Workflow engine executes approved changes (Agent 24 responsibility).",
+            "**Handoff**: Emit `workflow.improvement.recommendation` events to the Workflow Engine agent and create tasks.",
+            "**Implement**: Workflow engine executes approved changes (The Workflow Engine agent responsibility).",
             "**Track**: Measure realized benefits, update KPIs, and publish benefit events.",
             "**Benchmark**: Compare against internal/external benchmarks for continuous calibration."
           ]
         },
         {
-          "heading": "Closed-loop analytics integration (Agent 22 \u2192 Agent 20)",
+          "heading": "Closed-loop analytics integration (The Analytics Insights agent \u2192 the Continuous Improvement agent)",
           "content": [
-            "Agent 20 now consumes analytics insights to operationalize continuous improvement:",
+            "the Continuous Improvement agent now consumes analytics insights to operationalize continuous improvement:",
             "Receive periodic analytics via `ingest_analytics_report`.",
             "Convert recommendations into backlog items, categorize them, and prioritize by impact/feasibility.",
             "Assign default or rule-based owners and set target dates.",
@@ -2385,18 +2385,18 @@
     },
     {
       "id": 21,
-      "title": "Agent 21: Stakeholder Comms Specification",
+      "title": "Stakeholder Comms Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 21: Stakeholder Comms. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Stakeholder Comms. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
           "heading": "Intended scope",
           "content": [
-            "Agent 21 owns stakeholder communication operations, including:",
+            "the Stakeholder Communications agent owns stakeholder communication operations, including:",
             "Maintaining the stakeholder register and engagement profiles.",
             "Classifying stakeholders (influence/interest) and recommending engagement strategies.",
             "Building communication plans tied to portfolio/project updates.",
@@ -2404,8 +2404,8 @@
             "Collecting feedback and sentiment, tracking engagement, and producing comms reports.",
             "Coordinating events/meetings and publishing comms events to workflow/analytics systems.",
             "Out of scope:",
-            "Approving outbound communications (handled by Agent 03).",
-            "Authoring/curating official knowledge artifacts (handled by Agent 19).",
+            "Approving outbound communications (handled by the Approval Workflow agent).",
+            "Authoring/curating official knowledge artifacts (handled by the Knowledge Management agent).",
             "Portfolio governance decisions or delivery lifecycle approvals (handled by other agents)."
           ]
         },
@@ -2434,13 +2434,13 @@
         {
           "heading": "Decision responsibilities",
           "content": [
-            "Agent 21 is responsible for:",
+            "the Stakeholder Communications agent is responsible for:",
             "Determining stakeholder classifications and engagement strategies.",
             "Selecting delivery channels based on preferences, consent, and channel availability.",
             "Scheduling batches/digests and optimizing send times.",
             "Generating and personalizing message content.",
             "Triggering workflow automation and publishing comms events/metrics.",
-            "Approval decisions and policy enforcement (beyond consent) remain with Agent 03."
+            "Approval decisions and policy enforcement (beyond consent) remain with the Approval Workflow agent."
           ]
         },
         {
@@ -2452,34 +2452,34 @@
             "Respect delivery modes (immediate, scheduled, digest) and batching controls.",
             "Provide traceable outputs for stakeholder updates and message actions.",
             "Must not:",
-            "Send outbound communications requiring approval before Agent 03 approval is granted.",
-            "Modify or overwrite authoritative knowledge documents owned by Agent 19.",
+            "Send outbound communications requiring approval before the Approval Workflow agent approval is granted.",
+            "Modify or overwrite authoritative knowledge documents owned by the Knowledge Management agent.",
             "Exfiltrate or log secrets; use configured secret providers only."
           ]
         },
         {
           "heading": "Overlap and handoff boundaries (Agents 19 & 03)",
           "content": [
-            "### Agent 03: Approval Workflow",
-            "**Overlap risk:** outbound communications that require approval or escalation. **Handoff:** Agent 21 submits message drafts + metadata to Agent 03 for approval when policy or content flags require it. Agent 21 resumes delivery only after approval status is returned. **Boundary:** Agent 03 owns approval decisions, audit trails, and approval notifications. Agent 21 owns message preparation, delivery execution, and delivery telemetry.",
-            "### Agent 19: Knowledge Document Management",
-            "**Overlap risk:** content summaries or reports that could become knowledge artifacts. **Handoff:** Agent 21 can request approved knowledge snippets or finalized documents from Agent 19 to use in communications; Agent 21 can submit post-communication summaries for capture. **Boundary:** Agent 19 manages canonical documents, versioning, and distribution repositories; Agent 21 only references or links those artifacts in outbound messages."
+            "### Approval Workflow",
+            "**Overlap risk:** outbound communications that require approval or escalation. **Handoff:** the Stakeholder Communications agent submits message drafts + metadata to the Approval Workflow agent for approval when policy or content flags require it. the Stakeholder Communications agent resumes delivery only after approval status is returned. **Boundary:** the Approval Workflow agent owns approval decisions, audit trails, and approval notifications. the Stakeholder Communications agent owns message preparation, delivery execution, and delivery telemetry.",
+            "### Knowledge Document Management",
+            "**Overlap risk:** content summaries or reports that could become knowledge artifacts. **Handoff:** the Stakeholder Communications agent can request approved knowledge snippets or finalized documents from the Knowledge Management agent to use in communications; the Stakeholder Communications agent can submit post-communication summaries for capture. **Boundary:** the Knowledge Management agent manages canonical documents, versioning, and distribution repositories; the Stakeholder Communications agent only references or links those artifacts in outbound messages."
           ]
         },
         {
           "heading": "Functional gaps, inconsistencies, and alignment needs",
           "content": [
-            "**Approval enforcement:** current implementation flags `review_required` but does not block send; align with Agent 03 by adding a required approval state gate.",
+            "**Approval enforcement:** current implementation flags `review_required` but does not block send; align with the Approval Workflow agent by adding a required approval state gate.",
             "**CRM alignment:** README lists Salesforce-specific variables while implementation supports generic CRM endpoints; document precedence and mapping.",
             "**Connector alignment:** Notification/Calendar integrations are used in code but not documented in required env vars; add connector configuration or defaults.",
             "**Templates/UI alignment:** communication templates and digest batching lack UI/portal configuration detail; define where templates live and how they are reviewed.",
-            "**Telemetry alignment:** define how delivery events map to analytics (Agent 22) and knowledge capture (Agent 19)."
+            "**Telemetry alignment:** define how delivery events map to analytics (The Analytics Insights agent) and knowledge capture (The Knowledge Management agent)."
           ]
         },
         {
           "heading": "Communications trigger matrix (execution-ready)",
           "content": [
-            "| Trigger | Inputs | Action | Approval required | Output/records | Handoff | | --- | --- | --- | --- | --- | --- | | Stakeholder added | `stakeholder` payload | Register stakeholder + classify | No (unless policy) | Stakeholder profile, classification | Optionally send profile summary to Agent 19 | | Project status update | `report`/summary source | Generate update message | Yes if external audience | Draft message, summary, delivery plan | Send draft to Agent 03 for approval | | Risk/issue escalation | Risk payload + audience | Send escalation comms | Yes | Delivery results + history | Coordinate approvals with Agent 03 | | Change request | Change details + audience | Compose change notice | Yes | Message + delivery telemetry | Agent 03 approval, Agent 19 update | | Release milestone | Release notes | Broadcast release update | Yes if external | Message + schedule | Agent 03 approval; Agent 19 docs link | | Stakeholder feedback received | Feedback payload | Analyze sentiment + update engagement | No | Sentiment score, engagement update | Feed analytics/knowledge | | Event/meeting scheduled | Event details | Send invites/notifications | No (internal) | Calendar event, notifications | Calendar integration | | Engagement drop | Engagement metrics | Trigger re-engagement plan | Maybe (policy) | New plan + draft message | Agent 03 approval if required |"
+            "| Trigger | Inputs | Action | Approval required | Output/records | Handoff | | --- | --- | --- | --- | --- | --- | | Stakeholder added | `stakeholder` payload | Register stakeholder + classify | No (unless policy) | Stakeholder profile, classification | Optionally send profile summary to the Knowledge Management agent | | Project status update | `report`/summary source | Generate update message | Yes if external audience | Draft message, summary, delivery plan | Send draft to the Approval Workflow agent for approval | | Risk/issue escalation | Risk payload + audience | Send escalation comms | Yes | Delivery results + history | Coordinate approvals with the Approval Workflow agent | | Change request | Change details + audience | Compose change notice | Yes | Message + delivery telemetry | the Approval Workflow agent approval, the Knowledge Management agent update | | Release milestone | Release notes | Broadcast release update | Yes if external | Message + schedule | the Approval Workflow agent approval; the Knowledge Management agent docs link | | Stakeholder feedback received | Feedback payload | Analyze sentiment + update engagement | No | Sentiment score, engagement update | Feed analytics/knowledge | | Event/meeting scheduled | Event details | Send invites/notifications | No (internal) | Calendar event, notifications | Calendar integration | | Engagement drop | Engagement metrics | Trigger re-engagement plan | Maybe (policy) | New plan + draft message | the Approval Workflow agent approval if required |"
           ]
         },
         {
@@ -2555,12 +2555,12 @@
     },
     {
       "id": 22,
-      "title": "Agent 22: Analytics Insights Specification",
+      "title": "Analytics Insights Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 22: Analytics Insights. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Analytics Insights. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -2616,21 +2616,21 @@
         {
           "heading": "Overlap, leakage, and handoff boundaries",
           "content": [
-            "**Coordination with Agent 25 (System Health Monitoring)**",
-            "Agent 22 focuses on portfolio health analytics, narrative generation, and orchestration of Azure services; it also handles Power BI embed configs and cross-domain scenario simulations.",
-            "Agent 25 focuses on system health telemetry, alerts, and SLO monitoring; Agent 22 can consume these health signals as inputs to dashboards or narrative summaries.",
+            "**Coordination with the System Health agent (System Health Monitoring)**",
+            "the Analytics Insights agent focuses on portfolio health analytics, narrative generation, and orchestration of Azure services; it also handles Power BI embed configs and cross-domain scenario simulations.",
+            "the System Health agent focuses on system health telemetry, alerts, and SLO monitoring; the Analytics Insights agent can consume these health signals as inputs to dashboards or narrative summaries.",
             "**Handoff boundaries**",
-            "Agent 22 remains the analytics/reporting orchestrator (dashboards, reports, narratives, scenario analysis, Power BI embedding).",
-            "Agent 25 owns system health alerting, telemetry aggregation, and incident escalation workflows.",
-            "**Overlap with Agent 20 (Continuous Improvement Process Mining)**",
-            "Agent 20 focuses on process mining and improvement opportunities; Agent 22 focuses on analytics consumption and storytelling.",
-            "Handoff: Agent 20 provides mined process insights and cycle-time metrics that Agent 22 can surface in dashboards and reports."
+            "the Analytics Insights agent remains the analytics/reporting orchestrator (dashboards, reports, narratives, scenario analysis, Power BI embedding).",
+            "the System Health agent owns system health alerting, telemetry aggregation, and incident escalation workflows.",
+            "**Overlap with the Continuous Improvement agent (Continuous Improvement Process Mining)**",
+            "the Continuous Improvement agent focuses on process mining and improvement opportunities; the Analytics Insights agent focuses on analytics consumption and storytelling.",
+            "Handoff: the Continuous Improvement agent provides mined process insights and cycle-time metrics that the Analytics Insights agent can surface in dashboards and reports."
           ]
         },
         {
           "heading": "Gaps, inconsistencies, and alignment needs",
           "content": [
-            "**Naming/roles clarity**: Ensure documentation consistently assigns analytics ownership to Agent 22 and reserves system health telemetry and alerting for Agent 25.",
+            "**Naming/roles clarity**: Ensure documentation consistently assigns analytics ownership to the Analytics Insights agent and reserves system health telemetry and alerting for the System Health agent.",
             "**Action documentation vs. runtime behavior**: Ensure orchestration docs list the full action set (including ETL/power BI/realtime ingestion actions).",
             "**Event taxonomy alignment**: The analytics event topics list should be aligned with upstream agents\u2019 emitted event names (schedule, deployment, risk, quality, resource).",
             "**Connector parity**: Ensure the Azure services referenced (Synapse, Data Factory, Event Hub, Power BI, OpenAI) have corresponding connectors and secrets defined in `ops/config/ops/config/.env.example` and runtime docs.",
@@ -2678,13 +2678,13 @@
             "Provisioning Synapse pools, Data Lake file systems, and Data Factory pipelines via `provision_analytics_stack`.",
             "Ingesting Planview, Jira, Workday, and SAP data via `ingest_sources` and storing ingestion manifests in ADLS.",
             "Streaming real-time events through Event Hub and Stream Analytics with `ingest_realtime_event`.",
-            "Generating monthly/periodic portfolio reports through `generate_periodic_report`, including trend/anomaly detection and recommendation outputs for Agent 20 backlog ingestion."
+            "Generating monthly/periodic portfolio reports through `generate_periodic_report`, including trend/anomaly detection and recommendation outputs for the Continuous Improvement agent backlog ingestion."
           ]
         },
         {
-          "heading": "Continuous improvement loop integration (Agent 20 handoff)",
+          "heading": "Continuous improvement loop integration (The Continuous Improvement agent handoff)",
           "content": [
-            "Agent 22 now supports a closed-loop handoff to Agent 20:",
+            "the Analytics Insights agent now supports a closed-loop handoff to the Continuous Improvement agent:",
             "Build periodic analytics payloads using `generate_periodic_report`.",
             "Include `project_metrics` in `filters` (e.g., `cycle_time_days`, `risk_occurrences`, `budget_variance_pct`, `late_task_ratio`, `scope_creep_count`).",
             "The response includes:",
@@ -2693,7 +2693,7 @@
             "`recommendations` for process change/training,",
             "`report_id` for traceability.",
             "Agent emits `analytics.periodic_report.generated` for downstream subscribers.",
-            "This output is designed to be consumed by Agent 20 via `ingest_analytics_report`."
+            "This output is designed to be consumed by the Continuous Improvement agent via `ingest_analytics_report`."
           ]
         },
         {
@@ -2728,12 +2728,12 @@
     },
     {
       "id": 23,
-      "title": "Agent 23: Data Synchronisation Quality Specification",
+      "title": "Data Synchronisation Quality Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 23: Data Synchronisation Quality. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Data Synchronisation Quality. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
@@ -2793,21 +2793,21 @@
         {
           "heading": "Overlap, leakage, and handoff boundaries",
           "content": [
-            "### Analytics agent (Agent 22)",
-            "**Overlap risk**: analytics reporting aggregates quality metrics; Agent 23 produces the raw data quality signals and reports only.",
-            "**Handoff boundary**: Agent 23 publishes quality events/metrics; Agent 22 consumes, aggregates, and generates dashboards, KPIs, narratives, and forecasting.",
-            "**Leakage to avoid**: Agent 23 should not compute portfolio-level KPIs, forecasts, or narrative summaries.",
-            "### Agent 24: Workflow Process Engine",
-            "**Overlap risk**: Agent 24 can orchestrate retries/compensation workflows. Agent 23 owns data sync quality decisions and retry eligibility.",
-            "**Handoff boundary**: Agent 23 emits `sync.complete` and `conflict.detected` events and publishes retry queue status; Agent 24 uses these signals to trigger workflows (e.g., human review for manual conflict resolution).",
-            "**Leakage to avoid**: Agent 23 should not orchestrate complex multi-step workflow routing; defer to Agent 24 for orchestration."
+            "### Analytics agent (The Analytics Insights agent)",
+            "**Overlap risk**: analytics reporting aggregates quality metrics; the Data Synchronisation agent produces the raw data quality signals and reports only.",
+            "**Handoff boundary**: the Data Synchronisation agent publishes quality events/metrics; the Analytics Insights agent consumes, aggregates, and generates dashboards, KPIs, narratives, and forecasting.",
+            "**Leakage to avoid**: the Data Synchronisation agent should not compute portfolio-level KPIs, forecasts, or narrative summaries.",
+            "### Workflow Process Engine",
+            "**Overlap risk**: the Workflow Engine agent can orchestrate retries/compensation workflows. the Data Synchronisation agent owns data sync quality decisions and retry eligibility.",
+            "**Handoff boundary**: the Data Synchronisation agent emits `sync.complete` and `conflict.detected` events and publishes retry queue status; the Workflow Engine agent uses these signals to trigger workflows (e.g., human review for manual conflict resolution).",
+            "**Leakage to avoid**: the Data Synchronisation agent should not orchestrate complex multi-step workflow routing; defer to the Workflow Engine agent for orchestration."
           ]
         },
         {
           "heading": "Functional gaps, inconsistencies, and alignment needs",
           "content": [
-            "**Prompt/tool alignment**: ensure agent runner routes `get_quality_report`, `get_dashboard`, and retry actions to Agent 23 instead of analytics agents.",
-            "**Template alignment**: add/confirm templates for quality exception review workflows in Agent 24 and dashboards in analytics agents.",
+            "**Prompt/tool alignment**: ensure agent runner routes `get_quality_report`, `get_dashboard`, and retry actions to the Data Synchronisation agent instead of analytics agents.",
+            "**Template alignment**: add/confirm templates for quality exception review workflows in the Workflow Engine agent and dashboards in analytics agents.",
             "**Connector alignment**: confirm connector credential availability in Key Vault for Planview/SAP/Jira/Workday and ensure sync mappings exist in `mapping_rules.yaml`.",
             "**UI alignment**: dashboards should visualize quality dimensions (completeness, consistency, timeliness) and include retry queue counts and conflict backlog.",
             "**Schema versioning**: ensure `schema_registry.yaml` and registered schemas include version metadata to avoid mismatched validation."
@@ -2833,8 +2833,8 @@
             "Schema and rule configs: `config/data-synchronisation-agent/*.yaml`.",
             "Event bus: Azure Service Bus / Event Grid.",
             "**Downstream dependencies**",
-            "Analytics agent (Agent 22): quality metrics, reports, and sync telemetry.",
-            "Agent 24 Workflow Engine: conflict and retry orchestration.",
+            "Analytics agent (The Analytics Insights agent): quality metrics, reports, and sync telemetry.",
+            "the Workflow Engine agent Workflow Engine: conflict and retry orchestration.",
             "Data stores: SQL/Cosmos for master records and audit history.",
             "**Key events**",
             "`sync.start`, `sync.complete`, `conflict.detected`."
@@ -2918,24 +2918,24 @@
     },
     {
       "id": 24,
-      "title": "Agent 24: Workflow Process Engine Specification",
+      "title": "Workflow Process Engine Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 24: Workflow Process Engine. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for Workflow Process Engine. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {
-          "heading": "Scope validation (Agent 24)",
+          "heading": "Scope validation (The Workflow Engine agent)",
           "content": [
             "### Intended scope",
             "Orchestrate workflow definitions (JSON/YAML/BPMN) into executable task graphs, persist them, and manage workflow instances (start, pause, resume, cancel).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L90-L437\u3011",
             "Coordinate task execution via a task queue, track task assignments, and manage retries/compensation logic for failed steps.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1207-L1764\u3011",
             "Emit workflow events for audit/telemetry and integrate with event bus topics (workflow notifications, Azure Monitor/Event Grid).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
             "### Out of scope (explicit non-responsibilities)",
-            "Source-control change governance, CI/CD policy enforcement, or repo compliance checks (belongs to Agent 17 change configuration).\u3010F:agents/operations-management/change-control-agent/README.md\u2020L1-L97\u3011",
-            "Process mining and improvement analytics (belongs to Agent 20 continuous improvement/process mining).\u3010F:agents/operations-management/continuous-improvement-agent/README.md\u2020L1-L31\u3011",
+            "Source-control change governance, CI/CD policy enforcement, or repo compliance checks (belongs to the Change Control agent change configuration).\u3010F:agents/operations-management/change-control-agent/README.md\u2020L1-L97\u3011",
+            "Process mining and improvement analytics (belongs to the Continuous Improvement agent continuous improvement/process mining).\u3010F:agents/operations-management/continuous-improvement-agent/README.md\u2020L1-L31\u3011",
             "UI ownership: this agent emits events and tasks, but does not define UI/UX workflows or render task experiences directly (no UI modules in scope).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1351-L2017\u3011",
             "### Inputs",
             "API actions: `define_workflow`, `start_workflow`, `get_workflow_status`, `assign_task`, `complete_task`, `cancel_workflow`, `pause_workflow`, `resume_workflow`, `handle_event`, `retry_failed_task`, `get_workflow_instances`, `get_task_inbox`, `deploy_bpmn_workflow`, `upload_bpmn_workflow`.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L122-L299\u3011",
@@ -2957,14 +2957,14 @@
           ]
         },
         {
-          "heading": "Handoff boundaries with Agent 17 and Agent 20",
+          "heading": "Handoff boundaries with the Change Control agent and the Continuous Improvement agent",
           "content": [
-            "### Agent 17 (Change Configuration)",
-            "Agent 17 owns change requests, approvals, repo integrations, and CI/CD change status workflows. Agent 24 should only orchestrate the workflow steps once a change request is created and should receive change metadata as workflow inputs (e.g., `workflow_spec` + repository/PR metadata).\u3010F:agents/operations-management/change-control-agent/README.md\u2020L1-L92\u3011\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L214-L292\u3011",
-            "Boundary: Agent 24 must not author or evaluate change approvals; it should create/route tasks for approvals, then await completion via `complete_task` events.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L607-L744\u3011",
-            "### Agent 20 (Continuous Improvement Process Mining)",
-            "Agent 20 consumes workflow execution events/telemetry for process mining and continuous improvement insights. Agent 24 publishes `workflow.events`/monitoring payloads which Agent 20 can ingest.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
-            "Boundary: Agent 24 should not analyze or optimize workflows based on historical performance; those insights should be owned by Agent 20 and fed back via new/updated workflow definitions.\u3010F:agents/operations-management/continuous-improvement-agent/README.md\u2020L1-L31\u3011"
+            "### the Change Control agent (Change Configuration)",
+            "the Change Control agent owns change requests, approvals, repo integrations, and CI/CD change status workflows. the Workflow Engine agent should only orchestrate the workflow steps once a change request is created and should receive change metadata as workflow inputs (e.g., `workflow_spec` + repository/PR metadata).\u3010F:agents/operations-management/change-control-agent/README.md\u2020L1-L92\u3011\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L214-L292\u3011",
+            "Boundary: the Workflow Engine agent must not author or evaluate change approvals; it should create/route tasks for approvals, then await completion via `complete_task` events.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L607-L744\u3011",
+            "### the Continuous Improvement agent (Continuous Improvement Process Mining)",
+            "the Continuous Improvement agent consumes workflow execution events/telemetry for process mining and continuous improvement insights. the Workflow Engine agent publishes `workflow.events`/monitoring payloads which the Continuous Improvement agent can ingest.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
+            "Boundary: the Workflow Engine agent should not analyze or optimize workflows based on historical performance; those insights should be owned by the Continuous Improvement agent and fed back via new/updated workflow definitions.\u3010F:agents/operations-management/continuous-improvement-agent/README.md\u2020L1-L31\u3011"
           ]
         },
         {
@@ -3044,12 +3044,12 @@
     },
     {
       "id": 25,
-      "title": "Agent 25: System Health Monitoring Specification",
+      "title": "System Health Monitoring Specification",
       "sections": [
         {
           "heading": "Purpose",
           "content": [
-            "Define the responsibilities, workflows, and integration points for Agent 25: System Health Monitoring. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
+            "Define the responsibilities, workflows, and integration points for System Health Monitoring. This README captures how the agent is expected to behave in the multi-agent orchestration flow."
           ]
         },
         {

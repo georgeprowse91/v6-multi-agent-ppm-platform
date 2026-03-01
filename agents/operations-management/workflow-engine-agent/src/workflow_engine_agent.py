@@ -1,5 +1,5 @@
 """
-Agent 24: Workflow & Process Engine Agent
+Workflow & Process Engine Agent
 
 Purpose:
 Orchestrates complex workflows and processes across the PPM platform, providing dynamic

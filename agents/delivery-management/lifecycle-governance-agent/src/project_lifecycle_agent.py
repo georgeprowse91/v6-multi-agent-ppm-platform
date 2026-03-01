@@ -1,5 +1,5 @@
 """
-Agent 9: Project Lifecycle & Governance Agent
+Project Lifecycle & Governance Agent
 
 Purpose:
 Manages project progression through lifecycle stages, enforces methodology-specific

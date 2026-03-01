@@ -1,5 +1,5 @@
 version: 1
-description: Intent classification system and user prompt for Agent 01 intent router.
+description: Intent classification system and user prompt for the Intent Router agent intent router.
 agent_id: intent-router-agent
 prompt_name: classification_prompt
 ---

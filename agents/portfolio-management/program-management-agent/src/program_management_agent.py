@@ -1,5 +1,5 @@
 """
-Agent 7: Program Management Agent
+Program Management Agent
 
 Purpose:
 Coordinates groups of related projects (programs) to achieve shared strategic objectives

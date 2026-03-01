@@ -1,8 +1,8 @@
-# Agent 15: Risk Issue Management Tests
+# Risk Issue Management Tests
 
 ## Purpose
 
-Hold test assets for Agent 15: Risk Issue Management to validate prompts, policies, and orchestration behavior.
+Hold test assets for Risk Issue Management to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

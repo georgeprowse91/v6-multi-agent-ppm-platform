@@ -1,8 +1,8 @@
-# Agent 23: Data Synchronisation Quality Specification
+# Data Synchronisation Quality Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 23: Data Synchronisation Quality. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Data Synchronisation Quality. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -64,22 +64,22 @@ Referenced by the agent runtime and orchestration docs when routing requests, an
 
 ## Overlap, leakage, and handoff boundaries
 
-### Analytics agent (Agent 22)
+### Analytics agent (The Analytics Insights agent)
 
-- **Overlap risk**: analytics reporting aggregates quality metrics; Agent 23 produces the raw data quality signals and reports only.
-- **Handoff boundary**: Agent 23 publishes quality events/metrics; Agent 22 consumes, aggregates, and generates dashboards, KPIs, narratives, and forecasting.
-- **Leakage to avoid**: Agent 23 should not compute portfolio-level KPIs, forecasts, or narrative summaries.
+- **Overlap risk**: analytics reporting aggregates quality metrics; the Data Synchronisation agent produces the raw data quality signals and reports only.
+- **Handoff boundary**: the Data Synchronisation agent publishes quality events/metrics; the Analytics Insights agent consumes, aggregates, and generates dashboards, KPIs, narratives, and forecasting.
+- **Leakage to avoid**: the Data Synchronisation agent should not compute portfolio-level KPIs, forecasts, or narrative summaries.
 
-### Agent 24: Workflow Process Engine
+### Workflow Process Engine
 
-- **Overlap risk**: Agent 24 can orchestrate retries/compensation workflows. Agent 23 owns data sync quality decisions and retry eligibility.
-- **Handoff boundary**: Agent 23 emits `sync.complete` and `conflict.detected` events and publishes retry queue status; Agent 24 uses these signals to trigger workflows (e.g., human review for manual conflict resolution).
-- **Leakage to avoid**: Agent 23 should not orchestrate complex multi-step workflow routing; defer to Agent 24 for orchestration.
+- **Overlap risk**: the Workflow Engine agent can orchestrate retries/compensation workflows. the Data Synchronisation agent owns data sync quality decisions and retry eligibility.
+- **Handoff boundary**: the Data Synchronisation agent emits `sync.complete` and `conflict.detected` events and publishes retry queue status; the Workflow Engine agent uses these signals to trigger workflows (e.g., human review for manual conflict resolution).
+- **Leakage to avoid**: the Data Synchronisation agent should not orchestrate complex multi-step workflow routing; defer to the Workflow Engine agent for orchestration.
 
 ## Functional gaps, inconsistencies, and alignment needs
 
-- **Prompt/tool alignment**: ensure agent runner routes `get_quality_report`, `get_dashboard`, and retry actions to Agent 23 instead of analytics agents.
-- **Template alignment**: add/confirm templates for quality exception review workflows in Agent 24 and dashboards in analytics agents.
+- **Prompt/tool alignment**: ensure agent runner routes `get_quality_report`, `get_dashboard`, and retry actions to the Data Synchronisation agent instead of analytics agents.
+- **Template alignment**: add/confirm templates for quality exception review workflows in the Workflow Engine agent and dashboards in analytics agents.
 - **Connector alignment**: confirm connector credential availability in Key Vault for Planview/SAP/Jira/Workday and ensure sync mappings exist in `mapping_rules.yaml`.
 - **UI alignment**: dashboards should visualize quality dimensions (completeness, consistency, timeliness) and include retry queue counts and conflict backlog.
 - **Schema versioning**: ensure `schema_registry.yaml` and registered schemas include version metadata to avoid mismatched validation.
@@ -103,8 +103,8 @@ Minimum rules and thresholds for execution readiness:
 - Event bus: Azure Service Bus / Event Grid.
 
 **Downstream dependencies**
-- Analytics agent (Agent 22): quality metrics, reports, and sync telemetry.
-- Agent 24 Workflow Engine: conflict and retry orchestration.
+- Analytics agent (The Analytics Insights agent): quality metrics, reports, and sync telemetry.
+- the Workflow Engine agent Workflow Engine: conflict and retry orchestration.
 - Data stores: SQL/Cosmos for master records and audit history.
 
 **Key events**

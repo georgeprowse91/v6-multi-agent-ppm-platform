@@ -72,7 +72,7 @@ async def test_orchestrator_aggregates_cost_summary(monkeypatch: pytest.MonkeyPa
     )
     orchestrator = Orchestrator(event_bus=build_test_event_bus())
 
-    tasks = [AgentTask(task_id="cost-task", agent=CostAwareAgent("agent-1"))]
+    tasks = [AgentTask(task_id="cost-task", agent=CostAwareAgent("test-agent-alpha"))]
     result = await orchestrator.run(tasks, context={"correlation_id": "corr-1"})
 
     assert result.metrics["cost_summary"]["total_api_cost_usd"] == pytest.approx(0.47)

@@ -1,8 +1,8 @@
-# Agent 01: Intent Router Specification
+# Intent Router Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 01: Intent Router. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Intent Router. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Scope and decision responsibilities
 
@@ -14,8 +14,8 @@ Define the responsibilities, workflows, and integration points for Agent 01: Int
 - Emit audit events for classifications and fallback usage.
 
 **Out of scope (must-not behaviors)**
-- Do **not** generate the final user response; downstream domain agents and Agent 02 handle response assembly.
-- Do **not** execute domain logic or approvals; Agent 03 (approval workflow) and domain agents own those flows.
+- Do **not** generate the final user response; downstream domain agents and the Response Orchestration agent handle response assembly.
+- Do **not** execute domain logic or approvals; the Approval Workflow agent (approval workflow) and domain agents own those flows.
 - Do **not** route intents that are not present in the routing configuration or below confidence thresholds.
 
 ## Inputs and outputs
@@ -30,22 +30,22 @@ Define the responsibilities, workflows, and integration points for Agent 01: Int
 - `parameters`: extracted parameters for downstream agents.
 - Echoed `query` and `context` for traceability.
 
-## Handoff boundaries with Agent 02 and Agent 03
+## Handoff boundaries with the Response Orchestration agent and the Approval Workflow agent
 
-- **Agent 02 (Response Orchestration)**: consumes `routing`, `intents`, and `parameters` from Agent 01 to orchestrate calls to downstream agents and merge their outputs. Agent 01 must not format final responses or merge downstream outputs.
-- **Agent 03 (Approval Workflow)**: triggered only when routing rules or downstream agents indicate a governance requirement. Agent 01 should only route to Agent 03 when the configured intent routes include approval dependencies; Agent 03 owns escalation, policy checks, and approval state transitions.
+- **The Response Orchestration agent (Response Orchestration)**: consumes `routing`, `intents`, and `parameters` from the Intent Router agent to orchestrate calls to downstream agents and merge their outputs. the Intent Router agent must not format final responses or merge downstream outputs.
+- **The Approval Workflow agent (Approval Workflow)**: triggered only when routing rules or downstream agents indicate a governance requirement. the Intent Router agent should only route to the Approval Workflow agent when the configured intent routes include approval dependencies; the Approval Workflow agent owns escalation, policy checks, and approval state transitions.
 
 ## Functional gaps / inconsistencies to resolve
 
 - **Prompt configuration coupling**: intent recognition depends on `agents/runtime/prompts/examples/intent-router.prompt.yaml`. Update both the routing config and prompt examples when adding new intents to avoid mismatches.
-- **Routing config drift**: routing is driven by `config/agents/intent-routing.yaml`. If this config omits an intent returned by the LLM, Agent 01 will drop it; ensure config and prompts stay aligned.
+- **Routing config drift**: routing is driven by `config/agents/intent-routing.yaml`. If this config omits an intent returned by the LLM, the Intent Router agent will drop it; ensure config and prompts stay aligned.
 - **Fallback behavior**: when LLM output is invalid/low-confidence, the fallback classifier only uses static keyword signals; expand or tune signals to avoid under-classification for new intents.
 - **Parameter schema limits**: extracted parameters are currently minimal (project/portfolio IDs, currency, amount, schedule focus). Downstream agents requiring richer inputs must extend extraction logic or supply their own enrichment.
 
 ## Required prompt/tool/template/connector/UI alignment
 
 - **Prompt**: `agents/runtime/prompts/examples/intent-router.prompt.yaml` must enumerate the same intent names defined in `config/agents/intent-routing.yaml`.
-- **Routing config**: `config/agents/intent-routing.yaml` must include routes for any intent the prompt can emit; otherwise Agent 01 will not dispatch to downstream agents.
+- **Routing config**: `config/agents/intent-routing.yaml` must include routes for any intent the prompt can emit; otherwise the Intent Router agent will not dispatch to downstream agents.
 - **Audit/observability**: classification and fallback audit events must be consumed by observability tooling to support traceability.
 
 ## Checkpoint: scope + dependency map entry

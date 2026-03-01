@@ -1,8 +1,8 @@
-# Agent 04: Demand Intake Specification
+# Demand Intake Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 04: Demand Intake. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Demand Intake. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Intended scope
 
@@ -40,23 +40,23 @@ Define the responsibilities, workflows, and integration points for Agent 04: Dem
 
 ## Overlap & handoff boundaries (Agents 05–07)
 
-### Agent 05: Business Case Investment
+### Business Case Investment
 - **Overlap risk**: early cost/benefit or ROI estimation during intake.
-- **Boundary**: Demand Intake captures the request and triage metadata only. It hands off a validated demand record for Agent 05 to build the business case and investment recommendation.
+- **Boundary**: Demand Intake captures the request and triage metadata only. It hands off a validated demand record for the Business Case agent to build the business case and investment recommendation.
 
-### Agent 06: Portfolio Strategy Optimisation
+### Portfolio Strategy Optimisation
 - **Overlap risk**: intake-level prioritization, portfolio scoring, or portfolio fit analysis.
-- **Boundary**: Demand Intake should provide categorization and urgency only; strategic scoring and optimization are performed by Agent 06 after a business case exists.
+- **Boundary**: Demand Intake should provide categorization and urgency only; strategic scoring and optimization are performed by the Portfolio Optimisation agent after a business case exists.
 
-### Agent 07: Program Management
+### Program Management
 - **Overlap risk**: dependency mapping or program-level scheduling at intake.
-- **Boundary**: Demand Intake does not define program structure. It delivers clean demand records for Agent 07 to manage dependencies once the demand is accepted into a program of work.
+- **Boundary**: Demand Intake does not define program structure. It delivers clean demand records for the Program Management agent to manage dependencies once the demand is accepted into a program of work.
 
 ## Functional gaps / inconsistencies & alignment needs
 
 - **Intake criteria gaps**: current schema does not capture scope size, estimated cost/benefit, regulatory impact, or dependency signals needed by downstream agents. Add optional fields or linked templates for these details.
 - **Duplication logic**: duplicate detection is heuristic-only; add a manual review flag or human confirmation step to avoid false merges.
-- **Triage routing**: no explicit routing rule set for which demands go to Agent 05 vs. Agent 07 (e.g., issues vs. initiatives). Add a routing table or decision matrix.
+- **Triage routing**: no explicit routing rule set for which demands go to the Business Case agent vs. the Program Management agent (e.g., issues vs. initiatives). Add a routing table or decision matrix.
 - **Prompt/template alignment**: ensure intake templates (forms, chat prompts, email ingestion) match required fields and the demand schema.
 - **Connector alignment**: validate connectors for intake sources (email/forms/Slack/Teams) pass `tenant_id`, `requester`, and `source` consistently.
 - **UI alignment**: intake UI should surface required fields, duplicate suggestions, and `next_steps` messaging.
@@ -71,7 +71,7 @@ Define the responsibilities, workflows, and integration points for Agent 04: Dem
 ### Dependency map entry (ready for execution)
 - **Upstream**: Intake channels (forms/email/chat), requester identity, tenant context.
 - **Core services**: schema validator, rule engine, notification service, embedding + vector search index, tenant state store, event bus.
-- **Downstream**: `demand.created` event → Agent 05 for business case; portfolio intake reporting → Agent 06; accepted program candidates → Agent 07.
+- **Downstream**: `demand.created` event → the Business Case agent for business case; portfolio intake reporting → the Portfolio Optimisation agent; accepted program candidates → the Program Management agent.
 
 ## What's inside
 

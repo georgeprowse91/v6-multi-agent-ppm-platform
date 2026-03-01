@@ -1,8 +1,8 @@
-# Agent 18: Release Deployment Specification
+# Release Deployment Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 18: Release Deployment. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Release Deployment. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## What's inside
 
@@ -57,14 +57,14 @@ Agent runtime configuration is centralized in `.env` (see `ops/config/.env.examp
 - **Must:** enforce readiness gates when enabled; check approval requirements for protected environments; log and persist release/deployment state; emit events for readiness and rollback lifecycle updates.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L80-L705】【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L842-L896】
 - **Must not:** proceed to deployment when readiness gates recommend NO-GO or approvals are missing/unapproved; must not skip rollback actions when auto-rollback triggers or verification fails if `auto_rollback_on_anomaly` is enabled.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L648-L705】【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L792-L896】
 
-### Overlap / leakage with Agent 14 (Quality) & Agent 17 (Change/Configuration)
-- **Agent 14 overlap:** quality metrics, test results, defect density, and coverage gates are referenced by readiness checks (quality is a shared dependency). Release agent should consume quality signals from Agent 14 instead of duplicating test/defect management workflows.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L486-L507】【F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py†L20-L174】
-- **Agent 17 overlap:** change approvals and configuration drift checks intersect with change management and CMDB ownership. Release agent should request change approval status and configuration drift/CMDB baselines from Agent 17 rather than authoring change records itself.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L1350-L1536】【F:agents/operations-management/change-control-agent/src/change_configuration_agent.py†L20-L174】
+### Overlap / leakage with the Quality Management agent (Quality) & the Change Control agent (Change/Configuration)
+- **The Quality Management agent overlap:** quality metrics, test results, defect density, and coverage gates are referenced by readiness checks (quality is a shared dependency). Release agent should consume quality signals from the Quality Management agent instead of duplicating test/defect management workflows.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L486-L507】【F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py†L20-L174】
+- **The Change Control agent overlap:** change approvals and configuration drift checks intersect with change management and CMDB ownership. Release agent should request change approval status and configuration drift/CMDB baselines from the Change Control agent rather than authoring change records itself.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L1350-L1536】【F:agents/operations-management/change-control-agent/src/change_configuration_agent.py†L20-L174】
 
 ### Handoff boundaries
-- **From Agent 17 → Agent 18:** approved change tickets/config baselines + risk/impact summaries. Agent 18 consumes approvals to satisfy readiness gates and schedules deployments accordingly.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L477-L507】【F:agents/operations-management/change-control-agent/src/change_configuration_agent.py†L20-L174】
-- **From Agent 14 → Agent 18:** verified test execution results, coverage snapshots, and defect status to satisfy readiness criteria and post-deployment verification inputs.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L486-L507】【F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py†L20-L174】
-- **From Agent 18 → Agent 17:** deployment outcomes, rollback events, and configuration drift discoveries to update change records/CMDB for closure and audit trail.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L842-L896】
+- **From the Change Control agent → the Release Deployment agent:** approved change tickets/config baselines + risk/impact summaries. the Release Deployment agent consumes approvals to satisfy readiness gates and schedules deployments accordingly.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L477-L507】【F:agents/operations-management/change-control-agent/src/change_configuration_agent.py†L20-L174】
+- **From the Quality Management agent → the Release Deployment agent:** verified test execution results, coverage snapshots, and defect status to satisfy readiness criteria and post-deployment verification inputs.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L486-L507】【F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py†L20-L174】
+- **From the Release Deployment agent → the Change Control agent:** deployment outcomes, rollback events, and configuration drift discoveries to update change records/CMDB for closure and audit trail.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L842-L896】
 
 ### Functional gaps / inconsistencies & alignment needs
 - **Prompt/template alignment:** readiness criteria are partially implicit (approval/test/coverage/quality/environment readiness) but not surfaced as a formal checklist template; require a release readiness template to standardize inputs and outputs for orchestration UI/workflow.【F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py†L486-L507】

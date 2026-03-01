@@ -1,5 +1,5 @@
 """
-Agent 15: Risk Management Agent
+Risk Management Agent
 
 Purpose:
 Proactively identifies, assesses and monitors risks across projects, programs and portfolios.

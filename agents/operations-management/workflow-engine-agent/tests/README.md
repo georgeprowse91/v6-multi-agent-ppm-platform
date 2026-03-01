@@ -1,8 +1,8 @@
-# Agent 24: Workflow Process Engine Tests
+# Workflow Process Engine Tests
 
 ## Purpose
 
-Hold test assets for Agent 24: Workflow Process Engine to validate prompts, policies, and orchestration behavior.
+Hold test assets for Workflow Process Engine to validate prompts, policies, and orchestration behavior.
 
 ## What's inside
 

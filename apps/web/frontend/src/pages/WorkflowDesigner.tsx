@@ -180,7 +180,7 @@ const buildInitialNodes = (): Array<Node<WorkflowNodeData>> => [
     data: {
       label: 'Trigger intake',
       trigger: 'New request submitted',
-      agent_id: 'agent_001',
+      agent_id: 'demand-intake-agent',
       action: 'triage_request',
       step_type: 'task',
     },
@@ -191,7 +191,7 @@ const buildInitialNodes = (): Array<Node<WorkflowNodeData>> => [
     data: {
       label: 'Approval gate',
       trigger: 'Triage completed',
-      agent_id: 'agent_003_approval_workflow',
+      agent_id: 'approval-workflow-agent',
       action: 'request_approval',
       step_type: 'approval',
     },
@@ -202,7 +202,7 @@ const buildInitialNodes = (): Array<Node<WorkflowNodeData>> => [
     data: {
       label: 'Assign execution',
       trigger: 'Approval granted',
-      agent_id: 'agent_024',
+      agent_id: 'workflow-engine-agent',
       action: 'route_workflow',
       step_type: 'task',
     },

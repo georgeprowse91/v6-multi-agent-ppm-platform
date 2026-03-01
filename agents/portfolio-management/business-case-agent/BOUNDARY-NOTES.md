@@ -1,4 +1,4 @@
-# Agent 05: Business Case & Investment — Boundary Notes
+# Business Case & Investment — Boundary Notes
 
 ## Intended scope (validated)
 - Build business cases, ROI metrics, and investment recommendations for proposed initiatives.
@@ -31,23 +31,23 @@
 - Keep recommendation rules deterministic and auditable.
 
 **Must not**
-- Must not override portfolio prioritization decisions (Agent 06 owns portfolio optimization).
-- Must not change demand intake records (Agent 04 owns intake/source-of-truth).
-- Must not approve funding or bypass stage-gate policies (Agent 03/09 own approvals).
+- Must not override portfolio prioritization decisions (The Portfolio Optimisation agent owns portfolio optimization).
+- Must not change demand intake records (The Demand Intake agent owns intake/source-of-truth).
+- Must not approve funding or bypass stage-gate policies (The Approval Workflow agent/09 own approvals).
 
 ## Handoff boundaries + overlap control
-**With Agent 04 (Demand & Intake)**
+**With the Demand Intake agent (Demand & Intake)**
 - **Handoff in:** Use demand details (`demand_id`, title, description, business objective) as the starting point.
-- **Boundary:** Agent 04 owns intake categorization, dedupe, and initial demand status. Agent 05 should not mutate demand status—only reference `demand_id`.
-- **Overlap risk:** Both agents generate “problem statements.” Mitigation: Agent 05 reuses demand description, avoids reclassification.
+- **Boundary:** the Demand Intake agent owns intake categorization, dedupe, and initial demand status. the Business Case agent should not mutate demand status—only reference `demand_id`.
+- **Overlap risk:** Both agents generate “problem statements.” Mitigation: the Business Case agent reuses demand description, avoids reclassification.
 
-**With Agent 06 (Portfolio Strategy & Optimization)**
+**With the Portfolio Optimisation agent (Portfolio Strategy & Optimization)**
 - **Handoff out:** Provide business-case outputs (`financial_metrics`, recommendation, scenario summaries).
-- **Boundary:** Agent 06 owns ranking/selection across the portfolio; Agent 05 provides single-initiative analytics.
-- **Overlap risk:** Both can compute ROI/score. Mitigation: Agent 06 consumes ROI metrics from Agent 05 rather than recomputing unless inputs are missing.
+- **Boundary:** the Portfolio Optimisation agent owns ranking/selection across the portfolio; the Business Case agent provides single-initiative analytics.
+- **Overlap risk:** Both can compute ROI/score. Mitigation: the Portfolio Optimisation agent consumes ROI metrics from the Business Case agent rather than recomputing unless inputs are missing.
 
 ## Functional gaps / inconsistencies to align
-- **Template alignment:** Business-case templates exist in `docs/templates/portfolio-program/`, but Agent 05 expects `templates` in config. Provide a mapping layer or template registry to bind `project_type:methodology` to these templates.
+- **Template alignment:** Business-case templates exist in `docs/templates/portfolio-program/`, but the Business Case agent expects `templates` in config. Provide a mapping layer or template registry to bind `project_type:methodology` to these templates.
 - **Schema clarity:** ROI schema is validated, but `generate_business_case` does not validate request payload against a schema. Introduce a business-case request schema or reuse demand schema + cost/benefit schema.
 - **Tenant isolation in vector search:** Historical comparisons use in-memory vector index; ensure tenant-aware search to prevent cross-tenant leakage.
 - **Event/UI alignment:** Draft status is always `Draft`. UI should expose status, next steps, and link to the stored business case, including recommendation rationale.

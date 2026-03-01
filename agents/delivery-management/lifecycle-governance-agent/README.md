@@ -1,8 +1,8 @@
-# Agent 09: Lifecycle Governance Specification
+# Lifecycle Governance Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 09: Lifecycle Governance. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Lifecycle Governance. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Scope & Responsibilities
 
@@ -33,7 +33,7 @@ Define the responsibilities, workflows, and integration points for Agent 09: Lif
 ## Decision Responsibilities
 
 - Enforce gate criteria before phase transitions; block transitions when criteria fail.
-- Escalate gate override decisions to Agent 03 (Approval Workflow) and record approvals.
+- Escalate gate override decisions to the Approval Workflow agent (Approval Workflow) and record approvals.
 - Publish governance/health events for downstream analytics and UI consumption.
 
 ## Must / Must-Not Behaviors
@@ -51,16 +51,16 @@ Define the responsibilities, workflows, and integration points for Agent 09: Lif
 
 ## Overlaps & Handoff Boundaries
 
-- **Agent 03 (Approval Workflow):** Agent 09 owns gate evaluation but must hand off any override
-  request for approval; Agent 03 returns approval status and audit ID that Agent 09 records.
-- **Agent 16 (Compliance Regulatory):** Agent 09 owns lifecycle gating but relies on Agent 16 to
+- **The Approval Workflow agent (Approval Workflow):** the Lifecycle Governance agent owns gate evaluation but must hand off any override
+  request for approval; the Approval Workflow agent returns approval status and audit ID that the Lifecycle Governance agent records.
+- **The Compliance Governance agent (Compliance Regulatory):** the Lifecycle Governance agent owns lifecycle gating but relies on the Compliance Governance agent to
   supply regulatory/compliance attestations that become gate criteria evidence (e.g., compliance
   sign-offs, audit readiness).
 
 ## Functional Gaps / Alignment Needs
 
-- **Compliance monitoring gap:** Agent 09 declares compliance monitoring but currently has no
-  explicit connector to Agent 16 for compliance evidence; define an event contract or API call.
+- **Compliance monitoring gap:** the Lifecycle Governance agent declares compliance monitoring but currently has no
+  explicit connector to the Compliance Governance agent for compliance evidence; define an event contract or API call.
 - **Gate evidence ingestion:** Gate criteria depend on artifacts/approvals stored on the project
   record; UI/forms must capture these fields and sync them into the lifecycle store.
 - **Prompt/template alignment:** Gate summaries and readiness scoring should use standardized

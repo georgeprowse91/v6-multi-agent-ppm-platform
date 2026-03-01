@@ -1,5 +1,5 @@
 """
-Agent 12: Financial Management Agent
+Financial Management Agent
 
 Purpose:
 Provides comprehensive financial oversight across portfolios, programs and projects.

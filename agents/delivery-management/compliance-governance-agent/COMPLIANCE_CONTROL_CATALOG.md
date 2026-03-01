@@ -1,8 +1,8 @@
-# Compliance Control Catalog & Scope Validation (Agent 16)
+# Compliance Control Catalog & Scope Validation (The Compliance Governance agent)
 
 ## Intended scope
 
-Agent 16 owns compliance and regulatory management across projects/programs/portfolios, including:
+The Compliance Governance agent owns compliance and regulatory management across projects/programs/portfolios, including:
 
 - Managing regulatory frameworks, controls, evidence, and audit packages.
 - Monitoring regulatory updates and notifying stakeholders.
@@ -51,7 +51,7 @@ The agent returns action-specific outputs. Key outputs include:
 
 ## Decision responsibilities
 
-### Agent 16 is responsible for:
+### the Compliance Governance agent is responsible for:
 
 - Determining regulatory applicability for a project based on industry, geography, and data sensitivity.
 - Defining controls and assigning test frequencies to ensure regulatory obligations are satisfied.
@@ -60,10 +60,10 @@ The agent returns action-specific outputs. Key outputs include:
 - Monitoring regulatory changes and identifying impacted controls.
 - Publishing notifications and compliance events for downstream systems.
 
-### Agent 16 is **not** responsible for:
+### the Compliance Governance agent is **not** responsible for:
 
-- Project phase gating, health scoring, or lifecycle state transitions (owned by Agent 09).
-- Vendor onboarding, procurement approvals, or vendor compliance enforcement (owned by Agent 13).
+- Project phase gating, health scoring, or lifecycle state transitions (owned by the Lifecycle Governance agent).
+- Vendor onboarding, procurement approvals, or vendor compliance enforcement (owned by the Vendor Procurement agent).
 - Approving releases or operational readiness; it only supplies compliance verification inputs.
 
 ## Must / must-not behaviors
@@ -111,41 +111,41 @@ The rule engine evaluates compliance evidence against a set of requirement check
 
 ## Overlap analysis & handoff boundaries
 
-### Agent 09: Lifecycle Governance
+### Lifecycle Governance
 
 **Overlap:**
 - Both agents touch governance and release readiness signals.
 
 **Boundary:**
-- Agent 09 owns lifecycle stage transitions, gate enforcement, health scoring, and governance dashboards.
-- Agent 16 supplies compliance inputs (controls, assessments, evidence, and release compliance checks) that can be consumed by Agent 09 for governance decisions.
+- the Lifecycle Governance agent owns lifecycle stage transitions, gate enforcement, health scoring, and governance dashboards.
+- the Compliance Governance agent supplies compliance inputs (controls, assessments, evidence, and release compliance checks) that can be consumed by the Lifecycle Governance agent for governance decisions.
 
 **Handoff:**
-- Agent 09 should request compliance checks (`verify_release_compliance`, `assess_compliance`) when preparing a gate evaluation.
+- the Lifecycle Governance agent should request compliance checks (`verify_release_compliance`, `assess_compliance`) when preparing a gate evaluation.
 
-### Agent 13: Vendor Procurement
+### Vendor Procurement
 
 **Overlap:**
 - Both agents deal with compliance checks and audit evidence.
 
 **Boundary:**
-- Agent 13 owns vendor risk/compliance screening, sanctions/watchlist checks, and procurement lifecycle decisions.
-- Agent 16 should only consume vendor compliance artifacts as evidence inputs when they are required for regulatory control testing or audits.
+- the Vendor Procurement agent owns vendor risk/compliance screening, sanctions/watchlist checks, and procurement lifecycle decisions.
+- the Compliance Governance agent should only consume vendor compliance artifacts as evidence inputs when they are required for regulatory control testing or audits.
 
 **Handoff:**
-- Agent 13 produces vendor compliance status, risk scores, and sanctions findings; Agent 16 ingests them as evidence artifacts for regulatory controls.
+- the Vendor Procurement agent produces vendor compliance status, risk scores, and sanctions findings; the Compliance Governance agent ingests them as evidence artifacts for regulatory controls.
 
 ## Functional gaps & alignment requirements
 
 ### Functional gaps / inconsistencies
 
 - Compliance controls are stored in memory and a generic database service, but there is no explicit linkage to the shared metrics catalog used by governance health reporting.
-- Release compliance checks exist, but there is no explicit mapping to lifecycle gate criteria; this should be coordinated with Agent 09.
+- Release compliance checks exist, but there is no explicit mapping to lifecycle gate criteria; this should be coordinated with the Lifecycle Governance agent.
 - Regulatory change monitoring runs when configured, but no enforcement workflow is defined for required remediation tasks.
 
 ### Alignment needs (prompt/tool/template/connector/UI)
 
-- **Prompt/tooling:** ensure orchestration prompts direct compliance assessments to Agent 16 and lifecycle gate decisions to Agent 09.
+- **Prompt/tooling:** ensure orchestration prompts direct compliance assessments to the Compliance Governance agent and lifecycle gate decisions to the Lifecycle Governance agent.
 - **Templates:** align compliance report templates with governance health report templates (shared terminology for risks and gaps).
 - **Connectors:** integrate GRC systems (ServiceNow GRC, RSA Archer) as authoritative sources for regulatory frameworks and controls.
 - **UI:** surface compliance dashboards and audit packages alongside project governance dashboards for a single source of truth.

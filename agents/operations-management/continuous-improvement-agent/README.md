@@ -1,12 +1,12 @@
-# Agent 20: Continuous Improvement Process Mining Specification
+# Continuous Improvement Process Mining Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Agent 20: Continuous Improvement Process Mining. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for Continuous Improvement Process Mining. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Intended scope
 
-Agent 20 owns continuous improvement and process mining for operational workflows. It ingests
+The Continuous Improvement agent owns continuous improvement and process mining for operational workflows. It ingests
 execution event logs, discovers as-is process models, checks conformance against designed
 processes, detects bottlenecks/deviations, and turns findings into improvement initiatives with
 benefit tracking. It is not a general analytics warehouse or workflow engine; it is the
@@ -33,7 +33,7 @@ process-insight-to-improvement loop.
 - `improvement` payload for creating improvement initiatives.
 - `benchmark_criteria` or filters for benchmarking and reporting.
 - Optional `tenant_id` for multi-tenant storage scoping.
-- `analytics_report` payload for `ingest_analytics_report` containing periodic trends, anomalies, and recommendations from Agent 22.
+- `analytics_report` payload for `ingest_analytics_report` containing periodic trends, anomalies, and recommendations from the Analytics Insights agent.
 
 ### Outputs
 
@@ -48,16 +48,16 @@ process-insight-to-improvement loop.
 
 ## Decision responsibilities
 
-Agent 20 is responsible for:
+The Continuous Improvement agent is responsible for:
 
 - Selecting mining algorithms for discovery (defaulting to heuristic miner).
 - Determining bottleneck thresholds and deviation thresholds for alerts.
 - Prioritizing improvements based on benefits and feasibility scoring.
 - Emitting workflow improvement recommendations to the workflow engine.
 
-Agent 20 is not responsible for:
+The Continuous Improvement agent is not responsible for:
 
-- Approving or executing workflow changes (Agent 24 handles workflow execution).
+- Approving or executing workflow changes (The Workflow Engine agent handles workflow execution).
 - Curating enterprise-wide analytics models/warehouses (Agents 22/25).
 - Authoring enterprise policy or compliance rules (handled by governance agents).
 
@@ -78,20 +78,20 @@ Agent 20 is not responsible for:
 
 ## Overlap and handoff boundaries
 
-### Analytics agent (Agent 22)
+### Analytics agent (The Analytics Insights agent)
 
-- **Overlap**: Both Agent 20 and Agent 22 compute KPIs and performance metrics.
-- **Boundary**: Agent 20 computes process-level KPIs for improvement decisions; Agent 22
+- **Overlap**: Both the Continuous Improvement agent and the Analytics Insights agent compute KPIs and performance metrics.
+- **Boundary**: the Continuous Improvement agent computes process-level KPIs for improvement decisions; the Analytics Insights agent
   consolidate portfolio-wide KPIs, predictive analytics, and dashboarding.
-- **Handoff**: Agent 20 publishes process insights and benefit realization events; analytics
+- **Handoff**: the Continuous Improvement agent publishes process insights and benefit realization events; analytics
   agent consumes these events for enterprise reporting and forecasting.
 
-### Workflow engine (Agent 24)
+### Workflow engine (The Workflow Engine agent)
 
 - **Overlap**: Both agents operate on process models.
-- **Boundary**: Agent 20 discovers as-is models and recommends improvements; Agent 24 owns the
+- **Boundary**: the Continuous Improvement agent discovers as-is models and recommends improvements; the Workflow Engine agent owns the
   execution of to-be workflows and orchestration definitions.
-- **Handoff**: Agent 20 emits `workflow.improvement.recommendation` events to Agent 24; Agent 24
+- **Handoff**: the Continuous Improvement agent emits `workflow.improvement.recommendation` events to the Workflow Engine agent; the Workflow Engine agent
   updates workflows, approvals, and execution state.
 
 ## Functional gaps and required alignment
@@ -109,7 +109,7 @@ Agent 20 is not responsible for:
   analytics KPIs to avoid overlap with Agents 22/25.
 - **Tooling**: Align event schemas with analytics ingestion (`events.ingested`,
   `process.discovered`, `benefits.realized`) to avoid schema drift.
-- **Templates**: Provide a standard improvement initiative template shared with Agent 24 to
+- **Templates**: Provide a standard improvement initiative template shared with the Workflow Engine agent to
   translate recommendations into workflow updates.
 - **Connectors**: Ensure task-sync integration is configured for improvement backlog handoff.
 - **UI**: Expose improvement backlog, conformance reports, and benefit tracking dashboards
@@ -122,14 +122,14 @@ Agent 20 is not responsible for:
 3. **Assess**: Run conformance, bottleneck, and deviation analyses.
 4. **Diagnose**: Perform root cause analysis for prioritized issues.
 5. **Recommend**: Generate improvement initiatives with expected benefits and priority scoring.
-6. **Handoff**: Emit `workflow.improvement.recommendation` events to Agent 24 and create tasks.
-7. **Implement**: Workflow engine executes approved changes (Agent 24 responsibility).
+6. **Handoff**: Emit `workflow.improvement.recommendation` events to the Workflow Engine agent and create tasks.
+7. **Implement**: Workflow engine executes approved changes (The Workflow Engine agent responsibility).
 8. **Track**: Measure realized benefits, update KPIs, and publish benefit events.
 9. **Benchmark**: Compare against internal/external benchmarks for continuous calibration.
 
-## Closed-loop analytics integration (Agent 22 → Agent 20)
+## Closed-loop analytics integration (The Analytics Insights agent → the Continuous Improvement agent)
 
-Agent 20 now consumes analytics insights to operationalize continuous improvement:
+The Continuous Improvement agent now consumes analytics insights to operationalize continuous improvement:
 
 1. Receive periodic analytics via `ingest_analytics_report`.
 2. Convert recommendations into backlog items, categorize them, and prioritize by impact/feasibility.
