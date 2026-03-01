@@ -5,13 +5,7 @@
  */
 import type { IconSemantic } from '@/components/icon/iconMap';
 
-/**
- * Connector categories for organization.
- *
- * Keep in sync with the categories emitted by connectors/registry/generate.py
- * (derived from connector manifests).  Run `python connectors/registry/validate_types.py`
- * to verify alignment.
- */
+/** Connector categories — must match values in connectors/registry/connectors.json. */
 export type ConnectorCategory =
   | 'ppm'
   | 'pm'

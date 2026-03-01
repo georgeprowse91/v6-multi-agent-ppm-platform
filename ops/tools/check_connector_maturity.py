@@ -41,36 +41,24 @@ def _load_inventory(path: Path | None) -> dict[str, Any]:
     return json.loads(path.read_text())
 
 
-def _collect_manifest_exceptions() -> list[dict[str, Any]]:
-    """Read ``maturity.exceptions`` from every connector manifest.yaml."""
-    connectors_root = REPO_ROOT / "connectors"
-    entries: list[dict[str, Any]] = []
-    for manifest_path in sorted(connectors_root.glob("*/manifest.yaml")):
-        try:
-            data = yaml.safe_load(manifest_path.read_text()) or {}
-        except (OSError, yaml.YAMLError):
-            continue
-        connector_id = data.get("id")
-        if not connector_id:
-            continue
-        for exc in (data.get("maturity") or {}).get("exceptions", []):
-            entries.append({**exc, "connector_id": connector_id})
-    return entries
-
-
 def _exception_index(policy: dict[str, Any]) -> tuple[dict[tuple[str, str], date], list[Violation]]:
     index: dict[tuple[str, str], date] = {}
     violations: list[Violation] = []
     today = date.today()
 
-    # Merge exceptions from the central policy file AND individual manifests.
-    # Manifest-level exceptions are the preferred location going forward;
-    # the central policy file is kept for global thresholds only.
-    all_exceptions: list[dict[str, Any]] = list(policy.get("exceptions", []))
-    all_exceptions.extend(_collect_manifest_exceptions())
+    # Merge exceptions from central policy and individual manifests (deduplicated).
+    all_exc: list[dict[str, Any]] = list(policy.get("exceptions", []))
+    for mp in sorted((REPO_ROOT / "connectors").glob("*/manifest.yaml")):
+        try:
+            d = yaml.safe_load(mp.read_text()) or {}
+        except (OSError, yaml.YAMLError):
+            continue
+        cid = d.get("id")
+        if cid:
+            all_exc.extend({**e, "connector_id": cid} for e in (d.get("maturity") or {}).get("exceptions", []))
 
     seen: set[tuple[str, str]] = set()
-    for entry in all_exceptions:
+    for entry in all_exc:
         connector_id = entry.get("connector_id")
         rule_id = entry.get("rule_id")
         expires_on = entry.get("expires_on")

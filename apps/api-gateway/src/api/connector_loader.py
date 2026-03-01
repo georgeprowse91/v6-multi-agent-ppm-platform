@@ -15,51 +15,24 @@ from connectors.sdk.src.project_connector_store import ProjectConnectorConfig
 
 logger = logging.getLogger(__name__)
 
-# PascalCase segments that don't follow simple str.capitalize()
-_PASCAL_OVERRIDES: dict[str, str] = {
-    "iot": "IoT",
-    "sharepoint": "SharePoint",
-    "servicenow": "ServiceNow",
-    "netsuite": "NetSuite",
-    "logicgate": "LogicGate",
-    "devops": "DevOps",
-    "successfactors": "SuccessFactors",
-}
+_PASCAL = {"iot": "IoT", "sharepoint": "SharePoint", "servicenow": "ServiceNow",
+           "netsuite": "NetSuite", "logicgate": "LogicGate", "devops": "DevOps",
+           "successfactors": "SuccessFactors"}
 
 
-def _to_class_name(connector_id: str) -> str:
-    """Convert a connector_id like 'azure_devops' to 'AzureDevOpsConnector'."""
-    parts = connector_id.split("_")
-    return "".join(_PASCAL_OVERRIDES.get(p, p.capitalize()) for p in parts) + "Connector"
+def _build_class_map() -> dict[str, tuple[str, str]]:
+    """Derive connector_id -> (module, class) from manifests.
+    MCP connectors share the module/class of their REST counterpart via ``system``."""
+    base = {d.system: d.connector_id for d in get_all_connectors() if d.auth_type != "mcp"}
+    m: dict[str, tuple[str, str]] = {}
+    for d in get_all_connectors():
+        bid = base.get(d.system, d.connector_id) if d.auth_type == "mcp" else d.connector_id
+        cls = "".join(_PASCAL.get(p, p.capitalize()) for p in bid.split("_")) + "Connector"
+        m[d.connector_id] = (f"{bid}_connector", cls)
+    return m
 
 
-def _build_connector_class_map() -> dict[str, tuple[str, str]]:
-    """Derive connector_id → (module_name, class_name) from manifests.
-
-    REST connectors use their own id for the module.
-    MCP connectors share the module/class of their REST counterpart
-    (identified via the ``system`` field).
-    """
-    # First pass: collect base (non-MCP) connectors keyed by system
-    system_to_base_id: dict[str, str] = {}
-    for defn in get_all_connectors():
-        if defn.auth_type != "mcp":
-            system_to_base_id[defn.system] = defn.connector_id
-
-    class_map: dict[str, tuple[str, str]] = {}
-    for defn in get_all_connectors():
-        if defn.auth_type == "mcp":
-            base_id = system_to_base_id.get(defn.system, defn.connector_id)
-        else:
-            base_id = defn.connector_id
-        module_name = f"{base_id}_connector"
-        class_name = _to_class_name(base_id)
-        class_map[defn.connector_id] = (module_name, class_name)
-
-    return class_map
-
-
-_CONNECTOR_CLASS_MAP: dict[str, tuple[str, str]] = _build_connector_class_map()
+_CONNECTOR_CLASS_MAP: dict[str, tuple[str, str]] = _build_class_map()
 
 _MCP_CONNECTOR_BY_SYSTEM = {
     definition.system: definition.connector_id
