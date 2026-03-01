@@ -1,0 +1,13 @@
+plan_id: plan-89bad11a-5c3d-41dd-8d49-437e884a9b0f
+tasks:
+- task_id: task-1
+  agent_id: financial-management-agent
+  action: null
+  dependencies: []
+  metadata:
+    priority: null
+    intent: null
+status: approved
+modification_history: []
+created_at: '2026-03-01T10:35:23.139063Z'
+version: 649
