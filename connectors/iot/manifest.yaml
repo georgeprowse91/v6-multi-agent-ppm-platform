@@ -4,6 +4,8 @@ name: IoT Integrations
 description: Ingest sensor telemetry from custom hardware devices via HTTP or MQTT.
 owner: integration-team
 category: iot
+status: available
+icon: cpu-chip
 auth:
   type: api_key
   fields:
@@ -18,6 +20,63 @@ auth:
   - mqtt_password
   - mqtt_topic
   - poll_interval_seconds
+config_fields:
+- name: protocol
+  type: string
+  required: false
+  label: Protocol (http, https, mqtt)
+- name: device_endpoint
+  type: url
+  required: false
+  label: Device Endpoint
+- name: auth_token
+  type: string
+  required: false
+  label: Authentication Token
+- name: device_ids
+  type: string
+  required: false
+  label: Device IDs (comma-separated)
+- name: sensor_types
+  type: string
+  required: false
+  label: Supported Sensor Types (comma-separated)
+- name: mqtt_broker
+  type: string
+  required: false
+  label: MQTT Broker Host
+- name: mqtt_port
+  type: number
+  required: false
+  label: MQTT Broker Port
+- name: mqtt_username
+  type: string
+  required: false
+  label: MQTT Username
+- name: mqtt_password
+  type: string
+  required: false
+  label: MQTT Password
+- name: mqtt_topic
+  type: string
+  required: false
+  label: MQTT Topic
+- name: poll_interval_seconds
+  type: number
+  required: false
+  label: Polling Interval (seconds)
+env_vars:
+- IOT_PROTOCOL
+- IOT_DEVICE_ENDPOINT
+- IOT_AUTH_TOKEN
+- IOT_DEVICE_IDS
+- IOT_SENSOR_TYPES
+- IOT_MQTT_BROKER
+- IOT_MQTT_PORT
+- IOT_MQTT_USERNAME
+- IOT_MQTT_PASSWORD
+- IOT_MQTT_TOPIC
+- IOT_POLL_INTERVAL_SECONDS
 sync:
   modes:
   - full
@@ -25,6 +84,9 @@ sync:
   default_schedule: '*/5 * * * *'
   supports_webhooks: false
   rate_limit_per_minute: 120
+  directions:
+  - inbound
+  - outbound
 mappings:
 - source: sensor_data
   target: sensor-reading

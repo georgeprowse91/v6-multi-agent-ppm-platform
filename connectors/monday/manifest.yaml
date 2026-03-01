@@ -3,11 +3,24 @@ version: 1.0.0
 name: Monday
 description: Monday connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: pm
+status: available
+icon: monday
 auth:
   type: api_key
   fields:
   - api_key
+config_fields:
+- name: instance_url
+  type: url
+  required: false
+  label: API Base URL
+- name: board_ids
+  type: string
+  required: false
+  label: Board IDs (comma-separated)
+env_vars:
+- MONDAY_API_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +28,9 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

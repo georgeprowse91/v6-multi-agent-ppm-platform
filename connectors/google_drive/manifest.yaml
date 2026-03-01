@@ -3,11 +3,26 @@ version: 1.0.0
 name: Google Drive
 description: Google Drive connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: doc_mgmt
+status: available
+icon: google
 auth:
   type: api_key
   fields:
   - api_key
+config_fields:
+- name: instance_url
+  type: url
+  required: false
+  label: API Base URL
+- name: folder_id
+  type: string
+  required: false
+  label: Root Folder ID
+env_vars:
+- GOOGLE_CLIENT_ID
+- GOOGLE_CLIENT_SECRET
+- GOOGLE_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +30,9 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

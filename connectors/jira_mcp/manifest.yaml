@@ -3,7 +3,15 @@ version: 1.0.0
 name: Jira (MCP)
 description: Sync projects and work items from Jira via an MCP server.
 owner: integration-team
-category: work-management
+category: pm
+status: beta
+icon: jira
+system: jira
+prefer_mcp: true
+supported_operations:
+- list
+- create
+- update
 protocol: mcp
 auth:
   type: api_key
@@ -27,6 +35,20 @@ tool_map:
   list_projects: jira.listProjects
   list_work_items: jira.listIssues
   upsert_work_item: jira.upsertIssue
+config_fields:
+- name: mcp_server_url
+  type: url
+  required: true
+  label: MCP Server URL
+- name: mcp_scopes
+  type: array
+  required: false
+  label: MCP Scopes
+- name: tool_map
+  type: object
+  required: false
+  label: MCP Tool Map
+env_vars: []
 sync:
   modes:
   - full
@@ -34,6 +56,8 @@ sync:
   default_schedule: 0 */4 * * *
   supports_webhooks: false
   rate_limit_per_minute: 600
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

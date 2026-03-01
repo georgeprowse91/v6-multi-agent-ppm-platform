@@ -3,11 +3,28 @@ version: 1.0.0
 name: Ms Project Server
 description: Ms Project Server connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: ppm
+status: available
+icon: microsoft
 auth:
   type: api_key
   fields:
   - api_key
+config_fields:
+- name: tenant_id
+  type: string
+  required: true
+  label: Azure Tenant ID
+- name: site_url
+  type: url
+  required: true
+  label: Project Web App URL
+env_vars:
+- MS_PROJECT_TENANT_ID
+- MS_PROJECT_SITE_URL
+- MS_PROJECT_CLIENT_ID
+- MS_PROJECT_CLIENT_SECRET
+- MS_PROJECT_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +32,9 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

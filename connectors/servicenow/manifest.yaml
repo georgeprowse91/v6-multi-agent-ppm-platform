@@ -1,9 +1,11 @@
-id: servicenow
+id: servicenow_grc
 version: 1.0.0
 name: ServiceNow
 description: Sync incidents, change requests, and project records from ServiceNow.
 owner: integration-team
-category: it-service
+category: grc
+status: available
+icon: servicenow
 auth:
   type: oauth2
   token_url: https://example.service-now.com/oauth_token.do
@@ -15,6 +17,16 @@ auth:
   - client_secret
   - refresh_token
   - instance_url
+config_fields:
+- name: instance_url
+  type: url
+  required: true
+  label: Instance URL
+env_vars:
+- SERVICENOW_URL
+- SERVICENOW_CLIENT_ID
+- SERVICENOW_CLIENT_SECRET
+- SERVICENOW_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -22,6 +34,9 @@ sync:
   default_schedule: 0 */6 * * *
   supports_webhooks: true
   rate_limit_per_minute: 300
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

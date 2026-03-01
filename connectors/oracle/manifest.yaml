@@ -3,11 +3,23 @@ version: 1.0.0
 name: Oracle
 description: Oracle connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: erp
+status: available
+icon: oracle
 auth:
   type: api_key
   fields:
   - api_key
+config_fields:
+- name: instance_url
+  type: url
+  required: true
+  label: Oracle Cloud URL
+env_vars:
+- ORACLE_URL
+- ORACLE_CLIENT_ID
+- ORACLE_CLIENT_SECRET
+- ORACLE_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +27,8 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

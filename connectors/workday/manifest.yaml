@@ -4,6 +4,8 @@ name: Workday
 description: Sync resource capacity and workforce data from Workday.
 owner: integration-team
 category: hris
+status: available
+icon: workday
 auth:
   type: oauth2
   token_url: https://wd3-impl-services1.workday.com/ccx/oauth2/token
@@ -13,6 +15,20 @@ auth:
   - client_secret
   - refresh_token
   - token_url
+config_fields:
+- name: instance_url
+  type: url
+  required: false
+  label: API Base URL
+- name: tenant_name
+  type: string
+  required: true
+  label: Tenant Name
+env_vars:
+- WORKDAY_API_URL
+- WORKDAY_CLIENT_ID
+- WORKDAY_CLIENT_SECRET
+- WORKDAY_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -20,6 +36,8 @@ sync:
   default_schedule: 0 */12 * * *
   supports_webhooks: false
   rate_limit_per_minute: 120
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

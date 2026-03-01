@@ -4,6 +4,13 @@ name: Planview (MCP)
 description: Sync portfolio and project data from Planview via an MCP server.
 owner: integration-team
 category: ppm
+status: beta
+icon: planview
+system: planview
+prefer_mcp: true
+supported_operations:
+- list
+- create
 protocol: mcp
 auth:
   type: api_key
@@ -25,6 +32,20 @@ mcp_server_id: planview
 tool_map:
   list_projects: planview.listProjects
   create_project: planview.createProject
+config_fields:
+- name: mcp_server_url
+  type: url
+  required: true
+  label: MCP Server URL
+- name: mcp_scopes
+  type: array
+  required: false
+  label: MCP Scopes
+- name: tool_map
+  type: object
+  required: false
+  label: MCP Tool Map
+env_vars: []
 sync:
   modes:
   - full
@@ -32,6 +53,9 @@ sync:
   default_schedule: 0 2 * * *
   supports_webhooks: false
   rate_limit_per_minute: 200
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

@@ -4,11 +4,15 @@ name: Smartsheet
 description: Sync schedules and sheets from Smartsheet.
 owner: integration-team
 category: pm
+status: available
+icon: smartsheet
 auth:
   type: api_key
   fields:
   - api_token
   - base_url
+config_fields: []
+env_vars: []
 sync:
   modes:
   - full
@@ -16,6 +20,9 @@ sync:
   default_schedule: '*/30 * * * *'
   supports_webhooks: false
   rate_limit_per_minute: 60
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

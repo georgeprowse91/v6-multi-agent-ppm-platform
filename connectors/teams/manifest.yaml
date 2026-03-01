@@ -4,6 +4,8 @@ name: Microsoft Teams
 description: Sync Teams channels and meeting metadata for project collaboration.
 owner: integration-team
 category: collaboration
+status: available
+icon: teams
 auth:
   type: oauth2
   token_url: https://login.microsoftonline.com/common/oauth2/v2.0/token
@@ -15,6 +17,24 @@ auth:
   - refresh_token
   - tenant_id
   - team_id
+config_fields:
+- name: instance_url
+  type: url
+  required: false
+  label: Graph API Base URL
+- name: team_id
+  type: string
+  required: false
+  label: Team ID
+- name: channel_id
+  type: string
+  required: false
+  label: Channel ID
+env_vars:
+- TEAMS_CLIENT_ID
+- TEAMS_CLIENT_SECRET
+- TEAMS_REFRESH_TOKEN
+- TEAMS_TENANT_ID
 sync:
   modes:
   - full
@@ -22,6 +42,9 @@ sync:
   default_schedule: '*/20 * * * *'
   supports_webhooks: true
   rate_limit_per_minute: 600
+  directions:
+  - outbound
+  - bidirectional
 mappings:
 - source: project
   target: project

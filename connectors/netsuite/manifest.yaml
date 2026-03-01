@@ -3,11 +3,27 @@ version: 1.0.0
 name: Netsuite
 description: Netsuite connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: erp
+status: available
+icon: netsuite
 auth:
   type: api_key
   fields:
   - api_key
+config_fields:
+- name: instance_url
+  type: url
+  required: false
+  label: REST Base URL
+- name: account_id
+  type: string
+  required: true
+  label: Account ID
+env_vars:
+- NETSUITE_ACCOUNT_ID
+- NETSUITE_CONSUMER_KEY
+- NETSUITE_CONSUMER_SECRET
+- NETSUITE_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +31,8 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

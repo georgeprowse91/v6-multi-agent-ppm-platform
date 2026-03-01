@@ -4,12 +4,28 @@ name: SAP
 description: Sync finance and portfolio data from SAP ERP.
 owner: integration-team
 category: erp
+status: available
+icon: sap
 auth:
   type: basic
   fields:
   - username
   - password
   - instance_url
+config_fields:
+- name: instance_url
+  type: url
+  required: true
+  label: SAP Instance URL
+- name: client_id
+  type: string
+  required: true
+  label: SAP Client ID
+env_vars:
+- SAP_URL
+- SAP_USERNAME
+- SAP_PASSWORD
+- SAP_CLIENT
 sync:
   modes:
   - full
@@ -17,6 +33,8 @@ sync:
   default_schedule: 30 */6 * * *
   supports_webhooks: false
   rate_limit_per_minute: 120
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

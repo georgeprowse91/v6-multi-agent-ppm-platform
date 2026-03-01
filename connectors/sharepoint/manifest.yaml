@@ -3,7 +3,9 @@ version: 1.0.0
 name: SharePoint
 description: Sync project documents from SharePoint libraries.
 owner: integration-team
-category: collaboration
+category: doc_mgmt
+status: available
+icon: sharepoint
 auth:
   type: oauth2
   token_url: https://login.microsoftonline.com/common/oauth2/v2.0/token
@@ -15,6 +17,20 @@ auth:
   - refresh_token
   - tenant_id
   - site_url
+config_fields:
+- name: site_url
+  type: url
+  required: true
+  label: SharePoint Site URL
+- name: document_library
+  type: string
+  required: false
+  label: Document Library
+env_vars:
+- SHAREPOINT_SITE_URL
+- SHAREPOINT_CLIENT_ID
+- SHAREPOINT_CLIENT_SECRET
+- SHAREPOINT_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -22,6 +38,9 @@ sync:
   default_schedule: 0 */8 * * *
   supports_webhooks: true
   rate_limit_per_minute: 400
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

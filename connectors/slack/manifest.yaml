@@ -4,12 +4,30 @@ name: Slack
 description: Sync collaboration metadata and notifications from Slack.
 owner: integration-team
 category: collaboration
+status: available
+icon: slack
 auth:
   type: api_key
   fields:
   - bot_token
   - signing_secret
   - default_channel
+config_fields:
+- name: instance_url
+  type: url
+  required: false
+  label: API Base URL
+- name: workspace_id
+  type: string
+  required: false
+  label: Workspace ID
+- name: default_channel
+  type: string
+  required: false
+  label: Default Channel
+env_vars:
+- SLACK_BOT_TOKEN
+- SLACK_SIGNING_SECRET
 sync:
   modes:
   - full
@@ -17,6 +35,9 @@ sync:
   default_schedule: '*/30 * * * *'
   supports_webhooks: true
   rate_limit_per_minute: 1000
+  directions:
+  - outbound
+  - bidirectional
 mappings:
 - source: project
   target: project

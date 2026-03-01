@@ -4,6 +4,8 @@ name: Outlook
 description: Sync calendar events and schedules from Outlook via Microsoft Graph.
 owner: integration-team
 category: collaboration
+status: available
+icon: microsoft
 auth:
   type: oauth2
   token_url: https://login.microsoftonline.com/common/oauth2/v2.0/token
@@ -15,6 +17,8 @@ auth:
   - client_secret
   - refresh_token
   - tenant_id
+config_fields: []
+env_vars: []
 sync:
   modes:
   - full
@@ -22,6 +26,9 @@ sync:
   default_schedule: '*/30 * * * *'
   supports_webhooks: true
   rate_limit_per_minute: 60
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

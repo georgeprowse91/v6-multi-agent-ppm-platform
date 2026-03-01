@@ -4,6 +4,13 @@ name: Clarity PPM (MCP)
 description: Sync Clarity projects and work items via an MCP server.
 owner: integration-team
 category: ppm
+status: beta
+icon: clarity
+system: clarity
+prefer_mcp: true
+supported_operations:
+- list
+- create
 protocol: mcp
 auth:
   type: api_key
@@ -25,6 +32,20 @@ mcp_server_id: clarity
 tool_map:
   list_projects: clarity.listProjects
   create_project: clarity.createProject
+config_fields:
+- name: mcp_server_url
+  type: url
+  required: true
+  label: MCP Server URL
+- name: mcp_scopes
+  type: array
+  required: false
+  label: MCP Scopes
+- name: tool_map
+  type: object
+  required: false
+  label: MCP Tool Map
+env_vars: []
 sync:
   modes:
   - full
@@ -32,6 +53,9 @@ sync:
   default_schedule: 0 3 * * *
   supports_webhooks: false
   rate_limit_per_minute: 200
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

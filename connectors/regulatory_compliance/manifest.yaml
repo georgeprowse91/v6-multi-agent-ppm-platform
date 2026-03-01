@@ -1,0 +1,55 @@
+id: regulatory_compliance
+version: 1.0.0
+name: Regulatory Compliance
+description: Regulatory compliance APIs for HIPAA and FDA CFR 21 Part 11 audit trails
+owner: integration-team
+category: compliance
+status: beta
+icon: shield-check
+auth:
+  type: api_key
+  fields:
+  - endpoint_url
+  - api_key
+config_fields:
+- name: endpoint_url
+  type: url
+  required: true
+  label: Compliance API Endpoint
+- name: api_key
+  type: string
+  required: true
+  label: API Key
+- name: supported_regulations
+  type: string
+  required: false
+  label: Supported Regulations (comma-separated)
+env_vars:
+- REGULATORY_COMPLIANCE_ENDPOINT
+- REGULATORY_COMPLIANCE_API_KEY
+sync:
+  modes:
+  - full
+  - incremental
+  directions:
+  - inbound
+  - outbound
+  default_schedule: 0 2 * * *
+  supports_webhooks: false
+  rate_limit_per_minute: 100
+mappings:
+- source: audit_trail
+  target: audit_trail
+  mapping_file: mappings/audit_trail.yaml
+maturity:
+  level: 0
+  tier: candidate
+  business_priority: 99
+  capabilities:
+    read: true
+    write: false
+    webhook: false
+    declarative_mapping: true
+    idempotent_write: false
+    conflict_handling: false
+  notes: Early-stage compliance connector

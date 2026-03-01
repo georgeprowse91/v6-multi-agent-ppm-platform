@@ -4,6 +4,15 @@ name: Workday (MCP)
 description: Sync Workday HRIS data via MCP services.
 owner: integration-team
 category: hris
+status: beta
+icon: workday
+system: workday
+prefer_mcp: true
+supported_operations:
+- list_workers
+- list_job_profiles
+- list_positions
+- list_organizations
 protocol: mcp
 auth:
   type: api_key
@@ -29,6 +38,20 @@ tool_map:
   list_job_profiles: workday.listJobProfiles
   list_positions: workday.listPositions
   list_organizations: workday.listOrganizations
+config_fields:
+- name: mcp_server_url
+  type: url
+  required: true
+  label: MCP Server URL
+- name: mcp_scopes
+  type: array
+  required: false
+  label: MCP Scopes
+- name: tool_map
+  type: object
+  required: false
+  label: MCP Tool Map
+env_vars: []
 sync:
   modes:
   - full
@@ -36,6 +59,8 @@ sync:
   default_schedule: 0 */8 * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

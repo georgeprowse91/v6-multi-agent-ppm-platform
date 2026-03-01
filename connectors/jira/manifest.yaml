@@ -3,19 +3,36 @@ version: 1.0.0
 name: Jira
 description: Sync projects and work items from Atlassian Jira.
 owner: integration-team
-category: work-management
+category: pm
+status: available
+icon: jira
 auth:
   type: api_key
   fields:
   - api_token
   - email
   - instance_url
+config_fields:
+- name: instance_url
+  type: url
+  required: true
+  label: Instance URL
+- name: project_key
+  type: string
+  required: false
+  label: Project Key
+env_vars:
+- JIRA_INSTANCE_URL
+- JIRA_EMAIL
+- JIRA_API_TOKEN
 sync:
   modes:
   - bi-directional
   default_schedule: 0 */4 * * *
   supports_webhooks: true
   rate_limit_per_minute: 600
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

@@ -3,11 +3,28 @@ version: 1.0.0
 name: Sap Successfactors
 description: Sap Successfactors connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: hris
+status: available
+icon: sap
 auth:
   type: api_key
   fields:
   - api_key
+config_fields:
+- name: api_server
+  type: url
+  required: true
+  label: API Server URL
+- name: company_id
+  type: string
+  required: true
+  label: Company ID
+env_vars:
+- SF_API_SERVER
+- SF_COMPANY_ID
+- SF_CLIENT_ID
+- SF_CLIENT_SECRET
+- SF_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +32,8 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

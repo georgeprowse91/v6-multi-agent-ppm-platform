@@ -3,12 +3,26 @@ version: 1.0.0
 name: Azure DevOps
 description: Sync Azure DevOps projects and delivery work items.
 owner: integration-team
-category: devops
+category: pm
+status: available
+icon: azure
 auth:
   type: token
   fields:
   - pat
   - organization_url
+config_fields:
+- name: organization_url
+  type: url
+  required: true
+  label: Organization URL
+- name: project_name
+  type: string
+  required: true
+  label: Project Name
+env_vars:
+- AZURE_DEVOPS_ORG_URL
+- AZURE_DEVOPS_PAT
 sync:
   modes:
   - full
@@ -16,6 +30,9 @@ sync:
   default_schedule: 0 */6 * * *
   supports_webhooks: true
   rate_limit_per_minute: 500
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

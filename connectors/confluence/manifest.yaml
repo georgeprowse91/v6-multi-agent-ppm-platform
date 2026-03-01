@@ -3,11 +3,26 @@ version: 1.0.0
 name: Confluence
 description: Confluence connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: doc_mgmt
+status: available
+icon: confluence
 auth:
   type: api_key
   fields:
   - api_key
+config_fields:
+- name: instance_url
+  type: url
+  required: true
+  label: Instance URL
+- name: space_key
+  type: string
+  required: false
+  label: Space Key
+env_vars:
+- CONFLUENCE_URL
+- CONFLUENCE_EMAIL
+- CONFLUENCE_API_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +30,8 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

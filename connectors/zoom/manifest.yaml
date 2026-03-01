@@ -3,11 +3,18 @@ version: 1.0.0
 name: Zoom
 description: Zoom connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: collaboration
+status: available
+icon: zoom
 auth:
   type: api_key
   fields:
   - api_key
+config_fields: []
+env_vars:
+- ZOOM_CLIENT_ID
+- ZOOM_CLIENT_SECRET
+- ZOOM_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +22,9 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
+  - outbound
 mappings:
 - source: project
   target: project

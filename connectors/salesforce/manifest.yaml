@@ -4,6 +4,8 @@ name: Salesforce
 description: Sync demand intake and account initiatives from Salesforce.
 owner: integration-team
 category: crm
+status: available
+icon: salesforce
 auth:
   type: oauth2
   token_url: https://login.salesforce.com/services/oauth2/token
@@ -14,6 +16,8 @@ auth:
   - client_secret
   - refresh_token
   - instance_url
+config_fields: []
+env_vars: []
 sync:
   modes:
   - full
@@ -21,6 +25,8 @@ sync:
   default_schedule: 0 */3 * * *
   supports_webhooks: true
   rate_limit_per_minute: 300
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

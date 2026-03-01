@@ -4,6 +4,8 @@ name: Azure Notification Hubs
 description: Send push notifications via Azure Notification Hubs.
 owner: integration-team
 category: collaboration
+status: available
+icon: azure
 auth:
   type: token
   fields:
@@ -11,12 +13,16 @@ auth:
   - hub_name
   - sas_key_name
   - sas_key
+config_fields: []
+env_vars: []
 sync:
   modes:
   - incremental
   default_schedule: '*/30 * * * *'
   supports_webhooks: false
   rate_limit_per_minute: 60
+  directions:
+  - outbound
 mappings:
 - source: project
   target: project

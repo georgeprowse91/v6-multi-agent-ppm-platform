@@ -4,18 +4,24 @@ name: Azure Communication Services
 description: Send notifications via Azure Communication Services (SMS/Email).
 owner: integration-team
 category: collaboration
+status: available
+icon: azure
 auth:
   type: api_key
   fields:
   - connection_string
   - endpoint
   - access_key
+config_fields: []
+env_vars: []
 sync:
   modes:
   - incremental
   default_schedule: '*/30 * * * *'
   supports_webhooks: false
   rate_limit_per_minute: 60
+  directions:
+  - outbound
 mappings:
 - source: project
   target: project

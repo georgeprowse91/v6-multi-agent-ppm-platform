@@ -3,11 +3,19 @@ version: 1.0.0
 name: Adp
 description: Adp connector runtime manifest.
 owner: integration-team
-category: project-portfolio-management
+category: hris
+status: available
+icon: adp
 auth:
   type: api_key
   fields:
   - api_key
+config_fields: []
+env_vars:
+- ADP_API_URL
+- ADP_CLIENT_ID
+- ADP_CLIENT_SECRET
+- ADP_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -15,6 +23,8 @@ sync:
   default_schedule: 0 * * * *
   supports_webhooks: false
   rate_limit_per_minute: 300
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project

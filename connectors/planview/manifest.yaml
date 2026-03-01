@@ -4,6 +4,8 @@ name: Planview
 description: Sync portfolio and project data from Planview.
 owner: integration-team
 category: ppm
+status: available
+icon: planview
 auth:
   type: oauth2
   token_url: https://api.planview.com/oauth2/token
@@ -14,6 +16,20 @@ auth:
   - client_secret
   - refresh_token
   - instance_url
+config_fields:
+- name: instance_url
+  type: url
+  required: true
+  label: Instance URL
+- name: portfolio_id
+  type: string
+  required: false
+  label: Portfolio ID
+env_vars:
+- PLANVIEW_INSTANCE_URL
+- PLANVIEW_CLIENT_ID
+- PLANVIEW_CLIENT_SECRET
+- PLANVIEW_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -21,6 +37,9 @@ sync:
   default_schedule: 0 2 * * *
   supports_webhooks: false
   rate_limit_per_minute: 200
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

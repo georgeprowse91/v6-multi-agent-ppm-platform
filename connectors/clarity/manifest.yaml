@@ -4,6 +4,8 @@ name: Clarity PPM
 description: Sync portfolio and project data from Clarity PPM.
 owner: integration-team
 category: ppm
+status: available
+icon: clarity
 auth:
   type: oauth2
   token_url: https://clarity.example.com/oauth/token
@@ -14,6 +16,16 @@ auth:
   - client_secret
   - refresh_token
   - instance_url
+config_fields:
+- name: instance_url
+  type: url
+  required: true
+  label: Instance URL
+env_vars:
+- CLARITY_INSTANCE_URL
+- CLARITY_CLIENT_ID
+- CLARITY_CLIENT_SECRET
+- CLARITY_REFRESH_TOKEN
 sync:
   modes:
   - full
@@ -21,6 +33,9 @@ sync:
   default_schedule: 0 3 * * *
   supports_webhooks: false
   rate_limit_per_minute: 200
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

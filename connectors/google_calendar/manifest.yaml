@@ -4,6 +4,8 @@ name: Google Calendar
 description: Sync calendar events using Google Calendar APIs.
 owner: integration-team
 category: collaboration
+status: available
+icon: google
 auth:
   type: oauth2
   token_url: https://oauth2.googleapis.com/token
@@ -13,6 +15,8 @@ auth:
   - client_id
   - client_secret
   - refresh_token
+config_fields: []
+env_vars: []
 sync:
   modes:
   - full
@@ -20,6 +24,9 @@ sync:
   default_schedule: '*/30 * * * *'
   supports_webhooks: true
   rate_limit_per_minute: 60
+  directions:
+  - inbound
+  - bidirectional
 mappings:
 - source: project
   target: project

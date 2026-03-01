@@ -4,18 +4,25 @@ name: Twilio
 description: Send SMS notifications via Twilio APIs.
 owner: integration-team
 category: collaboration
+status: available
+icon: twilio
 auth:
   type: basic
   fields:
   - account_sid
   - auth_token
   - base_url
+config_fields: []
+env_vars: []
 sync:
   modes:
   - incremental
   default_schedule: '*/30 * * * *'
   supports_webhooks: true
   rate_limit_per_minute: 60
+  directions:
+  - outbound
+  - bidirectional
 mappings:
 - source: project
   target: project

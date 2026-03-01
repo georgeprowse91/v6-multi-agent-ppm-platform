@@ -1,12 +1,12 @@
-id: slack_mcp
+id: asana_mcp
 version: 1.0.0
-name: Slack (MCP)
-description: Sync collaboration metadata and notifications from Slack via an MCP server.
+name: Asana (MCP)
+description: Sync Asana projects and tasks via an MCP server.
 owner: integration-team
-category: collaboration
+category: pm
 status: beta
-icon: slack
-system: slack
+icon: asana
+system: asana
 prefer_mcp: true
 supported_operations:
 - list
@@ -22,18 +22,11 @@ auth:
   - mcp_api_key_header
 mcp:
   server_url: https://mcp.example.com
-  server_id: slack
+  server_id: asana
   protocol_version: '2025-06-18'
   tool_map:
-    list_channels: slack.listChannels
-    post_message: slack.postMessage
-    list_users: slack.listUsers
-mcp_server_url: https://mcp.example.com
-mcp_server_id: slack
-tool_map:
-  list_channels: slack.listChannels
-  post_message: slack.postMessage
-  list_users: slack.listUsers
+    list_projects: asana.listProjects
+    list_tasks: asana.listTasks
 config_fields:
 - name: mcp_server_url
   type: url
@@ -47,25 +40,20 @@ config_fields:
   type: object
   required: false
   label: MCP Tool Map
-env_vars: []
 sync:
   modes:
   - full
   - incremental
-  default_schedule: '*/30 * * * *'
-  supports_webhooks: false
-  rate_limit_per_minute: 1000
   directions:
   - inbound
-  - outbound
   - bidirectional
+  default_schedule: 0 */4 * * *
+  supports_webhooks: false
+  rate_limit_per_minute: 300
 mappings:
 - source: project
   target: project
   mapping_file: mappings/project.yaml
-- source: resource
-  target: resource
-  mapping_file: mappings/resource.yaml
 maturity:
   level: 1
   tier: core

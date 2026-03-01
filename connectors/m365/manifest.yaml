@@ -5,8 +5,9 @@ description: Sync Microsoft 365 workloads (Teams, Exchange, SharePoint, Planner,
   Power BI, Viva) via Microsoft Graph and MCP.
 owner: integration-team
 category: collaboration
+status: beta
+icon: microsoft
 protocol: mcp
-tool_map: tool_map.yaml
 auth:
   type: oauth2
   token_url: https://login.microsoftonline.com/common/oauth2/v2.0/token
@@ -39,6 +40,83 @@ mcp:
     get_item: m365.getItem
 mcp_server_url: https://mcp.example.com
 mcp_server_id: m365
+tool_map: tool_map.yaml
+config_fields:
+- name: instance_url
+  type: url
+  required: false
+  label: Graph API Base URL
+- name: tenant_id
+  type: string
+  required: true
+  label: Tenant ID
+- name: client_id
+  type: string
+  required: true
+  label: App (client) ID
+- name: app_object_id
+  type: string
+  required: false
+  label: App Object ID
+- name: service_principal_object_id
+  type: string
+  required: false
+  label: Service Principal Object ID
+- name: application_id_uri
+  type: string
+  required: false
+  label: Application ID URI
+- name: scopes
+  type: multiselect
+  required: false
+  label: Microsoft Graph Scopes
+  options:
+  - User.Read
+  - Group.Read.All
+  - Team.ReadBasic.All
+  - Channel.ReadBasic.All
+  - Mail.Read
+  - Calendars.Read
+  - Files.Read.All
+  - Sites.Read.All
+  - Tasks.Read
+  - Reports.Read.All
+  - EmployeeExperience.Read.All
+- name: enable_teams
+  type: boolean
+  required: false
+  label: Enable Teams workload
+- name: enable_exchange
+  type: boolean
+  required: false
+  label: Enable Exchange/Outlook workload
+- name: enable_sharepoint
+  type: boolean
+  required: false
+  label: Enable SharePoint workload
+- name: enable_planner
+  type: boolean
+  required: false
+  label: Enable Planner workload
+- name: enable_onedrive
+  type: boolean
+  required: false
+  label: Enable OneDrive workload
+- name: enable_power_bi
+  type: boolean
+  required: false
+  label: Enable Power BI workload
+- name: enable_viva
+  type: boolean
+  required: false
+  label: Enable Viva workload
+env_vars:
+- M365_API_URL
+- M365_TENANT_ID
+- M365_CLIENT_ID
+- M365_CLIENT_SECRET
+- M365_REFRESH_TOKEN
+- M365_SCOPES
 sync:
   modes:
   - full
@@ -54,6 +132,8 @@ sync:
   - onedrive
   - power_bi
   - viva
+  directions:
+  - inbound
 mappings:
 - source: project
   target: project
