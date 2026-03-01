@@ -66,8 +66,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │       └── README.md
 │   │   │   ├── src
 │   │   │   │   └── intent_router_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   ├── agent-02-response-orchestration
@@ -76,8 +74,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── src
 │   │   │   │   ├── plan_schema.py
 │   │   │   │   └── response_orchestration_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   ├── agent-03-approval-workflow
@@ -90,8 +86,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   │   └── fr
 │   │   │   │   │       └── approval_notification.md
 │   │   │   │   └── approval_workflow_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   └── README.md
@@ -103,8 +97,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   ├── project_definition_agent.py
 │   │   │   │   ├── scope_research.py
 │   │   │   │   └── web_search.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   ├── agent-09-lifecycle-governance
@@ -140,8 +132,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── resource_capacity_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   ├── agent-12-financial-management
@@ -149,8 +139,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── financial_management_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   ├── agent-13-vendor-procurement
@@ -158,8 +146,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── vendor_procurement_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   ├── PROCUREMENT_WORKFLOW_BOUNDARIES.md
 │   │   │   └── README.md
@@ -168,8 +154,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── quality_management_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   ├── agent-15-risk-issue-management
@@ -301,8 +285,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── demand_intake_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   ├── agent-05-business-case-investment
@@ -310,8 +292,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── business_case_investment_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── BOUNDARY-NOTES.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
@@ -320,8 +300,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── portfolio_strategy_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   ├── agent-07-program-management
@@ -329,8 +307,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── program_management_agent.py
-│   │   │   ├── tests
-│   │   │   │   └── README.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
 │   │   └── README.md
@@ -1097,30 +1073,6 @@ multi-agent-ppm-platform-v4/
 │   │   ├── requirements.txt
 │   │   └── workflow_registry.py
 │   └── README.md
-├── artifacts
-│   ├── dependencies
-│   │   └── hygiene-summary.json
-│   ├── docs
-│   │   └── staleness-report.json
-│   ├── dr
-│   │   ├── backup-summary.json
-│   │   └── restore-drill.json
-│   ├── incident
-│   │   └── summary.json
-│   ├── maturity
-│   │   └── scorecard-latest.json
-│   ├── observability
-│   │   └── slo-summary.json
-│   ├── ops
-│   │   ├── alert-quality.json
-│   │   └── drift-summary.json
-│   ├── performance
-│   │   ├── capacity-summary.json
-│   │   └── k6-summary.json
-│   ├── release-gate
-│   │   └── quality-report-core.json
-│   └── tests
-│       └── coverage-summary.json
 ├── config
 │   ├── abac
 │   │   ├── policies.yaml
