@@ -58,7 +58,7 @@ multi-agent-ppm-platform-v4/
 │   │   ├── scenario.py
 │   │   └── web_search.py
 │   ├── core-orchestration
-│   │   ├── agent-01-intent-router
+│   │   ├── intent-router-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── models
@@ -68,7 +68,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── intent_router_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-02-response-orchestration
+│   │   ├── response-orchestration-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -76,7 +76,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── response_orchestration_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-03-approval-workflow
+│   │   ├── approval-workflow-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -90,7 +90,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   └── README.md
 │   │   └── README.md
 │   ├── delivery-management
-│   │   ├── agent-08-project-definition-scope
+│   │   ├── scope-definition-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -99,7 +99,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── web_search.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-09-lifecycle-governance
+│   │   ├── lifecycle-governance-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -117,7 +117,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_lifecycle_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-10-schedule-planning
+│   │   ├── schedule-planning-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -127,21 +127,21 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_schedule_planning_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-11-resource-capacity
+│   │   ├── resource-management-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── resource_capacity_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-12-financial-management
+│   │   ├── financial-management-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── financial_management_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-13-vendor-procurement
+│   │   ├── vendor-procurement-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -149,14 +149,14 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── Dockerfile
 │   │   │   ├── PROCUREMENT_WORKFLOW_BOUNDARIES.md
 │   │   │   └── README.md
-│   │   ├── agent-14-quality-management
+│   │   ├── quality-management-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── quality_management_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-15-risk-issue-management
+│   │   ├── risk-management-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -168,7 +168,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_risk_management_agent_delivery.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-16-compliance-regulatory
+│   │   ├── compliance-governance-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -181,7 +181,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   └── README.md
 │   │   └── README.md
 │   ├── operations-management
-│   │   ├── agent-17-change-configuration
+│   │   ├── change-control-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -191,7 +191,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_change_configuration_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-18-release-deployment
+│   │   ├── release-deployment-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -201,7 +201,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_release_deployment_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-19-knowledge-document-management
+│   │   ├── knowledge-management-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -212,7 +212,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_knowledge_management_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-20-continuous-improvement-process-mining
+│   │   ├── continuous-improvement-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -222,7 +222,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_process_mining_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-21-stakeholder-comms
+│   │   ├── stakeholder-communications-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -232,7 +232,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_stakeholder_communications_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-22-analytics-insights
+│   │   ├── analytics-insights-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -242,7 +242,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_analytics_insights_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-23-data-synchronisation-quality
+│   │   ├── data-synchronisation-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -252,7 +252,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_data_sync_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-24-workflow-process-engine
+│   │   ├── workflow-engine-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -268,7 +268,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │       └── workflow_spec.schema.json
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-25-system-health-monitoring
+│   │   ├── system-health-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -280,14 +280,14 @@ multi-agent-ppm-platform-v4/
 │   │   │   └── README.md
 │   │   └── README.md
 │   ├── portfolio-management
-│   │   ├── agent-04-demand-intake
+│   │   ├── demand-intake-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── demand_intake_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-05-business-case-investment
+│   │   ├── business-case-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -295,14 +295,14 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── BOUNDARY-NOTES.md
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-06-portfolio-strategy-optimisation
+│   │   ├── portfolio-optimisation-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
 │   │   │   │   └── portfolio_strategy_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── agent-07-program-management
+│   │   ├── program-management-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -7671,13 +7671,13 @@ multi-agent-ppm-platform-v4/
 │   │   ├── abac
 │   │   │   ├── policies.yaml
 │   │   │   └── rules.yaml
-│   │   ├── agent-23
+│   │   ├── data-synchronisation-agent
 │   │   │   ├── mapping_rules.yaml
 │   │   │   ├── pipelines.yaml
 │   │   │   ├── quality_thresholds.yaml
 │   │   │   ├── schema_registry.yaml
 │   │   │   └── validation_rules.yaml
-│   │   ├── agent-24
+│   │   ├── workflow-engine-agent
 │   │   │   ├── durable_workflows.yaml
 │   │   │   └── workflow_templates.yaml
 │   │   ├── agents

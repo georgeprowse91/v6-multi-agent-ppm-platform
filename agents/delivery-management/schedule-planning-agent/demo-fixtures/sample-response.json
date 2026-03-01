@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "schedule-planning-agent",
+      "summary": "Demo fixture for schedule planning was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "policy",
+          "id": "schedule-planning-agent-artifact-001",
+          "title": "Schedule Planning Demo Artifact"
+        }
+      ]
+    }
+  }
+}

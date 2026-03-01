@@ -192,7 +192,7 @@ def test_runtime_action_endpoint_executes_orchestrator(client, monkeypatch):
         return OrchestrationResult(
             results={
                 "task-1": {
-                    "agent_id": "agent-10",
+                    "agent_id": "schedule-planning-agent",
                     "metadata": {"template_id": "adaptive-software-dev"},
                     "input": {},
                 }
@@ -219,7 +219,7 @@ def test_runtime_action_endpoint_executes_orchestrator(client, monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert captured["template_ids"] == ["adaptive-software-dev"]
-    assert payload["workflow_trace"]["agent_ids_executed"] == ["agent-10"]
+    assert payload["workflow_trace"]["agent_ids_executed"] == ["schedule-planning-agent"]
 
 
 def test_runtime_action_known_template_mappings(client, monkeypatch):
@@ -233,7 +233,7 @@ def test_runtime_action_known_template_mappings(client, monkeypatch):
         return OrchestrationResult(
             results={
                 "task-1": {
-                    "agent_id": "agent-10",
+                    "agent_id": "schedule-planning-agent",
                     "metadata": {"template_id": template_id},
                     "input": {},
                 }
@@ -311,7 +311,7 @@ def test_runtime_action_demo_mode_captures_external_side_effects_locally(
         return OrchestrationResult(
             results={
                 "task-1": {
-                    "agent_id": "agent-09",
+                    "agent_id": "lifecycle-governance-agent",
                     "metadata": {"template_id": "hybrid-infrastructure"},
                     "input": {
                         "connector_binding": {"connector_type": "jira"},
@@ -452,7 +452,7 @@ def test_runtime_review_queue_and_decision_flow(client, monkeypatch):
         return OrchestrationResult(
             results={
                 "task-1": {
-                    "agent_id": "agent-10",
+                    "agent_id": "schedule-planning-agent",
                     "metadata": {"template_id": "adaptive-software-dev"},
                     "input": {},
                 }
@@ -501,7 +501,7 @@ def test_runtime_action_persists_artifact_metadata(client, monkeypatch):
         return OrchestrationResult(
             results={
                 "task-1": {
-                    "agent_id": "agent-10",
+                    "agent_id": "schedule-planning-agent",
                     "metadata": {"template_id": "adaptive-software-dev"},
                     "input": {},
                 }

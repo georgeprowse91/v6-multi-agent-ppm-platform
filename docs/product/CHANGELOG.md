@@ -68,7 +68,7 @@ The following legacy files are retained during the transition period with deprec
 | `user-journeys.md` | `01-product-definition/user-journeys-and-stage-gates.md` |
 | `templates-catalog.md` | `01-product-definition/templates-and-methodology-catalog.md` |
 | `solution-overview/platform-overview.md` | `02-solution-design/platform-architecture-overview.md` |
-| `solution-overview/agents/agent-01-*.md` … `agent-25-*.md` | `02-solution-design/agent-system-design.md` |
+| `solution-overview/agents/intent-router-agent-*.md` … `system-health-agent-*.md` | `02-solution-design/agent-system-design.md` |
 | `assistant-panel.md` | `02-solution-design/assistant-panel-design.md` |
 | `connectors/iot.md` | `02-solution-design/connectors/iot-connector-spec.md` |
 | `success-metrics.md` | `03-delivery-and-quality/implementation-and-change-plan.md` |

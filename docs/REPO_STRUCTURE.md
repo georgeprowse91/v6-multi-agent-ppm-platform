@@ -103,14 +103,14 @@ multi-agent-ppm-platform-v4/
 │   │
 │   ├── core-orchestration/                  # Agents 01–03
 │   │   ├── README.md
-│   │   ├── agent-01-intent-router/
+│   │   ├── intent-router-agent/
 │   │   │   ├── Dockerfile
 │   │   │   ├── README.md
 │   │   │   ├── demo-fixtures/sample-response.json
 │   │   │   ├── models/intent_classifier/README.md
 │   │   │   ├── src/intent_router_agent.py
 │   │   │   └── tests/README.md
-│   │   ├── agent-02-response-orchestration/
+│   │   ├── response-orchestration-agent/
 │   │   │   ├── Dockerfile
 │   │   │   ├── README.md
 │   │   │   ├── demo-fixtures/sample-response.json
@@ -118,7 +118,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   ├── plan_schema.py
 │   │   │   │   └── response_orchestration_agent.py
 │   │   │   └── tests/README.md
-│   │   └── agent-03-approval-workflow/
+│   │   └── approval-workflow-agent/
 │   │       ├── Dockerfile
 │   │       ├── README.md
 │   │       ├── demo-fixtures/sample-response.json
@@ -129,63 +129,63 @@ multi-agent-ppm-platform-v4/
 │   │
 │   ├── portfolio-management/                # Agents 04–07
 │   │   ├── README.md
-│   │   ├── agent-04-demand-intake/
+│   │   ├── demand-intake-agent/
 │   │   │   └── src/demand_intake_agent.py
-│   │   ├── agent-05-business-case-investment/
+│   │   ├── business-case-agent/
 │   │   │   ├── BOUNDARY-NOTES.md
 │   │   │   └── src/business_case_investment_agent.py
-│   │   ├── agent-06-portfolio-strategy-optimisation/
+│   │   ├── portfolio-optimisation-agent/
 │   │   │   └── src/portfolio_strategy_agent.py
-│   │   └── agent-07-program-management/
+│   │   └── program-management-agent/
 │   │       └── src/program_management_agent.py
 │   │
 │   ├── delivery-management/                 # Agents 08–16
 │   │   ├── README.md
-│   │   ├── agent-08-project-definition-scope/
+│   │   ├── scope-definition-agent/
 │   │   │   └── src/{project_definition_agent,scope_research,web_search}.py
-│   │   ├── agent-09-lifecycle-governance/
+│   │   ├── lifecycle-governance-agent/
 │   │   │   └── src/{lifecycle_persistence,monitoring,notifications,
 │   │   │            orchestration,persistence,project_lifecycle_agent,
 │   │   │            readiness_model,summarization,sync_clients}.py
-│   │   ├── agent-10-schedule-planning/
+│   │   ├── schedule-planning-agent/
 │   │   │   └── src/schedule_planning_agent.py
-│   │   ├── agent-11-resource-capacity/
+│   │   ├── resource-management-agent/
 │   │   │   └── src/resource_capacity_agent.py
-│   │   ├── agent-12-financial-management/
+│   │   ├── financial-management-agent/
 │   │   │   └── src/financial_management_agent.py
-│   │   ├── agent-13-vendor-procurement/
+│   │   ├── vendor-procurement-agent/
 │   │   │   ├── PROCUREMENT_WORKFLOW_BOUNDARIES.md
 │   │   │   └── src/vendor_procurement_agent.py
-│   │   ├── agent-14-quality-management/
+│   │   ├── quality-management-agent/
 │   │   │   └── src/quality_management_agent.py
-│   │   ├── agent-15-risk-issue-management/
+│   │   ├── risk-management-agent/
 │   │   │   └── src/{risk_management_agent,risk_management_api,
 │   │   │            risk_nlp_training}.py
-│   │   └── agent-16-compliance-regulatory/
+│   │   └── compliance-governance-agent/
 │   │       ├── COMPLIANCE_CONTROL_CATALOG.md
 │   │       └── src/compliance_regulatory_agent.py
 │   │
 │   ├── operations-management/               # Agents 17–25
 │   │   ├── README.md
-│   │   ├── agent-17-change-configuration/
+│   │   ├── change-control-agent/
 │   │   │   └── src/change_configuration_agent.py
-│   │   ├── agent-18-release-deployment/
+│   │   ├── release-deployment-agent/
 │   │   │   └── src/release_deployment_agent.py
-│   │   ├── agent-19-knowledge-document-management/
+│   │   ├── knowledge-management-agent/
 │   │   │   └── src/{knowledge_db,knowledge_management_agent}.py
-│   │   ├── agent-20-continuous-improvement-process-mining/
+│   │   ├── continuous-improvement-agent/
 │   │   │   └── src/process_mining_agent.py
-│   │   ├── agent-21-stakeholder-comms/
+│   │   ├── stakeholder-communications-agent/
 │   │   │   └── src/stakeholder_communications_agent.py
-│   │   ├── agent-22-analytics-insights/
+│   │   ├── analytics-insights-agent/
 │   │   │   └── src/analytics_insights_agent.py
-│   │   ├── agent-23-data-synchronisation-quality/
+│   │   ├── data-synchronisation-agent/
 │   │   │   └── src/data_sync_agent.py
-│   │   ├── agent-24-workflow-process-engine/
+│   │   ├── workflow-engine-agent/
 │   │   │   ├── src/{workflow_engine_agent,workflow_spec,
 │   │   │   │        workflow_state_store,workflow_task_queue}.py
 │   │   │   └── workflows/schema/workflow_spec.schema.json
-│   │   └── agent-25-system-health-monitoring/
+│   │   └── system-health-agent/
 │   │       └── src/system_health_agent.py
 │   │
 │   └── runtime/                             # Agent runtime framework
@@ -438,7 +438,7 @@ multi-agent-ppm-platform-v4/
 │
 ├── config/                                  # Runtime configuration
 │   ├── common.yaml
-│   ├── agent-23/{pipelines,validation_rules}.yaml
+│   ├── data-synchronisation-agent/{pipelines,validation_rules}.yaml
 │   ├── agents/{demo-participants,intent-routing}.yaml
 │   ├── connectors/mock/{azure_devops,clarity,jira,planview,
 │   │                    sap,servicenow,teams,workday}.yaml
@@ -583,7 +583,7 @@ multi-agent-ppm-platform-v4/
 │
 ├── ops/
 │   ├── config/
-│   │   ├── abac/  agent-23/  agent-24/
+│   │   ├── abac/  data-synchronisation-agent/  workflow-engine-agent/
 │   │   ├── agents/schema/
 │   │   ├── connectors/  data-classification/  environments/
 │   │   ├── feature-flags/  iam/  plans/  rbac/

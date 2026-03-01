@@ -73,9 +73,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/core-orchestration/agent-01-intent-router/src): Implementation source for this component.",
-            "[tests](/agents/core-orchestration/agent-01-intent-router/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/core-orchestration/agent-01-intent-router/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/core-orchestration/intent-router-agent/src): Implementation source for this component.",
+            "[tests](/agents/core-orchestration/intent-router-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/core-orchestration/intent-router-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -124,7 +124,7 @@
           ]
         }
       ],
-      "source_file": "agents/core-orchestration/agent-01-intent-router/README.md"
+      "source_file": "agents/core-orchestration/intent-router-agent/README.md"
     },
     {
       "id": 2,
@@ -203,9 +203,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/core-orchestration/agent-02-response-orchestration/src): Implementation source for this component.",
-            "[tests](/agents/core-orchestration/agent-02-response-orchestration/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/core-orchestration/agent-02-response-orchestration/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/core-orchestration/response-orchestration-agent/src): Implementation source for this component.",
+            "[tests](/agents/core-orchestration/response-orchestration-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/core-orchestration/response-orchestration-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -236,7 +236,7 @@
           ]
         }
       ],
-      "source_file": "agents/core-orchestration/agent-02-response-orchestration/README.md"
+      "source_file": "agents/core-orchestration/response-orchestration-agent/README.md"
     },
     {
       "id": 3,
@@ -251,9 +251,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/core-orchestration/agent-03-approval-workflow/src): Implementation source for this component.",
-            "[tests](/agents/core-orchestration/agent-03-approval-workflow/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/core-orchestration/agent-03-approval-workflow/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/core-orchestration/approval-workflow-agent/src): Implementation source for this component.",
+            "[tests](/agents/core-orchestration/approval-workflow-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/core-orchestration/approval-workflow-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -302,7 +302,7 @@
             "`html_with_alt_text`: Sends a high-contrast HTML variant with larger default font sizing.",
             "Stored subscription preferences in `NotificationSubscriptionStore` now persist both `locale` and `accessible_format`.",
             "Templates are loaded from locale folders under:",
-            "`agents/core-orchestration/agent-03-approval-workflow/src/templates/{locale}/approval_notification.md`",
+            "`agents/core-orchestration/approval-workflow-agent/src/templates/{locale}/approval_notification.md`",
             "If the configured locale template is missing, the agent falls back to English (`en`).",
             "To add a new locale:",
             "Create `src/templates/<new-locale>/approval_notification.md`.",
@@ -386,7 +386,7 @@
           ]
         }
       ],
-      "source_file": "agents/core-orchestration/agent-03-approval-workflow/README.md"
+      "source_file": "agents/core-orchestration/approval-workflow-agent/README.md"
     },
     {
       "id": 4,
@@ -471,9 +471,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/portfolio-management/agent-04-demand-intake/src): Implementation source for this component.",
-            "[tests](/agents/portfolio-management/agent-04-demand-intake/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/portfolio-management/agent-04-demand-intake/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/portfolio-management/demand-intake-agent/src): Implementation source for this component.",
+            "[tests](/agents/portfolio-management/demand-intake-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/portfolio-management/demand-intake-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -504,7 +504,7 @@
           ]
         }
       ],
-      "source_file": "agents/portfolio-management/agent-04-demand-intake/README.md"
+      "source_file": "agents/portfolio-management/demand-intake-agent/README.md"
     },
     {
       "id": 5,
@@ -519,9 +519,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/portfolio-management/agent-05-business-case-investment/src): Implementation source for this component.",
-            "[tests](/agents/portfolio-management/agent-05-business-case-investment/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/portfolio-management/agent-05-business-case-investment/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/portfolio-management/business-case-agent/src): Implementation source for this component.",
+            "[tests](/agents/portfolio-management/business-case-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/portfolio-management/business-case-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -569,7 +569,7 @@
           ]
         }
       ],
-      "source_file": "agents/portfolio-management/agent-05-business-case-investment/README.md"
+      "source_file": "agents/portfolio-management/business-case-agent/README.md"
     },
     {
       "id": 6,
@@ -585,29 +585,29 @@
           "heading": "Scope validation (intended behaviors)",
           "content": [
             "### Responsibilities (must)",
-            "Prioritize portfolio candidates using multi-criteria scoring (strategic alignment, ROI, risk, resource feasibility, compliance).\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L20-L31\u3011",
-            "Optimize portfolio composition against constraints (budget ceiling, resource capacity, risk appetite, minimum alignment).\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L221-L280\u3011",
-            "Run scenario analysis and compare outcomes across scenarios, including rebalancing recommendations.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L151-L190\u3011",
-            "Emit portfolio prioritization events and audit records for traceability.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L1190-L1263\u3011",
+            "Prioritize portfolio candidates using multi-criteria scoring (strategic alignment, ROI, risk, resource feasibility, compliance).\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L20-L31\u3011",
+            "Optimize portfolio composition against constraints (budget ceiling, resource capacity, risk appetite, minimum alignment).\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L280\u3011",
+            "Run scenario analysis and compare outcomes across scenarios, including rebalancing recommendations.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L151-L190\u3011",
+            "Emit portfolio prioritization events and audit records for traceability.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L1190-L1263\u3011",
             "### Inputs (expected)",
-            "`action` to select the workflow: prioritize, calculate alignment score, optimize, scenario analysis, rebalance, get status, compare scenarios, scenario CRUD, approval submission, or decision recording.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L82-L144\u3011",
-            "`projects` list with costs, category, ROI, strategic objectives/tags, risk level, resource requirements, and compliance signals.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L193-L269\u3011",
-            "`constraints` containing budget ceiling, resource capacity, risk appetite, minimum alignment score, and optional optimization method or weight overrides.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L221-L246\u3011",
-            "`criteria_weights` (optional) to override default scoring weights for prioritization.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L42-L69\u3011",
-            "`scenario`/`scenario_ids` for scenario CRUD and comparison workflows.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L147-L189\u3011",
+            "`action` to select the workflow: prioritize, calculate alignment score, optimize, scenario analysis, rebalance, get status, compare scenarios, scenario CRUD, approval submission, or decision recording.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L82-L144\u3011",
+            "`projects` list with costs, category, ROI, strategic objectives/tags, risk level, resource requirements, and compliance signals.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L193-L269\u3011",
+            "`constraints` containing budget ceiling, resource capacity, risk appetite, minimum alignment score, and optional optimization method or weight overrides.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L246\u3011",
+            "`criteria_weights` (optional) to override default scoring weights for prioritization.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L42-L69\u3011",
+            "`scenario`/`scenario_ids` for scenario CRUD and comparison workflows.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L147-L189\u3011",
             "### Outputs (guaranteed)",
-            "Ranked portfolio records with per-criterion scores, recommendations, and audit metadata.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L193-L346\u3011",
-            "Optimization results including selected projects, portfolio metrics, and trade-offs.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L279-L480\u3011",
-            "Scenario comparison summaries and best-scenario recommendation when provided scenarios exist.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L1104-L1156\u3011",
-            "Event payloads for downstream consumers (`portfolio.prioritized`).\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L1215-L1247\u3011",
+            "Ranked portfolio records with per-criterion scores, recommendations, and audit metadata.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L193-L346\u3011",
+            "Optimization results including selected projects, portfolio metrics, and trade-offs.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L279-L480\u3011",
+            "Scenario comparison summaries and best-scenario recommendation when provided scenarios exist.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L1104-L1156\u3011",
+            "Event payloads for downstream consumers (`portfolio.prioritized`).\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L1215-L1247\u3011",
             "### Decision responsibilities (agent-owned)",
-            "Assign approve/defer/reject recommendations based on weighted scores and policy guardrails.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L239-L296\u3011",
-            "Select optimal portfolio compositions based on constraints and risk/return trade-offs.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L221-L480\u3011",
-            "Recommend rebalancing actions to hit investment mix targets.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L969-L1067\u3011",
+            "Assign approve/defer/reject recommendations based on weighted scores and policy guardrails.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L239-L296\u3011",
+            "Select optimal portfolio compositions based on constraints and risk/return trade-offs.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L480\u3011",
+            "Recommend rebalancing actions to hit investment mix targets.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L969-L1067\u3011",
             "### Must-not behaviors (explicit constraints)",
-            "Must not approve a portfolio item that policy guardrails deny; downgrade approvals to defer when required.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L257-L286\u3011",
-            "Must not run optimization without budget/resource constraints supplied (validation enforces this).\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L101-L128\u3011",
-            "Must not emit approval decisions without a `portfolio_id` (validation enforces required IDs).\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L119-L128\u3011"
+            "Must not approve a portfolio item that policy guardrails deny; downgrade approvals to defer when required.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L257-L286\u3011",
+            "Must not run optimization without budget/resource constraints supplied (validation enforces this).\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L101-L128\u3011",
+            "Must not emit approval decisions without a `portfolio_id` (validation enforces required IDs).\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L119-L128\u3011"
           ]
         },
         {
@@ -615,19 +615,19 @@
           "content": [
             "### Agent 05 (Business Case Investment)",
             "**Overlap risk:** Both agents touch ROI and investment sizing. Agent 06 consumes project financials and produces portfolio recommendations; Agent 05 owns the detailed business-case build and investment decision inputs.",
-            "**Handoff boundary:** Agent 05 should provide validated project-level financials (cost, ROI, expected value, benefits) to Agent 06. Agent 06 must not recalculate core business cases; it only uses those outputs for prioritization and optimization. This keeps case ownership with Agent 05 and portfolio composition ownership with Agent 06.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L221-L369\u3011",
+            "**Handoff boundary:** Agent 05 should provide validated project-level financials (cost, ROI, expected value, benefits) to Agent 06. Agent 06 must not recalculate core business cases; it only uses those outputs for prioritization and optimization. This keeps case ownership with Agent 05 and portfolio composition ownership with Agent 06.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L369\u3011",
             "### Agent 07 (Program Management)",
             "**Overlap risk:** Program governance can overlap with portfolio rebalancing and scenario planning.",
-            "**Handoff boundary:** Agent 06 outputs portfolio compositions, scenario outcomes, and rebalancing recommendations. Agent 07 consumes the approved portfolio and coordinates execution sequencing, dependencies, and benefits realization. Agent 06 must not own delivery scheduling or program dependency management beyond high-level resource capacity checks.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L279-L1067\u3011"
+            "**Handoff boundary:** Agent 06 outputs portfolio compositions, scenario outcomes, and rebalancing recommendations. Agent 07 consumes the approved portfolio and coordinates execution sequencing, dependencies, and benefits realization. Agent 06 must not own delivery scheduling or program dependency management beyond high-level resource capacity checks.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L279-L1067\u3011"
           ]
         },
         {
           "heading": "Functional gaps & alignment needs",
           "content": [
-            "**Prompt alignment:** Ensure upstream prompts consistently send `action`, `projects`, `constraints`, and `criteria_weights` as documented; otherwise validation will reject optimization workflows.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L82-L145\u3011",
-            "**Tool/connector alignment:** Financial enrichment depends on integration clients (`financial_agent`, resource agent) and optional database storage. Confirm connectors are wired and surfaced in orchestration templates/UI forms so required fields arrive populated.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L70-L92\u3011",
-            "**Scenario UX alignment:** Scenario CRUD exists in the agent; UI/templates should allow save/list/select scenario IDs to enable compare/what-if flows.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L147-L189\u3011",
-            "**Policy guardrails:** The policy engine can override approvals; ensure downstream UI shows policy reasons and that orchestration keeps `correlation_id` for audit traceability.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L1187-L1263\u3011"
+            "**Prompt alignment:** Ensure upstream prompts consistently send `action`, `projects`, `constraints`, and `criteria_weights` as documented; otherwise validation will reject optimization workflows.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L82-L145\u3011",
+            "**Tool/connector alignment:** Financial enrichment depends on integration clients (`financial_agent`, resource agent) and optional database storage. Confirm connectors are wired and surfaced in orchestration templates/UI forms so required fields arrive populated.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L70-L92\u3011",
+            "**Scenario UX alignment:** Scenario CRUD exists in the agent; UI/templates should allow save/list/select scenario IDs to enable compare/what-if flows.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L147-L189\u3011",
+            "**Policy guardrails:** The policy engine can override approvals; ensure downstream UI shows policy reasons and that orchestration keeps `correlation_id` for audit traceability.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L1187-L1263\u3011"
           ]
         },
         {
@@ -638,17 +638,17 @@
             "ROI (default weight 0.25)",
             "Risk (default weight 0.20)",
             "Resource feasibility (default weight 0.15)",
-            "Compliance (default weight 0.10)\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L42-L69\u3011",
+            "Compliance (default weight 0.10)\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L42-L69\u3011",
             "### Dependency map (ready for execution)",
-            "| Dependency | Source | Required By | Notes | | --- | --- | --- | --- | | Business-case financials (cost, ROI, expected value) | Agent 05 | Prioritization/Optimization | Required for scoring and value calculations; Agent 06 does not own business case creation.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L221-L369\u3011 | | Resource capacity & feasibility signals | Resource agent integration | Optimization/Rebalancing | Optional integration; falls back to project data if missing.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L746-L772\u3011 | | Portfolio approval decision | Approval agent integration | Submit/Record approval | Requires portfolio ID and decision payloads for audit trail continuity.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L119-L189\u3011 | | Event bus & audit trail | Runtime/event bus | Downstream orchestration | Required for portfolio.prioritized and policy audit events.\u3010F:agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src/portfolio_strategy_agent.py\u2020L1190-L1263\u3011 |"
+            "| Dependency | Source | Required By | Notes | | --- | --- | --- | --- | | Business-case financials (cost, ROI, expected value) | Agent 05 | Prioritization/Optimization | Required for scoring and value calculations; Agent 06 does not own business case creation.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L221-L369\u3011 | | Resource capacity & feasibility signals | Resource agent integration | Optimization/Rebalancing | Optional integration; falls back to project data if missing.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L746-L772\u3011 | | Portfolio approval decision | Approval agent integration | Submit/Record approval | Requires portfolio ID and decision payloads for audit trail continuity.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L119-L189\u3011 | | Event bus & audit trail | Runtime/event bus | Downstream orchestration | Required for portfolio.prioritized and policy audit events.\u3010F:agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_strategy_agent.py\u2020L1190-L1263\u3011 |"
           ]
         },
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/portfolio-management/agent-06-portfolio-strategy-optimisation/src): Implementation source for this component.",
-            "[tests](/agents/portfolio-management/agent-06-portfolio-strategy-optimisation/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/portfolio-management/agent-06-portfolio-strategy-optimisation/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/portfolio-management/portfolio-optimisation-agent/src): Implementation source for this component.",
+            "[tests](/agents/portfolio-management/portfolio-optimisation-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/portfolio-management/portfolio-optimisation-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -679,7 +679,7 @@
           ]
         }
       ],
-      "source_file": "agents/portfolio-management/agent-06-portfolio-strategy-optimisation/README.md"
+      "source_file": "agents/portfolio-management/portfolio-optimisation-agent/README.md"
     },
     {
       "id": 7,
@@ -695,84 +695,84 @@
           "heading": "Scope validation (intended behavior)",
           "content": [
             "### Intended scope & responsibilities",
-            "Owns program setup and coordination across multiple projects (create program, generate integrated roadmaps, track inter-project dependencies, aggregate benefits, coordinate shared resources, identify synergies, analyze change impact, monitor program health, optimize program schedules, and manage program-level approval/decision records).\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L25-L118\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L142-L310\u3011",
-            "Acts as the program-level orchestrator that pulls data from delivery agents (schedule, resource, financial, risk, quality, project definition, lifecycle) to compute cross-project insights, health, and optimization outcomes.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L92-L118\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L352-L904\u3011",
-            "Publishes program events (created, roadmap updated, health updated, optimized, decision recorded) and stores program artifacts in tenant state or databases for downstream consumption.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L331-L404\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L2460-L2617\u3011",
+            "Owns program setup and coordination across multiple projects (create program, generate integrated roadmaps, track inter-project dependencies, aggregate benefits, coordinate shared resources, identify synergies, analyze change impact, monitor program health, optimize program schedules, and manage program-level approval/decision records).\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L25-L118\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L142-L310\u3011",
+            "Acts as the program-level orchestrator that pulls data from delivery agents (schedule, resource, financial, risk, quality, project definition, lifecycle) to compute cross-project insights, health, and optimization outcomes.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L92-L118\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L352-L904\u3011",
+            "Publishes program events (created, roadmap updated, health updated, optimized, decision recorded) and stores program artifacts in tenant state or databases for downstream consumption.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L331-L404\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2460-L2617\u3011",
             "### Inputs & outputs (contract-level expectations)",
-            "**Inputs:** `action` plus supporting data per action (e.g., `program` for creation; `program_id` for roadmap, dependencies, health, optimization; `change` for impact analysis).\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L142-L309\u3011",
-            "**Program creation input:** `program.name`, `program.description`, `program.strategic_objectives`, `program.constituent_projects` (required). Optional `methodology`, `portfolio_id`, `created_by` metadata.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L173-L266\u3011",
+            "**Inputs:** `action` plus supporting data per action (e.g., `program` for creation; `program_id` for roadmap, dependencies, health, optimization; `change` for impact analysis).\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L142-L309\u3011",
+            "**Program creation input:** `program.name`, `program.description`, `program.strategic_objectives`, `program.constituent_projects` (required). Optional `methodology`, `portfolio_id`, `created_by` metadata.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L173-L266\u3011",
             "**Primary outputs:**",
-            "Program record with `program_id`, `status`, `constituent_projects`, and next steps.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L240-L309\u3011",
-            "Integrated roadmap payload (milestones, dependencies, critical path, timelines).\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L312-L412\u3011",
-            "Dependency graphs + analysis and optimization recommendations.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L413-L504\u3011",
-            "Aggregated benefits/ROI, resource coordination, synergy opportunities, change impact assessment, health metrics, optimization output, and approval/decision records.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L506-L1172\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L2460-L3076\u3011",
+            "Program record with `program_id`, `status`, `constituent_projects`, and next steps.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L240-L309\u3011",
+            "Integrated roadmap payload (milestones, dependencies, critical path, timelines).\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L312-L412\u3011",
+            "Dependency graphs + analysis and optimization recommendations.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L413-L504\u3011",
+            "Aggregated benefits/ROI, resource coordination, synergy opportunities, change impact assessment, health metrics, optimization output, and approval/decision records.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L506-L1172\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2460-L3076\u3011",
             "### Decision responsibilities",
-            "**Owns program-level coordination decisions** such as dependency sequencing recommendations, resource contention resolution guidance, synergy prioritization, and program optimization scoring.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L413-L1172\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L2460-L2930\u3011",
-            "**Delegates domain-specific decisions** (schedule health, budget health, risk health, quality health, resource health) to delivery agents; Program Management only aggregates and weights them into a composite score.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L708-L820\u3011",
-            "**Escalates approval decisions** to the Approval Workflow Agent when configured, then records the decision log and publishes program decision events.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L2982-L3076\u3011",
+            "**Owns program-level coordination decisions** such as dependency sequencing recommendations, resource contention resolution guidance, synergy prioritization, and program optimization scoring.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L413-L1172\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2460-L2930\u3011",
+            "**Delegates domain-specific decisions** (schedule health, budget health, risk health, quality health, resource health) to delivery agents; Program Management only aggregates and weights them into a composite score.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L708-L820\u3011",
+            "**Escalates approval decisions** to the Approval Workflow Agent when configured, then records the decision log and publishes program decision events.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2982-L3076\u3011",
             "### Must / must-not behaviors",
-            "**Must** validate `action` and `program_id`/required program fields before processing, and **must** fail fast on unknown actions or missing IDs.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L142-L223\u3011",
-            "**Must** persist program, roadmap, dependencies, health, optimization, and decision artifacts to tenant stores / database when configured.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L240-L412\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L676-L820\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L2571-L2617\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L3040-L3076\u3011",
-            "**Must not** redefine project-level scope, schedules, budgets, risks, or quality plans; those remain owned by delivery agents (08\u201316). Program Management only aggregates, correlates, and optimizes at program level.\u3010F:agents/delivery-management/agent-08-project-definition-scope/src/project_definition_agent.py\u2020L1-L83\u3011\u3010F:agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py\u2020L1-L63\u3011\u3010F:agents/delivery-management/agent-11-resource-capacity/src/resource_capacity_agent.py\u2020L1-L60\u3011\u3010F:agents/delivery-management/agent-12-financial-management/src/financial_management_agent.py\u2020L1-L59\u3011\u3010F:agents/delivery-management/agent-14-quality-management/src/quality_management_agent.py\u2020L1-L56\u3011\u3010F:agents/delivery-management/agent-15-risk-issue-management/src/risk_management_agent.py\u2020L1-L52\u3011"
+            "**Must** validate `action` and `program_id`/required program fields before processing, and **must** fail fast on unknown actions or missing IDs.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L142-L223\u3011",
+            "**Must** persist program, roadmap, dependencies, health, optimization, and decision artifacts to tenant stores / database when configured.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L240-L412\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L676-L820\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2571-L2617\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L3040-L3076\u3011",
+            "**Must not** redefine project-level scope, schedules, budgets, risks, or quality plans; those remain owned by delivery agents (08\u201316). Program Management only aggregates, correlates, and optimizes at program level.\u3010F:agents/delivery-management/scope-definition-agent/src/project_definition_agent.py\u2020L1-L83\u3011\u3010F:agents/delivery-management/schedule-planning-agent/src/schedule_planning_agent.py\u2020L1-L63\u3011\u3010F:agents/delivery-management/resource-management-agent/src/resource_capacity_agent.py\u2020L1-L60\u3011\u3010F:agents/delivery-management/financial-management-agent/src/financial_management_agent.py\u2020L1-L59\u3011\u3010F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py\u2020L1-L56\u3011\u3010F:agents/delivery-management/risk-management-agent/src/risk_management_agent.py\u2020L1-L52\u3011"
           ]
         },
         {
           "heading": "Overlap / leakage analysis",
           "content": [
             "### Portfolio agents (04\u201306)",
-            "**Agent 04 Demand Intake** handles intake and initial demand capture; Program Management should not accept demand intake directly beyond `create_program` for already-approved demand packages.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L240-L309\u3011",
-            "**Agent 05 Business Case Investment** owns project-level benefit/cost baselines; Program Management aggregates benefits from project business cases and must avoid duplicating business case creation logic.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L506-L603\u3011",
-            "**Agent 06 Portfolio Strategy Optimisation** optimizes across the portfolio; Program Management optimizes within a program. Ensure program optimization outputs roll up to portfolio-level optimization without altering portfolio-wide priorities.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L2460-L2617\u3011",
+            "**Agent 04 Demand Intake** handles intake and initial demand capture; Program Management should not accept demand intake directly beyond `create_program` for already-approved demand packages.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L240-L309\u3011",
+            "**Agent 05 Business Case Investment** owns project-level benefit/cost baselines; Program Management aggregates benefits from project business cases and must avoid duplicating business case creation logic.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L506-L603\u3011",
+            "**Agent 06 Portfolio Strategy Optimisation** optimizes across the portfolio; Program Management optimizes within a program. Ensure program optimization outputs roll up to portfolio-level optimization without altering portfolio-wide priorities.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2460-L2617\u3011",
             "### Delivery agents (08\u201316)",
-            "**Project Definition (08)** supplies charters and scope; Program Management consumes project detail for synergy analysis and must not alter scope baselines directly.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L896-L1005\u3011\u3010F:agents/delivery-management/agent-08-project-definition-scope/src/project_definition_agent.py\u2020L1-L83\u3011",
-            "**Lifecycle Governance (09)** enforces phase gates/health; Program Management aggregates health and publishes program-level status without bypassing lifecycle gate controls.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/delivery-management/agent-09-lifecycle-governance/src/project_lifecycle_agent.py\u2020L1-L63\u3011",
-            "**Schedule Planning (10)** creates project schedules; Program Management references schedules to build program roadmaps, critical paths, and optimization scenarios.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L312-L493\u3011\u3010F:agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py\u2020L1-L63\u3011",
-            "**Resource Capacity (11)** owns resource allocation/utilization; Program Management identifies cross-project conflicts and recommends sequencing changes but should not override allocations directly.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L605-L703\u3011\u3010F:agents/delivery-management/agent-11-resource-capacity/src/resource_capacity_agent.py\u2020L1-L60\u3011",
-            "**Financial Management (12)** owns budgets, forecasts, and ROI; Program Management aggregates benefits/costs and program-level ROI and must avoid maintaining separate project-level ledgers.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L506-L603\u3011\u3010F:agents/delivery-management/agent-12-financial-management/src/financial_management_agent.py\u2020L1-L59\u3011",
-            "**Vendor & Procurement (13)** owns vendor onboarding/contracts; Program Management only flags program-level vendor synergies and consolidation opportunities, not procurement actions.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L774-L900\u3011\u3010F:agents/delivery-management/agent-13-vendor-procurement/src/vendor_procurement_agent.py\u2020L1-L33\u3011",
-            "**Quality (14)** owns test/defect/audit; Program Management consumes quality health metrics for the composite score and should not create quality plans.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/delivery-management/agent-14-quality-management/src/quality_management_agent.py\u2020L1-L56\u3011",
-            "**Risk (15)** owns risk registers and mitigations; Program Management aggregates risk health and change impact but must not maintain a standalone risk register.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/delivery-management/agent-15-risk-issue-management/src/risk_management_agent.py\u2020L1-L52\u3011",
-            "**Compliance (16)** governs regulatory compliance; Program Management should include compliance outputs in program reporting but must not alter compliance control mappings or evidence directly.\u3010F:agents/delivery-management/agent-16-compliance-regulatory/src/compliance_regulatory_agent.py\u2020L1-L52\u3011"
+            "**Project Definition (08)** supplies charters and scope; Program Management consumes project detail for synergy analysis and must not alter scope baselines directly.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L896-L1005\u3011\u3010F:agents/delivery-management/scope-definition-agent/src/project_definition_agent.py\u2020L1-L83\u3011",
+            "**Lifecycle Governance (09)** enforces phase gates/health; Program Management aggregates health and publishes program-level status without bypassing lifecycle gate controls.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/delivery-management/lifecycle-governance-agent/src/project_lifecycle_agent.py\u2020L1-L63\u3011",
+            "**Schedule Planning (10)** creates project schedules; Program Management references schedules to build program roadmaps, critical paths, and optimization scenarios.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L312-L493\u3011\u3010F:agents/delivery-management/schedule-planning-agent/src/schedule_planning_agent.py\u2020L1-L63\u3011",
+            "**Resource Capacity (11)** owns resource allocation/utilization; Program Management identifies cross-project conflicts and recommends sequencing changes but should not override allocations directly.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L605-L703\u3011\u3010F:agents/delivery-management/resource-management-agent/src/resource_capacity_agent.py\u2020L1-L60\u3011",
+            "**Financial Management (12)** owns budgets, forecasts, and ROI; Program Management aggregates benefits/costs and program-level ROI and must avoid maintaining separate project-level ledgers.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L506-L603\u3011\u3010F:agents/delivery-management/financial-management-agent/src/financial_management_agent.py\u2020L1-L59\u3011",
+            "**Vendor & Procurement (13)** owns vendor onboarding/contracts; Program Management only flags program-level vendor synergies and consolidation opportunities, not procurement actions.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L774-L900\u3011\u3010F:agents/delivery-management/vendor-procurement-agent/src/vendor_procurement_agent.py\u2020L1-L33\u3011",
+            "**Quality (14)** owns test/defect/audit; Program Management consumes quality health metrics for the composite score and should not create quality plans.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py\u2020L1-L56\u3011",
+            "**Risk (15)** owns risk registers and mitigations; Program Management aggregates risk health and change impact but must not maintain a standalone risk register.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L708-L820\u3011\u3010F:agents/delivery-management/risk-management-agent/src/risk_management_agent.py\u2020L1-L52\u3011",
+            "**Compliance (16)** governs regulatory compliance; Program Management should include compliance outputs in program reporting but must not alter compliance control mappings or evidence directly.\u3010F:agents/delivery-management/compliance-governance-agent/src/compliance_regulatory_agent.py\u2020L1-L52\u3011"
           ]
         },
         {
           "heading": "Functional gaps / inconsistencies to address",
           "content": [
-            "**Input contract gaps:** no explicit schema enforcement for roadmap/benefit/health/optimization inputs (beyond `action` and `program_id`), which can cause inconsistent payloads between orchestration and UI/API layers.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L142-L309\u3011",
-            "**Program start/end calculation:** `_calculate_program_start` and `_calculate_program_end` currently return \u201cnow\u201d rather than deriving from schedules, which can misalign program timeline reporting with schedule planning outputs.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L1063-L1074\u3011",
-            "**Dependency type consistency:** inter-project dependencies use program-specific types (`schedule_overlap`, `shared_resource`, `resource_contention`), while delivery schedule planning uses traditional FS/SS/FF/SF types; map or normalize when handing off to schedule agents or UI visualizations.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L934-L1037\u3011\u3010F:agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py\u2020L1-L63\u3011",
-            "**Approval boundary:** program approval exists, but no explicit linkage to lifecycle gates or compliance approvals; integrate approval outcomes with delivery governance to avoid conflicting approvals.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L2982-L3039\u3011\u3010F:agents/delivery-management/agent-09-lifecycle-governance/src/project_lifecycle_agent.py\u2020L1-L63\u3011"
+            "**Input contract gaps:** no explicit schema enforcement for roadmap/benefit/health/optimization inputs (beyond `action` and `program_id`), which can cause inconsistent payloads between orchestration and UI/API layers.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L142-L309\u3011",
+            "**Program start/end calculation:** `_calculate_program_start` and `_calculate_program_end` currently return \u201cnow\u201d rather than deriving from schedules, which can misalign program timeline reporting with schedule planning outputs.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L1063-L1074\u3011",
+            "**Dependency type consistency:** inter-project dependencies use program-specific types (`schedule_overlap`, `shared_resource`, `resource_contention`), while delivery schedule planning uses traditional FS/SS/FF/SF types; map or normalize when handing off to schedule agents or UI visualizations.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L934-L1037\u3011\u3010F:agents/delivery-management/schedule-planning-agent/src/schedule_planning_agent.py\u2020L1-L63\u3011",
+            "**Approval boundary:** program approval exists, but no explicit linkage to lifecycle gates or compliance approvals; integrate approval outcomes with delivery governance to avoid conflicting approvals.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2982-L3039\u3011\u3010F:agents/delivery-management/lifecycle-governance-agent/src/project_lifecycle_agent.py\u2020L1-L63\u3011"
           ]
         },
         {
           "heading": "Alignment requirements (prompt/tool/template/connector/UI)",
           "content": [
-            "**Prompt/template alignment:** ensure program creation UI/API supplies `strategic_objectives` and `constituent_projects`, and downstream UI supports displaying program roadmaps, dependency graphs, health, and optimization artifacts as stored by the agent.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L173-L309\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L312-L412\u3011",
-            "**Connector alignment:** Planview/Clarity/Jira/Azure DevOps mappings and Cosmos dependency graphs are optional integrations; UI and orchestration should degrade gracefully when connectors are absent and fall back to stored tenant-state data.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L186-L204\u3011\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L1730-L2069\u3011",
-            "**Tool alignment:** schedule, resource, financial, risk, quality agents must expose the actions used here (`get_schedule`, `get_utilization`, `get_financial_summary`, health actions) to keep program health calculations consistent.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L844-L1187\u3011"
+            "**Prompt/template alignment:** ensure program creation UI/API supplies `strategic_objectives` and `constituent_projects`, and downstream UI supports displaying program roadmaps, dependency graphs, health, and optimization artifacts as stored by the agent.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L173-L309\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L312-L412\u3011",
+            "**Connector alignment:** Planview/Clarity/Jira/Azure DevOps mappings and Cosmos dependency graphs are optional integrations; UI and orchestration should degrade gracefully when connectors are absent and fall back to stored tenant-state data.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L186-L204\u3011\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L1730-L2069\u3011",
+            "**Tool alignment:** schedule, resource, financial, risk, quality agents must expose the actions used here (`get_schedule`, `get_utilization`, `get_financial_summary`, health actions) to keep program health calculations consistent.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L844-L1187\u3011"
           ]
         },
         {
           "heading": "Program \u2192 Delivery handoff definition (ready for execution)",
           "content": [
             "### Handoff package (from Program Management to Delivery orchestration) Provide a program handoff payload containing:",
-            "`program_id`, `portfolio_id`, `name`, `description`, `methodology`, `strategic_objectives` (from program record).\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L240-L266\u3011",
-            "`constituent_projects` with each project\u2019s charter/scope references (from Project Definition Agent) and schedule/budget baselines if available.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L896-L1005\u3011\u3010F:agents/delivery-management/agent-08-project-definition-scope/src/project_definition_agent.py\u2020L1-L83\u3011",
-            "`roadmap` (milestones, dependencies, critical path) for scheduling coordination and dependency visualization.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L312-L412\u3011",
-            "`resource_conflicts` and `resource_allocation_recommendations` to seed Resource Capacity mitigation workflows.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L605-L703\u3011",
-            "`benefit_aggregation` and `program_roi` for Financial Management tracking and variance monitoring.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L506-L603\u3011",
-            "`health_snapshot` (composite score + domain metrics) to inform Lifecycle Governance and delivery dashboards.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L708-L820\u3011",
+            "`program_id`, `portfolio_id`, `name`, `description`, `methodology`, `strategic_objectives` (from program record).\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L240-L266\u3011",
+            "`constituent_projects` with each project\u2019s charter/scope references (from Project Definition Agent) and schedule/budget baselines if available.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L896-L1005\u3011\u3010F:agents/delivery-management/scope-definition-agent/src/project_definition_agent.py\u2020L1-L83\u3011",
+            "`roadmap` (milestones, dependencies, critical path) for scheduling coordination and dependency visualization.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L312-L412\u3011",
+            "`resource_conflicts` and `resource_allocation_recommendations` to seed Resource Capacity mitigation workflows.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L605-L703\u3011",
+            "`benefit_aggregation` and `program_roi` for Financial Management tracking and variance monitoring.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L506-L603\u3011",
+            "`health_snapshot` (composite score + domain metrics) to inform Lifecycle Governance and delivery dashboards.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L708-L820\u3011",
             "### Delivery-side obligations",
-            "Delivery agents must treat program-level dependencies and roadmap as constraints, not replacements for project-level scheduling and scope baselines.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L312-L504\u3011\u3010F:agents/delivery-management/agent-10-schedule-planning/src/schedule_planning_agent.py\u2020L1-L63\u3011",
-            "Delivery governance must acknowledge program approval outcomes and capture any gate deviations as program-level change impacts for feedback to Program Management.\u3010F:agents/portfolio-management/agent-07-program-management/src/program_management_agent.py\u2020L2982-L3076\u3011\u3010F:agents/delivery-management/agent-09-lifecycle-governance/src/project_lifecycle_agent.py\u2020L1-L63\u3011"
+            "Delivery agents must treat program-level dependencies and roadmap as constraints, not replacements for project-level scheduling and scope baselines.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L312-L504\u3011\u3010F:agents/delivery-management/schedule-planning-agent/src/schedule_planning_agent.py\u2020L1-L63\u3011",
+            "Delivery governance must acknowledge program approval outcomes and capture any gate deviations as program-level change impacts for feedback to Program Management.\u3010F:agents/portfolio-management/program-management-agent/src/program_management_agent.py\u2020L2982-L3076\u3011\u3010F:agents/delivery-management/lifecycle-governance-agent/src/project_lifecycle_agent.py\u2020L1-L63\u3011"
           ]
         },
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/portfolio-management/agent-07-program-management/src): Implementation source for this component.",
-            "[tests](/agents/portfolio-management/agent-07-program-management/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/portfolio-management/agent-07-program-management/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/portfolio-management/program-management-agent/src): Implementation source for this component.",
+            "[tests](/agents/portfolio-management/program-management-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/portfolio-management/program-management-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -803,7 +803,7 @@
           ]
         }
       ],
-      "source_file": "agents/portfolio-management/agent-07-program-management/README.md"
+      "source_file": "agents/portfolio-management/program-management-agent/README.md"
     },
     {
       "id": 8,
@@ -818,9 +818,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-08-project-definition-scope/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-08-project-definition-scope/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-08-project-definition-scope/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/scope-definition-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/scope-definition-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/scope-definition-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -941,7 +941,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-08-project-definition-scope/README.md"
+      "source_file": "agents/delivery-management/scope-definition-agent/README.md"
     },
     {
       "id": 9,
@@ -1033,9 +1033,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-09-lifecycle-governance/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-09-lifecycle-governance/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-09-lifecycle-governance/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/lifecycle-governance-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/lifecycle-governance-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/lifecycle-governance-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1066,7 +1066,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-09-lifecycle-governance/README.md"
+      "source_file": "agents/delivery-management/lifecycle-governance-agent/README.md"
     },
     {
       "id": 10,
@@ -1081,9 +1081,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-10-schedule-planning/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-10-schedule-planning/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-10-schedule-planning/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/schedule-planning-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/schedule-planning-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/schedule-planning-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1172,7 +1172,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-10-schedule-planning/README.md"
+      "source_file": "agents/delivery-management/schedule-planning-agent/README.md"
     },
     {
       "id": 11,
@@ -1187,9 +1187,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-11-resource-capacity/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-11-resource-capacity/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-11-resource-capacity/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/resource-management-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/resource-management-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/resource-management-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1331,7 +1331,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-11-resource-capacity/README.md"
+      "source_file": "agents/delivery-management/resource-management-agent/README.md"
     },
     {
       "id": 12,
@@ -1346,9 +1346,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-12-financial-management/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-12-financial-management/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-12-financial-management/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/financial-management-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/financial-management-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/financial-management-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1465,7 +1465,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-12-financial-management/README.md"
+      "source_file": "agents/delivery-management/financial-management-agent/README.md"
     },
     {
       "id": 13,
@@ -1480,9 +1480,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-13-vendor-procurement/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-13-vendor-procurement/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-13-vendor-procurement/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/vendor-procurement-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/vendor-procurement-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/vendor-procurement-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1536,7 +1536,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-13-vendor-procurement/README.md"
+      "source_file": "agents/delivery-management/vendor-procurement-agent/README.md"
     },
     {
       "id": 14,
@@ -1551,9 +1551,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-14-quality-management/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-14-quality-management/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-14-quality-management/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/quality-management-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/quality-management-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/quality-management-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1657,7 +1657,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-14-quality-management/README.md"
+      "source_file": "agents/delivery-management/quality-management-agent/README.md"
     },
     {
       "id": 15,
@@ -1734,9 +1734,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-15-risk-issue-management/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-15-risk-issue-management/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-15-risk-issue-management/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/delivery-management/risk-management-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/risk-management-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/risk-management-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1784,7 +1784,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-15-risk-issue-management/README.md"
+      "source_file": "agents/delivery-management/risk-management-agent/README.md"
     },
     {
       "id": 16,
@@ -1799,10 +1799,10 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/delivery-management/agent-16-compliance-regulatory/src): Implementation source for this component.",
-            "[tests](/agents/delivery-management/agent-16-compliance-regulatory/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/delivery-management/agent-16-compliance-regulatory/Dockerfile): Container build recipe for local or CI use.",
-            "[COMPLIANCE_CONTROL_CATALOG.md](/agents/delivery-management/agent-16-compliance-regulatory/COMPLIANCE_CONTROL_CATALOG.md): Scope validation, control catalog, and handoff boundaries for execution readiness."
+            "[src](/agents/delivery-management/compliance-governance-agent/src): Implementation source for this component.",
+            "[tests](/agents/delivery-management/compliance-governance-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/delivery-management/compliance-governance-agent/Dockerfile): Container build recipe for local or CI use.",
+            "[COMPLIANCE_CONTROL_CATALOG.md](/agents/delivery-management/compliance-governance-agent/COMPLIANCE_CONTROL_CATALOG.md): Scope validation, control catalog, and handoff boundaries for execution readiness."
           ]
         },
         {
@@ -1833,7 +1833,7 @@
           ]
         }
       ],
-      "source_file": "agents/delivery-management/agent-16-compliance-regulatory/README.md"
+      "source_file": "agents/delivery-management/compliance-governance-agent/README.md"
     },
     {
       "id": 17,
@@ -1848,9 +1848,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-17-change-configuration/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-17-change-configuration/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-17-change-configuration/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/change-control-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/change-control-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/change-control-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -1959,7 +1959,7 @@
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-17-change-configuration/README.md"
+      "source_file": "agents/operations-management/change-control-agent/README.md"
     },
     {
       "id": 18,
@@ -1974,9 +1974,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-18-release-deployment/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-18-release-deployment/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-18-release-deployment/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/release-deployment-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/release-deployment-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/release-deployment-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -2010,39 +2010,39 @@
           "heading": "Release Deployment validation notes (scope, I/O, decisions, handoffs)",
           "content": [
             "### Intended scope",
-            "Owns release planning, readiness assessment, deployment orchestration, environment management, rollback, and post-deployment verification across environments (dev/test/stage/prod).\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L20-L133\u3011",
-            "Integrates with approvals, scheduling, environment reservation, configuration management, CI/CD, monitoring, analytics, and documentation publishing for release execution governance.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L86-L166\u3011",
+            "Owns release planning, readiness assessment, deployment orchestration, environment management, rollback, and post-deployment verification across environments (dev/test/stage/prod).\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L20-L133\u3011",
+            "Integrates with approvals, scheduling, environment reservation, configuration management, CI/CD, monitoring, analytics, and documentation publishing for release execution governance.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L86-L166\u3011",
             "### Inputs / outputs",
-            "**Inputs:** action-driven payloads including `release`, `release_id`, `deployment_plan`, `deployment_plan_id`, `environment`, `environment_id`, `verification_params`, and `filters`. Required inputs are enforced for key actions (e.g., `plan_release` requires name/target_environment, `execute_deployment` requires deployment_plan_id).\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L152-L205\u3011",
-            "**Outputs:** action-specific responses including release IDs/schedules, readiness assessments with go/no-go, deployment plans and statuses, rollback outcomes, environment configurations, drift checks, release notes, metrics, and verification results.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L206-L340\u3011",
+            "**Inputs:** action-driven payloads including `release`, `release_id`, `deployment_plan`, `deployment_plan_id`, `environment`, `environment_id`, `verification_params`, and `filters`. Required inputs are enforced for key actions (e.g., `plan_release` requires name/target_environment, `execute_deployment` requires deployment_plan_id).\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L152-L205\u3011",
+            "**Outputs:** action-specific responses including release IDs/schedules, readiness assessments with go/no-go, deployment plans and statuses, rollback outcomes, environment configurations, drift checks, release notes, metrics, and verification results.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L206-L340\u3011",
             "### Decision responsibilities",
-            "**Go/No-Go:** computed in readiness assessment using approvals, change readiness, environment readiness, test/coverage gates, and blocker collection, yielding a recommendation and score.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L464-L544\u3011\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L2373-L2564\u3011",
-            "**Approval gating:** required for production (configurable), relies on approval workflow agent when configured; blocks execution if not approved or not configured.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L56-L132\u3011\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L648-L705\u3011",
-            "**Rollback decisions:** auto-rollback triggered on anomaly thresholds or verification failures; manual rollback action supported with rollback scripts and orchestration steps.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L758-L896\u3011\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L1554-L1574\u3011",
+            "**Go/No-Go:** computed in readiness assessment using approvals, change readiness, environment readiness, test/coverage gates, and blocker collection, yielding a recommendation and score.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L464-L544\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L2373-L2564\u3011",
+            "**Approval gating:** required for production (configurable), relies on approval workflow agent when configured; blocks execution if not approved or not configured.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L56-L132\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L648-L705\u3011",
+            "**Rollback decisions:** auto-rollback triggered on anomaly thresholds or verification failures; manual rollback action supported with rollback scripts and orchestration steps.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L758-L896\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L1554-L1574\u3011",
             "### Must / must-not behaviors",
-            "**Must:** enforce readiness gates when enabled; check approval requirements for protected environments; log and persist release/deployment state; emit events for readiness and rollback lifecycle updates.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L80-L705\u3011\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L842-L896\u3011",
-            "**Must not:** proceed to deployment when readiness gates recommend NO-GO or approvals are missing/unapproved; must not skip rollback actions when auto-rollback triggers or verification fails if `auto_rollback_on_anomaly` is enabled.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L648-L705\u3011\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L792-L896\u3011",
+            "**Must:** enforce readiness gates when enabled; check approval requirements for protected environments; log and persist release/deployment state; emit events for readiness and rollback lifecycle updates.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L80-L705\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L842-L896\u3011",
+            "**Must not:** proceed to deployment when readiness gates recommend NO-GO or approvals are missing/unapproved; must not skip rollback actions when auto-rollback triggers or verification fails if `auto_rollback_on_anomaly` is enabled.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L648-L705\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L792-L896\u3011",
             "### Overlap / leakage with Agent 14 (Quality) & Agent 17 (Change/Configuration)",
-            "**Agent 14 overlap:** quality metrics, test results, defect density, and coverage gates are referenced by readiness checks (quality is a shared dependency). Release agent should consume quality signals from Agent 14 instead of duplicating test/defect management workflows.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L486-L507\u3011\u3010F:agents/delivery-management/agent-14-quality-management/src/quality_management_agent.py\u2020L20-L174\u3011",
-            "**Agent 17 overlap:** change approvals and configuration drift checks intersect with change management and CMDB ownership. Release agent should request change approval status and configuration drift/CMDB baselines from Agent 17 rather than authoring change records itself.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L1350-L1536\u3011\u3010F:agents/operations-management/agent-17-change-configuration/src/change_configuration_agent.py\u2020L20-L174\u3011",
+            "**Agent 14 overlap:** quality metrics, test results, defect density, and coverage gates are referenced by readiness checks (quality is a shared dependency). Release agent should consume quality signals from Agent 14 instead of duplicating test/defect management workflows.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011\u3010F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py\u2020L20-L174\u3011",
+            "**Agent 17 overlap:** change approvals and configuration drift checks intersect with change management and CMDB ownership. Release agent should request change approval status and configuration drift/CMDB baselines from Agent 17 rather than authoring change records itself.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L1350-L1536\u3011\u3010F:agents/operations-management/change-control-agent/src/change_configuration_agent.py\u2020L20-L174\u3011",
             "### Handoff boundaries",
-            "**From Agent 17 \u2192 Agent 18:** approved change tickets/config baselines + risk/impact summaries. Agent 18 consumes approvals to satisfy readiness gates and schedules deployments accordingly.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L477-L507\u3011\u3010F:agents/operations-management/agent-17-change-configuration/src/change_configuration_agent.py\u2020L20-L174\u3011",
-            "**From Agent 14 \u2192 Agent 18:** verified test execution results, coverage snapshots, and defect status to satisfy readiness criteria and post-deployment verification inputs.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L486-L507\u3011\u3010F:agents/delivery-management/agent-14-quality-management/src/quality_management_agent.py\u2020L20-L174\u3011",
-            "**From Agent 18 \u2192 Agent 17:** deployment outcomes, rollback events, and configuration drift discoveries to update change records/CMDB for closure and audit trail.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L842-L896\u3011",
+            "**From Agent 17 \u2192 Agent 18:** approved change tickets/config baselines + risk/impact summaries. Agent 18 consumes approvals to satisfy readiness gates and schedules deployments accordingly.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L477-L507\u3011\u3010F:agents/operations-management/change-control-agent/src/change_configuration_agent.py\u2020L20-L174\u3011",
+            "**From Agent 14 \u2192 Agent 18:** verified test execution results, coverage snapshots, and defect status to satisfy readiness criteria and post-deployment verification inputs.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011\u3010F:agents/delivery-management/quality-management-agent/src/quality_management_agent.py\u2020L20-L174\u3011",
+            "**From Agent 18 \u2192 Agent 17:** deployment outcomes, rollback events, and configuration drift discoveries to update change records/CMDB for closure and audit trail.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L842-L896\u3011",
             "### Functional gaps / inconsistencies & alignment needs",
-            "**Prompt/template alignment:** readiness criteria are partially implicit (approval/test/coverage/quality/environment readiness) but not surfaced as a formal checklist template; require a release readiness template to standardize inputs and outputs for orchestration UI/workflow.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L486-L507\u3011",
-            "**Connector alignment:** readiness checks expect approval and change signals, but connectors are not enforced; add explicit connector requirements for quality/change systems (e.g., CI pipelines, test management, CMDB) to avoid silent \u201cpass\u201d defaults.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L1334-L1536\u3011",
-            "**UI alignment:** release calendar, deployment plans, and readiness assessments are stored but UI references are absent; requires UI surfaces for release calendar, deployment history, and gate status to prevent opaque decisions.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L702-L888\u3011",
+            "**Prompt/template alignment:** readiness criteria are partially implicit (approval/test/coverage/quality/environment readiness) but not surfaced as a formal checklist template; require a release readiness template to standardize inputs and outputs for orchestration UI/workflow.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011",
+            "**Connector alignment:** readiness checks expect approval and change signals, but connectors are not enforced; add explicit connector requirements for quality/change systems (e.g., CI pipelines, test management, CMDB) to avoid silent \u201cpass\u201d defaults.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L1334-L1536\u3011",
+            "**UI alignment:** release calendar, deployment plans, and readiness assessments are stored but UI references are absent; requires UI surfaces for release calendar, deployment history, and gate status to prevent opaque decisions.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L702-L888\u3011",
             "### Release readiness criteria (ready for execution) The release agent\u2019s current readiness gates are execution-ready as long as upstream signals are wired:",
-            "**Approvals complete** (release + change approvals).\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L477-L507\u3011",
-            "**Quality gates pass** (test/coverage/defect thresholds).\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L486-L507\u3011",
-            "**Environment readiness** (availability + config drift checks).\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L368-L417\u3011\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L1121-L1215\u3011",
-            "**Risk/compliance checks** (via risk/compliance agents when configured).\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L96-L106\u3011\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L2373-L2564\u3011",
-            "**Go/No-Go recommendation** is computed and enforced when `enforce_readiness_gates` is enabled.\u3010F:agents/operations-management/agent-18-release-deployment/src/release_deployment_agent.py\u2020L80-L705\u3011"
+            "**Approvals complete** (release + change approvals).\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L477-L507\u3011",
+            "**Quality gates pass** (test/coverage/defect thresholds).\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L486-L507\u3011",
+            "**Environment readiness** (availability + config drift checks).\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L368-L417\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L1121-L1215\u3011",
+            "**Risk/compliance checks** (via risk/compliance agents when configured).\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L96-L106\u3011\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L2373-L2564\u3011",
+            "**Go/No-Go recommendation** is computed and enforced when `enforce_readiness_gates` is enabled.\u3010F:agents/operations-management/release-deployment-agent/src/release_deployment_agent.py\u2020L80-L705\u3011"
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-18-release-deployment/README.md"
+      "source_file": "agents/operations-management/release-deployment-agent/README.md"
     },
     {
       "id": 19,
@@ -2152,9 +2152,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-19-knowledge-document-management/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-19-knowledge-document-management/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-19-knowledge-document-management/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/knowledge-management-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/knowledge-management-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/knowledge-management-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -2203,7 +2203,7 @@
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-19-knowledge-document-management/README.md"
+      "source_file": "agents/operations-management/knowledge-management-agent/README.md"
     },
     {
       "id": 20,
@@ -2348,9 +2348,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-20-continuous-improvement-process-mining/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-20-continuous-improvement-process-mining/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-20-continuous-improvement-process-mining/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/continuous-improvement-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/continuous-improvement-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/continuous-improvement-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -2381,7 +2381,7 @@
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-20-continuous-improvement-process-mining/README.md"
+      "source_file": "agents/operations-management/continuous-improvement-agent/README.md"
     },
     {
       "id": 21,
@@ -2485,9 +2485,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-21-stakeholder-comms/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-21-stakeholder-comms/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-21-stakeholder-comms/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/stakeholder-communications-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/stakeholder-communications-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/stakeholder-communications-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -2551,7 +2551,7 @@
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-21-stakeholder-comms/README.md"
+      "source_file": "agents/operations-management/stakeholder-communications-agent/README.md"
     },
     {
       "id": 22,
@@ -2650,9 +2650,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-22-analytics-insights/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-22-analytics-insights/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-22-analytics-insights/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/analytics-insights-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/analytics-insights-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/analytics-insights-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -2724,7 +2724,7 @@
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-22-analytics-insights/README.md"
+      "source_file": "agents/operations-management/analytics-insights-agent/README.md"
     },
     {
       "id": 23,
@@ -2739,9 +2739,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-23-data-synchronisation-quality/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-23-data-synchronisation-quality/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-23-data-synchronisation-quality/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/data-synchronisation-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/data-synchronisation-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/data-synchronisation-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -2761,11 +2761,11 @@
             "### Inputs",
             "**Action payloads** (via agent runner): `sync_data`, `run_sync`, `validate_data`, `detect_conflicts`, `resolve_conflict`, `detect_duplicates`, `merge_duplicates`, `get_quality_report`, `get_retry_queue`, `process_retries`, `reprocess_retry`, `get_dashboard`.",
             "**Configuration files** loaded at startup:",
-            "`config/agent-23/validation_rules.yaml`",
-            "`config/agent-23/pipelines.yaml`",
-            "`config/agent-23/schema_registry.yaml`",
-            "`config/agent-23/mapping_rules.yaml`",
-            "`config/agent-23/quality_thresholds.yaml`",
+            "`config/data-synchronisation-agent/validation_rules.yaml`",
+            "`config/data-synchronisation-agent/pipelines.yaml`",
+            "`config/data-synchronisation-agent/schema_registry.yaml`",
+            "`config/data-synchronisation-agent/mapping_rules.yaml`",
+            "`config/data-synchronisation-agent/quality_thresholds.yaml`",
             "**External connectors**: Planview, SAP, Jira, Workday (via Key Vault + connector secrets).",
             "**Events**: `sync.start`, `sync.complete`, `conflict.detected` via Service Bus/Event Grid.",
             "### Outputs",
@@ -2830,7 +2830,7 @@
           "content": [
             "**Upstream dependencies**",
             "Source systems: Planview, SAP, Jira, Workday.",
-            "Schema and rule configs: `config/agent-23/*.yaml`.",
+            "Schema and rule configs: `config/data-synchronisation-agent/*.yaml`.",
             "Event bus: Azure Service Bus / Event Grid.",
             "**Downstream dependencies**",
             "Analytics agent (Agent 22): quality metrics, reports, and sync telemetry.",
@@ -2882,11 +2882,11 @@
             "### Local development",
             "Copy `ops/config/.env.example` to `.env` and populate the required variables above.",
             "Ensure the validation rules and pipeline configuration files exist:",
-            "`config/agent-23/validation_rules.yaml`",
-            "`config/agent-23/pipelines.yaml`",
-            "`config/agent-23/schema_registry.yaml`",
-            "`config/agent-23/mapping_rules.yaml`",
-            "`config/agent-23/quality_thresholds.yaml`",
+            "`config/data-synchronisation-agent/validation_rules.yaml`",
+            "`config/data-synchronisation-agent/pipelines.yaml`",
+            "`config/data-synchronisation-agent/schema_registry.yaml`",
+            "`config/data-synchronisation-agent/mapping_rules.yaml`",
+            "`config/data-synchronisation-agent/quality_thresholds.yaml`",
             "If you want to invoke Azure Functions locally, expose the Function App base URL and key in `.env`.",
             "Run the agent locally:",
             "### Production deployment",
@@ -2914,7 +2914,7 @@
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-23-data-synchronisation-quality/README.md"
+      "source_file": "agents/operations-management/data-synchronisation-agent/README.md"
     },
     {
       "id": 24,
@@ -2930,55 +2930,55 @@
           "heading": "Scope validation (Agent 24)",
           "content": [
             "### Intended scope",
-            "Orchestrate workflow definitions (JSON/YAML/BPMN) into executable task graphs, persist them, and manage workflow instances (start, pause, resume, cancel).\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L90-L437\u3011",
-            "Coordinate task execution via a task queue, track task assignments, and manage retries/compensation logic for failed steps.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1207-L1764\u3011",
-            "Emit workflow events for audit/telemetry and integrate with event bus topics (workflow notifications, Azure Monitor/Event Grid).\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
+            "Orchestrate workflow definitions (JSON/YAML/BPMN) into executable task graphs, persist them, and manage workflow instances (start, pause, resume, cancel).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L90-L437\u3011",
+            "Coordinate task execution via a task queue, track task assignments, and manage retries/compensation logic for failed steps.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1207-L1764\u3011",
+            "Emit workflow events for audit/telemetry and integrate with event bus topics (workflow notifications, Azure Monitor/Event Grid).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
             "### Out of scope (explicit non-responsibilities)",
-            "Source-control change governance, CI/CD policy enforcement, or repo compliance checks (belongs to Agent 17 change configuration).\u3010F:agents/operations-management/agent-17-change-configuration/README.md\u2020L1-L97\u3011",
-            "Process mining and improvement analytics (belongs to Agent 20 continuous improvement/process mining).\u3010F:agents/operations-management/agent-20-continuous-improvement-process-mining/README.md\u2020L1-L31\u3011",
-            "UI ownership: this agent emits events and tasks, but does not define UI/UX workflows or render task experiences directly (no UI modules in scope).\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1351-L2017\u3011",
+            "Source-control change governance, CI/CD policy enforcement, or repo compliance checks (belongs to Agent 17 change configuration).\u3010F:agents/operations-management/change-control-agent/README.md\u2020L1-L97\u3011",
+            "Process mining and improvement analytics (belongs to Agent 20 continuous improvement/process mining).\u3010F:agents/operations-management/continuous-improvement-agent/README.md\u2020L1-L31\u3011",
+            "UI ownership: this agent emits events and tasks, but does not define UI/UX workflows or render task experiences directly (no UI modules in scope).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1351-L2017\u3011",
             "### Inputs",
-            "API actions: `define_workflow`, `start_workflow`, `get_workflow_status`, `assign_task`, `complete_task`, `cancel_workflow`, `pause_workflow`, `resume_workflow`, `handle_event`, `retry_failed_task`, `get_workflow_instances`, `get_task_inbox`, `deploy_bpmn_workflow`, `upload_bpmn_workflow`.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L122-L299\u3011",
-            "Workflow definitions: JSON/YAML spec via `workflow_spec`/`workflow_yaml`, or BPMN 2.0 XML via `bpmn_xml`/`bpmn_path`.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L181-L307\u3011\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L885-L939\u3011",
-            "Trigger events: event payloads via `handle_event` and Service Bus subscriptions (`workflow.triggers`).\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L340-L394\u3011\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1171-L1178\u3011",
+            "API actions: `define_workflow`, `start_workflow`, `get_workflow_status`, `assign_task`, `complete_task`, `cancel_workflow`, `pause_workflow`, `resume_workflow`, `handle_event`, `retry_failed_task`, `get_workflow_instances`, `get_task_inbox`, `deploy_bpmn_workflow`, `upload_bpmn_workflow`.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L122-L299\u3011",
+            "Workflow definitions: JSON/YAML spec via `workflow_spec`/`workflow_yaml`, or BPMN 2.0 XML via `bpmn_xml`/`bpmn_path`.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L181-L307\u3011\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L885-L939\u3011",
+            "Trigger events: event payloads via `handle_event` and Service Bus subscriptions (`workflow.triggers`).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L340-L394\u3011\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1171-L1178\u3011",
             "### Outputs",
-            "Workflow definition results (workflow ID, orchestration steps, validation status).\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L319-L389\u3011",
-            "Workflow instance status/summary responses (status, progress, tasks).\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L439-L605\u3011",
-            "Task assignment/notification events and task queue messages for downstream execution.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L607-L1350\u3011",
+            "Workflow definition results (workflow ID, orchestration steps, validation status).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L319-L389\u3011",
+            "Workflow instance status/summary responses (status, progress, tasks).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L439-L605\u3011",
+            "Task assignment/notification events and task queue messages for downstream execution.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L607-L1350\u3011",
             "### Decision responsibilities",
-            "Authorization: role-based guardrails per action in `rbac_policy`.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L61-L92\u3011\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1845-L1857\u3011",
-            "Workflow progression: determines next tasks based on transitions, dependencies, and conditions.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1281-L1415\u3011",
-            "Compensation/retry strategy: applies retry policies and triggers compensation workflows on failures/cancel events.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1168-L1764\u3011",
+            "Authorization: role-based guardrails per action in `rbac_policy`.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L61-L92\u3011\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1845-L1857\u3011",
+            "Workflow progression: determines next tasks based on transitions, dependencies, and conditions.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1281-L1415\u3011",
+            "Compensation/retry strategy: applies retry policies and triggers compensation workflows on failures/cancel events.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1168-L1764\u3011",
             "### Must / must-not behaviors",
-            "Must validate workflow definitions before persisting or starting instances (name + task presence + spec parsing).\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L905-L1040\u3011",
-            "Must persist workflow definitions/instances/tasks to the state store before emitting events or returning success responses.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L319-L631\u3011",
-            "Must not start workflows or execute tasks if authorization fails (RBAC enforcement).\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1845-L1857\u3011",
-            "Must evaluate event payload criteria with deterministic matching semantics, including nested field-path lookups and fail-closed handling for malformed definitions.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1491-L1654\u3011"
+            "Must validate workflow definitions before persisting or starting instances (name + task presence + spec parsing).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L905-L1040\u3011",
+            "Must persist workflow definitions/instances/tasks to the state store before emitting events or returning success responses.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L319-L631\u3011",
+            "Must not start workflows or execute tasks if authorization fails (RBAC enforcement).\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1845-L1857\u3011",
+            "Must evaluate event payload criteria with deterministic matching semantics, including nested field-path lookups and fail-closed handling for malformed definitions.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1491-L1654\u3011"
           ]
         },
         {
           "heading": "Handoff boundaries with Agent 17 and Agent 20",
           "content": [
             "### Agent 17 (Change Configuration)",
-            "Agent 17 owns change requests, approvals, repo integrations, and CI/CD change status workflows. Agent 24 should only orchestrate the workflow steps once a change request is created and should receive change metadata as workflow inputs (e.g., `workflow_spec` + repository/PR metadata).\u3010F:agents/operations-management/agent-17-change-configuration/README.md\u2020L1-L92\u3011\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L214-L292\u3011",
-            "Boundary: Agent 24 must not author or evaluate change approvals; it should create/route tasks for approvals, then await completion via `complete_task` events.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L607-L744\u3011",
+            "Agent 17 owns change requests, approvals, repo integrations, and CI/CD change status workflows. Agent 24 should only orchestrate the workflow steps once a change request is created and should receive change metadata as workflow inputs (e.g., `workflow_spec` + repository/PR metadata).\u3010F:agents/operations-management/change-control-agent/README.md\u2020L1-L92\u3011\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L214-L292\u3011",
+            "Boundary: Agent 24 must not author or evaluate change approvals; it should create/route tasks for approvals, then await completion via `complete_task` events.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L607-L744\u3011",
             "### Agent 20 (Continuous Improvement Process Mining)",
-            "Agent 20 consumes workflow execution events/telemetry for process mining and continuous improvement insights. Agent 24 publishes `workflow.events`/monitoring payloads which Agent 20 can ingest.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
-            "Boundary: Agent 24 should not analyze or optimize workflows based on historical performance; those insights should be owned by Agent 20 and fed back via new/updated workflow definitions.\u3010F:agents/operations-management/agent-20-continuous-improvement-process-mining/README.md\u2020L1-L31\u3011"
+            "Agent 20 consumes workflow execution events/telemetry for process mining and continuous improvement insights. Agent 24 publishes `workflow.events`/monitoring payloads which Agent 20 can ingest.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
+            "Boundary: Agent 24 should not analyze or optimize workflows based on historical performance; those insights should be owned by Agent 20 and fed back via new/updated workflow definitions.\u3010F:agents/operations-management/continuous-improvement-agent/README.md\u2020L1-L31\u3011"
           ]
         },
         {
           "heading": "Functional gaps, inconsistencies, and alignment needs",
           "content": [
             "### Functional gaps/inconsistencies",
-            "`retry_failed_task` marks a task as retrying but does not re-enqueue or re-run it, unlike `_mark_task_failed` which schedules retries. Align retry semantics so both paths are consistent.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L752-L792\u3011\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1642-L1735\u3011",
-            "BPMN upload path reads from disk without validating file existence/size limits; add guardrails if the orchestration service exposes this to users.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L816-L835\u3011",
-            "Workflow completion logic excludes decision/parallel/loop tasks but depends on completed task IDs; ensure those virtual steps are not marked as required tasks in definitions or else completion checks will miscount.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1417-L1444\u3011",
+            "`retry_failed_task` marks a task as retrying but does not re-enqueue or re-run it, unlike `_mark_task_failed` which schedules retries. Align retry semantics so both paths are consistent.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L752-L792\u3011\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1642-L1735\u3011",
+            "BPMN upload path reads from disk without validating file existence/size limits; add guardrails if the orchestration service exposes this to users.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L816-L835\u3011",
+            "Workflow completion logic excludes decision/parallel/loop tasks but depends on completed task IDs; ensure those virtual steps are not marked as required tasks in definitions or else completion checks will miscount.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1417-L1444\u3011",
             "### Required prompt/tool/template/connector/UI alignment",
-            "Prompt/API: document mandatory `action` values and required fields in orchestration service docs so callers provide `workflow_id`, `instance_id`, or `bpmn_xml` as needed.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L122-L196\u3011",
-            "Template alignment: ensure workflow templates in `config/agent-24/workflow_templates.yaml` follow `ppm.workflow/v1` and include `metadata`/`steps` fields consistent with `workflow_spec` parsing.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1860-L1876\u3011\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_spec.py\u2020L1-L122\u3011",
-            "Connector alignment: confirm Service Bus/Event Grid/Monitor topic names match enterprise integration catalogs; the agent publishes to `workflow.events`, `workflow.notifications`, `azure.monitor.telemetry`, and `azure.eventgrid.events`.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
-            "UI alignment: the UI should render task inboxes based on `get_task_inbox` outputs and handle status transitions (`assigned`, `completed`, `failed`) consistently with the agent\u2019s task lifecycle.\u3010F:agents/operations-management/agent-24-workflow-process-engine/src/workflow_engine_agent.py\u2020L723-L875\u3011"
+            "Prompt/API: document mandatory `action` values and required fields in orchestration service docs so callers provide `workflow_id`, `instance_id`, or `bpmn_xml` as needed.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L122-L196\u3011",
+            "Template alignment: ensure workflow templates in `config/workflow-engine-agent/workflow_templates.yaml` follow `ppm.workflow/v1` and include `metadata`/`steps` fields consistent with `workflow_spec` parsing.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1860-L1876\u3011\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_spec.py\u2020L1-L122\u3011",
+            "Connector alignment: confirm Service Bus/Event Grid/Monitor topic names match enterprise integration catalogs; the agent publishes to `workflow.events`, `workflow.notifications`, `azure.monitor.telemetry`, and `azure.eventgrid.events`.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L1351-L1512\u3011",
+            "UI alignment: the UI should render task inboxes based on `get_task_inbox` outputs and handle status transitions (`assigned`, `completed`, `failed`) consistently with the agent\u2019s task lifecycle.\u3010F:agents/operations-management/workflow-engine-agent/src/workflow_engine_agent.py\u2020L723-L875\u3011"
           ]
         },
         {
@@ -2990,9 +2990,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-24-workflow-process-engine/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-24-workflow-process-engine/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-24-workflow-process-engine/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/workflow-engine-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/workflow-engine-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/workflow-engine-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -3013,14 +3013,14 @@
           "content": [
             "Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.",
             "### Durable workflow configuration",
-            "The agent loads durable workflow orchestration definitions from `config/agent-24/durable_workflows.yaml` on startup. Each workflow entry defines ordered steps, retry policies, and optional compensation tasks. The agent registers these definitions as Durable Functions-style orchestrations and persists them in the workflow state store.",
+            "The agent loads durable workflow orchestration definitions from `config/workflow-engine-agent/durable_workflows.yaml` on startup. Each workflow entry defines ordered steps, retry policies, and optional compensation tasks. The agent registers these definitions as Durable Functions-style orchestrations and persists them in the workflow state store.",
             "### Workflow specification format",
             "The agent supports JSON or YAML workflow definitions with step-based modeling, branching logic, parallelism, and retries. Definitions can be supplied inline via `workflow_spec` or `workflow_yaml` in the API payload. Key fields:",
             "`apiVersion`: `ppm.workflow/v1`",
             "`kind`: `Workflow`",
             "`metadata`: name, version, owner, description",
             "`steps`: list of steps (`task`, `decision`, `parallel`, `approval`, `script`, `notification`, `loop`) with `next`, `branches`, and `retry` policies.",
-            "Sample templates live in `config/agent-24/workflow_templates.yaml` and are loaded on startup.",
+            "Sample templates live in `config/workflow-engine-agent/workflow_templates.yaml` and are loaded on startup.",
             "### BPMN 2.0 support",
             "The engine can parse BPMN 2.0 XML definitions and convert them into Durable Functions-style orchestrations. Use the `/workflows/upload` API (in the orchestration service) to upload BPMN files for deployment. BPMN user tasks become `human` tasks; service/script tasks become `automated` tasks. The parser uses `bpmn-python` when available and falls back to an XML parser.",
             "### Database schema",
@@ -3040,7 +3040,7 @@
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-24-workflow-process-engine/README.md"
+      "source_file": "agents/operations-management/workflow-engine-agent/README.md"
     },
     {
       "id": 25,
@@ -3055,9 +3055,9 @@
         {
           "heading": "What's inside",
           "content": [
-            "[src](/agents/operations-management/agent-25-system-health-monitoring/src): Implementation source for this component.",
-            "[tests](/agents/operations-management/agent-25-system-health-monitoring/tests): Test suites and fixtures.",
-            "[Dockerfile](/agents/operations-management/agent-25-system-health-monitoring/Dockerfile): Container build recipe for local or CI use."
+            "[src](/agents/operations-management/system-health-agent/src): Implementation source for this component.",
+            "[tests](/agents/operations-management/system-health-agent/tests): Test suites and fixtures.",
+            "[Dockerfile](/agents/operations-management/system-health-agent/Dockerfile): Container build recipe for local or CI use."
           ]
         },
         {
@@ -3110,7 +3110,7 @@
           ]
         }
       ],
-      "source_file": "agents/operations-management/agent-25-system-health-monitoring/README.md"
+      "source_file": "agents/operations-management/system-health-agent/README.md"
     }
   ]
 }

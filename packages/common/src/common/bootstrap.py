@@ -44,7 +44,7 @@ def ensure_monorepo_paths(repo_root: Path | None = None) -> None:
         if base_path.exists():
             src_dirs.extend(p for p in base_path.glob("*/src") if p.is_dir())
 
-    # Deep-scan agents (nested directories like agents/core-orchestration/agent-01-xxx/src)
+    # Deep-scan agents (nested directories like agents/core-orchestration/intent-router-agent/src)
     agents_path = root / "agents"
     if agents_path.exists():
         src_dirs.extend(p for p in agents_path.glob("**/src") if p.is_dir())

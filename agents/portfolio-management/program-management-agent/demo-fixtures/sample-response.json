@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "program-management-agent",
+      "summary": "Demo fixture for program management was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "dashboard",
+          "id": "program-management-agent-artifact-001",
+          "title": "Program Management Demo Artifact"
+        }
+      ]
+    }
+  }
+}

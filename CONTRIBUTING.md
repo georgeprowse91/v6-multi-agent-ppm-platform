@@ -453,8 +453,8 @@ touch tests/test_your_agent.py
 5. Document capabilities and integration points
 
 See existing agents for examples:
-- `agents/core-orchestration/agent-01-intent-router/src/intent_router_agent.py`
-- `agents/portfolio-management/agent-04-demand-intake/src/demand_intake_agent.py`
+- `agents/core-orchestration/intent-router-agent/src/intent_router_agent.py`
+- `agents/portfolio-management/demand-intake-agent/src/demand_intake_agent.py`
 
 ## Connector Development
 

@@ -15,7 +15,7 @@ AI capabilities are provided through a shared LLM client package and prompt regi
 | LLM provider abstraction | `packages/llm/src/llm/client.py` | Supports `mock`, `openai`, and `azure-openai` providers. |
 | Prompt registry | `agents/runtime/prompts` | YAML prompt definitions validated against `prompt.schema.json`. |
 | Redaction rules | `agents/runtime/agents/runtime/prompts/prompt_registry.py` | Redacts sensitive fields from prompt payloads. |
-| Intent routing | `agents/core-orchestration/agent-01-intent-router` | Uses LLM responses to select agent plans. |
+| Intent routing | `agents/core-orchestration/intent-router-agent` | Uses LLM responses to select agent plans. |
 
 ## Provider selection and configuration
 

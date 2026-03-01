@@ -8,10 +8,10 @@ tasks:
     priority: null
     intent: null
 - task_id: task-2
-  agent_id: agent-05-business-case-investment
+  agent_id: business-case-agent
   action: generate_business_case
   dependencies:
-  - agent-04-demand-intake
+  - demand-intake-agent
   metadata:
     priority: null
     intent: null

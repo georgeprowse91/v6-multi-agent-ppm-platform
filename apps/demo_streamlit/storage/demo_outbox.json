@@ -4,7 +4,7 @@
       "type": "agent.tested",
       "ts": "2026-02-28T07:33:49.266169+00:00",
       "artifact_id": "test-f6ada694",
-      "agent_id": "agent-01",
+      "agent_id": "intent-router-agent",
       "status": "passed",
       "assertions": [
         "policy_check",
@@ -16,7 +16,7 @@
       "type": "agent.run",
       "ts": "2026-02-28T07:33:54.174997+00:00",
       "run_id": "run-75289595",
-      "agent_id": "agent-01",
+      "agent_id": "intent-router-agent",
       "status": "completed",
       "duration_seconds": 42,
       "audit_event_id": "audit-run-935a88d5"
@@ -26,7 +26,7 @@
     {
       "event_id": "audit-run-935a88d5",
       "action": "agent.run",
-      "resource_id": "agent-01"
+      "resource_id": "intent-router-agent"
     }
   ]
 }

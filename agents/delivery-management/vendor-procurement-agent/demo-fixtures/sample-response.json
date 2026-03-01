@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "vendor-procurement-agent",
+      "summary": "Demo fixture for vendor procurement was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "register",
+          "id": "vendor-procurement-agent-artifact-001",
+          "title": "Vendor Procurement Demo Artifact"
+        }
+      ]
+    }
+  }
+}

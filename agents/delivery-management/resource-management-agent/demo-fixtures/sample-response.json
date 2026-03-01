@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "resource-management-agent",
+      "summary": "Demo fixture for resource capacity was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "notification",
+          "id": "resource-management-agent-artifact-001",
+          "title": "Resource Capacity Demo Artifact"
+        }
+      ]
+    }
+  }
+}

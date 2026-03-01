@@ -1,7 +1,7 @@
 {
   "agents": {
-    "agent-15-risk-issue-management": {
-      "catalog_id": "agent-15-risk-issue-management",
+    "risk-management-agent": {
+      "catalog_id": "risk-management-agent",
       "agent_id": "risk-management-agent",
       "display_name": "Risk & Issue Management",
       "description": "Identifies, assesses, and manages project risks and issues",

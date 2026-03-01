@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "risk-management-agent",
+      "summary": "Demo fixture for risk issue management was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "dashboard",
+          "id": "risk-management-agent-artifact-001",
+          "title": "Risk Issue Management Demo Artifact"
+        }
+      ]
+    }
+  }
+}

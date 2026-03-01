@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "scope-definition-agent",
+      "summary": "Demo fixture for project definition scope was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "dashboard",
+          "id": "scope-definition-agent-artifact-001",
+          "title": "Project Definition Scope Demo Artifact"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "workflow-engine-agent",
+      "summary": "Demo fixture for workflow process engine was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "policy",
+          "id": "workflow-engine-agent-artifact-001",
+          "title": "Workflow Process Engine Demo Artifact"
+        }
+      ]
+    }
+  }
+}

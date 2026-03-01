@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "lifecycle-governance-agent",
+      "summary": "Demo fixture for lifecycle governance was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "approval",
+          "id": "lifecycle-governance-agent-artifact-001",
+          "title": "Lifecycle Governance Demo Artifact"
+        }
+      ]
+    }
+  }
+}

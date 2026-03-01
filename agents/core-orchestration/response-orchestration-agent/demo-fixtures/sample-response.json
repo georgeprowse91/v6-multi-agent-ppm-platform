@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "response-orchestration-agent",
+      "summary": "Demo fixture for response orchestration was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "register",
+          "id": "response-orchestration-agent-artifact-001",
+          "title": "Response Orchestration Demo Artifact"
+        }
+      ]
+    }
+  }
+}

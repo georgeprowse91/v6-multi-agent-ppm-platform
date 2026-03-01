@@ -10,6 +10,6 @@ Each agent directory contains `src/`, `tests/`, a `Dockerfile`, and its own `REA
 
 | Name | Description | Link |
 |------|-------------|------|
-| `agent-01-intent-router` | Routes incoming user intents to the appropriate downstream agent(s). | [](/./agent-01-intent-router/) |
-| `agent-02-response-orchestration` | Assembles and merges responses from multiple agents into a unified output. | [](/./agent-02-response-orchestration/) |
-| `agent-03-approval-workflow` | Manages multi-step approval workflows and escalation policies. | [](/./agent-03-approval-workflow/) |
+| `intent-router-agent` | Routes incoming user intents to the appropriate downstream agent(s). | [](/./intent-router-agent/) |
+| `response-orchestration-agent` | Assembles and merges responses from multiple agents into a unified output. | [](/./response-orchestration-agent/) |
+| `approval-workflow-agent` | Manages multi-step approval workflows and escalation policies. | [](/./approval-workflow-agent/) |

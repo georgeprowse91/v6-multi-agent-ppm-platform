@@ -614,28 +614,28 @@ Agents are registered in `agents/AGENT_CATALOG.md` and surfaced in the Agent Gal
 
 | Agent ID | Name | Domain |
 |---|---|---|
-| `agent-01` | Intent Router | Core Orchestration |
-| `agent-02` | Response Orchestration | Core Orchestration |
-| `agent-03` | Approval Workflow | Core Orchestration |
-| `agent-04` | Demand Intake | Portfolio Management |
-| `agent-05` | Business Case Investment | Portfolio Management |
-| `agent-06` | Portfolio Strategy Optimisation | Portfolio Management |
-| `agent-07` | Program Management | Portfolio Management |
-| `agent-08` | Project Definition Scope | Delivery Management |
-| `agent-09` | Lifecycle Governance | Delivery Management |
-| `agent-10` | Schedule Planning | Delivery Management |
-| `agent-11` | Resource Capacity | Delivery Management |
-| `agent-12` | Financial Management | Delivery Management |
-| `agent-13` | Vendor Procurement | Delivery Management |
-| `agent-14` | Quality Management | Delivery Management |
-| `agent-15` | Risk Issue Management | Delivery Management |
-| `agent-16` | Compliance Regulatory | Delivery Management |
-| `agent-17` | Change Configuration | Operations Management |
-| `agent-18` | Release Deployment | Operations Management |
-| `agent-19` | Knowledge Document Management | Operations Management |
-| `agent-20` | Continuous Improvement Process Mining | Operations Management |
-| `agent-21` | Stakeholder Comms | Operations Management |
-| `agent-22` | Analytics Insights | Operations Management |
-| `agent-23` | Data Synchronisation Quality | Operations Management |
-| `agent-24` | Workflow Process Engine | Operations Management |
-| `agent-25` | System Health Monitoring | Operations Management |
+| `intent-router-agent` | Intent Router | Core Orchestration |
+| `response-orchestration-agent` | Response Orchestration | Core Orchestration |
+| `approval-workflow-agent` | Approval Workflow | Core Orchestration |
+| `demand-intake-agent` | Demand Intake | Portfolio Management |
+| `business-case-agent` | Business Case Investment | Portfolio Management |
+| `portfolio-optimisation-agent` | Portfolio Strategy Optimisation | Portfolio Management |
+| `program-management-agent` | Program Management | Portfolio Management |
+| `scope-definition-agent` | Project Definition Scope | Delivery Management |
+| `lifecycle-governance-agent` | Lifecycle Governance | Delivery Management |
+| `schedule-planning-agent` | Schedule Planning | Delivery Management |
+| `resource-management-agent` | Resource Capacity | Delivery Management |
+| `financial-management-agent` | Financial Management | Delivery Management |
+| `vendor-procurement-agent` | Vendor Procurement | Delivery Management |
+| `quality-management-agent` | Quality Management | Delivery Management |
+| `risk-management-agent` | Risk Issue Management | Delivery Management |
+| `compliance-governance-agent` | Compliance Regulatory | Delivery Management |
+| `change-control-agent` | Change Configuration | Operations Management |
+| `release-deployment-agent` | Release Deployment | Operations Management |
+| `knowledge-management-agent` | Knowledge Document Management | Operations Management |
+| `continuous-improvement-agent` | Continuous Improvement Process Mining | Operations Management |
+| `stakeholder-communications-agent` | Stakeholder Comms | Operations Management |
+| `analytics-insights-agent` | Analytics Insights | Operations Management |
+| `data-synchronisation-agent` | Data Synchronisation Quality | Operations Management |
+| `workflow-engine-agent` | Workflow Process Engine | Operations Management |
+| `system-health-agent` | System Health Monitoring | Operations Management |

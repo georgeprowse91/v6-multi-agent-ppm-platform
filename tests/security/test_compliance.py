@@ -58,7 +58,7 @@ def test_audit_event_contains_compliance_metadata() -> None:
         tenant_id="tenant-alpha",
         action="compliance.data.access",
         outcome="success",
-        actor_id="agent-016",
+        actor_id="compliance-governance-agent",
         actor_type="service",
         actor_roles=["compliance"],
         resource_id="project-1",
