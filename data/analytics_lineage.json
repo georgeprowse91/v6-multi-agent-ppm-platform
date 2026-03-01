@@ -703,39 +703,6 @@
       ],
       "record_count": 4,
       "created_at": "2026-02-27T13:11:02.266624+00:00"
-    },
-    "LINEAGE-20260301083926": {
-      "lineage_id": "LINEAGE-20260301083926",
-      "sources": [
-        "planview",
-        "jira",
-        "workday",
-        "sap"
-      ],
-      "record_count": 4,
-      "created_at": "2026-03-01T08:39:26.342890+00:00"
-    },
-    "LINEAGE-20260301084952": {
-      "lineage_id": "LINEAGE-20260301084952",
-      "sources": [
-        "planview",
-        "jira",
-        "workday",
-        "sap"
-      ],
-      "record_count": 4,
-      "created_at": "2026-03-01T08:49:52.263853+00:00"
-    },
-    "LINEAGE-20260301085026": {
-      "lineage_id": "LINEAGE-20260301085026",
-      "sources": [
-        "planview",
-        "jira",
-        "workday",
-        "sap"
-      ],
-      "record_count": 4,
-      "created_at": "2026-03-01T08:50:26.069786+00:00"
     }
   }
 }

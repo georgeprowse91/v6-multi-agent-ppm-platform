@@ -575,33 +575,6 @@
         "resource_id": "res-1"
       },
       "received_at": "2026-02-27T13:11:02.278406+00:00"
-    },
-    "evt-128fa5c566bb49fbb80992276092c354": {
-      "event_id": "evt-128fa5c566bb49fbb80992276092c354",
-      "event_type": "resource.updated",
-      "domain": "resource",
-      "payload": {
-        "resource_id": "res-1"
-      },
-      "received_at": "2026-03-01T08:39:26.359839+00:00"
-    },
-    "evt-a243f9be05b54d3a8b585806649092e5": {
-      "event_id": "evt-a243f9be05b54d3a8b585806649092e5",
-      "event_type": "resource.updated",
-      "domain": "resource",
-      "payload": {
-        "resource_id": "res-1"
-      },
-      "received_at": "2026-03-01T08:49:52.281321+00:00"
-    },
-    "evt-000f3518eb0a4f5c9e7abe7fbf7a92f3": {
-      "event_id": "evt-000f3518eb0a4f5c9e7abe7fbf7a92f3",
-      "event_type": "resource.updated",
-      "domain": "resource",
-      "payload": {
-        "resource_id": "res-1"
-      },
-      "received_at": "2026-03-01T08:50:26.089424+00:00"
     }
   }
 }
