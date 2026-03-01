@@ -380,7 +380,7 @@ class IntentRouterAgent(BaseAgent):
         config_path = Path(
             self.config.get("routing_config_path")
             or os.getenv("INTENT_ROUTING_CONFIG_PATH")
-            or (Path(__file__).resolve().parents[4] / "config" / "agents" / "intent-routing.yaml")
+            or (Path(__file__).resolve().parents[4] / "ops" / "config" / "agents" / "intent-routing.yaml")
         )
         try:
             payload = yaml.safe_load(config_path.read_text())

@@ -1,3 +1,13 @@
+# Runtime intent-routing config — used exclusively by services/agent-runtime.
+#
+# Agent IDs here must match AgentSpec.agent_id values registered in runtime.py.
+# Agents 013–025 are currently registered with numeric IDs (agent_015, agent_016,
+# agent_022, etc.) rather than descriptive names. The canonical design reference
+# at ops/config/agents/intent-routing.yaml uses descriptive names; this file uses
+# the numeric IDs that the runtime registry actually accepts.
+#
+# If the runtime is updated to register agents 013–025 with descriptive IDs,
+# update this file to match.
 version: 1
 default_min_confidence: 0.6
 fallback_intent: general_query
