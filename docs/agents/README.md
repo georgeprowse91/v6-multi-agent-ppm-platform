@@ -8,7 +8,7 @@ Central navigation hub for all agent-related documentation. Links to the canonic
 
 | What you need | Where to find it |
 | --- | --- |
-| Detailed agent specs (inputs, outputs, behaviour) | [`docs/product/02-solution-design/agent-system-design.md`](/docs/product/02-solution-design/agent-system-design.md) |
+| Detailed agent specs (inputs, outputs, behaviour) | [`docs/agents/agent-specifications.md`](/docs/agents/agent-specifications.md) |
 | Architecture — how agents orchestrate | [`docs/architecture/agent-orchestration.md`](/docs/architecture/agent-orchestration.md) |
 | Architecture — runtime lifecycle and state | [`docs/architecture/agent-runtime.md`](/docs/architecture/agent-runtime.md) |
 | Code-adjacent catalog with links to each agent's README | [`agents/AGENT_CATALOG.md`](/agents/AGENT_CATALOG.md) |

@@ -3,10 +3,8 @@
 **Purpose:** Define the commercial packaging options, pricing tiers, and value-realisation metrics for the platform.
 **Audience:** Sales, commercial leads, product management, and executive sponsors.
 **Owner:** Commercial Lead
-**Last reviewed:** 2026-02-20
-**Related docs:** [go-to-market-plan.md](go-to-market-plan.md) · [sales-messaging-and-collateral.md](sales-messaging-and-collateral.md) · [competitive-positioning.md](competitive-positioning.md)
-
-> **Migration note:** Moved from `solution-overview/pricing-packaging.md` on 2026-02-20. Refactored with explicit links to the GTM plan and sales collateral.
+**Last reviewed:** 2026-03-01
+**Related docs:** [go-to-market-plan.md](go-to-market-plan.md) · [sales-enablement.md](sales-enablement.md) · [competitive-positioning.md](competitive-positioning.md)
 
 ---
 
@@ -16,11 +14,11 @@ This document outlines the commercial models for the multi‑agent PPM platform 
 
 ## Implementation alignment
 
-This document is pricing collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+This document is pricing collateral. Validate feature claims against the current implementation in the [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
 
 ## Market Context
 
-The Project Portfolio Management (PPM) market is projected to grow from AUD 6.90 B in 2025 to AUD 13.21 B by 2031, with a compound annual growth rate of around 11 %[1]. Drivers include hybrid work, the need for AI‑enabled forecasting and real‑time governance, and a shift toward unified platforms[1]. Adoption of AI is becoming mainstream; surveys show that 79 % of organisations already use AI agents and 74 % rank AI among their top three strategic priorities[2]. However, interoperability and clear organisational strategy remain barriers[3][4].
+For comprehensive market data, growth projections, and AI adoption statistics, see the [Market and Problem Analysis](market-and-problem-analysis.md).
 
 ## Commercial Objectives
 
@@ -92,7 +90,7 @@ To justify investment and support sales, quantify value using metrics aligned wi
 
 **Schedule Adherence:** Reduction in project delays due to improved scheduling, resource balancing and risk detection. Track percentage of projects delivered on time compared with baseline.
 
-**Financial Performance:** Improvement in budget accuracy and ROI. The PPM market’s growth is driven by integrated analytics that reduce budget overruns[1]; show cost avoidance through better forecasting and portfolio optimisation.
+**Financial Performance:** Improvement in budget accuracy and ROI. Integrated analytics reduce budget overruns; show cost avoidance through better forecasting and portfolio optimisation.
 
 **Resource Utilisation:** Increased utilisation rates and fewer resource conflicts via the resource & capacity agent. Demonstrate improvement in utilisation percentages.
 
@@ -121,18 +119,6 @@ The pricing model supports the GTM strategy by offering flexible entry points, e
 ## Conclusion
 
 This pricing and packaging model offers a balanced mix of subscription, license and usage‑based options to fit different client needs and budgets. By aligning pricing with value and offering clear metrics, the platform can capture market share in the rapidly growing PPM space and deliver compelling ROI to customers.
-
-[1] Project Portfolio Management Market Size, Share, Trends & Industry Report, 2031
-
-https://www.mordorintelligence.com/industry-reports/project-portfolio-management-market
-
-[2] [3] 10 AI Agent Statistics for 2026: Adoption, Success Rates, & More
-
-https://www.multimodal.dev/post/agentic-ai-statistics
-
-[4] AI-Four-Key-Factors-Report-v1-April-2024.pdf
-
-https://pmi-ireland.org/static/uploaded/Files/Documents/AI-Four-Key-Factors-Report-v1-April-2024.pdf
 
 ---
 

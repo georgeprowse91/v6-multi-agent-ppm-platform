@@ -4,13 +4,72 @@ All notable changes to product documentation will be documented in this file.
 
 ---
 
-## [Unreleased]
+## [2026-03-01] — Deduplication and Restructure
+
+### Summary
+
+Reorganised `docs/product/` from 21 files across 5 folders to 13 files across 3 folders. Eliminated cross-document repetition, moved misplaced technical content to its canonical home, reconciled conflicting market statistics, and updated all documents to reflect verified codebase facts.
+
+### Structural Changes
+
+The previous five-folder taxonomy has been reduced to three folders:
+
+```
+01-product-definition/   — What we build and why (unchanged)
+02-commercial/           — How we position and sell it (renamed from 04-commercial-and-positioning)
+03-user-guides/          — How users operate it (renamed from 05-user-guides)
+```
+
+The `02-solution-design/` and `03-delivery-and-quality/` folders have been removed. Their content has been moved to the canonical technical documentation folders where it belongs.
+
+### Files Moved Out of docs/product/
+
+| Former location | New canonical location | Reason |
+|---|---|---|
+| `02-solution-design/agent-system-design.md` | [docs/agents/agent-specifications.md](../agents/agent-specifications.md) | Agent specs belong with agent documentation |
+| `02-solution-design/connectors/iot-connector-spec.md` | [docs/connectors/iot-connector-spec.md](../connectors/iot-connector-spec.md) | Connector specs belong with connector documentation |
+| `03-delivery-and-quality/acceptance-and-test-strategy.md` | [docs/testing/acceptance-and-test-strategy.md](../testing/acceptance-and-test-strategy.md) | Test strategy belongs with test documentation |
+| `03-delivery-and-quality/compliance-evidence-process.md` | [docs/compliance/certification-evidence-process.md](../compliance/certification-evidence-process.md) | Compliance processes belong with compliance documentation |
+| `03-delivery-and-quality/implementation-and-change-plan.md` | [docs/change-management/implementation-and-change-plan.md](../change-management/implementation-and-change-plan.md) | Delivery/change management content |
+
+### Files Removed
+
+| File | Reason |
+|---|---|
+| `02-solution-design/platform-architecture-overview.md` | Duplicated by 27 files in [docs/architecture/](../architecture/) |
+| `02-solution-design/assistant-panel-design.md` | User-facing parts moved to `03-user-guides/assistant-panel-guide.md`; technical details covered by [docs/architecture/](../architecture/) |
+| `04-commercial-and-positioning/sales-messaging-and-collateral.md` | Replaced by slimmer `02-commercial/sales-enablement.md` with duplication removed |
+
+### New Files
+
+| File | Purpose |
+|---|---|
+| `02-commercial/sales-enablement.md` | Sales-specific messaging, pitch frameworks, and collateral index (replaces sales-messaging-and-collateral.md) |
+| `03-user-guides/assistant-panel-guide.md` | User-facing guide for the AI assistant panel and prompt library |
+
+### Deduplication Changes
+
+- **Problem statement and value proposition**: Now appears only in `product-strategy-and-scope.md`. Removed from sales-messaging, go-to-market, and other documents; they link to the strategy doc instead.
+- **Agent descriptions**: Removed from product docs entirely. All documents reference [docs/agents/](../agents/) for agent details.
+- **Connector ecosystem**: Removed detailed listings. All documents reference [docs/connectors/](../connectors/) for connector details.
+- **Market statistics**: Now appear only in `market-and-problem-analysis.md` with a reconciliation table showing multiple analyst sources. Removed from packaging-and-pricing, go-to-market, and requirements docs.
+- **Methodology-as-navigation**: Conceptual explanation appears only in `product-strategy-and-scope.md`. Operational detail in `user-journeys-and-stage-gates.md`. Other docs link to these.
+
+### Codebase Accuracy Updates
+
+- Updated connector count from "38+" to "44 integrations (17 production-ready)" per actual codebase
+- Verified 25 agents across 4 groups (core orchestration, delivery, operations, portfolio)
+- Verified tech stack: React 18, TypeScript 5.3, FastAPI 0.115+, PostgreSQL 15, Redis 7
+
+---
+
+## [Unreleased] (prior to 2026-03-01)
 
 ### Added
-- Methodology-specific roles & responsibilities templates for Predictive, Adaptive, and Hybrid projects.
+- Methodology-specific roles and responsibilities templates for Predictive, Adaptive, and Hybrid projects.
 
 ### Removed
-- Deprecated pre-migration files in `docs/product` that were previously retained with deprecation banners (legacy `solution-overview*`, top-level legacy docs, and old `user-guides`/`connectors` paths).
+- Deprecated pre-migration files in `docs/product` that were previously retained with deprecation banners.
 
 ---
 
@@ -18,76 +77,20 @@ All notable changes to product documentation will be documented in this file.
 
 ### Summary
 
-Complete reorganisation of `docs/product` into a MECE (Mutually Exclusive, Collectively Exhaustive) five-folder taxonomy. Each document now has a single canonical location and clear ownership. Legacy files are retained with deprecation banners during the transition period (removal after one release cycle).
+Complete reorganisation of `docs/product` into a MECE (Mutually Exclusive, Collectively Exhaustive) five-folder taxonomy. Each document now has a single canonical location and clear ownership. Legacy files are retained with deprecation banners during the transition period.
 
-### New Structure
+### New Structure (superseded by 2026-03-01 restructure)
 
 ```
 docs/product/
 ├── 01-product-definition/   — What we build and why
-├── 02-solution-design/      — How we build it
-├── 03-delivery-and-quality/ — How we deliver and validate it
-├── 04-commercial-and-positioning/ — How we sell and position it
-└── 05-user-guides/          — How users operate it
+├── 02-solution-design/      — How we build it (removed 2026-03-01)
+├── 03-delivery-and-quality/ — How we deliver and validate it (removed 2026-03-01)
+├── 04-commercial-and-positioning/ — How we sell and position it (renamed to 02-commercial)
+└── 05-user-guides/          — How users operate it (renamed to 03-user-guides)
 ```
-
-### New Files Added
-
-| New canonical file | Migration action |
-|---|---|
-| `01-product-definition/product-strategy-and-scope.md` | Consolidated from `solution-overview.md`, `solution-overview/README.md`, and strategic sections of `solution-overview/pitch-overview.md` |
-| `01-product-definition/requirements-specification.md` | Lifted and shifted from `product-requirements.md` |
-| `01-product-definition/personas-and-ux-guidelines.md` | Lifted and shifted from `personas.md` |
-| `01-product-definition/user-journeys-and-stage-gates.md` | Lifted and shifted from `user-journeys.md` |
-| `01-product-definition/templates-and-methodology-catalog.md` | Lifted and shifted from `templates-catalog.md` |
-| `02-solution-design/platform-architecture-overview.md` | Lifted and shifted from `solution-overview/platform-overview.md` |
-| `02-solution-design/agent-system-design.md` | Consolidated all 25 `solution-overview/agents/agent-*.md` files into one canonical catalog |
-| `02-solution-design/assistant-panel-design.md` | Moved from `assistant-panel.md` |
-| `02-solution-design/connectors/iot-connector-spec.md` | Renamed and moved from `connectors/iot.md` |
-| `03-delivery-and-quality/implementation-and-change-plan.md` | Merged from `success-metrics.md` and `solution-overview/change-management-training.md` |
-| `03-delivery-and-quality/acceptance-and-test-strategy.md` | Lifted and shifted from `acceptance-criteria.md` |
-| `03-delivery-and-quality/compliance-evidence-process.md` | Moved from `user-guides/certification-evidence.md` |
-| `04-commercial-and-positioning/market-and-problem-analysis.md` | Consolidated from `solution-overview/market-analysis.md` and `solution-overview/research-whitepaper.md` |
-| `04-commercial-and-positioning/packaging-and-pricing.md` | Moved from `solution-overview/pricing-packaging.md` |
-| `04-commercial-and-positioning/competitive-positioning.md` | Moved from `solution-overview/competitive-battlecards.md` |
-| `04-commercial-and-positioning/go-to-market-plan.md` | Moved from `solution-overview/go-to-market-strategy.md` |
-| `04-commercial-and-positioning/sales-messaging-and-collateral.md` | Consolidated from `solution-overview/pitch-overview.md`, `solution-overview/sales-enablement.md`, and `solution-overview/marketing-sales-collateral.md` |
-| `05-user-guides/README.md` | Updated from `user-guides/README.md` |
-| `05-user-guides/web-console-walkthroughs.md` | Moved from `user-guides/web-console-walkthroughs.md` |
-
-### Deprecated Files (Retained with Banners — Pending Removal)
-
-The following legacy files are retained during the transition period with deprecation banners pointing to their new canonical locations. They will be removed after one release cycle.
-
-| Deprecated file | Redirects to |
-|---|---|
-| `solution-overview.md` | `01-product-definition/product-strategy-and-scope.md` |
-| `solution-overview/README.md` | `01-product-definition/product-strategy-and-scope.md` |
-| `product-requirements.md` | `01-product-definition/requirements-specification.md` |
-| `personas.md` | `01-product-definition/personas-and-ux-guidelines.md` |
-| `user-journeys.md` | `01-product-definition/user-journeys-and-stage-gates.md` |
-| `templates-catalog.md` | `01-product-definition/templates-and-methodology-catalog.md` |
-| `solution-overview/platform-overview.md` | `02-solution-design/platform-architecture-overview.md` |
-| `solution-overview/agents/intent-router-agent-*.md` … `system-health-agent-*.md` | `02-solution-design/agent-system-design.md` |
-| `assistant-panel.md` | `02-solution-design/assistant-panel-design.md` |
-| `connectors/iot.md` | `02-solution-design/connectors/iot-connector-spec.md` |
-| `success-metrics.md` | `03-delivery-and-quality/implementation-and-change-plan.md` |
-| `solution-overview/change-management-training.md` | `03-delivery-and-quality/implementation-and-change-plan.md` |
-| `acceptance-criteria.md` | `03-delivery-and-quality/acceptance-and-test-strategy.md` |
-| `user-guides/certification-evidence.md` | `03-delivery-and-quality/compliance-evidence-process.md` |
-| `solution-overview/market-analysis.md` | `04-commercial-and-positioning/market-and-problem-analysis.md` |
-| `solution-overview/research-whitepaper.md` | `04-commercial-and-positioning/market-and-problem-analysis.md` |
-| `solution-overview/pricing-packaging.md` | `04-commercial-and-positioning/packaging-and-pricing.md` |
-| `solution-overview/competitive-battlecards.md` | `04-commercial-and-positioning/competitive-positioning.md` |
-| `solution-overview/go-to-market-strategy.md` | `04-commercial-and-positioning/go-to-market-plan.md` |
-| `solution-overview/pitch-overview.md` | `04-commercial-and-positioning/sales-messaging-and-collateral.md` |
-| `solution-overview/sales-enablement.md` | `04-commercial-and-positioning/sales-messaging-and-collateral.md` |
-| `solution-overview/marketing-sales-collateral.md` | `04-commercial-and-positioning/sales-messaging-and-collateral.md` |
-| `user-guides/README.md` | `05-user-guides/README.md` |
-| `user-guides/web-console-walkthroughs.md` | `05-user-guides/web-console-walkthroughs.md` |
 
 ### Governance
 
-- All new authoring must happen in the five-folder canonical structure.
-- Legacy files must NOT be edited; update only their canonical counterparts.
+- All new authoring must happen in the three-folder canonical structure.
 - After one release cycle, open a PR to delete all deprecated files listed above.

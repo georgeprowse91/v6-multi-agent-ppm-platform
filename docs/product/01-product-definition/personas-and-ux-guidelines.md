@@ -3,10 +3,8 @@
 **Purpose:** Define the platform's user personas, interaction patterns, and UI/UX design standards. Single reference for all design and front-end decisions.
 **Audience:** Product design, UX engineers, front-end developers, and product management.
 **Owner:** UX Lead
-**Last reviewed:** 2026-02-20
-**Related docs:** [requirements-specification.md](requirements-specification.md) · [user-journeys-and-stage-gates.md](user-journeys-and-stage-gates.md) · [../04-commercial-and-positioning/sales-messaging-and-collateral.md](../04-commercial-and-positioning/sales-messaging-and-collateral.md)
-
-> **Migration note:** Consolidated from `personas.md` (UI/UX Design Guidelines) on 2026-02-20. Persona narratives previously duplicated in `solution-overview/pitch-overview.md` are now canonical here.
+**Last reviewed:** 2026-03-01
+**Related docs:** [requirements-specification.md](requirements-specification.md) · [user-journeys-and-stage-gates.md](user-journeys-and-stage-gates.md) · [Sales Enablement](../02-commercial/sales-enablement.md)
 
 ---
 
@@ -125,3 +123,11 @@ A cohesive and accessible UI/UX is essential for user adoption and productivity.
 | Border Radius | 4 px for cards, inputs and buttons |
 
 | Shadow | subtle drop shadow (2 px y, 4 px blur) |
+
+---
+
+## Cross-References
+
+- [Design System Tokens](../../design-system.md)
+- [UI Coverage Matrix](../../ui/UI_COVERAGE_MATRIX.md)
+- [Product Strategy and Scope](product-strategy-and-scope.md) — for the canonical methodology-as-navigation explanation

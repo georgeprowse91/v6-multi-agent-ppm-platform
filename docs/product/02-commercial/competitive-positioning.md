@@ -3,10 +3,8 @@
 **Purpose:** Provide concise competitor strategy and rebuttal guidance for sales and GTM teams engaging with prospects who are evaluating competing solutions.
 **Audience:** Sales engineers, account executives, GTM leads, and product management.
 **Owner:** Commercial Lead / Product Management
-**Last reviewed:** 2026-02-20
-**Related docs:** [market-and-problem-analysis.md](market-and-problem-analysis.md) · [go-to-market-plan.md](go-to-market-plan.md) · [sales-messaging-and-collateral.md](sales-messaging-and-collateral.md)
-
-> **Migration note:** Moved from `solution-overview/competitive-battlecards.md` on 2026-02-20. This is the canonical competitive reference; remove competitor mentions from other documents and link here.
+**Last reviewed:** 2026-03-01
+**Related docs:** [market-and-problem-analysis.md](market-and-problem-analysis.md) · [go-to-market-plan.md](go-to-market-plan.md) · [sales-enablement.md](sales-enablement.md)
 
 ---
 
@@ -16,7 +14,7 @@ Use these battlecards to compare the Multi‑Agent PPM Platform with other leadi
 
 ## Implementation alignment
 
-This document is competitive positioning collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+This document is competitive positioning collateral. Validate feature claims against the current implementation in the [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
 
 ## Planview (Portfolios)
 

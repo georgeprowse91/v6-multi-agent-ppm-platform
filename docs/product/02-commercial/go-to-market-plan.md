@@ -3,10 +3,8 @@
 **Purpose:** Define the commercialisation approach, launch model, target segments, channel strategy, and phased execution plan for bringing the platform to market.  
 **Audience:** Executive sponsors, commercial leads, sales teams, and marketing.  
 **Owner:** Commercial Lead / GTM Lead  
-**Last reviewed:** 2026-02-20  
-**Related docs:** [market-and-problem-analysis.md](market-and-problem-analysis.md) · [packaging-and-pricing.md](packaging-and-pricing.md) · [sales-messaging-and-collateral.md](sales-messaging-and-collateral.md)
-
-> **Migration note:** Moved from `solution-overview/go-to-market-strategy.md` on 2026-02-20. This version is reformatted for executive readability and operational use.
+**Last reviewed:** 2026-03-01  
+**Related docs:** [market-and-problem-analysis.md](market-and-problem-analysis.md) · [packaging-and-pricing.md](packaging-and-pricing.md) · [sales-enablement.md](sales-enablement.md)
 
 ---
 
@@ -18,7 +16,7 @@ PwC has an opportunity to lead the AI-native enterprise PPM market with a multi-
 The platform is positioned as an **orchestration layer** that works with existing enterprise tools (e.g., Planview, Jira, SAP, Workday), rather than replacing them.
 
 ### 1.2 Strategic Opportunity
-- **PPM software market (2024):** $14.3B, growing at 13.5% CAGR.
+- **PPM software market:** Double-digit growth across analyst estimates. See [Market and Problem Analysis](market-and-problem-analysis.md) for reconciled data.
 - **AI-powered PPM segment:** $2.1B, fastest-growing subsegment.
 - **Competitive white space:** No established enterprise-grade multi-agent PPM leader.
 - **PwC advantage:** Domain credibility, implementation capability, and existing enterprise relationships.
@@ -71,6 +69,8 @@ Enterprises need a platform that:
 - Recommends next-best actions with transparent AI.
 - Adapts to industry, methodology, and enterprise stack.
 
+For full market research and data, see the [Market and Problem Analysis](market-and-problem-analysis.md).
+
 ---
 
 ## 3) Positioning and Differentiation
@@ -92,6 +92,8 @@ Enterprises need a platform that:
 5. **Industry + methodology + tech-stack configurability**
 6. **Rapid implementation model (4–6 months)**
 
+For the full product narrative and differentiators, see [Product Strategy and Scope](../01-product-definition/product-strategy-and-scope.md).
+
 ---
 
 ## 4) Competitive Landscape
@@ -109,6 +111,8 @@ Enterprises need a platform that:
 
 ### 4.3 Window of Opportunity
 Expected competitive convergence in 12–18 months. Priority is to establish category leadership early through client references, repeatable delivery, and partner leverage.
+
+For detailed competitor battlecards, see [Competitive Positioning](competitive-positioning.md).
 
 ---
 
@@ -327,6 +331,9 @@ Proceed with phased commercialisation of the Multi-Agent PPM Platform.
 | Implementation timeline | 18–36 months | 12–18 months | 4–6 months |
 
 ### A2. Indicative Packaging
+
+> For the full packaging and pricing model, see [Packaging and Pricing](packaging-and-pricing.md).
+
 | Tier | Projects | Users | Agent Scope | Monthly Price |
 | --- | --- | --- | --- | --- |
 | Starter | 1–100 | Up to 50 | Core bundle | $30,000 |

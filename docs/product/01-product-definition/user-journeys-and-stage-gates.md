@@ -3,10 +3,8 @@
 **Purpose:** Document the canonical process flows for Adaptive, Predictive, and Hybrid methodologies, including all stage-gate governance triggers and enforcement logic.
 **Audience:** Product management, UX design, engineering, and PMO governance leads.
 **Owner:** Product Management
-**Last reviewed:** 2026-02-20
-**Related docs:** [requirements-specification.md](requirements-specification.md) · [../02-solution-design/platform-architecture-overview.md](../02-solution-design/platform-architecture-overview.md) · [../02-solution-design/agent-system-design.md](../02-solution-design/agent-system-design.md)
-
-> **Migration note:** Lifted and shifted from `user-journeys.md` on 2026-02-20. Duplicated flow snippets from `product-requirements.md` are superseded by this document.
+**Last reviewed:** 2026-03-01
+**Related docs:** [requirements-specification.md](requirements-specification.md) · [../../architecture/](../../architecture/) · [../../agents/](../../agents/)
 
 ---
 
@@ -127,3 +125,11 @@ Across all methodologies, the platform enforces governance and best practice thr
 ## Conclusion
 
 By embedding Adaptive, Predictive and Hybrid methodologies directly into the user interface, the multi‑agent PPM platform guides teams through appropriate workflows and enforces governance. The methodology map provides a visual representation of the project lifecycle, while agents validate stage‑gate criteria, manage approvals and surface performance insights. Continuous monitoring and conversational guidance ensure that best practices are followed and deviations are quickly addressed.
+
+---
+
+## Cross-References
+
+- [Product Strategy and Scope](product-strategy-and-scope.md) — for the canonical explanation of methodology-as-navigation
+- [Agent Catalog](../../agents/) — for detailed agent specifications
+- [Methodology Documentation](../../methodology/) — for detailed methodology definitions

@@ -3,10 +3,8 @@
 **Purpose:** Define all functional and non-functional requirements for the Multi-Agent PPM Platform. Single source of truth for designers, developers, testers, and stakeholders.
 **Audience:** Product management, engineering, QA, architecture, and executive stakeholders.
 **Owner:** Product Management
-**Last reviewed:** 2026-02-20
-**Related docs:** [product-strategy-and-scope.md](product-strategy-and-scope.md) · [../02-solution-design/platform-architecture-overview.md](../02-solution-design/platform-architecture-overview.md) · [../03-delivery-and-quality/acceptance-and-test-strategy.md](../03-delivery-and-quality/acceptance-and-test-strategy.md)
-
-> **Migration note:** Lifted and shifted from `product-requirements.md` on 2026-02-20. Cross-references to architecture detail now point to `02-solution-design/`; commercial context in `04-commercial-and-positioning/`.
+**Last reviewed:** 2026-03-01
+**Related docs:** [Product Strategy and Scope](product-strategy-and-scope.md) · [Architecture Documentation](../../architecture/) · [Test Strategy](../../testing/acceptance-and-test-strategy.md)
 
 ---
 
@@ -20,9 +18,9 @@ This document defines the functional and non‑functional requirements for the M
 
 ## Background & Context
 
-The PPM software market is growing at a double‑digit rate, expected to increase from $7.8 billion in 2024 to over $13.7 billion by 2029[1]. Organisations are adopting PPM solutions to manage increasing project complexity, allocate resources effectively and align initiatives with strategic objectives[2]. At the same time, AI adoption in project management remains nascent: an IPMA survey found that 42% of practitioners are not using AI, 35% use it “just a bit,” and only 23% are actively using AI tools[3]. Executives recognise the potential—69% expect AI to transform project management and 78% cite automation as a key benefit[4]—but lack of clear strategy and integration challenges hamper adoption[4]. Another study shows that 87% of IT executives rate interoperability as “very important” or “crucial”** for agentic AI adoption[5], and pilot failures often result from disconnected systems[6].
+The PPM software market is experiencing double-digit growth, and AI adoption in project management is accelerating but uneven. For full market data, research citations, and AI adoption statistics, see the [Market and Problem Analysis](../02-commercial/market-and-problem-analysis.md).
 
-The Multi‑Agent PPM Platform addresses these challenges by orchestrating specialised agents via a conversational AI assistant, embedding governance into methodology maps and integrating seamlessly with existing systems of record. The platform aims to reduce manual effort, improve decision‑making and increase project success rates.
+The Multi-Agent PPM Platform addresses these challenges by orchestrating 25 specialised agents via a conversational AI assistant, embedding governance into methodology maps and integrating seamlessly with existing systems of record. The platform aims to reduce manual effort, improve decision-making and increase project success rates. For the product vision and value proposition, see [Product Strategy and Scope](product-strategy-and-scope.md).
 
 ## Personas & User Needs
 
@@ -493,21 +491,7 @@ Development of custom hardware or IoT integrations beyond common enterprise syst
 
 This product requirements document establishes a comprehensive foundation for designing, building and delivering the Multi‑Agent PPM Platform. It captures core functional domains, user needs, acceptance criteria and non‑functional requirements. Additional detailed specifications (agent specifications, connector specs, data model and security architecture) complement this document.
 
-[1] [2] Project Portfolio Management Market - Worldwide | Future Scope & Trends [Recent]
 
-https://www.marketsandmarkets.com/Market-Reports/project-portfolio-management-software-market-225932595.html
-
-[3] Initial-AI-Survey-2024-Report.pdf
-
-https://publications.ipma.world/wp-content/uploads/2025/01/Initial-AI-Survey-2024-Report.pdf
-
-[4] AI-Four-Key-Factors-Report-v1-April-2024.pdf
-
-https://pmi-ireland.org/static/uploaded/Files/Documents/AI-Four-Key-Factors-Report-v1-April-2024.pdf
-
-[5] [6] 10 AI Agent Statistics for 2026: Adoption, Success Rates, & More
-
-https://www.multimodal.dev/post/agentic-ai-statistics
 
 
 ---
@@ -528,29 +512,3 @@ https://www.multimodal.dev/post/agentic-ai-statistics
 | Authors | Product Management Team |
 
 | Stakeholders | PMO Directors, Project Managers, Engineers, CIO, CISO |
-
-
-
-**Table 2**
-
-| Persona | Goals & Pain Points |
-
-| --- | --- |
-
-| PMO Director / Portfolio Manager | Needs unified visibility across projects and programs, consistent governance, resource utilisation insights and predictive analytics. Frustrated by manual reporting, data silos and lack of strategic alignment. Requires the ability to prioritise projects and optimise the portfolio based on benefits, risks and capacity. |
-
-| Project Manager / Scrum Master | Wants to reduce administrative overhead, generate charters, plans and WBS quickly, manage risks proactively, and ensure stage‑gate compliance. Struggles with juggling multiple tools and obtaining timely approvals. |
-
-| Program Manager | Coordinates interrelated projects, manages dependencies and benefits, monitors program health and ensures synergy across workstreams. Needs integrated views and the ability to realign schedules and resources when changes occur. |
-
-| Finance Controller / CFO | Requires up‑to‑date financial data (budgets, costs, forecasts) and the ability to approve spend. Needs to integrate with ERP/finance systems (e.g., SAP, Oracle) and ensure financial compliance. Wants to monitor ROI and value delivery. |
-
-| Resource Manager / HR Partner | Needs real‑time capacity and utilisation data to allocate people effectively across projects. Struggles with reconciling data from HRIS, timesheets and PPM tools. Wants to forecast demand and manage skills development. |
-
-| Executive Sponsor / CIO / CTO | Looks for high‑level dashboards showing strategic alignment, benefits realisation, risks and ROI. Needs confidence that the platform is secure, compliant and scalable. Seeks to understand how AI and automation will drive efficiencies and reduce project failures. |
-
-| Vendor Manager / Procurement Lead | Oversees procurement and vendor contracts. Needs visibility into vendor performance, contract obligations and procurement workflows. |
-
-| Quality & Compliance Officer | Ensures adherence to quality standards and regulatory frameworks (e.g., ISO 9001, SOX, Australian ISM/PSPF). Needs automated checks, audit trails and reporting. |
-
-| Change & Configuration Manager | Manages configuration items (templates, methodologies, workflows), assesses change impacts and oversees release readiness. Requires structured change processes, versioning and approvals. |

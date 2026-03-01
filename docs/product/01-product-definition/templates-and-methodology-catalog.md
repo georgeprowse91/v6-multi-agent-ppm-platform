@@ -3,10 +3,8 @@
 **Purpose:** Canonical cross-methodology catalog of project management templates and the agents that produce or consume them. Remove repeated template references from other docs and link here instead.
 **Audience:** Project managers, PMO practitioners, product management, and engineering teams configuring agent template outputs.
 **Owner:** PMO Lead / Product Management
-**Last reviewed:** 2026-02-20
-**Related docs:** [requirements-specification.md](requirements-specification.md) · [user-journeys-and-stage-gates.md](user-journeys-and-stage-gates.md) · [../02-solution-design/agent-system-design.md](../02-solution-design/agent-system-design.md)
-
-> **Migration note:** Lifted and shifted from `templates-catalog.md` on 2026-02-20. All template cross-references in other documents should link here as the single source of truth.
+**Last reviewed:** 2026-03-01
+**Related docs:** [requirements-specification.md](requirements-specification.md) · [user-journeys-and-stage-gates.md](user-journeys-and-stage-gates.md) · [Agent Documentation](../../agents/)
 
 ---
 
@@ -122,3 +120,11 @@ cost, quality, resource, communications, risk, procurement, and stakeholder mana
 
 ## Related Compliance Template
 - DPIA template: [docs/compliance/privacy-dpia-template.md](../../compliance/privacy-dpia-template.md)
+
+---
+
+## Cross-References
+
+- [Agent Catalog](../../agents/) — for detailed agent specifications referenced in the template mappings
+- [Methodology Documentation](../../methodology/) — for methodology framework definitions
+- [Templates Directory](../../templates/README.md) — for actual template files

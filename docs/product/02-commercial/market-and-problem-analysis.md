@@ -1,28 +1,36 @@
 # Market and Problem Analysis
 
-**Purpose:** Consolidate market context, strategic problem framing, and AI adoption research that underpins the platform's positioning and investment rationale.
+**Purpose:** Single source of truth for all market data, research citations, AI adoption statistics, and competitive landscape context. All other product documents link here rather than embedding market figures.
 **Audience:** Product management, executive sponsors, GTM and sales teams, and investor/partner audiences.
 **Owner:** Product Management / Strategy
-**Last reviewed:** 2026-02-20
-**Related docs:** [../01-product-definition/product-strategy-and-scope.md](../01-product-definition/product-strategy-and-scope.md) · [competitive-positioning.md](competitive-positioning.md) · [go-to-market-plan.md](go-to-market-plan.md)
-
-> **Migration note:** Consolidated from `solution-overview/market-analysis.md` and the strategic sections of `solution-overview/research-whitepaper.md` on 2026-02-20.
+**Last reviewed:** 2026-03-01
+**Related docs:** [Product Strategy and Scope](../01-product-definition/product-strategy-and-scope.md) · [Competitive Positioning](competitive-positioning.md) · [Go-to-Market Plan](go-to-market-plan.md)
 
 ---
 
 ## Part 1 — Market Analysis
 
-> *Source: `solution-overview/market-analysis.md`*
-
 # Market Analysis
 
 ## Implementation alignment
 
-This document is market research collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in delivery commitments.
+This document is market research collateral. Validate feature claims against the current implementation in the [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in delivery commitments.
 
 ## Overview
 
 Project Portfolio Management (PPM) is a rapidly growing segment of the enterprise software market. According to Markets and Markets, the global PPM market was valued at about $7.8 billion in 2024 and is projected to exceed $13.7 billion by 2029, representing a compound annual growth rate of 11.9%[1]. This growth reflects organisations’ need to manage increasingly complex project portfolios, allocate resources effectively, and align investments with strategic goals. Future Market Insight reports that the PPM market could expand from $6.16 million (misprint in article; likely $6.16 billion) in 2024 to $14.18 billion by 2034, driven by adoption of cloud services and virtualisation technologies[2]. Other industry analyses project similar double‑digit growth through the early 2030s.
+
+### Market Size Estimates by Source
+
+Multiple analyst firms publish PPM market data. The following table reconciles the key estimates used throughout this documentation:
+
+| Source | Base Year Value | Forecast Value | CAGR | Currency | Citation |
+|---|---|---|---|---|---|
+| [MarketsandMarkets](https://www.marketsandmarkets.com/Market-Reports/project-portfolio-management-software-market-225932595.html) | $7.8B (2024) | $13.7B (2029) | 11.9% | USD | [1] |
+| [Mordor Intelligence](https://www.mordorintelligence.com/industry-reports/project-portfolio-management-market) | AUD 6.9B (2025) | AUD 13.21B (2031) | 11.43% | AUD | Part 2 [1] |
+| [Future Market Insights](https://www.marketsandmarkets.com/Market-Reports/project-portfolio-management-software-market-225932595.html) | $6.16B (2024) | $14.18B (2034) | — | USD | [2] |
+
+All sources agree on double-digit growth. Differences reflect varying scope definitions, base years, and currencies. MarketsandMarkets (USD, 2024-2029) is the primary reference used in this documentation suite.
 
 Drivers of this growth include digital transformation initiatives, the shift to hybrid and remote work models, rising project complexity, and the need for real‑time data to make informed decisions[3]. Enterprises are increasingly deploying PPM solutions to gain a 360‑degree view of resource allocation, project performance, risk exposure and strategic alignment[3]. The acceptance of cloud‑based PPM platforms is particularly noteworthy: distributed teams require remote collaboration tools, and small and medium‑sized enterprises are attracted by the lower upfront costs of SaaS solutions[4].
 
@@ -93,13 +101,11 @@ https://pmi-ireland.org/static/uploaded/Files/Documents/AI-Four-Key-Factors-Repo
 
 ## Part 2 — Research Whitepaper: AI Adoption and Multi-Agent Systems
 
-> *Source: `solution-overview/research-whitepaper.md`*
-
 # Research Whitepaper
 
 ## Implementation alignment
 
-This document is research and vision collateral. Validate feature claims against the current implementation in [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
+This document is research and vision collateral. Validate feature claims against the current implementation in the [Solution Index](../../solution-index.md) and the architecture/runbook documentation before using it in customer commitments.
 
 ## Executive Summary
 
@@ -163,20 +169,7 @@ Adoption hinges on more than technology. Teams require training, clear communica
 
 ## The Multi‑Agent PPM Platform: A Unified Solution
 
-The Multi‑Agent PPM Platform addresses these challenges by combining an extensible multi‑agent architecture, a unified data fabric and robust security controls. Key differentiators include:
-
-**Conversational intake and assistance:** Users describe their needs in natural language; the intent router detects requests and routes them to appropriate agents. Responses are summarised and returned via the assistant, enhancing accessibility for non‑technical users.
-
-**AI‑driven business case generation:** The business case agent synthesises market data, historic metrics and organisational goals to produce investment proposals and ROI models. It leverages predictive models and Monte Carlo simulations to assess scenarios.
-
-**Portfolio optimisation:** A dedicated agent uses multi‑criteria decision analysis and capacity‑constrained optimisation to recommend portfolios aligned with strategy.
-
-**Integrated lifecycle governance:** Agents manage project initiation, stage‑gates, schedules, resources, financials, risks, quality and compliance. The methodology map guides users through stages for adaptive, predictive and hybrid approaches.
-
-**Connector ecosystem:** Prebuilt connectors for Planview, Jira, SAP, Workday, Slack, Microsoft 365 and more provide interoperability. A connector SDK allows custom integrations.
-
-**Enterprise‑grade security:** The platform encrypts data at rest and in transit, enforces RBAC, logs activity and supports Australian compliance frameworks. Data residency options ensure that data remains within specific jurisdictions.
-
+For the full product description, value proposition, and differentiators, see [Product Strategy and Scope](../01-product-definition/product-strategy-and-scope.md). The platform addresses the interoperability, governance, and change management challenges described above through its multi-agent architecture, unified data fabric, and connector ecosystem.
 ## Use Cases and Value Realisation
 
 Pilot customers have reported significant gains:
