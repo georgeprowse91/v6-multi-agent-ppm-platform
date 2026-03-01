@@ -96,7 +96,7 @@
       "status": "completed"
     },
     {
-      "agent_id": "workflow-engine-agent",
+      "agent_id": "approval-workflow-agent",
       "status": "completed"
     },
     {

@@ -12,4 +12,5 @@ Each agent directory contains `src/`, `tests/`, a `Dockerfile`, and its own `REA
 |------|-------------|------|
 | `intent-router-agent` | Routes incoming user intents to the appropriate downstream agent(s). | [](/./intent-router-agent/) |
 | `response-orchestration-agent` | Assembles and merges responses from multiple agents into a unified output. | [](/./response-orchestration-agent/) |
-| `approval-workflow-agent` | Manages multi-step approval workflows and escalation policies. | [](/./approval-workflow-agent/) |
+| `approval-workflow-agent` | Unified workflow and approval engine — orchestrates long-running workflows, approval chains, task inboxes, and process automation. | [](/./approval-workflow-agent/) |
+| `workspace-setup-agent` | Manages project workspace initialisation, connector configuration gating, external provisioning, and methodology bootstrap. | [](/./workspace-setup-agent/) |

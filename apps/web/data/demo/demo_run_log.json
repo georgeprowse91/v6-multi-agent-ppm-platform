@@ -204,7 +204,7 @@
       ]
     },
     {
-      "agent_id": "workflow-engine-agent",
+      "agent_id": "approval-workflow-agent",
       "status": "completed_with_warnings",
       "duration_seconds": 203,
       "artifacts": [

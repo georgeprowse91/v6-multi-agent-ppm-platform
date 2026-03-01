@@ -17,5 +17,4 @@ Each agent directory contains `src/`, `tests/`, a `Dockerfile`, and its own `REA
 | `stakeholder-communications-agent` | Generates and distributes stakeholder communications and status updates. | [](/./stakeholder-communications-agent/) |
 | `analytics-insights-agent` | Produces analytics dashboards and actionable insights from project data. | [](/./analytics-insights-agent/) |
 | `data-synchronisation-agent` | Synchronises data across systems and enforces data quality rules. | [](/./data-synchronisation-agent/) |
-| `workflow-engine-agent` | Executes configurable workflows and process definitions. Also contains a `workflows/` subdirectory with workflow definitions. | [](/./workflow-engine-agent/) |
 | `system-health-agent` | Monitors platform system health, uptime, and performance metrics. | [](/./system-health-agent/) |

@@ -151,10 +151,10 @@ AGENT_CATALOG: tuple[AgentCatalogEntry, ...] = (
         display_name="Data Synchronization & Quality",
     ),
     AgentCatalogEntry(
-        catalog_id="workflow-engine-agent",
-        agent_id="workflow-engine-agent",
-        component_name="workflow-engine-agent",
-        display_name="Workflow & Process Engine",
+        catalog_id="workspace-setup-agent",
+        agent_id="workspace-setup-agent",
+        component_name="workspace-setup-agent",
+        display_name="Workspace Setup",
     ),
     AgentCatalogEntry(
         catalog_id="system-health-agent",

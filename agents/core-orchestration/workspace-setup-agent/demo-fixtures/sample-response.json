@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "workspace-setup-agent",
+      "summary": "Demo fixture for workspace setup was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "workspace",
+          "id": "workspace-setup-agent-artifact-001",
+          "title": "Workspace Setup Demo Artifact"
+        }
+      ]
+    }
+  }
+}

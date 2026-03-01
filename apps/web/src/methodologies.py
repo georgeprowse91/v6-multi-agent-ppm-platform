@@ -151,7 +151,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
     "hybrid": {
         "default": {
             "template_id": "hybrid-project-management-plan-template",
-            "agent_id": "workflow-engine-agent",
+            "agent_id": "approval-workflow-agent",
             "connector_id": "jira",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -201,7 +201,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.5": {
             "template_id": "safe_program_increment_planning_template",
-            "agent_id": "workflow-engine-agent",
+            "agent_id": "approval-workflow-agent",
             "connector_id": "jira",
             "canvas_ui": "timeline",
             "assistant_suggested_actions": [
@@ -245,7 +245,7 @@ DEFAULT_MONITORING_RELATIONSHIPS: dict[str, dict[str, Any]] = {
     },
     "hybrid": {
         "template_id": "status-report-template",
-        "agent_id": "workflow-engine-agent",
+        "agent_id": "approval-workflow-agent",
         "connector_id": "power-bi",
         "canvas_ui": "dashboard",
         "assistant_suggested_actions": [

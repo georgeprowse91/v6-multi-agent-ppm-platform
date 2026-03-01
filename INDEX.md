@@ -88,6 +88,15 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── approval_workflow_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
+│   │   ├── workspace-setup-agent
+│   │   │   ├── demo-fixtures
+│   │   │   │   └── sample-response.json
+│   │   │   ├── src
+│   │   │   │   └── workspace_setup_agent.py
+│   │   │   ├── tests
+│   │   │   │   └── README.md
+│   │   │   ├── Dockerfile
+│   │   │   └── README.md
 │   │   └── README.md
 │   ├── delivery-management
 │   │   ├── scope-definition-agent

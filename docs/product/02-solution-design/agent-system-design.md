@@ -16,7 +16,7 @@
 |---|---|---|---|---|
 | 01 | Intent Router | Core Orchestration | Platform Dispatcher | Routing plan to Response Orchestration |
 | 02 | Response Orchestration | Core Orchestration | Execution Coordinator | Assembled multi-agent response to user |
-| 03 | Approval Workflow | Core Orchestration | Governance and Decision Routing | Approval decision records and audit events |
+| 03 | Approval Workflow | Core Orchestration | Workflow Orchestration and Governance | Workflow execution records, approval decisions, and audit events |
 | 04 | Demand and Intake | Portfolio Management | Project Request Handler | Classified, triaged demand records |
 | 05 | Business Case and Investment Analysis | Portfolio Management | Financial Justification and Investment Advisor | Business case documents and investment recommendations |
 | 06 | Portfolio Strategy and Optimisation | Portfolio Management | Investment Prioritisation and Portfolio Advisor | Ranked portfolio and scenario models |
@@ -37,8 +37,39 @@
 | 21 | Stakeholder Communications | Operations Management | Communications Planner and Engagement Manager | Communication plans, stakeholder engagement records |
 | 22 | Analytics and Insights | Operations Management | Portfolio Intelligence and Reporting Engine | Dashboards, reports, predictive forecasts |
 | 23 | Data Synchronisation and Quality | Operations Management | Data Integrity Guardian and Sync Coordinator | Sync status reports, data quality dashboards |
-| 24 | Workflow and Process Engine | Operations Management | Process Automation Coordinator | Workflow execution records, automation configurations |
+| 24 | Workspace Setup | Core Orchestration | Project Workspace Initialiser | Configured workspaces, provisioned assets, setup status reports |
 | 25 | System Health and Monitoring | Operations Management | Platform Reliability Guardian | Health status reports, alerts, SLO compliance reports |
+
+---
+
+## Why this design
+
+Two deliberate architectural changes shape the current agent catalog:
+
+### Merging the workflow engine into the Approval Workflow agent
+
+Approvals are a specialised workflow pattern — a human decision step with routing, deadlines, escalation, and an immutable outcome record. Maintaining a separate workflow engine agent and a separate approval agent duplicated concepts (state persistence, task inboxes, notification logic, monitoring, audit trails) and forced other agents to decide which of the two to call for multi-step processes.
+
+The merged Approval Workflow agent is now the platform's single canonical orchestration authority for long-running workflows. Every multi-step process — including approvals, automated task sequences, retry/compensation flows, and event-driven process automation — is defined and executed through one agent with a unified execution record and audit trail. Approval steps are represented as a first-class workflow step type (`approval_gate`) within the `ppm.workflow/v1` specification.
+
+**Operational benefits:**
+- One workflow definition language and one execution engine for all structured processes.
+- One task inbox for human tasks and approvals, reducing context switching for users.
+- One monitoring view for all workflow and approval activity.
+- One audit trail covering the full lifecycle of every process, including embedded approvals.
+- Simplified governance: every process (including approvals) follows the same versioning, retry, and compensation policies.
+
+### Adding the Workspace Setup agent
+
+Before any delivery agent can write to a system of record (Jira, Planview, SAP, SharePoint, Teams), a project workspace must exist and be correctly configured. Without a governed setup phase, downstream agents encounter connectivity failures, permission errors, and missing field mappings that disrupt delivery.
+
+The Workspace Setup agent introduces a mandatory "setup wizard" phase between the portfolio decision and the start of project delivery. It ensures that:
+- An internal workspace exists with the correct folder structure and canvas views.
+- All required connectors are enabled, authenticated, and have validated permissions.
+- External artefacts (Teams channels, SharePoint sites, Jira projects, Planview shells) are provisioned or linked.
+- The selected methodology lifecycle map and organisational template defaults are applied.
+
+The agent publishes a `workspace.setup.completed` event that the Lifecycle Governance agent uses as a gate — no project can progress past initiation until workspace setup is complete. This eliminates a class of downstream failures and gives project teams confidence that their tools are ready before they begin work.
 
 ---
 
@@ -213,72 +244,145 @@ The Response Orchestration agent connects to every domain agent in the platform.
 # the Approval Workflow agent — Approval Workflow
 
 **Category:** Core Orchestration
-**Role:** Governance and Decision Routing
+**Role:** Workflow Orchestration and Governance
 
 ---
 
 ## What This Agent Is
 
-The Approval Workflow agent is the platform's governance engine. Wherever a decision needs to be made by a human — approving a business case, signing off a scope change, authorising a vendor contract, granting access to a new resource — this agent manages the entire process from the moment the request is raised through to the moment the decision is recorded.
+The Approval Workflow agent is the platform's unified workflow and approval engine — the single canonical orchestration authority for all long-running, multi-step processes. It manages the definition, execution, monitoring, and auditing of every structured process in the platform: approval chains, automated task sequences, event-driven process automation, retry and compensation flows, and governed business workflows.
 
-It ensures that approvals are routed to the right people, that decisions are made within defined timeframes, that reminders and escalations happen automatically, and that every approval decision is permanently recorded with a full audit trail. It is the mechanism through which the platform enforces governance without relying on manual chasing or informal processes.
+Approvals are represented as a workflow pattern (`approval_gate` step type) within the workflow specification (`ppm.workflow/v1`). This unified representation ensures that approval steps are executed with the same state persistence, monitoring, and audit infrastructure as every other workflow step. The result is one workflow definition language, one execution engine, one task inbox, one monitoring view, and one audit trail for all structured processes.
 
 ---
 
 ## What It Does
 
-**It creates and manages approval chains.** When an action in the platform requires human sign-off, the Approval Workflow agent creates a structured approval chain — a sequence of approvers, each of whom must review and decide before the process can advance. These chains are role-based: the agent looks at the nature of the request, its risk level, its financial value, and the organisational context to determine who the right approvers are.
+### Workflow engine capabilities
 
-**It routes requests to the right people.** Rather than sending every approval to a fixed list of names, the agent routes dynamically. A low-value procurement request goes to a project manager. A high-value contract goes to a finance lead and a programme director. An approval with regulatory implications involves the compliance team. The routing rules are configurable and can be adapted to match any organisation's governance structure.
+**It defines workflows as structured specifications.** Workflow definitions are created using a structured YAML or JSON format — the platform's workflow specification language (`ppm.workflow/v1`). Each workflow definition describes its steps, the type of each step (`human_task`, `automated_action`, `approval_gate`, `notification`, `decision`, `parallel`, `loop`), the conditions that govern transitions between steps, retry policies for steps that might fail, and the metadata needed to identify and version the workflow. BPMN 2.0 format is also supported for organisations that already model their processes in standard BPMN tools.
+
+**It starts and manages workflow instances.** When a workflow is triggered — by a user action, by an event from another agent, or by a scheduled trigger — the engine creates a new instance of the workflow. Each instance has its own state, tracking which steps have been completed, what data has been passed between steps, and what the current execution status is. Instances can be paused, resumed, cancelled, or retried depending on the circumstances.
+
+**It executes parallel and conditional logic.** Workflows can contain parallel branches — multiple steps that execute simultaneously — and decision points where the path taken depends on the result of a previous step. The engine evaluates decision conditions (equality, comparison, containment, existence checks) against the current workflow data and routes execution accordingly. Parallel branches are collected at a join point before the workflow continues, ensuring that all concurrent steps are complete before the process advances.
+
+**It manages human task inboxes.** When a workflow reaches a step that requires human action — a review, a decision, a data entry task — the engine creates a task in the assigned user's inbox and waits for them to complete it. The task includes all the context the user needs to act, a deadline, and any relevant data from previous workflow steps. Users can view and complete their pending tasks from the platform's Task Inbox.
+
+**It handles retries and compensation.** When a workflow step fails — because a system is unavailable, a validation check fails, or an automated action produces an error — the engine applies the configured retry policy: retrying after a delay, with exponential backoff for repeated failures. If a workflow fails in a way that cannot be retried, compensation workflows can be triggered to reverse the actions already taken, ensuring that the system is not left in an inconsistent state.
+
+**It responds to events.** Workflows can be triggered or continued by events from other agents and systems. The engine monitors configured event subscriptions and, when a matching event arrives, triggers the appropriate workflow action — starting a new instance, advancing a waiting step, or branching based on the event data. Event criteria can match on specific field values, allowing fine-grained control over which events trigger which workflow responses.
+
+**It supports workflow versioning.** As business processes evolve, workflow definitions are updated and versioned. The engine maintains a version history for each workflow definition, ensuring that in-flight instances continue on the version they were started with while new instances use the current version.
+
+**It provides monitoring and reporting.** For each workflow definition, the engine tracks instance counts, success rates, average execution time, step-level performance metrics, backlog depth, and failure rates. This data is accessible through the Workflow Monitoring view and feeds into the Continuous Improvement agent's process analysis.
+
+### Approval workflow capabilities
+
+**It creates and manages approval chains.** When an action in the platform requires human sign-off, the agent creates a structured approval chain — sequential or parallel — with configurable chain types and deadlines. The agent assesses the nature of the request, its risk level, its financial value, and the organisational context to determine the correct chain structure.
+
+**It routes requests to the right people.** Rather than sending every approval to a fixed list of names, the agent routes dynamically. A low-value procurement request goes to a project manager. A high-value contract goes to a finance lead and a program director. An approval with regulatory implications involves the compliance team. The routing rules are configurable and can be adapted to match any organisation's governance structure.
 
 **It supports delegation.** If a designated approver is unavailable — on leave, outside working hours, or overloaded — the agent supports delegation rules that redirect the approval to an appropriate substitute. Delegation can be configured in advance by the approver or applied automatically based on calendar availability.
 
-**It sends notifications through multiple channels.** When an approval task is created, modified, or overdue, the agent notifies the relevant people. It sends notifications by email, Microsoft Teams, Slack, and push notification — whichever channel the recipient has configured as their preference. Notifications are formatted clearly, include the context needed to make a decision, and contain direct links to the approval task in the platform.
+**It sends notifications through multiple channels.** When an approval task is created, modified, or overdue, the agent notifies the relevant people. It sends notifications by email, Microsoft Teams, Slack, and push notification — whichever channel the recipient has configured as their preference. Notifications are formatted clearly, include the context needed to make a decision, and contain deep links ("View request") to the approval task in the platform.
 
 **It escalates automatically.** Every approval task has a deadline. If a decision is not made within the required timeframe, the agent automatically escalates — notifying a senior approver, sending a reminder, or triggering a governance alert. The escalation timeline is calculated dynamically based on the urgency and risk level of the request.
 
-**It records decisions permanently.** Every approval decision — approved, rejected, or deferred — is recorded in the platform's audit log with the identity of the approver, the timestamp, any comments provided, and the outcome. This record cannot be altered and is retained according to the platform's data retention policy.
+**It records decisions permanently.** Every approval decision — approved, rejected, or deferred — is recorded as an immutable decision record with the identity of the approver, the timestamp, any comments provided, and the outcome. This record cannot be altered and is retained according to the platform's data retention policy.
 
-**It supports digest notifications.** For approvers who handle high volumes of approval tasks, the agent can batch pending items into a single digest notification rather than sending a separate message for each one. This reduces notification fatigue while ensuring nothing is missed.
+**It supports the "My approvals" queue.** Approvers can list, filter, open, and decide on their pending approvals from a personal queue view. For approvers who handle high volumes, the agent can batch pending items into a digest notification.
+
+### How approvals fit inside workflows
+
+Approvals are represented as a workflow pattern using the `approval_gate` step type within the `ppm.workflow/v1` specification:
+
+```yaml
+# ppm.workflow/v1
+apiVersion: ppm.workflow/v1
+kind: WorkflowDefinition
+metadata:
+  name: project-initiation
+  version: "1.0"
+spec:
+  steps:
+    - id: charter_review
+      type: approval_gate
+      config:
+        request_type: charter_approval
+        chain_type: sequential
+        approvers:
+          - role: project_sponsor
+          - role: pmo_lead
+        sla_hours: 48
+        escalation_policy: risk_based
+        notification_channels: [email, teams]
+        deep_link_label: "View request"
+      transitions:
+        approved: requirements_phase
+        rejected: revision_required
+```
 
 ---
 
 ## How It Works
 
-The agent assesses each incoming approval request to determine its risk level and criticality, then uses those assessments to calculate the appropriate escalation timeline and select the correct approval chain. It persists approval state — which tasks are pending, which have been decided, who has been notified — so that the process continues correctly even if the system restarts.
+Workflow definitions are loaded from the platform's workflow definition store and from a library of pre-built workflow templates. The engine uses a task-dependency graph to determine the execution order for each workflow instance, applying cycle detection to prevent invalid workflow definitions from causing infinite loops. State is persisted using either JSON file storage or a PostgreSQL database backend, depending on the deployment configuration. For task queuing, either an in-process queue (for simple deployments) or RabbitMQ (for scaled deployments) is used.
 
-Notifications are generated from localised templates. The platform currently supports English and French notification templates, with the structure to add further languages as required. Accessibility is also addressed: notifications can be delivered in plain text format or HTML with appropriate alt text depending on the recipient's preferences.
+For approval-specific processing, the agent assesses each incoming approval request to determine its risk level and criticality, then uses those assessments to calculate the appropriate escalation timeline and select the correct approval chain. Notifications are generated from localised templates (English and French, with the structure to add further languages). Accessibility is addressed: notifications can be delivered in plain text or HTML with alt text depending on the recipient's preferences.
 
-The agent integrates with Microsoft Graph to create calendar entries and tasks for approvers, so that approval deadlines appear alongside their other commitments rather than only in the platform.
+The agent integrates with Microsoft Graph to create calendar entries and tasks for approvers, so that approval deadlines appear alongside their other commitments. The event subscription system uses deterministic criteria matching — evaluating field conditions against incoming event data — ensuring consistent, predictable behaviour regardless of event volume.
 
 ---
 
 ## What It Uses
 
+- Workflow definitions in YAML, JSON, or BPMN 2.0 format
+- A workflow specification schema (`ppm.workflow/v1`) for validation
+- PostgreSQL or JSON file-backed state store for workflow instance persistence
+- RabbitMQ or in-process task queue for task message passing
 - Role-based routing rules configured per tenant
 - Risk and criticality assessment logic to determine escalation timelines
 - Notification templates in multiple languages
 - Email, Microsoft Teams, Slack, and push notification channels
 - Microsoft Graph for calendar and task integration
-- The Azure Service Bus for event publishing
-- The platform's audit log for permanent decision recording
+- Azure Monitor and Azure Event Grid for event integration
+- Azure Service Bus for event publishing
+- Task dependency graph with cycle detection
+- The platform's audit log for permanent decision and state transition recording
 - An approval store for persistence of approval state
+- the Change Control agent — Change and Configuration Management for change-triggered workflows
+- the Continuous Improvement agent — Continuous Improvement for process performance analysis
+- the Data Synchronisation agent — Data Synchronisation and Quality for sync retry workflows
 
 ---
 
 ## What It Produces
 
+- **Workflow definitions**: versioned, structured specifications of business processes
+- **Workflow instances**: running and completed process executions with full state history
+- **Task inbox items**: human tasks created for workflow participants with context and deadlines
 - **Approval tasks** routed to the relevant approvers with full context
+- **Execution logs**: step-by-step records of every workflow execution with outcomes and timestamps
+- **Compensation records**: documentation of rollback actions taken when workflows fail
 - **Notification messages** across the configured channels, formatted and localised
 - **Escalation alerts** when decisions are not made within the required timeframe
-- **Decision records** in the audit log for every approval outcome
+- **Immutable decision records** in the audit log for every approval outcome
+- **Event subscription records**: configured triggers and their matching criteria
+- **Workflow performance metrics**: execution time, success rate, step-level performance, backlog depth, and failure rates by workflow type
+- **Workflow monitoring dashboard**: real-time view of active instances, failure rates, and backlogs
 - **Approval status updates** visible in the platform's Approvals page
 
 ---
 
 ## How It Appears in the Platform
 
-The Approvals page in the platform provides a complete view of all pending and completed approval tasks. Approvers see a queue of items awaiting their decision, with the relevant context — what is being approved, who raised it, what supporting information is available, and what the deadline is. They can approve, reject or comment from within this view without needing to navigate elsewhere.
+The **Workflow Designer** page allows authorised users to create and configure workflow definitions through a structured interface. Workflow definitions can be imported and exported in YAML or BPMN format.
+
+The **Workflow Monitoring** page provides a real-time operations view — showing how many instances of each workflow are currently running, how many have completed or failed, average execution times, and any instances that are stuck or in a failed state. Operators can inspect individual instances, view their execution history, retry failed steps, or cancel stalled instances from this view.
+
+The **Approvals** page provides a complete view of all pending and completed approval tasks. Approvers see a queue of items awaiting their decision, with the relevant context — what is being approved, who raised it, what supporting information is available, and what the deadline is. They can approve, reject or comment from within this view without needing to navigate elsewhere.
+
+Users with pending workflow tasks or approval decisions see them in the **Task Inbox**, accessible from the platform's notification centre. Each item shows what action is required, the deadline, and the relevant context from the workflow.
 
 The platform also surfaces approval status inline within the relevant workflow context — for example, a project that is waiting for a business case approval will show the pending approval status on its lifecycle stage in the methodology map.
 
@@ -286,15 +390,19 @@ The platform also surfaces approval status inline within the relevant workflow c
 
 ## The Value It Adds
 
-The Approval Workflow agent replaces the informal, unreliable approval processes that most organisations rely on — emails that get lost, decisions made in meetings with no record, approvals that never happen because nobody followed up. It ensures that every decision that should be made actually gets made, by the right person, within the right timeframe, with a permanent record of the outcome.
+The Approval Workflow agent provides two categories of operational value:
 
-For regulated industries, this is not a convenience feature — it is a compliance requirement. The combination of automated routing, escalation, and immutable audit records means organisations can demonstrate their governance processes to auditors and regulators with confidence.
+**Process automation.** It enables organisations to automate the routine, multi-step processes that consume significant administrative time — approvals, notifications, escalations, data updates — and execute them consistently, at scale, without manual coordination. The event-driven architecture means workflows respond intelligently to platform events rather than running on fixed schedules.
+
+**Governance confidence.** It replaces informal, unreliable approval processes — emails that get lost, decisions made in meetings with no record, approvals that never happen because nobody followed up. Every decision is made by the right person, within the right timeframe, with a permanent record. For regulated industries, the combination of automated routing, escalation, and immutable audit records means organisations can demonstrate their governance processes to auditors and regulators with confidence.
+
+The unified design — one engine for both workflows and approvals — means organisations manage one set of definitions, one task inbox, and one monitoring view for all structured processes. This reduces complexity for administrators and improves the experience for users who no longer need to check multiple inboxes or navigate between separate workflow and approval interfaces.
 
 ---
 
 ## How It Connects to Other Agents
 
-The Approval Workflow agent is called by virtually every other agent in the platform whenever a step in a process requires human authorisation. Requests that originate from the **Business Case and Investment** agent, the **Vendor Procurement** agent, the **Change and Configuration** agent, the **Project Definition and Scope** agent, and many others are routed through the Approval Workflow agent when they reach a decision gate. It feeds its outputs — approval decisions and status updates — back to the requesting agent so that the downstream workflow can continue.
+The Approval Workflow agent is used by virtually every other agent in the platform to automate multi-step processes and human authorisation steps. Requests that originate from the **Business Case and Investment** agent, the **Vendor Procurement** agent, the **Change and Configuration** agent, the **Project Definition and Scope** agent, and many others are routed through the Approval Workflow agent when they reach a decision gate or need a governed workflow. The **Change Control agent** triggers change workflows through it. The **Data Synchronisation agent** uses it to manage sync retry workflows. The **Continuous Improvement agent** analyses its execution data for process mining. The **Release Deployment agent** uses it to orchestrate deployment workflows. The **Workspace Setup agent** routes governed provisioning actions through it for approval. It feeds its outputs — approval decisions, workflow status updates, and task assignments — back to the requesting agent so that the downstream process can continue.
 
 
 ---
@@ -1840,7 +1948,7 @@ A test suite verifies the event ingestion logic, the accuracy of process discove
 - Waiting time analysis for bottleneck detection
 - Correlation analysis for root cause identification
 - Industry benchmark data for performance comparison
-- the Workflow Engine agent — Workflow Process Engine for improvement workflow automation
+- the Approval Workflow agent — Approval Workflow for improvement workflow automation
 
 ---
 
@@ -1877,7 +1985,7 @@ The process mining capability, in particular, provides a level of organisational
 
 ## How It Connects to Other Agents
 
-The Continuous Improvement agent ingests data from virtually every other agent via the audit log and event streams. It draws on knowledge from **The Knowledge Management agent** for best practice comparisons and recommendations. Its findings feed into **The Analytics Insights agent — Analytics and Insights** for portfolio-level improvement reporting. Improvement workflow automation is handled by **The Workflow Engine agent — Workflow Process Engine**. Process improvement insights may trigger updates to methodology definitions, which are reflected in **The Lifecycle Governance agent — Lifecycle and Governance**.
+The Continuous Improvement agent ingests data from virtually every other agent via the audit log and event streams. It draws on knowledge from **The Knowledge Management agent** for best practice comparisons and recommendations. Its findings feed into **The Analytics Insights agent — Analytics and Insights** for portfolio-level improvement reporting. Improvement workflow automation is handled by **The Approval Workflow agent — Approval Workflow**. Process improvement insights may trigger updates to methodology definitions, which are reflected in **The Lifecycle Governance agent — Lifecycle and Governance**.
 
 
 ---
@@ -2176,104 +2284,106 @@ For organisations that have invested in multiple PPM, ERP, and collaboration sys
 
 ## How It Connects to Other Agents
 
-The Data Synchronisation and Quality agent is a foundational service that supports every other agent in the platform by maintaining the data quality of the shared data store. It publishes quality metrics to **The Analytics Insights agent — Analytics and Insights** for reporting. Quality threshold breaches may trigger remediation workflows managed by **The Workflow Engine agent — Workflow Process Engine**. Lineage data maintained by this agent supports the compliance evidence managed by **The Compliance Governance agent — Compliance and Regulatory**.
+The Data Synchronisation and Quality agent is a foundational service that supports every other agent in the platform by maintaining the data quality of the shared data store. It publishes quality metrics to **The Analytics Insights agent — Analytics and Insights** for reporting. Quality threshold breaches may trigger remediation workflows managed by **The Approval Workflow agent — Approval Workflow**. Lineage data maintained by this agent supports the compliance evidence managed by **The Compliance Governance agent — Compliance and Regulatory**.
 
 
 ---
 
-# the Workflow Engine agent — Workflow and Process Engine
+# the Workspace Setup agent — Workspace Setup
 
-**Category:** Operations Management
-**Role:** Process Automation Coordinator
+**Category:** Core Orchestration
+**Role:** Project Workspace Initialiser
 
 ---
 
 ## What This Agent Is
 
-The Workflow and Process Engine agent is the platform's automation backbone. It manages the definition and execution of repeatable business processes — the multi-step workflows that coordinate human tasks, automated actions, notifications, approvals, and system integrations into a structured, governed sequence.
+The Workspace Setup agent manages the initialisation and configuration of project workspaces before any data is written to systems of record. It acts as a governed "setup wizard" phase that ensures connectors are enabled, authentication is complete, field mappings are set, and all required external artefacts and containers exist before downstream delivery begins.
 
-While the Approval Workflow agent manages the specific pattern of routing a decision to a human approver, the Workflow and Process Engine handles much broader and more varied process automation: the sequence of steps that constitute an onboarding workflow, a procurement process, a risk review cycle, a deployment pipeline, or any other structured process that the organisation wants to automate and govern.
+No write to a system of record is permitted until workspace setup is complete. This agent enforces that gate.
 
 ---
 
 ## What It Does
 
-**It defines workflows as structured specifications.** Workflow definitions are created using a structured YAML or JSON format — the platform's workflow specification language (`ppm.workflow/v1`). Each workflow definition describes its steps, the type of each step (human task, automated action, approval gate, notification, decision, parallel execution, or loop), the conditions that govern transitions between steps, retry policies for steps that might fail, and the metadata needed to identify and version the workflow. BPMN 2.0 format is also supported for organisations that already model their processes in standard BPMN tools.
+**It creates and configures internal project workspaces.** When a project is approved through the portfolio decision process, the Workspace Setup agent creates the internal workspace record, establishes the baseline artefact folder structure following organisational templates, and provisions default canvas tabs and views — a methodology map for lifecycle visualisation, a dashboard for project health summary, and registers for risk, issue, change, and decision tracking.
 
-**It starts and manages workflow instances.** When a workflow is triggered — by a user action, by an event from another agent, or by a scheduled trigger — the engine creates a new instance of the workflow. Each instance has its own state, tracking which steps have been completed, what data has been passed between steps, and what the current execution status is. Instances can be paused, resumed, cancelled, or retried depending on the circumstances.
+**It gates connector configuration.** Before a project can communicate with external systems, each required connector must progress through a validation sequence: Not configured → Configured → Connected → Permissions validated. The agent presents the required connectors by category — PPM tools (Planview, Clarity), PM tools (Jira, Azure DevOps), ERP systems (SAP, Oracle), document management (SharePoint, Confluence), collaboration (Teams, Slack), and GRC (ServiceNow GRC, Archer) — and validates each one. It supports "Test connection" checks to verify credentials and endpoint reachability, and "Dry-run mapping" checks to verify field mappings produce valid results without writing data. Connector selections and validation state are stored per project, with organisational defaults and project-level overrides.
 
-**It executes parallel and conditional logic.** Workflows can contain parallel branches — multiple steps that execute simultaneously — and decision points where the path taken depends on the result of a previous step. The engine evaluates decision conditions (equality, comparison, containment, existence checks) against the current workflow data and routes execution accordingly. Parallel branches are collected at a join point before the workflow continues, ensuring that all concurrent steps are complete before the process advances.
+**It provisions or links external workspace assets.** Based on organisational configuration and project requirements, the agent creates or links external assets: Teams teams and channels with standard channel structure, SharePoint sites with document libraries and folder structures, Jira projects and boards with templates applied, and Planview project shells with field mappings configured. Existing assets can be linked instead of created. Any provisioning or write action routes through the Approval Workflow agent for approval if organisational policy requires it.
 
-**It manages human task inboxes.** When a workflow reaches a step that requires human action — a review, a decision, a data entry task — the engine creates a task in the assigned user's inbox and waits for them to complete it. The task includes all the context the user needs to act, a deadline, and any relevant data from previous workflow steps. Users can view and complete their pending tasks from the platform's task inbox.
+**It bootstraps the delivery methodology.** The agent allows the project to select its delivery methodology — predictive, hybrid, or adaptive — and loads the corresponding lifecycle map. It applies the organisation's default stages, gates, artefact requirements, and review criteria for the selected methodology. The "Setup complete" status is marked as a prerequisite for any publishing actions to systems of record and for lifecycle progression beyond the initiation phase.
 
-**It handles retries and compensation.** When a workflow step fails — because a system is unavailable, a validation check fails, or an automated action produces an error — the engine applies the configured retry policy: retrying after a delay, with exponential backoff for repeated failures. If a workflow fails in a way that cannot be retried, compensation workflows can be triggered to reverse the actions already taken, ensuring that the system is not left in an inconsistent state.
-
-**It responds to events.** Workflows can be triggered or continued by events from other agents and systems. The engine monitors configured event subscriptions and, when a matching event arrives, triggers the appropriate workflow action — starting a new instance, advancing a waiting step, or branching based on the event data. Event criteria can match on specific field values, allowing fine-grained control over which events trigger which workflow responses.
-
-**It supports workflow versioning.** As business processes evolve, workflow definitions are updated and versioned. The engine maintains a version history for each workflow definition, ensuring that in-flight instances continue on the version they were started with while new instances use the current version.
-
-**It provides monitoring and reporting.** For each workflow definition, the engine tracks instance counts, success rates, average execution time, and step-level performance metrics. This data is accessible through the workflow monitoring view and feeds into the continuous improvement analysis managed by the Continuous Improvement agent.
+**It publishes setup status and events.** The agent produces a Setup Status checklist report showing pass/fail status for each setup item, a Provisioned Assets registry listing all created or linked external assets with their IDs and URLs, and publishes lifecycle events: `workspace.setup.started`, `workspace.setup.completed`, and `workspace.setup.failed`.
 
 ---
 
 ## How It Works
 
-Workflow definitions are loaded from the platform's workflow definition store and from a library of pre-built workflow templates. The engine uses a task-dependency graph to determine the execution order for each workflow instance, applying cycle detection to prevent invalid workflow definitions from causing infinite loops. State is persisted using either JSON file storage or a PostgreSQL database backend, depending on the deployment configuration. For task queuing, either an in-process queue (for simple deployments) or RabbitMQ (for scaled deployments) is used.
+The agent is invoked after a portfolio decision (project approved for execution) and before any delivery agents begin work. It uses the platform's connector registry and connector runner to validate external system connectivity — the same infrastructure used by the Data Synchronisation agent for ongoing sync operations.
 
-The event subscription system uses deterministic criteria matching — evaluating field conditions against incoming event data — ensuring consistent, predictable behaviour regardless of event volume.
+For external provisioning, the agent calls the relevant system APIs (Microsoft Graph for Teams/SharePoint, Jira REST API, Planview OData API) through the platform's connector framework. When organisational policy requires approval before provisioning (for example, creating a new Teams team or Jira project), the agent creates an approval request through the Approval Workflow agent and waits for the decision before executing the provisioning action.
+
+The `workspace.setup.completed` event is consumed by the Lifecycle Governance agent as a gate condition — no project can progress past the initiation/setup phase until this event has been published.
 
 ---
 
 ## What It Uses
 
-- Workflow definitions in YAML, JSON, or BPMN 2.0 format
-- A workflow specification schema (`ppm.workflow/v1`) for validation
-- PostgreSQL or JSON file-backed state store for workflow instance persistence
-- RabbitMQ or in-process task queue for task message passing
-- Azure Monitor and Azure Event Grid for event integration
+- The platform's connector registry and connector runner for connectivity validation
+- Microsoft Graph API for Teams and SharePoint provisioning
+- Jira REST API for project and board creation
+- Planview OData API for project shell creation
+- SAP APIs for ERP workspace configuration (as configured)
+- Organisation configuration templates for methodology maps and default artefact structures
+- The Approval Workflow agent for governed provisioning approvals
 - Azure Service Bus for event publishing
-- Task dependency graph with cycle detection
-- the Approval Workflow agent — Approval Workflow for approval-type steps
-- the Change Control agent — Change and Configuration Management for change-triggered workflows
-- the Continuous Improvement agent — Continuous Improvement for process performance analysis
-- the Data Synchronisation agent — Data Synchronisation and Quality for sync retry workflows
 
 ---
 
 ## What It Produces
 
-- **Workflow definitions**: versioned, structured specifications of business processes
-- **Workflow instances**: running and completed process executions with full state history
-- **Task inbox items**: human tasks created for workflow participants with context and deadlines
-- **Execution logs**: step-by-step records of every workflow execution with outcomes and timestamps
-- **Compensation records**: documentation of rollback actions taken when workflows fail
-- **Event subscription records**: configured triggers and their matching criteria
-- **Workflow performance metrics**: execution time, success rate, and step-level performance by workflow type
-- **Workflow monitoring dashboard**: real-time view of active instances, failure rates, and backlogs
+- **Internal workspace records** with folder structure and canvas tab configuration
+- **Connector validation results** showing per-connector status for each project
+- **Provisioned or linked external assets** with system IDs and URLs (Teams, SharePoint, Jira, Planview)
+- **Setup Status checklist reports** with pass/fail per item and remediation guidance
+- **Provisioned Assets registry** listing all external asset links
+- **Setup lifecycle events**: `workspace.setup.started`, `workspace.setup.completed`, `workspace.setup.failed`
 
 ---
 
 ## How It Appears in the Platform
 
-The **Workflow Designer** page allows authorised users to create and configure workflow definitions through a structured interface. Workflow definitions can be imported and exported in YAML or BPMN format.
+The **Workspace Setup** page presents a step-by-step setup wizard for new projects. Project managers see a checklist of required setup items — workspace creation, connector configuration, external asset provisioning, and methodology selection — with clear status indicators for each item. Connectors that require configuration show their current validation status and provide "Test connection" and "Dry-run mapping" buttons.
 
-The **Workflow Monitoring** page provides a real-time operations view — showing how many instances of each workflow are currently running, how many have completed or failed, average execution times, and any instances that are stuck or in a failed state. Operators can inspect individual instances, view their execution history, retry failed steps, or cancel stalled instances from this view.
+The **Provisioned Assets** panel shows all created or linked external workspace assets with direct links to each system (Teams channel, SharePoint site, Jira board, etc.).
 
-Users with pending workflow tasks see them in the **Task Inbox**, accessible from the platform's notification centre. Each task shows what action is required, the deadline, and the relevant context from the workflow.
+Once all required items are complete, the setup page shows a "Setup complete" confirmation and the project becomes eligible for lifecycle progression.
 
 ---
 
 ## The Value It Adds
 
-Process automation is one of the most direct routes to operational efficiency in project management. The Workflow and Process Engine enables organisations to automate the routine, multi-step processes that consume significant administrative time — approvals, notifications, escalations, data updates — and execute them consistently, at scale, without manual coordination.
+The Workspace Setup agent eliminates a class of downstream failures that occur when delivery agents attempt to interact with external systems that have not been properly configured. By enforcing a governed setup phase before any writes to systems of record, it ensures that:
 
-The event-driven architecture means that workflows respond intelligently to what is happening in the platform rather than running on fixed schedules. When a risk is escalated, the risk response workflow triggers automatically. When a sync job fails, the retry workflow starts. When a stage gate is passed, the next-stage preparation workflow begins. This responsiveness makes the platform feel like a genuinely intelligent operational system rather than a collection of manual processes.
+- Connectors are authenticated and have the correct permissions before any agent tries to use them.
+- External artefacts exist and are correctly configured before any agent tries to write to them.
+- Field mappings are validated before any data synchronisation begins.
+- The selected methodology and its lifecycle map are loaded before project governance begins.
+
+This reduces support burden, increases first-time success rates for downstream agent operations, and gives project teams confidence that their tools are ready before they begin work.
 
 ---
 
 ## How It Connects to Other Agents
 
-The Workflow and Process Engine is used by virtually every other agent in the platform to automate multi-step processes. **The Approval Workflow agent — Approval Workflow** uses it for complex approval chains. **The Change Control agent — Change and Configuration Management** triggers change workflows through it. **The Data Synchronisation agent — Data Synchronisation and Quality** uses it to manage sync retry workflows. **The Continuous Improvement agent — Continuous Improvement** analyses its execution data for process mining. **The Release Deployment agent — Release and Deployment** uses it to orchestrate deployment workflows.
+The Workspace Setup agent sits at a specific point in the platform lifecycle — after portfolio decision and before project delivery.
+
+**Upstream:** The **Demand and Intake** agent, **Business Case and Investment** agent, and **Portfolio Strategy and Optimisation** agent handle the demand-to-decision pipeline. Once a project is approved, the Workspace Setup agent takes over.
+
+**Peer:** The **Approval Workflow** agent handles any approval requests that the Workspace Setup agent raises for governed provisioning actions. The **Data Synchronisation agent** shares the connector registry and connector runner infrastructure.
+
+**Downstream:** The **Lifecycle Governance** agent consumes the `workspace.setup.completed` event as a gate condition. The **Project Definition and Scope** agent begins work within the provisioned workspace. All delivery agents benefit from pre-validated connectors and provisioned external assets.
 
 
 ---

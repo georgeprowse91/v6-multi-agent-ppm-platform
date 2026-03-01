@@ -202,7 +202,7 @@ const buildInitialNodes = (): Array<Node<WorkflowNodeData>> => [
     data: {
       label: 'Assign execution',
       trigger: 'Approval granted',
-      agent_id: 'workflow-engine-agent',
+      agent_id: 'approval-workflow-agent',
       action: 'route_workflow',
       step_type: 'task',
     },

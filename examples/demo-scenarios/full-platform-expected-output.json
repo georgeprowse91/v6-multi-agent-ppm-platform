@@ -1,7 +1,7 @@
 {
   "success": true,
   "data": {
-    "aggregated_response": "[intent-router-agent]: success\n[response-orchestration-agent]: success\n[approval-workflow-agent]: success\n[demand-intake-agent]: success\n[business-case-agent]: success\n[portfolio-optimisation-agent]: success\n[program-management-agent]: success\n[scope-definition-agent]: success\n[lifecycle-governance-agent]: success\n[schedule-planning-agent]: success\n[resource-management-agent]: success\n[financial-management-agent]: success\n[vendor-procurement-agent]: success\n[quality-management-agent]: success\n[risk-management-agent]: success\n[compliance-governance-agent]: success\n[change-control-agent]: success\n[release-deployment-agent]: success\n[knowledge-management-agent]: success\n[continuous-improvement-agent]: success\n[stakeholder-communications-agent]: success\n[analytics-insights-agent]: success\n[data-synchronisation-agent]: success\n[workflow-engine-agent]: success\n[system-health-agent]: success",
+    "aggregated_response": "[intent-router-agent]: success\n[response-orchestration-agent]: success\n[approval-workflow-agent]: success\n[demand-intake-agent]: success\n[business-case-agent]: success\n[portfolio-optimisation-agent]: success\n[program-management-agent]: success\n[scope-definition-agent]: success\n[lifecycle-governance-agent]: success\n[schedule-planning-agent]: success\n[resource-management-agent]: success\n[financial-management-agent]: success\n[vendor-procurement-agent]: success\n[quality-management-agent]: success\n[risk-management-agent]: success\n[compliance-governance-agent]: success\n[change-control-agent]: success\n[release-deployment-agent]: success\n[knowledge-management-agent]: success\n[continuous-improvement-agent]: success\n[stakeholder-communications-agent]: success\n[analytics-insights-agent]: success\n[data-synchronisation-agent]: success\n[workspace-setup-agent]: success\n[system-health-agent]: success",
     "agent_results": [
       {
         "success": true,
@@ -97,7 +97,7 @@
       },
       {
         "success": true,
-        "agent_id": "workflow-engine-agent"
+        "agent_id": "approval-workflow-agent"
       },
       {
         "success": true,
@@ -272,7 +272,7 @@
         "status": "success"
       },
       {
-        "agent_id": "workflow-engine-agent",
+        "agent_id": "approval-workflow-agent",
         "started_at": "2026-01-01T00:00:46.000Z",
         "completed_at": "2026-01-01T00:00:47.000Z",
         "duration_ms": 1000,

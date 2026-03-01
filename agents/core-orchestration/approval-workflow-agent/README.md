@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for Approval Workflow. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+The Approval Workflow agent is the platform's canonical orchestration authority for long-running, multi-step workflows — including human approval chains, automated task sequences, event-driven process automation, and governed business processes. It defines, executes, monitors, and audits every structured process in the platform through a single unified engine.
+
+Approvals are represented as a workflow pattern (`approval_gate` step type) within the workflow specification. This means every approval chain — sequential or parallel — is defined and executed as a first-class workflow, sharing the same execution engine, state persistence, audit trail, and monitoring infrastructure as any other automated process.
 
 ## What's inside
 
@@ -12,7 +14,7 @@ Define the responsibilities, workflows, and integration points for Approval Work
 
 ## How it's used
 
-Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution.
+Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution. Other agents call this agent's APIs to request approvals, start workflows, query status, and manage human tasks.
 
 ## How to run / develop / test
 
@@ -32,6 +34,8 @@ pytest agents/core-orchestration/approval-workflow-agent/tests
 
 Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
 
+Workflow definitions and templates are loaded from `ops/config/agents/workflow-engine-agent/` (durable workflow definitions and workflow templates).
+
 ### Dynamic escalation policy
 
 Approval escalation timing is dynamically computed using risk and criticality context and loaded from `ops/config/agents/approval_policies.yaml`.
@@ -42,8 +46,6 @@ Approval escalation timing is dynamically computed using risk and criticality co
 At runtime, the agent computes `risk_score` and `criticality_level` from request details (for example `amount`, `urgency`, `project_type`, and `strategic_importance`) and then picks the most conservative timeout across both mappings.
 
 These values are persisted in approval metadata, included in audit events, and rendered in escalation notifications.
-
-
 
 ### Delegation rules
 
@@ -89,65 +91,195 @@ To add a new locale:
 
 ## Intended scope and responsibilities
 
-**The Approval Workflow agent owns the approval workflow control loop.** It is responsible for:
+**The Approval Workflow agent is the platform's unified workflow and approval engine.** It is responsible for:
 
-- Validating approval requests and decision payloads.
-- Resolving approvers (roles, delegation, escalation) and building approval chains.
-- Emitting notifications, reminders, and audit events.
-- Recording decisions and publishing approval lifecycle events.
+### Workflow engine capabilities
 
-**It must not:**
+- **Workflow definition:** Define workflows via YAML/JSON spec (`ppm.workflow/v1`) and/or BPMN 2.0 import/export. Each workflow specifies steps, step types (`human_task`, `automated_action`, `approval_gate`, `notification`, `decision`, `parallel`, `loop`), transition conditions, retry policies, and versioning metadata.
+- **Workflow instance management:** Start, pause, resume, cancel, and retry workflow instances. Each instance maintains its own execution state, tracking completed steps, step data, and current status.
+- **Parallel execution and conditional logic:** Execute parallel branches within workflows and evaluate decision conditions (equality, comparison, containment, existence) against workflow data to route execution. Parallel branches are collected at join points before the workflow continues.
+- **Human task inbox:** When a workflow reaches a step requiring human action, the agent creates a task in the assigned user's inbox with full context, a deadline, and relevant data from prior steps. Users can view, filter, and complete pending tasks from the platform's Task Inbox.
+- **Retry policies and compensation:** When a workflow step fails, the agent applies configured retry policies (delay, exponential backoff). If a workflow fails irrecoverably, compensation workflows can be triggered to reverse completed actions and restore consistency.
+- **Event-driven triggers and subscriptions:** Workflows can be triggered or advanced by events from other agents and systems. The agent monitors event subscriptions and, when a matching event arrives, triggers the appropriate action — starting a new instance, advancing a waiting step, or branching based on event data.
+- **Workflow versioning:** Workflow definitions are versioned. In-flight instances continue on the version they were started with; new instances use the latest published version.
+- **Workflow monitoring and reporting:** Track instance counts, success rates, average execution time, step-level performance metrics, backlog depth, and failure rates. This data feeds into the Workflow Monitoring view and the Continuous Improvement agent's process analysis.
 
-- Determine user intent or orchestrate multi-agent response composition (owned by Agents 01–02).
-- Execute downstream governance state transitions (owned by governance agents such as the Lifecycle Governance agent).
-- Mutate project/system data outside the approval record, audit trail, and notification preferences.
+### Approval workflow capabilities
+
+- **Approval chains:** Create and manage approval chains (sequential and parallel) with configurable chain types and deadlines.
+- **Role-based routing and dynamic approver resolution:** Route approval requests to the correct approvers based on role mappings, organisational hierarchy, and request attributes.
+- **Delegation, reminders, and escalations:** Support approver delegation with time-windowed rules, automated reminders at configurable intervals, and escalation to next-tier approvers when SLAs are breached.
+- **SLA tracking:** Dynamically compute escalation deadlines from risk and criticality context, track SLA compliance, and report on approval cycle times.
+- **Multi-channel notification delivery:** Deliver approval notifications via email, Teams, Slack, and push channels with deep links using "View request" language. Support locale-aware templates and accessibility formats.
+- **Immutable decision records:** Record every approval decision with actor, timestamp, comments, and outcome. Decision records are append-only and form part of the immutable audit trail.
+- **"My approvals" queue:** Support listing, filtering, opening, and deciding on pending approvals from a personal queue view.
+- **Audit logging:** Log every approval lifecycle transition (requested, assigned, delegated, reminded, escalated, decided, closed) as a structured audit event.
+
+### How approvals fit inside workflows
+
+Approvals are represented as a workflow pattern using the `approval_gate` step type within the `ppm.workflow/v1` specification. An approval gate step defines:
+
+```yaml
+# ppm.workflow/v1
+apiVersion: ppm.workflow/v1
+kind: WorkflowDefinition
+metadata:
+  name: project-initiation
+  version: "1.0"
+spec:
+  steps:
+    - id: charter_review
+      type: approval_gate
+      config:
+        request_type: charter_approval
+        chain_type: sequential
+        approvers:
+          - role: project_sponsor
+          - role: pmo_lead
+        sla_hours: 48
+        escalation_policy: risk_based
+        notification_channels: [email, teams]
+        deep_link_label: "View request"
+      transitions:
+        approved: requirements_phase
+        rejected: revision_required
+
+    - id: requirements_phase
+      type: human_task
+      config:
+        assignee_role: business_analyst
+        title: "Complete requirements document"
+        deadline_hours: 120
+      transitions:
+        completed: design_review
+```
+
+This unified representation ensures that approval steps are executed with the same state persistence, monitoring, and audit infrastructure as every other workflow step.
+
+### Exposed APIs
+
+The agent exposes the following APIs for other agents and platform services:
+
+| API | Description |
+| --- | --- |
+| `request_approval` | Submit a new approval request; creates an approval chain and returns `approval_id` |
+| `apply_decision` | Record an approval decision (approve/reject) with actor and comments |
+| `start_workflow` | Start a new workflow instance from a published definition |
+| `get_workflow_status` | Get the current status of a workflow instance |
+| `get_approval_status` | Get the current status of an approval request |
+| `list_my_tasks` | List pending human tasks for a given user |
+| `list_my_approvals` | List pending approval decisions for a given user |
+| `pause_workflow` | Pause a running workflow instance |
+| `resume_workflow` | Resume a paused workflow instance |
+| `cancel_workflow` | Cancel a workflow instance and trigger compensation if configured |
+| `retry_failed_task` | Retry a failed workflow step |
+| `define_workflow` | Register a new workflow definition (YAML/JSON/BPMN) |
+| `deploy_bpmn_workflow` | Import and deploy a workflow from BPMN 2.0 format |
+
+### Events emitted
+
+The agent publishes events for every workflow and approval state change:
+
+**Workflow events:**
+- `workflow.instance.started` — New workflow instance created and execution begun
+- `workflow.instance.completed` — Workflow instance reached terminal success state
+- `workflow.instance.failed` — Workflow instance failed irrecoverably
+- `workflow.instance.cancelled` — Workflow instance cancelled by user or system
+- `workflow.instance.paused` / `workflow.instance.resumed`
+- `workflow.step.started` / `workflow.step.completed` / `workflow.step.failed`
+- `workflow.task.assigned` / `workflow.task.completed`
+
+**Approval events:**
+- `approval.created` — New approval request submitted
+- `approval.assigned` — Approval assigned to approver(s)
+- `approval.delegated` — Approval reassigned via delegation rule
+- `approval.reminded` — Reminder sent to pending approver
+- `approval.escalated` — SLA breach triggered escalation
+- `approval.decision` — Decision recorded (approved/rejected)
+- `approval.closed` — Approval chain completed
+
+All events include `tenant_id`, `correlation_id`, `workflow_id` or `approval_id`, `timestamp`, and `actor` where applicable. Events are published to the Event Bus and written to the audit trail.
 
 ## Inputs, outputs, and decision responsibilities
 
 **Inputs (primary):**
 
+- Workflow definition payloads (YAML/JSON `ppm.workflow/v1` or BPMN 2.0 XML).
+- Workflow instance start requests with `workflow_id`, `input_data`, and optional `correlation_id`.
 - Approval request payloads with `request_type`, `request_id`, `requester`, `details`, and optional `context`.
 - Approval decisions with `approval_id`, `decision`, `approver_id`, and optional `comments/context`.
+- Event payloads from other agents triggering workflow transitions.
 - Notification preference actions (`subscribe`, `unsubscribe`, `update`, `interaction`).
 
 **Outputs (primary):**
 
+- Workflow definitions: versioned, structured specifications of business processes.
+- Workflow instances: running and completed process executions with full state history.
+- Task inbox items: human tasks with context, deadlines, and workflow linkage.
 - Approval chain metadata (approvers, chain type, deadline, status).
+- Execution logs: step-by-step records of every workflow execution with outcomes and timestamps.
+- Compensation records: documentation of rollback actions taken when workflows fail.
 - Notification dispatch attempts and escalation scheduling.
-- Audit and analytics events for approvals and decisions.
+- Workflow performance metrics: execution time, success rate, step-level performance by workflow type.
+- Audit and analytics events for workflows, approvals, and decisions.
 
 **Decision responsibilities:**
 
+- Workflow step routing based on transition conditions and decision logic.
 - Approver routing and delegation resolution.
 - Escalation timing and notification delivery strategy.
+- Retry and compensation strategy for failed steps.
 - Approval state transitions (`pending`, `approved`, `rejected`) as recorded in the approval store.
+- Workflow state transitions (`running`, `paused`, `completed`, `failed`, `cancelled`).
 
 ## Overlap boundaries and handoffs
 
 **The Intent Router agent (Intent Router):**
 
-- **Upstream handoff:** the Intent Router agent routes approval-intent requests here based on intent routing.
+- **Upstream handoff:** the Intent Router agent routes approval-intent and workflow-intent requests here based on intent routing.
 - **Boundary:** the Approval Workflow agent does not reclassify intent; it assumes intent is already validated.
 
 **The Response Orchestration agent (Response Orchestration):**
 
-- **Upstream handoff:** the Response Orchestration agent may request approval creation or decision recording when assembling responses.
-- **Boundary:** the Approval Workflow agent does not craft user-facing narrative responses; it returns approval metadata/events for the Response Orchestration agent to present.
+- **Upstream handoff:** the Response Orchestration agent may request approval creation, decision recording, or workflow execution when assembling responses.
+- **Boundary:** the Approval Workflow agent does not craft user-facing narrative responses; it returns workflow/approval metadata and events for the Response Orchestration agent to present.
 
-**Downstream governance agents (e.g., the Lifecycle Governance agent Lifecycle Governance):**
+**The Change Control agent (Change and Configuration Management):**
 
-- **Downstream handoff:** Approval events (`approval.created`, `approval.decision`, `approval.approved/rejected`) are published for governance agents to act on.
+- **Handoff:** Change-triggered workflows are defined and executed by this agent. The Change Control agent submits workflow start requests when a change request requires a structured review process.
+- **Boundary:** the Approval Workflow agent executes the workflow; the Change Control agent owns the change record and impact assessment.
+
+**The Data Synchronisation agent (Data Synchronisation and Quality):**
+
+- **Handoff:** Sync retry workflows are defined and executed by this agent. The Data Synchronisation agent submits workflow start requests for retry sequences.
+- **Boundary:** the Approval Workflow agent manages the retry workflow execution; the Data Synchronisation agent owns the sync state and mapping logic.
+
+**The Continuous Improvement agent (Continuous Improvement):**
+
+- **Downstream handoff:** Workflow execution data (instance counts, step timings, failure rates) is consumed by the Continuous Improvement agent for process mining and improvement analysis.
+- **Boundary:** the Approval Workflow agent provides execution telemetry; the Continuous Improvement agent owns analysis and recommendations.
+
+**Downstream governance agents (e.g., the Lifecycle Governance agent):**
+
+- **Downstream handoff:** Approval events (`approval.created`, `approval.decision`, `approval.approved/rejected`) and workflow events are published for governance agents to act on.
 - **Boundary:** the Approval Workflow agent does not execute lifecycle transitions or enforce governance gates beyond recording decisions and escalation.
+
+**The Workspace Setup agent (Workspace Setup):**
+
+- **Downstream handoff:** the Workspace Setup agent routes provisioning actions through this agent when organisational policy requires approval before creating or linking external assets.
+- **Boundary:** the Approval Workflow agent processes the approval request; the Workspace Setup agent owns the provisioning logic.
 
 ## Functional gaps and alignment checkpoints
 
 **Gaps / inconsistencies to track:**
 
-- Approval gate definitions must be aligned with governance stage gates (The Lifecycle Governance agent) and intent routing schema (The Intent Router agent).
+- Approval gate definitions must be aligned with governance stage gates (the Lifecycle Governance agent) and intent routing schema (the Intent Router agent).
+- Workflow definitions must be validated against `ppm.workflow/v1` schema before execution.
 - Notification templates and escalation timing must align with UI and notification service capabilities.
 - Event payload schemas must remain compatible with Event Bus and analytics consumers.
+- BPMN import must map standard BPMN elements to the platform's step types; unsupported elements should produce clear validation errors.
 
-**Required alignment:** Prompting, tool schemas, and UI should use the same approval decision vocabulary (`pending`, `approved`, `rejected`) and include `approval_id`, `tenant_id`, and `correlation_id` where applicable.
+**Required alignment:** Prompting, tool schemas, and UI should use the same approval decision vocabulary (`pending`, `approved`, `rejected`) and workflow status vocabulary (`running`, `paused`, `completed`, `failed`, `cancelled`), and include `approval_id`, `workflow_id`, `tenant_id`, and `correlation_id` where applicable.
 
 ## Checkpoint: approval gate definitions
 
@@ -158,16 +290,31 @@ To add a new locale:
 | **Escalation fired** | SLA timeout reached | Approval chain + escalation policy | Reminder notifications + escalation audit/event |
 | **Approval closed** | Decision is `approved` or `rejected` | `approval_id`, decision | Finalized status + downstream governance events |
 
+## Checkpoint: workflow step types
+
+| Step type | Description | Waits for |
+| --- | --- | --- |
+| `human_task` | Creates a task inbox item for a user to complete | User completion |
+| `automated_action` | Executes a system action (API call, data update, notification) | Action completion |
+| `approval_gate` | Creates an approval chain and waits for decision | Approval decision |
+| `notification` | Sends a notification to specified recipients | Delivery confirmation |
+| `decision` | Evaluates conditions against workflow data and routes execution | Condition evaluation |
+| `parallel` | Executes child steps concurrently and joins at completion | All branches complete |
+| `loop` | Repeats a step sequence until exit condition is met | Exit condition |
+
 ## Checkpoint: dependency map entry
 
 | Entry | Details |
 | --- | --- |
 | **Upstream dependencies** | the Intent Router agent intent routing; the Response Orchestration agent response orchestration; Notification service; Role directory lookup. |
-| **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., the Lifecycle Governance agent lifecycle governance). |
-| **Data contracts** | Approval request schema, decision schema, and event payloads (approval lifecycle events). |
+| **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., the Lifecycle Governance agent); the Continuous Improvement agent; the Change Control agent; the Data Synchronisation agent. |
+| **Data contracts** | Workflow definition schema (`ppm.workflow/v1`), approval request schema, decision schema, workflow instance schema, task inbox schema, and event payloads (workflow and approval lifecycle events). |
+| **Infrastructure** | PostgreSQL or JSON file-backed state store; RabbitMQ or in-process task queue; Azure Monitor and Azure Event Grid for event integration; Azure Service Bus for event publishing. |
 
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
 - Runtime errors about missing secrets: populate the required env vars in `.env`.
 - Docker execution fails: verify Docker is running and the agent has a `Dockerfile`.
+- Workflow definition validation fails: check the definition against `ppm.workflow/v1` schema; ensure all referenced step IDs exist and transition targets are valid.
+- BPMN import fails: verify the BPMN XML is valid BPMN 2.0; check for unsupported element types in the import log.

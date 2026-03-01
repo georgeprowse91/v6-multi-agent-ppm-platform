@@ -19,7 +19,12 @@ generator to refresh this file and the web UI metadata.
 ### Approval Workflow Specification (`approval-workflow-agent`)
 - **Location:** `agents/core-orchestration/approval-workflow-agent`
 - **Purpose:**
-  - Define the responsibilities, workflows, and integration points for Approval Workflow. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+  - Unified workflow and approval engine — orchestrates long-running workflows, approval chains, task inboxes, and process automation across the platform.
+
+### Workspace Setup Specification (`workspace-setup-agent`)
+- **Location:** `agents/core-orchestration/workspace-setup-agent`
+- **Purpose:**
+  - Manages project workspace initialisation, connector configuration gating, external workspace provisioning, and methodology bootstrap before delivery begins.
 
 
 ## Delivery Management
@@ -106,11 +111,6 @@ generator to refresh this file and the web UI metadata.
 - **Location:** `agents/operations-management/data-synchronisation-agent`
 - **Purpose:**
   - Define the responsibilities, workflows, and integration points for Data Synchronisation Quality. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
-
-### Workflow Process Engine Specification (`workflow-engine-agent`)
-- **Location:** `agents/operations-management/workflow-engine-agent`
-- **Purpose:**
-  - Define the responsibilities, workflows, and integration points for Workflow Process Engine. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ### System Health Monitoring Specification (`system-health-agent`)
 - **Location:** `agents/operations-management/system-health-agent`

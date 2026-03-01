@@ -10,7 +10,7 @@ This directory contains agent runtime, orchestration, and intent routing configu
 | --- | --- |
 | [schema/](./schema/) | JSON schema for intent routing configuration validation |
 | [data-synchronisation-agent/](./data-synchronisation-agent/) | Per-agent config for the Data Synchronisation agent – Data Synchronization & Quality |
-| [workflow-engine-agent/](./workflow-engine-agent/) | Per-agent config for the Workflow Engine agent – Workflow & Process Engine |
+| [workflow-engine-agent/](./workflow-engine-agent/) | Workflow engine configuration (durable workflow definitions and templates), consumed by approval-workflow-agent |
 
 ## Key files
 
@@ -34,7 +34,7 @@ Complex agents with many config files use a dedicated subdirectory:
 | Directory | Agent | Files |
 | --- | --- | --- |
 | [data-synchronisation-agent/](./data-synchronisation-agent/) | the Data Synchronisation agent – Data Sync | `mapping_rules.yaml`, `quality_thresholds.yaml`, `pipelines.yaml`, `schema_registry.yaml`, `validation_rules.yaml` |
-| [workflow-engine-agent/](./workflow-engine-agent/) | the Workflow Engine agent – Workflow Engine | `durable_workflows.yaml`, `workflow_templates.yaml` |
+| [workflow-engine-agent/](./workflow-engine-agent/) | Approval Workflow agent – Workflow Engine config | `durable_workflows.yaml`, `workflow_templates.yaml` |
 
 ## Notes
 
@@ -54,5 +54,5 @@ Most config values can be overridden via environment variables at runtime. Key o
 | Env var | Overrides | Default |
 | --- | --- | --- |
 | `INTENT_ROUTING_CONFIG_PATH` | the Intent Router agent routing config path | `ops/config/agents/intent-routing.yaml` |
-| `DURABLE_WORKFLOW_CONFIG` | the Workflow Engine agent durable workflows path | `ops/config/agents/workflow-engine-agent/durable_workflows.yaml` |
-| `WORKFLOW_TEMPLATES_PATH` | the Workflow Engine agent workflow templates path | `ops/config/agents/workflow-engine-agent/workflow_templates.yaml` |
+| `DURABLE_WORKFLOW_CONFIG` | Approval Workflow agent durable workflows path | `ops/config/agents/workflow-engine-agent/durable_workflows.yaml` |
+| `WORKFLOW_TEMPLATES_PATH` | Approval Workflow agent workflow templates path | `ops/config/agents/workflow-engine-agent/workflow_templates.yaml` |

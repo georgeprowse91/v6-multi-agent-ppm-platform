@@ -637,5 +637,5 @@ Agents are registered in `agents/AGENT_CATALOG.md` and surfaced in the Agent Gal
 | `stakeholder-communications-agent` | Stakeholder Comms | Operations Management |
 | `analytics-insights-agent` | Analytics Insights | Operations Management |
 | `data-synchronisation-agent` | Data Synchronisation Quality | Operations Management |
-| `workflow-engine-agent` | Workflow Process Engine | Operations Management |
+| `workspace-setup-agent` | Workspace Setup | Core Orchestration |
 | `system-health-agent` | System Health Monitoring | Operations Management |

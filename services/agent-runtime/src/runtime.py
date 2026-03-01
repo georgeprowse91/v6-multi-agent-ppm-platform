@@ -677,7 +677,7 @@ class AgentRuntime:
 
         workflow_result: dict[str, Any] | None = None
         if workflow_action:
-            workflow_agent = self._agent_registry.get("workflow-engine-agent")
+            workflow_agent = self._agent_registry.get("approval-workflow-agent")
             if workflow_agent:
                 workflow_client = WorkflowEngineClient(workflow_agent)
                 workflow_result = await workflow_client.execute(
@@ -781,6 +781,15 @@ class AgentRuntime:
                 config={
                     **base_config,
                     "approval_store_path": self._build_store_path("approval_store.json"),
+                    "workflow_definition_store_path": self._build_store_path("workflows.json"),
+                    "workflow_instance_store_path": self._build_store_path(
+                        "workflow_instances.json"
+                    ),
+                    "workflow_task_store_path": self._build_store_path("workflow_tasks.json"),
+                    "workflow_event_store_path": self._build_store_path("workflow_events.json"),
+                    "workflow_subscription_store_path": self._build_store_path(
+                        "workflow_subscriptions.json"
+                    ),
                 },
             ),
             AgentSpec(
@@ -1060,23 +1069,15 @@ class AgentRuntime:
                 },
             ),
             AgentSpec(
-                agent_id="workflow-engine-agent",
+                agent_id="workspace-setup-agent",
                 path=AGENTS_ROOT
-                / "operations-management"
-                / "workflow-engine-agent"
+                / "core-orchestration"
+                / "workspace-setup-agent"
                 / "src"
-                / "workflow_engine_agent.py",
+                / "workspace_setup_agent.py",
                 config={
                     **base_config,
-                    "workflow_definition_store_path": self._build_store_path("workflows.json"),
-                    "workflow_instance_store_path": self._build_store_path(
-                        "workflow_instances.json"
-                    ),
-                    "workflow_task_store_path": self._build_store_path("workflow_tasks.json"),
-                    "workflow_event_store_path": self._build_store_path("workflow_events.json"),
-                    "workflow_subscription_store_path": self._build_store_path(
-                        "workflow_subscriptions.json"
-                    ),
+                    "workspace_store_path": self._build_store_path("workspace_store.json"),
                 },
             ),
             AgentSpec(

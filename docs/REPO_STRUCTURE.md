@@ -118,13 +118,19 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   ├── plan_schema.py
 │   │   │   │   └── response_orchestration_agent.py
 │   │   │   └── tests/README.md
-│   │   └── approval-workflow-agent/
+│   │   ├── approval-workflow-agent/
+│   │   │   ├── Dockerfile
+│   │   │   ├── README.md
+│   │   │   ├── demo-fixtures/sample-response.json
+│   │   │   ├── src/
+│   │   │   │   ├── approval_workflow_agent.py
+│   │   │   │   └── templates/{en,fr}/approval_notification.md
+│   │   │   └── tests/README.md
+│   │   └── workspace-setup-agent/
 │   │       ├── Dockerfile
 │   │       ├── README.md
 │   │       ├── demo-fixtures/sample-response.json
-│   │       ├── src/
-│   │       │   ├── approval_workflow_agent.py
-│   │       │   └── templates/{en,fr}/approval_notification.md
+│   │       ├── src/workspace_setup_agent.py
 │   │       └── tests/README.md
 │   │
 │   ├── portfolio-management/                # Agents 04–07
@@ -181,10 +187,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   └── src/analytics_insights_agent.py
 │   │   ├── data-synchronisation-agent/
 │   │   │   └── src/data_sync_agent.py
-│   │   ├── workflow-engine-agent/
-│   │   │   ├── src/{workflow_engine_agent,workflow_spec,
-│   │   │   │        workflow_state_store,workflow_task_queue}.py
-│   │   │   └── workflows/schema/workflow_spec.schema.json
 │   │   └── system-health-agent/
 │   │       └── src/system_health_agent.py
 │   │
@@ -583,7 +585,7 @@ multi-agent-ppm-platform-v4/
 │
 ├── ops/
 │   ├── config/
-│   │   ├── abac/  data-synchronisation-agent/  workflow-engine-agent/
+│   │   ├── abac/  data-synchronisation-agent/
 │   │   ├── agents/schema/
 │   │   ├── connectors/  data-classification/  environments/
 │   │   ├── feature-flags/  iam/  plans/  rbac/

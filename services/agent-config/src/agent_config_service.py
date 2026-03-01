@@ -441,10 +441,10 @@ class AgentConfigStore:
             catalog_id="approval-workflow-agent",
             agent_id="approval-workflow-agent",
             display_name="Approval Workflow",
-            description="Manages approval workflows and gate reviews",
+            description="Unified workflow and approval engine — orchestrates long-running workflows, approval chains, task inboxes, and process automation",
             category=AgentCategory.GOVERNANCE,
             enabled=True,
-            capabilities=["approval_management", "gate_review", "escalation"],
+            capabilities=["approval_management", "gate_review", "escalation", "workflow_execution", "process_automation", "task_routing"],
         ).to_dict()
 
         # Portfolio Agents
@@ -1328,41 +1328,30 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["workflow-engine-agent"] = AgentConfig(
-            catalog_id="workflow-engine-agent",
-            agent_id="workflow-engine-agent",
-            display_name="Workflow & Process Engine",
-            description="Executes and manages automated workflows",
-            category=AgentCategory.PLATFORM,
+        agents["workspace-setup-agent"] = AgentConfig(
+            catalog_id="workspace-setup-agent",
+            agent_id="workspace-setup-agent",
+            display_name="Workspace Setup",
+            description="Initialises project workspaces and validates connector configuration before delivery begins",
+            category=AgentCategory.GOVERNANCE,
             enabled=True,
-            capabilities=["workflow_execution", "process_automation", "task_routing"],
+            capabilities=["workspace_init", "connector_validation", "external_provisioning", "methodology_bootstrap"],
             parameters=[
                 AgentParameter(
-                    name="default_timeout_minutes",
-                    display_name="Default Timeout (minutes)",
-                    description="Default timeout for workflow tasks",
-                    param_type="number",
-                    default_value=60,
-                    min_value=1,
-                    max_value=1440,
+                    name="require_approval_for_provisioning",
+                    display_name="Require Approval for Provisioning",
+                    description="Require approval before provisioning external workspace assets",
+                    param_type="boolean",
+                    default_value=True,
                 ),
                 AgentParameter(
-                    name="max_retry_attempts",
-                    display_name="Max Retry Attempts",
-                    description="Maximum retry attempts for failed tasks",
+                    name="max_connector_validation_retries",
+                    display_name="Max Connector Validation Retries",
+                    description="Maximum retries for connector validation checks",
                     param_type="number",
                     default_value=3,
                     min_value=0,
                     max_value=10,
-                ),
-                AgentParameter(
-                    name="max_parallel_tasks",
-                    display_name="Max Parallel Tasks",
-                    description="Maximum parallel tasks per workflow",
-                    param_type="number",
-                    default_value=10,
-                    min_value=1,
-                    max_value=100,
                 ),
             ],
         ).to_dict()
