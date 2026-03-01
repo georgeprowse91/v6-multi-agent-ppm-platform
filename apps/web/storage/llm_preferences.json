@@ -1,0 +1,20 @@
+{
+  "tenant": {
+    "tenant-a": {
+      "provider": "openai",
+      "model_id": "gpt-4o-mini"
+    }
+  },
+  "project": {
+    "tenant-a:proj-1": {
+      "provider": "anthropic",
+      "model_id": "claude-3-5-haiku-latest"
+    }
+  },
+  "user": {
+    "tenant-a:dev-user": {
+      "provider": "google",
+      "model_id": "gemini-1.5-flash"
+    }
+  }
+}

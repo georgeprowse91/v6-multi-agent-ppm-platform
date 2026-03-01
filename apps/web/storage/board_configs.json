@@ -1,3 +1,13 @@
 {
-  "configs": []
+  "configs": [
+    {
+      "workspace_id": "demo-program",
+      "entity": "demand",
+      "view": "kanban",
+      "columns": [
+        "title",
+        "status"
+      ]
+    }
+  ]
 }

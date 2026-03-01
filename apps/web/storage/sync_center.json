@@ -1,3 +1,17 @@
 {
-  "conflicts": []
+  "conflicts": [
+    {
+      "id": "x1",
+      "incoming": {
+        "id": "x1",
+        "name": "incoming"
+      },
+      "current": {
+        "id": "x1",
+        "name": "current"
+      },
+      "status": "resolved",
+      "resolution": "incoming"
+    }
+  ]
 }

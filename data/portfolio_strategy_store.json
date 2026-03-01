@@ -3523,6 +3523,438 @@
         "compliance": 0.1
       },
       "generated_at": "2026-02-27T13:11:05.821545+00:00"
+    },
+    "PORT-20260301094205": {
+      "portfolio_id": "PORT-20260301094205",
+      "cycle": "optimization",
+      "ranked_projects": [
+        {
+          "project_id": "P1",
+          "project_name": "Strategic Data Platform",
+          "overall_score": 0.67,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.5,
+            "risk": 0.9,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 1
+        },
+        {
+          "project_id": "P2",
+          "project_name": "Legacy Upgrade",
+          "overall_score": 0.535,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.2,
+            "risk": 0.6,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 2
+        }
+      ],
+      "criteria_weights": {
+        "strategic_alignment": 0.3,
+        "roi": 0.25,
+        "risk": 0.2,
+        "resource_feasibility": 0.15,
+        "compliance": 0.1
+      },
+      "generated_at": "2026-03-01T09:42:05.649812+00:00"
+    },
+    "PORT-20260301094240": {
+      "portfolio_id": "PORT-20260301094240",
+      "cycle": "optimization",
+      "ranked_projects": [
+        {
+          "project_id": "P1",
+          "project_name": "Strategic Data Platform",
+          "overall_score": 0.67,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.5,
+            "risk": 0.9,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 1
+        },
+        {
+          "project_id": "P2",
+          "project_name": "Legacy Upgrade",
+          "overall_score": 0.535,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.2,
+            "risk": 0.6,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 2
+        }
+      ],
+      "criteria_weights": {
+        "strategic_alignment": 0.3,
+        "roi": 0.25,
+        "risk": 0.2,
+        "resource_feasibility": 0.15,
+        "compliance": 0.1
+      },
+      "generated_at": "2026-03-01T09:42:40.171454+00:00"
+    },
+    "PORT-20260301094413": {
+      "portfolio_id": "PORT-20260301094413",
+      "cycle": "optimization",
+      "ranked_projects": [
+        {
+          "project_id": "P1",
+          "project_name": "Strategic Data Platform",
+          "overall_score": 0.67,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.5,
+            "risk": 0.9,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 1
+        },
+        {
+          "project_id": "P2",
+          "project_name": "Legacy Upgrade",
+          "overall_score": 0.535,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.2,
+            "risk": 0.6,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 2
+        }
+      ],
+      "criteria_weights": {
+        "strategic_alignment": 0.3,
+        "roi": 0.25,
+        "risk": 0.2,
+        "resource_feasibility": 0.15,
+        "compliance": 0.1
+      },
+      "generated_at": "2026-03-01T09:44:13.531337+00:00"
+    },
+    "PORT-20260301095209": {
+      "portfolio_id": "PORT-20260301095209",
+      "cycle": "optimization",
+      "ranked_projects": [
+        {
+          "project_id": "P1",
+          "project_name": "Strategic Data Platform",
+          "overall_score": 0.67,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.5,
+            "risk": 0.9,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 1
+        },
+        {
+          "project_id": "P2",
+          "project_name": "Legacy Upgrade",
+          "overall_score": 0.535,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.2,
+            "risk": 0.6,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 2
+        }
+      ],
+      "criteria_weights": {
+        "strategic_alignment": 0.3,
+        "roi": 0.25,
+        "risk": 0.2,
+        "resource_feasibility": 0.15,
+        "compliance": 0.1
+      },
+      "generated_at": "2026-03-01T09:52:09.415370+00:00"
+    },
+    "PORT-20260301095956": {
+      "portfolio_id": "PORT-20260301095956",
+      "cycle": "optimization",
+      "ranked_projects": [
+        {
+          "project_id": "P1",
+          "project_name": "Strategic Data Platform",
+          "overall_score": 0.67,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.5,
+            "risk": 0.9,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 1
+        },
+        {
+          "project_id": "P2",
+          "project_name": "Legacy Upgrade",
+          "overall_score": 0.535,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.2,
+            "risk": 0.6,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 2
+        }
+      ],
+      "criteria_weights": {
+        "strategic_alignment": 0.3,
+        "roi": 0.25,
+        "risk": 0.2,
+        "resource_feasibility": 0.15,
+        "compliance": 0.1
+      },
+      "generated_at": "2026-03-01T09:59:56.094292+00:00"
+    },
+    "PORT-20260301100419": {
+      "portfolio_id": "PORT-20260301100419",
+      "cycle": "optimization",
+      "ranked_projects": [
+        {
+          "project_id": "P1",
+          "project_name": "Strategic Data Platform",
+          "overall_score": 0.67,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.5,
+            "risk": 0.9,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 1
+        },
+        {
+          "project_id": "P2",
+          "project_name": "Legacy Upgrade",
+          "overall_score": 0.535,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.2,
+            "risk": 0.6,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 2
+        }
+      ],
+      "criteria_weights": {
+        "strategic_alignment": 0.3,
+        "roi": 0.25,
+        "risk": 0.2,
+        "resource_feasibility": 0.15,
+        "compliance": 0.1
+      },
+      "generated_at": "2026-03-01T10:04:19.421748+00:00"
+    },
+    "PORT-20260301101313": {
+      "portfolio_id": "PORT-20260301101313",
+      "cycle": "optimization",
+      "ranked_projects": [
+        {
+          "project_id": "P1",
+          "project_name": "Strategic Data Platform",
+          "overall_score": 0.67,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.5,
+            "risk": 0.9,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 1
+        },
+        {
+          "project_id": "P2",
+          "project_name": "Legacy Upgrade",
+          "overall_score": 0.535,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.2,
+            "risk": 0.6,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 2
+        }
+      ],
+      "criteria_weights": {
+        "strategic_alignment": 0.3,
+        "roi": 0.25,
+        "risk": 0.2,
+        "resource_feasibility": 0.15,
+        "compliance": 0.1
+      },
+      "generated_at": "2026-03-01T10:13:13.104657+00:00"
+    },
+    "PORT-20260301103517": {
+      "portfolio_id": "PORT-20260301103517",
+      "cycle": "optimization",
+      "ranked_projects": [
+        {
+          "project_id": "P1",
+          "project_name": "Strategic Data Platform",
+          "overall_score": 0.67,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.5,
+            "risk": 0.9,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 1
+        },
+        {
+          "project_id": "P2",
+          "project_name": "Legacy Upgrade",
+          "overall_score": 0.535,
+          "scores": {
+            "strategic_alignment": 0.7,
+            "roi": 0.2,
+            "risk": 0.6,
+            "resource_feasibility": 0.7,
+            "compliance": 0.5
+          },
+          "recommendation": "defer",
+          "policy_decision": {
+            "decision": "allow",
+            "reasons": [
+              "pe-002: Require policy owner"
+            ]
+          },
+          "rank": 2
+        }
+      ],
+      "criteria_weights": {
+        "strategic_alignment": 0.3,
+        "roi": 0.25,
+        "risk": 0.2,
+        "resource_feasibility": 0.15,
+        "compliance": 0.1
+      },
+      "generated_at": "2026-03-01T10:35:17.404260+00:00"
     }
   }
 }

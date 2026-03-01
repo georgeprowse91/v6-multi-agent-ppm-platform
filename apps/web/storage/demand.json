@@ -1,3 +1,14 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "dem-test-1",
+      "portfolio_id": "demo-portfolio",
+      "title": "Deterministic",
+      "value": 8,
+      "effort": 3,
+      "risk": 2,
+      "cost": 100,
+      "status": "intake"
+    }
+  ]
 }

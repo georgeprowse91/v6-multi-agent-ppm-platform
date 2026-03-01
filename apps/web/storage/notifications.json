@@ -3,7 +3,7 @@
     {
       "id": "notif-s-001",
       "type": "risk",
-      "title": "High risk escalated — executive action needed",
+      "title": "High risk escalated \u2014 executive action needed",
       "message": "Risk 'Identity provider integration delay' has been escalated to the PMO. Rebaseline request awaiting Elena Brooks' approval (SLA: 24h).",
       "severity": "high",
       "created_at": "2026-02-23T08:10:00Z",
@@ -26,7 +26,7 @@
       "id": "notif-s-003",
       "type": "budget",
       "title": "Budget change request awaiting Finance sign-off",
-      "message": "BCR-2026-007 (£25k supplement) submitted by Daniel Ortiz. Sophie Lang must approve within 8 hours. Contingency draw-down of £18k also pending.",
+      "message": "BCR-2026-007 (\u00a325k supplement) submitted by Daniel Ortiz. Sophie Lang must approve within 8 hours. Contingency draw-down of \u00a318k also pending.",
       "severity": "medium",
       "created_at": "2026-02-23T09:00:00Z",
       "read": false,
@@ -36,7 +36,7 @@
     {
       "id": "notif-s-004",
       "type": "workflow",
-      "title": "Workflow failed — Approval Escalation (WF-2042)",
+      "title": "Workflow failed \u2014 Approval Escalation (WF-2042)",
       "message": "Approval Escalation workflow WF-2042 failed after 4m 50s. Agent: Governance. Recommendation: reroute to alternate approver via Workflow Engine.",
       "severity": "medium",
       "created_at": "2026-02-23T09:15:00Z",
@@ -46,7 +46,7 @@
     {
       "id": "notif-s-005",
       "type": "connector",
-      "title": "SAP connector degraded — partial sync",
+      "title": "SAP connector degraded \u2014 partial sync",
       "message": "SAP S/4HANA connector returning partial cost centre metadata. Last successful full sync: 07:30. Retry scheduled in 15 minutes.",
       "severity": "medium",
       "created_at": "2026-02-23T09:30:00Z",
@@ -56,7 +56,7 @@
     {
       "id": "notif-s-006",
       "type": "approval",
-      "title": "Status report approved — Week 18",
+      "title": "Status report approved \u2014 Week 18",
       "message": "Elena Brooks approved the Week 18 status report and steering committee deck. Digital signature verified. Published to audit trail.",
       "severity": "low",
       "created_at": "2026-02-23T10:00:00Z",
@@ -67,8 +67,8 @@
     {
       "id": "notif-s-007",
       "type": "agent",
-      "title": "Agent run completed — Portfolio Strategy Optimisation",
-      "message": "portfolio-optimisation-agent completed portfolio optimisation in 77s. Output: re-ranked project list, resource reallocation scenario (£180k saving), optimisation report.",
+      "title": "Agent run completed \u2014 Portfolio Strategy Optimisation",
+      "message": "portfolio-optimisation-agent completed portfolio optimisation in 77s. Output: re-ranked project list, resource reallocation scenario (\u00a3180k saving), optimisation report.",
       "severity": "low",
       "created_at": "2026-02-23T10:20:00Z",
       "read": true,
@@ -77,8 +77,8 @@
     {
       "id": "notif-s-008",
       "type": "resource",
-      "title": "Resource request approved — 2 engineers allocated",
-      "message": "Maya Chen approved the internal reallocation of 2 engineers from Atlas project to Mobile App Modernization for sprints 5–7. No additional cost incurred.",
+      "title": "Resource request approved \u2014 2 engineers allocated",
+      "message": "Maya Chen approved the internal reallocation of 2 engineers from Atlas project to Mobile App Modernization for sprints 5\u20137. No additional cost incurred.",
       "severity": "low",
       "created_at": "2026-02-23T10:45:00Z",
       "read": true,
@@ -99,12 +99,19 @@
     {
       "id": "notif-s-010",
       "type": "predictive",
-      "title": "Predictive alert — resource capacity approaching limit",
+      "title": "Predictive alert \u2014 resource capacity approaching limit",
       "message": "Analytics model projects portfolio resource utilisation will breach 90% threshold in 3 weeks if current trajectory continues. Recommend capacity review this sprint.",
       "severity": "medium",
       "created_at": "2026-02-23T11:30:00Z",
       "read": false,
       "agent_id": "analytics-insights-agent"
+    },
+    {
+      "id": "ntf-b8892f9ab8",
+      "user_id": "demo-user",
+      "message": "Mentioned in comment cmt-bb991c8ca1",
+      "read": true,
+      "created_at": "2026-03-01T09:43:51.411804+00:00"
     }
   ]
 }

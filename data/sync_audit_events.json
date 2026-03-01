@@ -3097,6 +3097,753 @@
       "retention_period": "P1Y",
       "trace_id": null,
       "correlation_id": null
+    },
+    "evt-c7c94f732199467495e9824bfbf63c27": {
+      "id": "evt-c7c94f732199467495e9824bfbf63c27",
+      "timestamp": "2026-03-01T09:40:21.453579+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094021",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-92f22294bfcf432788d2eb590d74c32c": {
+      "id": "evt-92f22294bfcf432788d2eb590d74c32c",
+      "timestamp": "2026-03-01T09:40:21.457925+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094021",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-27edeb529a044f0db43cc98e1d4fea91": {
+      "id": "evt-27edeb529a044f0db43cc98e1d4fea91",
+      "timestamp": "2026-03-01T09:40:21.528995+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094021",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-c4239fd339ea48ccab5404816901bf15": {
+      "id": "evt-c4239fd339ea48ccab5404816901bf15",
+      "timestamp": "2026-03-01T09:42:03.559171+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094203",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-3c5dcd5ecc964fdc890f71dfb941d9cf": {
+      "id": "evt-3c5dcd5ecc964fdc890f71dfb941d9cf",
+      "timestamp": "2026-03-01T09:42:03.563744+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094203",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-95c50cc948e3454caf31afc7ebe694a5": {
+      "id": "evt-95c50cc948e3454caf31afc7ebe694a5",
+      "timestamp": "2026-03-01T09:42:03.631708+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094203",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-b5003b306190484c9c604dbf6849573b": {
+      "id": "evt-b5003b306190484c9c604dbf6849573b",
+      "timestamp": "2026-03-01T09:42:38.128260+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094238",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-1379ea31402f46cea4f8da60f1c8f920": {
+      "id": "evt-1379ea31402f46cea4f8da60f1c8f920",
+      "timestamp": "2026-03-01T09:42:38.132978+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094238",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-0ab5a645f8164fb79135819c1ee95510": {
+      "id": "evt-0ab5a645f8164fb79135819c1ee95510",
+      "timestamp": "2026-03-01T09:42:38.207589+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094238",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-7bfb99e615ff45cdbbc04fc4487c1679": {
+      "id": "evt-7bfb99e615ff45cdbbc04fc4487c1679",
+      "timestamp": "2026-03-01T09:44:11.673897+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094411",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-853a191c739c4dd4b92bc15ec64d2d2a": {
+      "id": "evt-853a191c739c4dd4b92bc15ec64d2d2a",
+      "timestamp": "2026-03-01T09:44:11.679438+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094411",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-67a2bd0a298649d3b02567ce7aa5b7d5": {
+      "id": "evt-67a2bd0a298649d3b02567ce7aa5b7d5",
+      "timestamp": "2026-03-01T09:44:11.749343+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301094411",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-4dfe1a799f45498d92ee4c4a63b54d2c": {
+      "id": "evt-4dfe1a799f45498d92ee4c4a63b54d2c",
+      "timestamp": "2026-03-01T09:52:07.414424+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301095207",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-b546a62977fc492ab2a8adb7fa36a66c": {
+      "id": "evt-b546a62977fc492ab2a8adb7fa36a66c",
+      "timestamp": "2026-03-01T09:52:07.419526+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301095207",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-5c138c496e64421698b18f84de8c3b1e": {
+      "id": "evt-5c138c496e64421698b18f84de8c3b1e",
+      "timestamp": "2026-03-01T09:52:07.491920+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301095207",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-c281c74bc0fd436486df886731534658": {
+      "id": "evt-c281c74bc0fd436486df886731534658",
+      "timestamp": "2026-03-01T09:59:54.183141+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301095954",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-190d746fb1a745f0aae07365be91f9e9": {
+      "id": "evt-190d746fb1a745f0aae07365be91f9e9",
+      "timestamp": "2026-03-01T09:59:54.188333+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301095954",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-34651a8b20624f4cb384ec89d4dcf886": {
+      "id": "evt-34651a8b20624f4cb384ec89d4dcf886",
+      "timestamp": "2026-03-01T09:59:54.260465+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301095954",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-03745e0f494b4451b1f55ba9037d5f5c": {
+      "id": "evt-03745e0f494b4451b1f55ba9037d5f5c",
+      "timestamp": "2026-03-01T10:04:17.417940+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301100417",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-92d89facbfa240119c8a8e03d058962f": {
+      "id": "evt-92d89facbfa240119c8a8e03d058962f",
+      "timestamp": "2026-03-01T10:04:17.423262+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301100417",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-ffbc8f595c734459b52888015636c39e": {
+      "id": "evt-ffbc8f595c734459b52888015636c39e",
+      "timestamp": "2026-03-01T10:04:17.497207+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301100417",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-7cacd877e0154b4f96a47f467a2c54b0": {
+      "id": "evt-7cacd877e0154b4f96a47f467a2c54b0",
+      "timestamp": "2026-03-01T10:13:10.993642+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301101310",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-bd20313f83a749c883919bdb23b65b65": {
+      "id": "evt-bd20313f83a749c883919bdb23b65b65",
+      "timestamp": "2026-03-01T10:13:10.999046+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301101310",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-b56c465c54e24cd9945db5e269fefb0b": {
+      "id": "evt-b56c465c54e24cd9945db5e269fefb0b",
+      "timestamp": "2026-03-01T10:13:11.079911+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301101311",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-65141e1b535144bb9d6382cba62aa2fc": {
+      "id": "evt-65141e1b535144bb9d6382cba62aa2fc",
+      "timestamp": "2026-03-01T10:35:14.644892+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301103514",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-60444898a98c4fe6935efdb8e13ca68f": {
+      "id": "evt-60444898a98c4fe6935efdb8e13ca68f",
+      "timestamp": "2026-03-01T10:35:14.650437+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.updated",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301103514",
+        "type": "project",
+        "attributes": {
+          "version": 2,
+          "source_system": "jira"
+        }
+      },
+      "metadata": {
+        "version": 2,
+        "source_system": "jira"
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
+    },
+    "evt-5f8c12ab36b541e2a095d0a3ccae3c60": {
+      "id": "evt-5f8c12ab36b541e2a095d0a3ccae3c60",
+      "timestamp": "2026-03-01T10:35:14.727715+00:00",
+      "tenant_id": "tenant-sync",
+      "action": "master_record.created",
+      "outcome": "success",
+      "classification": "internal",
+      "actor": {
+        "id": "data-synchronisation-agent",
+        "type": "service",
+        "roles": []
+      },
+      "resource": {
+        "id": "MASTER-PROJECT-20260301103514",
+        "type": "project",
+        "attributes": {
+          "version": 1
+        }
+      },
+      "metadata": {
+        "version": 1
+      },
+      "legal_basis": "legitimate_interest",
+      "retention_period": "P1Y",
+      "trace_id": null,
+      "correlation_id": null
     }
   }
 }

@@ -1,3 +1,24 @@
 {
-  "budgets": []
+  "budgets": [
+    {
+      "id": "bud-5a45db81",
+      "version": 1,
+      "workspace_id": "demo-program",
+      "amounts": {
+        "capex": 100
+      },
+      "diff": {}
+    },
+    {
+      "id": "bud-6debb0bc",
+      "version": 2,
+      "workspace_id": "demo-program",
+      "amounts": {
+        "capex": 130
+      },
+      "diff": {
+        "capex": 30
+      }
+    }
+  ]
 }
