@@ -775,7 +775,7 @@ class ResourceCapacityAgent(BaseAgent):
 
     def __init__(
         self,
-        agent_id: str = "resource-capacity-management",
+        agent_id: str = "resource-management-agent",
         config: dict[str, Any] | None = None,
     ):
         super().__init__(agent_id, config)

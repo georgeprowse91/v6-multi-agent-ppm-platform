@@ -1,3 +1,7 @@
+# Each entity type is listed in both singular and plural form because the agent
+# looks up validation rules directly by entity_type string without normalising.
+# Both forms are intentionally identical. See schema_registry.yaml for more context.
+# TODO: normalise entity_type lookups in data_sync_agent to allow removing plural entries.
 default:
   - field: id
     required: true

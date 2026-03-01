@@ -1,7 +1,7 @@
 plan_id: plan-158d6b33-0dc0-4969-af37-52b0fc7a77c2
 tasks:
 - task_id: task-1
-  agent_id: financial-management
+  agent_id: financial-management-agent
   action: null
   dependencies: []
   metadata:

@@ -52,7 +52,7 @@ class DemandIntakeAgent(BaseAgent):
     - Pipeline visualization
     """
 
-    def __init__(self, agent_id: str = "demand-intake", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "demand-intake-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
         self.similarity_threshold = config.get("similarity_threshold", 0.85) if config else 0.85
         self.mandatory_fields = (

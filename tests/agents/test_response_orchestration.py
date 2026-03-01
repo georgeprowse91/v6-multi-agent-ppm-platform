@@ -18,7 +18,7 @@ async def test_plan_file_created_during_execution(tmp_path: Path):
     async with httpx.AsyncClient(transport=transport) as client:
         agent = ResponseOrchestrationAgent(
             config={
-                "agent_endpoints": {"financial-management": "http://test/financial"},
+                "agent_endpoints": {"financial-management-agent": "http://test/financial"},
                 "http_client": client,
                 "plans_dir": str(tmp_path),
                 "event_bus": build_test_event_bus(),
@@ -27,7 +27,7 @@ async def test_plan_file_created_during_execution(tmp_path: Path):
         await agent.initialize()
         response = await agent.process(
             {
-                "routing": [{"agent_id": "financial-management"}],
+                "routing": [{"agent_id": "financial-management-agent"}],
                 "parameters": {"project_id": "APOLLO"},
                 "query": "test",
             }
@@ -48,8 +48,8 @@ async def test_plan_payload_matches_schema(tmp_path: Path):
         agent = ResponseOrchestrationAgent(
             config={
                 "agent_endpoints": {
-                    "financial-management": "http://test/financial",
-                    "risk-management": "http://test/risk",
+                    "financial-management-agent": "http://test/financial",
+                    "risk-management-agent": "http://test/risk",
                 },
                 "http_client": client,
                 "plans_dir": str(tmp_path),
@@ -60,10 +60,10 @@ async def test_plan_payload_matches_schema(tmp_path: Path):
         response = await agent.process(
             {
                 "routing": [
-                    {"agent_id": "financial-management"},
+                    {"agent_id": "financial-management-agent"},
                     {
-                        "agent_id": "risk-management",
-                        "depends_on": ["financial-management"],
+                        "agent_id": "risk-management-agent",
+                        "depends_on": ["financial-management-agent"],
                     },
                 ],
                 "parameters": {},
@@ -74,7 +74,7 @@ async def test_plan_payload_matches_schema(tmp_path: Path):
     plan_payload = response.model_dump()["plan"]
     parsed = Plan.model_validate(plan_payload)
     assert parsed.version >= 1
-    assert parsed.tasks[1].dependencies == ["financial-management"]
+    assert parsed.tasks[1].dependencies == ["financial-management-agent"]
 
 
 @pytest.mark.asyncio
@@ -89,7 +89,7 @@ async def test_loading_saved_plan_executes_same_steps(tmp_path: Path):
     async with httpx.AsyncClient(transport=transport) as client:
         agent = ResponseOrchestrationAgent(
             config={
-                "agent_endpoints": {"financial-management": "http://test/financial"},
+                "agent_endpoints": {"financial-management-agent": "http://test/financial"},
                 "http_client": client,
                 "plans_dir": str(tmp_path),
                 "event_bus": build_test_event_bus(),
@@ -100,7 +100,7 @@ async def test_loading_saved_plan_executes_same_steps(tmp_path: Path):
 
         first = await agent.process(
             {
-                "routing": [{"agent_id": "financial-management"}],
+                "routing": [{"agent_id": "financial-management-agent"}],
                 "parameters": {},
                 "query": "test",
             }
@@ -109,7 +109,7 @@ async def test_loading_saved_plan_executes_same_steps(tmp_path: Path):
 
         second = await agent.process(
             {
-                "routing": [{"agent_id": "risk-management"}],
+                "routing": [{"agent_id": "risk-management-agent"}],
                 "plan_id": plan_id,
                 "parameters": {},
                 "query": "test",

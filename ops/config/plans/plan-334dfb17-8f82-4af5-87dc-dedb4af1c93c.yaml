@@ -1,14 +1,14 @@
 plan_id: plan-334dfb17-8f82-4af5-87dc-dedb4af1c93c
 tasks:
 - task_id: task-1
-  agent_id: financial-management
+  agent_id: financial-management-agent
   action: null
   dependencies: []
   metadata:
     priority: null
     intent: null
 - task_id: task-2
-  agent_id: risk-management
+  agent_id: risk-management-agent
   action: null
   dependencies:
   - financial-management

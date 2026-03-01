@@ -17852,8 +17852,8 @@
           "workflow_id": "adaptive:0.5-iteration-sprint-delivery-repeating-cycle:0.5.1-sprint-iteration-planning:_:generate",
           "mode": "sequential",
           "agent_ids": [
-            "intent-router",
-            "project-definition"
+            "intent-router-agent",
+            "scope-definition-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -17931,8 +17931,8 @@
           "workflow_id": "adaptive:0.5-iteration-sprint-delivery-repeating-cycle:0.5.1-sprint-iteration-planning:_:update",
           "mode": "sequential",
           "agent_ids": [
-            "schedule-planning",
-            "program-management"
+            "schedule-planning-agent",
+            "program-management-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18010,7 +18010,7 @@
           "workflow_id": "adaptive:0.5-iteration-sprint-delivery-repeating-cycle:0.5.1-sprint-iteration-planning:_:review",
           "mode": "single",
           "agent_ids": [
-            "project-lifecycle-governance"
+            "lifecycle-governance-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18088,7 +18088,7 @@
           "workflow_id": "adaptive:0.5-iteration-sprint-delivery-repeating-cycle:0.5.1-sprint-iteration-planning:_:approve",
           "mode": "single",
           "agent_ids": [
-            "agent_003_approval_workflow"
+            "approval-workflow-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18166,7 +18166,7 @@
           "workflow_id": "adaptive:0.5-iteration-sprint-delivery-repeating-cycle:0.5.1-sprint-iteration-planning:_:publish",
           "mode": "single",
           "agent_ids": [
-            "response-orchestration"
+            "response-orchestration-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18244,8 +18244,8 @@
           "workflow_id": "predictive:0.5-execution:0.5.2-design-build-deliverables:_:update",
           "mode": "sequential",
           "agent_ids": [
-            "schedule-planning",
-            "program-management"
+            "schedule-planning-agent",
+            "program-management-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18323,7 +18323,7 @@
           "workflow_id": "predictive:0.5-execution:0.5.2-design-build-deliverables:_:review",
           "mode": "single",
           "agent_ids": [
-            "project-lifecycle-governance"
+            "lifecycle-governance-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18401,8 +18401,8 @@
           "workflow_id": "hybrid:0.6-iterative-build-test-sprints-within-a-stage-release:0.6.1-sprint-planning:_:generate",
           "mode": "sequential",
           "agent_ids": [
-            "intent-router",
-            "project-definition"
+            "intent-router-agent",
+            "scope-definition-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18480,8 +18480,8 @@
           "workflow_id": "hybrid:0.6-iterative-build-test-sprints-within-a-stage-release:0.6.1-sprint-planning:_:update",
           "mode": "sequential",
           "agent_ids": [
-            "schedule-planning",
-            "program-management"
+            "schedule-planning-agent",
+            "program-management-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18559,7 +18559,7 @@
           "workflow_id": "hybrid:0.6-iterative-build-test-sprints-within-a-stage-release:0.6.1-sprint-planning:_:review",
           "mode": "single",
           "agent_ids": [
-            "project-lifecycle-governance"
+            "lifecycle-governance-agent"
           ],
           "dag_ref": "adaptive_delivery_workflow",
           "depends_on_templates": [],
@@ -18637,8 +18637,8 @@
           "workflow_id": "predictive:0.4-planning:0.4.2-schedule-planning:_:generate",
           "mode": "sequential",
           "agent_ids": [
-            "business-case-investment",
-            "schedule-planning"
+            "business-case-agent",
+            "schedule-planning-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -18716,8 +18716,8 @@
           "workflow_id": "predictive:0.4-planning:0.4.2-schedule-planning:_:update",
           "mode": "sequential",
           "agent_ids": [
-            "financial-management",
-            "program-management"
+            "financial-management-agent",
+            "program-management-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -18795,7 +18795,7 @@
           "workflow_id": "predictive:0.4-planning:0.4.2-schedule-planning:_:review",
           "mode": "single",
           "agent_ids": [
-            "project-lifecycle-governance"
+            "lifecycle-governance-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -18873,7 +18873,7 @@
           "workflow_id": "predictive:0.4-planning:0.4.2-schedule-planning:_:approve",
           "mode": "single",
           "agent_ids": [
-            "agent_003_approval_workflow"
+            "approval-workflow-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -18951,7 +18951,7 @@
           "workflow_id": "predictive:0.4-planning:0.4.2-schedule-planning:_:publish",
           "mode": "single",
           "agent_ids": [
-            "response-orchestration"
+            "response-orchestration-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -19029,7 +19029,7 @@
           "workflow_id": "adaptive:0.8-governance-monitoring-controls-throughout:0.8.8-steering-portfolio-reporting-and-checkpoints:_:review",
           "mode": "single",
           "agent_ids": [
-            "project-lifecycle-governance"
+            "lifecycle-governance-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -19107,7 +19107,7 @@
           "workflow_id": "adaptive:0.8-governance-monitoring-controls-throughout:0.8.8-steering-portfolio-reporting-and-checkpoints:_:approve",
           "mode": "single",
           "agent_ids": [
-            "agent_003_approval_workflow"
+            "approval-workflow-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -19185,8 +19185,8 @@
           "workflow_id": "hybrid:0.7-stage-gate-assurance-control-runs-parallel:0.7.3-schedule-cost-tracking-at-milestone-level:_:generate",
           "mode": "sequential",
           "agent_ids": [
-            "business-case-investment",
-            "schedule-planning"
+            "business-case-agent",
+            "schedule-planning-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -19264,8 +19264,8 @@
           "workflow_id": "hybrid:0.7-stage-gate-assurance-control-runs-parallel:0.7.3-schedule-cost-tracking-at-milestone-level:_:update",
           "mode": "sequential",
           "agent_ids": [
-            "financial-management",
-            "program-management"
+            "financial-management-agent",
+            "program-management-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -19343,7 +19343,7 @@
           "workflow_id": "hybrid:0.7-stage-gate-assurance-control-runs-parallel:0.7.3-schedule-cost-tracking-at-milestone-level:_:review",
           "mode": "single",
           "agent_ids": [
-            "project-lifecycle-governance"
+            "lifecycle-governance-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -19421,7 +19421,7 @@
           "workflow_id": "hybrid:0.7-stage-gate-assurance-control-runs-parallel:0.7.3-schedule-cost-tracking-at-milestone-level:_:approve",
           "mode": "single",
           "agent_ids": [
-            "agent_003_approval_workflow"
+            "approval-workflow-agent"
           ],
           "dag_ref": "predictive_infrastructure_workflow",
           "depends_on_templates": [],
@@ -19499,8 +19499,8 @@
           "workflow_id": "hybrid:0.8-release-readiness-deployment-transition-gate-2-3-4-depending-on-model:0.8.8-release-sign-off-and-gate-approval-to-proceed-close:_:generate",
           "mode": "sequential",
           "agent_ids": [
-            "project-definition",
-            "program-management"
+            "scope-definition-agent",
+            "program-management-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -19581,7 +19581,7 @@
           "workflow_id": "hybrid:0.8-release-readiness-deployment-transition-gate-2-3-4-depending-on-model:0.8.8-release-sign-off-and-gate-approval-to-proceed-close:_:update",
           "mode": "single",
           "agent_ids": [
-            "project-lifecycle-governance"
+            "lifecycle-governance-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -19662,8 +19662,8 @@
           "workflow_id": "hybrid:0.8-release-readiness-deployment-transition-gate-2-3-4-depending-on-model:0.8.8-release-sign-off-and-gate-approval-to-proceed-close:_:review",
           "mode": "sequential",
           "agent_ids": [
-            "project-lifecycle-governance",
-            "agent_003_approval_workflow"
+            "lifecycle-governance-agent",
+            "approval-workflow-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -19744,7 +19744,7 @@
           "workflow_id": "hybrid:0.8-release-readiness-deployment-transition-gate-2-3-4-depending-on-model:0.8.8-release-sign-off-and-gate-approval-to-proceed-close:_:approve",
           "mode": "single",
           "agent_ids": [
-            "agent_003_approval_workflow"
+            "approval-workflow-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -19825,7 +19825,7 @@
           "workflow_id": "hybrid:0.8-release-readiness-deployment-transition-gate-2-3-4-depending-on-model:0.8.8-release-sign-off-and-gate-approval-to-proceed-close:_:publish",
           "mode": "single",
           "agent_ids": [
-            "response-orchestration"
+            "response-orchestration-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -19906,8 +19906,8 @@
           "workflow_id": "predictive:0.7-closure:0.7.2-obtain-sponsor-customer-formal-acceptance:_:review",
           "mode": "sequential",
           "agent_ids": [
-            "project-lifecycle-governance",
-            "agent_003_approval_workflow"
+            "lifecycle-governance-agent",
+            "approval-workflow-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -19988,7 +19988,7 @@
           "workflow_id": "predictive:0.7-closure:0.7.2-obtain-sponsor-customer-formal-acceptance:_:approve",
           "mode": "single",
           "agent_ids": [
-            "agent_003_approval_workflow"
+            "approval-workflow-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -20069,7 +20069,7 @@
           "workflow_id": "predictive:0.7-closure:0.7.2-obtain-sponsor-customer-formal-acceptance:_:publish",
           "mode": "single",
           "agent_ids": [
-            "response-orchestration"
+            "response-orchestration-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -20150,7 +20150,7 @@
           "workflow_id": "adaptive:0.6-release-planning-deployment-continuous-or-cadenced:0.6.3-conduct-release-readiness-checks:_:update",
           "mode": "single",
           "agent_ids": [
-            "project-lifecycle-governance"
+            "lifecycle-governance-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -20231,8 +20231,8 @@
           "workflow_id": "adaptive:0.6-release-planning-deployment-continuous-or-cadenced:0.6.3-conduct-release-readiness-checks:_:review",
           "mode": "sequential",
           "agent_ids": [
-            "project-lifecycle-governance",
-            "agent_003_approval_workflow"
+            "lifecycle-governance-agent",
+            "approval-workflow-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [
@@ -20313,7 +20313,7 @@
           "workflow_id": "adaptive:0.6-release-planning-deployment-continuous-or-cadenced:0.6.3-conduct-release-readiness-checks:_:publish",
           "mode": "single",
           "agent_ids": [
-            "response-orchestration"
+            "response-orchestration-agent"
           ],
           "dag_ref": "hybrid_transformation_workflow",
           "depends_on_templates": [

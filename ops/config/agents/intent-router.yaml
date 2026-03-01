@@ -1,4 +1,4 @@
-agent_id: intent-router
+agent_id: intent-router-agent
 model: ${INTENT_ROUTER_MODEL}
 allow_injection: false
 prompt_fields:

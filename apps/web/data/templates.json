@@ -156,12 +156,12 @@
       },
       "agent_config": {
         "enabled": [
-          "intent-router",
-          "schedule-planning",
-          "agent_015"
+          "intent-router-agent",
+          "schedule-planning-agent",
+          "risk-management-agent"
         ],
         "disabled": [
-          "financial-management"
+          "financial-management-agent"
         ]
       },
       "connector_config": {
@@ -420,10 +420,10 @@
       },
       "agent_config": {
         "enabled": [
-          "intent-router",
-          "schedule-planning",
-          "financial-management",
-          "agent_015"
+          "intent-router-agent",
+          "schedule-planning-agent",
+          "financial-management-agent",
+          "risk-management-agent"
         ],
         "disabled": []
       },
@@ -683,10 +683,10 @@
       },
       "agent_config": {
         "enabled": [
-          "intent-router",
-          "schedule-planning",
-          "financial-management",
-          "agent_015"
+          "intent-router-agent",
+          "schedule-planning-agent",
+          "financial-management-agent",
+          "risk-management-agent"
         ],
         "disabled": []
       },
@@ -1132,7 +1132,7 @@
       "methodology": "predictive",
       "stage": "initiation",
       "agents": [
-        "project-definition",
+        "scope-definition-agent",
         "lifecycle-governance"
       ]
     },
@@ -1230,7 +1230,7 @@
       "methodology": "hybrid",
       "stage": "initiation",
       "agents": [
-        "project-definition",
+        "scope-definition-agent",
         "adaptive-delivery",
         "lifecycle-governance"
       ]

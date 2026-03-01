@@ -38,7 +38,7 @@ async def get_vendor_profile(vendor_id: str, request: Request) -> VendorProfileR
     if not orchestrator or not orchestrator.initialized:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
 
-    agent = orchestrator.get_agent("agent_013") if orchestrator else None
+    agent = orchestrator.get_agent("vendor-procurement-agent") if orchestrator else None
     if not agent:
         raise HTTPException(status_code=404, detail="Vendor & Procurement agent not available")
 
@@ -61,7 +61,7 @@ async def update_vendor_profile(
     if not orchestrator or not orchestrator.initialized:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
 
-    agent = orchestrator.get_agent("agent_013") if orchestrator else None
+    agent = orchestrator.get_agent("vendor-procurement-agent") if orchestrator else None
     if not agent:
         raise HTTPException(status_code=404, detail="Vendor & Procurement agent not available")
 
@@ -94,7 +94,7 @@ async def list_vendors(
     if not orchestrator or not orchestrator.initialized:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
 
-    agent = orchestrator.get_agent("agent_013") if orchestrator else None
+    agent = orchestrator.get_agent("vendor-procurement-agent") if orchestrator else None
     if not agent:
         raise HTTPException(status_code=404, detail="Vendor & Procurement agent not available")
 

@@ -1,14 +1,14 @@
 plan_id: plan-d442eed5-49ca-4a1a-acd2-3fc6c77bb682
 tasks:
 - task_id: task-1
-  agent_id: schedule-planning
+  agent_id: schedule-planning-agent
   action: get_schedule
   dependencies: []
   metadata:
     priority: null
     intent: schedule_query
 - task_id: task-2
-  agent_id: schedule-planning
+  agent_id: schedule-planning-agent
   action: update_schedule
   dependencies: []
   metadata:

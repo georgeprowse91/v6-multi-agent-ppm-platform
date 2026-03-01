@@ -17,7 +17,7 @@ async def test_plan_is_created_as_pending_approval(tmp_path) -> None:
 
     response = await agent.process(
         {
-            "routing": [{"agent_id": "financial-management"}],
+            "routing": [{"agent_id": "financial-management-agent"}],
             "parameters": {"project_id": "APOLLO"},
             "query": "build plan",
         }
@@ -54,8 +54,8 @@ async def test_approving_updated_plan_executes_modified_tasks(tmp_path) -> None:
                 "require_approval": True,
                 "http_client": client,
                 "agent_endpoints": {
-                    "financial-management": "http://test/financial",
-                    "risk-management": "http://test/risk",
+                    "financial-management-agent": "http://test/financial",
+                    "risk-management-agent": "http://test/risk",
                 },
             }
         )
@@ -64,8 +64,8 @@ async def test_approving_updated_plan_executes_modified_tasks(tmp_path) -> None:
         pending = await agent.process(
             {
                 "routing": [
-                    {"agent_id": "financial-management"},
-                    {"agent_id": "risk-management"},
+                    {"agent_id": "financial-management-agent"},
+                    {"agent_id": "risk-management-agent"},
                 ],
                 "parameters": {"project_id": "APOLLO"},
                 "query": "build plan",
@@ -82,7 +82,7 @@ async def test_approving_updated_plan_executes_modified_tasks(tmp_path) -> None:
                 "plan_updates": [
                     {
                         "task_id": "task-2",
-                        "agent_id": "risk-management",
+                        "agent_id": "risk-management-agent",
                         "action": None,
                         "dependencies": [],
                         "metadata": {},
@@ -118,7 +118,7 @@ async def test_rejected_plan_emits_event_and_does_not_execute(tmp_path) -> None:
 
     pending = await agent.process(
         {
-            "routing": [{"agent_id": "financial-management"}],
+            "routing": [{"agent_id": "financial-management-agent"}],
             "parameters": {},
             "query": "build plan",
         }

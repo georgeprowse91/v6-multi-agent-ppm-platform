@@ -33,7 +33,7 @@ async def research_project_risks(
     if not orchestrator or not orchestrator.initialized:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
 
-    agent = orchestrator.get_agent("agent_015") if orchestrator else None
+    agent = orchestrator.get_agent("risk-management-agent") if orchestrator else None
     if not agent:
         raise HTTPException(status_code=404, detail="Risk Management agent not available")
 

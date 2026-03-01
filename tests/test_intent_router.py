@@ -20,7 +20,7 @@ async def test_intent_router_initialization():
     """Test intent router initialization."""
     agent = IntentRouterAgent()
 
-    assert agent.agent_id == "intent-router"
+    assert agent.agent_id == "intent-router-agent"
     assert len(agent.supported_intents) > 0
 
     await agent.initialize()
@@ -98,7 +98,7 @@ async def test_agent_routing():
     assert result["success"] is True
     routing = result["data"]["routing"]
     assert len(routing) > 0
-    assert any("financial-management" == r["agent_id"] for r in routing)
+    assert any("financial-management-agent" == r["agent_id"] for r in routing)
 
 
 @pytest.mark.asyncio

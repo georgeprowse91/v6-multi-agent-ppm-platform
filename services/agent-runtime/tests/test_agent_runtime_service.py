@@ -33,21 +33,21 @@ def test_list_agents_includes_catalog() -> None:
     assert response.status_code == 200
     payload = response.json()
     agent_ids = {agent["agent_id"] for agent in payload}
-    assert "intent-router" in agent_ids
-    assert "response-orchestration" in agent_ids
+    assert "intent-router-agent" in agent_ids
+    assert "response-orchestration-agent" in agent_ids
     assert len(agent_ids) == 25
 
 
 def test_intent_router_routes_demand_intake() -> None:
     response = client.post(
-        "/v1/agents/intent-router/execute",
+        "/v1/agents/intent-router-agent/execute",
         json={"payload": {"query": "Submit a demand intake request for a new project idea"}},
     )
     assert response.status_code == 200
     payload = response.json()
     assert payload["success"] is True
     routing = payload["data"]["routing"]
-    assert any(route["agent_id"] == "demand-intake" for route in routing)
+    assert any(route["agent_id"] == "demand-intake-agent" for route in routing)
 
 
 def test_orchestration_config_drives_execution() -> None:
@@ -55,7 +55,7 @@ def test_orchestration_config_drives_execution() -> None:
         "/v1/orchestration/config",
         json={
             "default_routing": [
-                {"agent_id": "demand-intake", "action": "get_pipeline", "depends_on": []}
+                {"agent_id": "demand-intake-agent", "action": "get_pipeline", "depends_on": []}
             ],
             "last_updated_by": "tests",
         },
@@ -85,7 +85,7 @@ def test_connector_action_is_returned(monkeypatch) -> None:
 
     monkeypatch.setattr(module.runtime.connector_client, "execute", _fake_execute)
     response = client.post(
-        "/v1/agents/demand-intake/execute",
+        "/v1/agents/demand-intake-agent/execute",
         json={
             "payload": {
                 "action": "get_pipeline",
@@ -108,7 +108,7 @@ def test_connector_action_is_returned(monkeypatch) -> None:
 
 def test_approval_workflow_escalation_metadata() -> None:
     response = client.post(
-        "/v1/agents/agent_003_approval_workflow/execute",
+        "/v1/agents/approval-workflow-agent/execute",
         json={
             "payload": {
                 "request_type": "budget_change",

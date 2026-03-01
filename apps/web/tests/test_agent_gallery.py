@@ -34,7 +34,7 @@ def test_registry_lists_agents_from_repo_evidence(client, monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert len(payload) >= 25
-    assert any(entry["agent_id"] == "intent-router" for entry in payload)
+    assert any(entry["agent_id"] == "intent-router-agent" for entry in payload)
 
 
 def test_project_settings_initialise_and_persist(client, monkeypatch):
@@ -85,7 +85,7 @@ def test_non_admin_cannot_modify(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
     _set_roles(monkeypatch, "project_viewer")
     response = client.patch(
-        "/api/agent-gallery/demo-1/agents/intent-router",
+        "/api/agent-gallery/demo-1/agents/intent-router-agent",
         json={"enabled": False},
     )
     assert response.status_code == 403
@@ -95,7 +95,7 @@ def test_required_agent_cannot_be_disabled(client, monkeypatch):
     _set_tenant(monkeypatch, "tenant-a")
     _set_roles(monkeypatch, "tenant_owner")
     response = client.patch(
-        "/api/agent-gallery/demo-1/agents/intent-router",
+        "/api/agent-gallery/demo-1/agents/intent-router-agent",
         json={"enabled": False},
     )
     assert response.status_code == 422
@@ -105,7 +105,7 @@ def test_tenant_isolation(client, monkeypatch):
     _set_roles(monkeypatch, "tenant_owner")
     _set_tenant(monkeypatch, "tenant-a")
     response = client.patch(
-        "/api/agent-gallery/demo-1/agents/demand-intake",
+        "/api/agent-gallery/demo-1/agents/demand-intake-agent",
         json={"enabled": False, "config": {"note": "tenant-a"}},
     )
     assert response.status_code == 200
@@ -114,6 +114,6 @@ def test_tenant_isolation(client, monkeypatch):
     response = client.get("/api/agent-gallery/demo-1")
     assert response.status_code == 200
     payload = response.json()
-    agent = next(agent for agent in payload["agents"] if agent["agent_id"] == "demand-intake")
+    agent = next(agent for agent in payload["agents"] if agent["agent_id"] == "demand-intake-agent")
     assert agent["config"] in ({}, {"note": "tenant-b"})
     assert agent["enabled"] is True

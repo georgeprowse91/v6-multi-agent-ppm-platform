@@ -468,24 +468,24 @@
     "base_url": "https://staging.api.ppm-platform.com",
     "flow_steps": [
       {
-        "name": "project-definition",
-        "target_url": "/v1/agents/project-definition/execute",
+        "name": "scope-definition-agent",
+        "target_url": "/v1/agents/scope-definition-agent/execute",
         "method": "POST",
         "payload": {
           "action": "generate_charter"
         }
       },
       {
-        "name": "schedule-planning",
-        "target_url": "/v1/agents/schedule-planning/execute",
+        "name": "schedule-planning-agent",
+        "target_url": "/v1/agents/schedule-planning-agent/execute",
         "method": "POST",
         "payload": {
           "action": "generate_schedule"
         }
       },
       {
-        "name": "resource-capacity",
-        "target_url": "/v1/agents/resource-capacity/execute",
+        "name": "resource-management-agent",
+        "target_url": "/v1/agents/resource-management-agent/execute",
         "method": "POST",
         "payload": {
           "action": "analyze_capacity"
@@ -533,24 +533,24 @@
     "base_url": "https://staging.api.ppm-platform.com",
     "flow_steps": [
       {
-        "name": "risk-management",
-        "target_url": "/v1/agents/risk-management/execute",
+        "name": "risk-management-agent",
+        "target_url": "/v1/agents/risk-management-agent/execute",
         "method": "POST",
         "payload": {
           "action": "assess_risks"
         }
       },
       {
-        "name": "compliance-regulatory",
-        "target_url": "/v1/agents/compliance-regulatory/execute",
+        "name": "compliance-governance-agent",
+        "target_url": "/v1/agents/compliance-governance-agent/execute",
         "method": "POST",
         "payload": {
           "action": "run_compliance_check"
         }
       },
       {
-        "name": "approval-workflow",
-        "target_url": "/v1/agents/approval-workflow/execute",
+        "name": "approval-workflow-agent",
+        "target_url": "/v1/agents/approval-workflow-agent/execute",
         "method": "POST",
         "payload": {
           "action": "submit_for_approval"

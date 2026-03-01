@@ -38,7 +38,7 @@ class ReleaseDeploymentAgent(BaseAgent):
     - Deployment metrics and reporting
     """
 
-    def __init__(self, agent_id: str = "agent_018", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "release-deployment-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

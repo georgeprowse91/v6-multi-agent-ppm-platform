@@ -249,7 +249,7 @@ def _get_runtime(request: Request) -> WorkflowRuntime:
     orchestrator = getattr(request.app.state, "orchestrator", None)
     if not orchestrator:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
-    approval_agent = orchestrator.get_agent("agent_003_approval_workflow")
+    approval_agent = orchestrator.get_agent("approval-workflow-agent")
     if not approval_agent:
         raise HTTPException(status_code=503, detail="Approval agent unavailable")
     agent_client = get_agent_client()

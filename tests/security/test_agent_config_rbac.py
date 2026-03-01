@@ -38,7 +38,7 @@ def _client(monkeypatch, tmp_path: Path) -> TestClient:
 
 def test_agent_config_requires_auth(monkeypatch, tmp_path) -> None:
     client = _client(monkeypatch, tmp_path)
-    response = client.patch("/v1/agents/config/agent-01-intent-router", json={"enabled": False})
+    response = client.patch("/v1/agents/config/agent-01-intent-router-agent", json={"enabled": False})
     assert response.status_code == 401
 
 
@@ -46,7 +46,7 @@ def test_agent_config_rejects_insufficient_role(monkeypatch, tmp_path) -> None:
     client = _client(monkeypatch, tmp_path)
     token = _make_token("TEAM_MEMBER")
     response = client.patch(
-        "/v1/agents/config/agent-01-intent-router",
+        "/v1/agents/config/agent-01-intent-router-agent",
         json={"enabled": False},
         headers={"Authorization": f"Bearer {token}", "X-Tenant-ID": "tenant-alpha"},
     )

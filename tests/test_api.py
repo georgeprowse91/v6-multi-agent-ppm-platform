@@ -33,8 +33,8 @@ def mock_orchestrator():
             "success": True,
             "data": {"response": "Test response"},
             "metadata": {
-                "agent_id": "intent-router",
-                "catalog_id": "intent-router",
+                "agent_id": "intent-router-agent",
+                "catalog_id": "intent-router-agent",
                 "timestamp": "2024-01-01T00:00:00Z",
                 "correlation_id": "test-corr-id",
             },

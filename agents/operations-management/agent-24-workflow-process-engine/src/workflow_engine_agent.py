@@ -41,7 +41,7 @@ class WorkflowEngineAgent(BaseAgent):
     - Exception handling and compensation
     """
 
-    def __init__(self, agent_id: str = "agent_024", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "workflow-engine-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         config = config or {}
@@ -54,7 +54,7 @@ class WorkflowEngineAgent(BaseAgent):
         self.durable_config_path = Path(
             config.get(
                 "durable_workflows_config",
-                os.getenv("DURABLE_WORKFLOW_CONFIG", "ops/config/agent-24/durable_workflows.yaml"),
+                os.getenv("DURABLE_WORKFLOW_CONFIG", "ops/config/agents/agent-24/durable_workflows.yaml"),
             )
         )
         self.monitoring_enabled = config.get("enable_monitoring", True)
@@ -65,7 +65,7 @@ class WorkflowEngineAgent(BaseAgent):
         self.workflow_templates_path = Path(
             config.get(
                 "workflow_templates_path",
-                os.getenv("WORKFLOW_TEMPLATES_PATH", "ops/config/agent-24/workflow_templates.yaml"),
+                os.getenv("WORKFLOW_TEMPLATES_PATH", "ops/config/agents/agent-24/workflow_templates.yaml"),
             )
         )
         self.rbac_policy = config.get(

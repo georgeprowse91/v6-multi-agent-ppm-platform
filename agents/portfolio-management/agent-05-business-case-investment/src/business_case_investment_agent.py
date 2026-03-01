@@ -48,7 +48,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
     """
 
     def __init__(
-        self, agent_id: str = "business-case-investment", config: dict[str, Any] | None = None
+        self, agent_id: str = "business-case-agent", config: dict[str, Any] | None = None
     ):
         super().__init__(agent_id, config)
 

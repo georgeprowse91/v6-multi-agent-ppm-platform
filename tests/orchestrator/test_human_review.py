@@ -43,7 +43,7 @@ async def test_high_risk_action_requires_human_review_and_can_be_approved() -> N
         [
             AgentTask(
                 task_id="risk-task",
-                agent=RiskRecommendationAgent("agent-15-risk-management"),
+                agent=RiskRecommendationAgent("agent-15-risk-management-agent"),
             )
         ],
         context={"correlation_id": "corr-approve"},
@@ -75,7 +75,7 @@ async def test_high_risk_action_can_be_rejected_by_human_review() -> None:
             [
                 AgentTask(
                     task_id="risk-task",
-                    agent=RiskRecommendationAgent("agent-15-risk-management"),
+                    agent=RiskRecommendationAgent("agent-15-risk-management-agent"),
                 )
             ],
             context={"correlation_id": "corr-reject"},

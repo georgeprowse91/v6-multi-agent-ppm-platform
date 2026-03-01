@@ -387,7 +387,7 @@ class AgentConfigStore:
         # Core Agents
         agents["agent-01-intent-router"] = AgentConfig(
             catalog_id="agent-01-intent-router",
-            agent_id="intent-router",
+            agent_id="intent-router-agent",
             display_name="Intent Router",
             description="Routes user queries to appropriate specialized agents",
             category=AgentCategory.CORE,
@@ -408,7 +408,7 @@ class AgentConfigStore:
 
         agents["agent-02-response-orchestration"] = AgentConfig(
             catalog_id="agent-02-response-orchestration",
-            agent_id="response-orchestration",
+            agent_id="response-orchestration-agent",
             display_name="Response Orchestration",
             description="Orchestrates responses from multiple agents",
             category=AgentCategory.CORE,
@@ -439,7 +439,7 @@ class AgentConfigStore:
         # Governance Agents
         agents["agent-03-approval-workflow"] = AgentConfig(
             catalog_id="agent-03-approval-workflow",
-            agent_id="agent_003_approval_workflow",
+            agent_id="approval-workflow-agent",
             display_name="Approval Workflow",
             description="Manages approval workflows and gate reviews",
             category=AgentCategory.GOVERNANCE,
@@ -450,7 +450,7 @@ class AgentConfigStore:
         # Portfolio Agents
         agents["agent-04-demand-intake"] = AgentConfig(
             catalog_id="agent-04-demand-intake",
-            agent_id="demand-intake",
+            agent_id="demand-intake-agent",
             display_name="Demand Intake",
             description="Handles intake of new project demands and requests",
             category=AgentCategory.PORTFOLIO,
@@ -460,7 +460,7 @@ class AgentConfigStore:
 
         agents["agent-05-business-case-investment"] = AgentConfig(
             catalog_id="agent-05-business-case-investment",
-            agent_id="business-case-investment",
+            agent_id="business-case-agent",
             display_name="Business Case & Investment",
             description="Analyzes business cases and investment decisions",
             category=AgentCategory.PORTFOLIO,
@@ -470,7 +470,7 @@ class AgentConfigStore:
 
         agents["agent-06-portfolio-strategy-optimisation"] = AgentConfig(
             catalog_id="agent-06-portfolio-strategy-optimisation",
-            agent_id="portfolio-strategy-optimization",
+            agent_id="portfolio-optimisation-agent",
             display_name="Portfolio Strategy & Optimization",
             description="Optimizes portfolio mix and strategic alignment",
             category=AgentCategory.PORTFOLIO,
@@ -481,7 +481,7 @@ class AgentConfigStore:
         # Delivery Agents
         agents["agent-07-program-management"] = AgentConfig(
             catalog_id="agent-07-program-management",
-            agent_id="program-management",
+            agent_id="program-management-agent",
             display_name="Program Management",
             description="Manages programs and cross-project coordination",
             category=AgentCategory.DELIVERY,
@@ -491,7 +491,7 @@ class AgentConfigStore:
 
         agents["agent-08-project-definition-scope"] = AgentConfig(
             catalog_id="agent-08-project-definition-scope",
-            agent_id="project-definition",
+            agent_id="scope-definition-agent",
             display_name="Project Definition & Scope",
             description="Defines project scope and deliverables",
             category=AgentCategory.DELIVERY,
@@ -519,7 +519,7 @@ class AgentConfigStore:
 
         agents["agent-09-lifecycle-governance"] = AgentConfig(
             catalog_id="agent-09-lifecycle-governance",
-            agent_id="project-lifecycle-governance",
+            agent_id="lifecycle-governance-agent",
             display_name="Project Lifecycle & Governance",
             description="Manages project lifecycle and governance processes",
             category=AgentCategory.GOVERNANCE,
@@ -530,7 +530,7 @@ class AgentConfigStore:
         # Schedule & Planning Agent - with detailed parameters
         agents["agent-10-schedule-planning"] = AgentConfig(
             catalog_id="agent-10-schedule-planning",
-            agent_id="schedule-planning",
+            agent_id="schedule-planning-agent",
             display_name="Schedule & Planning",
             description="Manages project schedules, timelines, and critical path analysis",
             category=AgentCategory.DELIVERY,
@@ -704,7 +704,7 @@ class AgentConfigStore:
 
         agents["agent-11-resource-capacity"] = AgentConfig(
             catalog_id="agent-11-resource-capacity",
-            agent_id="resource-capacity-management",
+            agent_id="resource-management-agent",
             display_name="Resource & Capacity",
             description="Manages resource allocation and capacity planning",
             category=AgentCategory.DELIVERY,
@@ -715,7 +715,7 @@ class AgentConfigStore:
         # Financial Management Agent - with detailed parameters
         agents["agent-12-financial-management"] = AgentConfig(
             catalog_id="agent-12-financial-management",
-            agent_id="financial-management",
+            agent_id="financial-management-agent",
             display_name="Financial Management",
             description="Manages project finances, budgets, forecasts, and cost tracking",
             category=AgentCategory.PORTFOLIO,
@@ -783,7 +783,7 @@ class AgentConfigStore:
         # Operations Agents
         agents["agent-13-vendor-procurement"] = AgentConfig(
             catalog_id="agent-13-vendor-procurement",
-            agent_id="agent_013",
+            agent_id="vendor-procurement-agent",
             display_name="Vendor & Procurement",
             description="Manages vendor relationships and procurement processes",
             category=AgentCategory.OPERATIONS,
@@ -851,7 +851,7 @@ class AgentConfigStore:
 
         agents["agent-14-quality-management"] = AgentConfig(
             catalog_id="agent-14-quality-management",
-            agent_id="agent_014",
+            agent_id="quality-management-agent",
             display_name="Quality Management",
             description="Manages quality assurance and quality control processes",
             category=AgentCategory.OPERATIONS,
@@ -898,7 +898,7 @@ class AgentConfigStore:
         # Risk & Issue Management Agent - with detailed parameters
         agents["agent-15-risk-issue-management"] = AgentConfig(
             catalog_id="agent-15-risk-issue-management",
-            agent_id="agent_015",
+            agent_id="risk-management-agent",
             display_name="Risk & Issue Management",
             description="Identifies, assesses, and manages project risks and issues",
             category=AgentCategory.OPERATIONS,
@@ -974,7 +974,7 @@ class AgentConfigStore:
         # Platform Agents
         agents["agent-16-compliance-regulatory"] = AgentConfig(
             catalog_id="agent-16-compliance-regulatory",
-            agent_id="agent_016",
+            agent_id="compliance-governance-agent",
             display_name="Compliance & Regulatory",
             description="Manages compliance requirements and regulatory adherence",
             category=AgentCategory.GOVERNANCE,
@@ -1003,7 +1003,7 @@ class AgentConfigStore:
 
         agents["agent-17-change-configuration"] = AgentConfig(
             catalog_id="agent-17-change-configuration",
-            agent_id="agent_017",
+            agent_id="change-control-agent",
             display_name="Change & Configuration",
             description="Manages change requests and configuration management",
             category=AgentCategory.OPERATIONS,
@@ -1056,7 +1056,7 @@ class AgentConfigStore:
 
         agents["agent-18-release-deployment"] = AgentConfig(
             catalog_id="agent-18-release-deployment",
-            agent_id="agent_018",
+            agent_id="release-deployment-agent",
             display_name="Release & Deployment",
             description="Manages release planning and deployment coordination",
             category=AgentCategory.OPERATIONS,
@@ -1102,7 +1102,7 @@ class AgentConfigStore:
 
         agents["agent-19-knowledge-document-management"] = AgentConfig(
             catalog_id="agent-19-knowledge-document-management",
-            agent_id="agent_019",
+            agent_id="knowledge-management-agent",
             display_name="Knowledge & Document Management",
             description="Manages project documentation and knowledge base",
             category=AgentCategory.PLATFORM,
@@ -1169,7 +1169,7 @@ class AgentConfigStore:
 
         agents["agent-20-continuous-improvement-process-mining"] = AgentConfig(
             catalog_id="agent-20-continuous-improvement-process-mining",
-            agent_id="agent_020",
+            agent_id="continuous-improvement-agent",
             display_name="Continuous Improvement",
             description="Analyzes processes and identifies improvement opportunities",
             category=AgentCategory.PLATFORM,
@@ -1216,7 +1216,7 @@ class AgentConfigStore:
 
         agents["agent-21-stakeholder-comms"] = AgentConfig(
             catalog_id="agent-21-stakeholder-comms",
-            agent_id="agent_021",
+            agent_id="stakeholder-communications-agent",
             display_name="Stakeholder & Communications",
             description="Manages stakeholder engagement and communications",
             category=AgentCategory.PLATFORM,
@@ -1253,7 +1253,7 @@ class AgentConfigStore:
 
         agents["agent-22-analytics-insights"] = AgentConfig(
             catalog_id="agent-22-analytics-insights",
-            agent_id="agent_022",
+            agent_id="analytics-insights-agent",
             display_name="Analytics & Insights",
             description="Provides analytics, dashboards, and business insights",
             category=AgentCategory.PLATFORM,
@@ -1292,7 +1292,7 @@ class AgentConfigStore:
 
         agents["agent-23-data-synchronisation-quality"] = AgentConfig(
             catalog_id="agent-23-data-synchronisation-quality",
-            agent_id="agent_023",
+            agent_id="data-synchronisation-agent",
             display_name="Data Synchronization & Quality",
             description="Ensures data quality and synchronization across systems",
             category=AgentCategory.PLATFORM,
@@ -1330,7 +1330,7 @@ class AgentConfigStore:
 
         agents["agent-24-workflow-process-engine"] = AgentConfig(
             catalog_id="agent-24-workflow-process-engine",
-            agent_id="agent_024",
+            agent_id="workflow-engine-agent",
             display_name="Workflow & Process Engine",
             description="Executes and manages automated workflows",
             category=AgentCategory.PLATFORM,
@@ -1369,7 +1369,7 @@ class AgentConfigStore:
 
         agents["agent-25-system-health-monitoring"] = AgentConfig(
             catalog_id="agent-25-system-health-monitoring",
-            agent_id="agent_025",
+            agent_id="system-health-agent",
             display_name="System Health & Monitoring",
             description="Monitors system health and performance",
             category=AgentCategory.PLATFORM,

@@ -2,7 +2,7 @@
   "agents": {
     "agent-15-risk-issue-management": {
       "catalog_id": "agent-15-risk-issue-management",
-      "agent_id": "agent_015",
+      "agent_id": "risk-management-agent",
       "display_name": "Risk & Issue Management",
       "description": "Identifies, assesses, and manages project risks and issues",
       "category": "operations",
@@ -14,7 +14,12 @@
           "description": "Method for assessing risk severity",
           "param_type": "select",
           "default_value": "probability_impact",
-          "options": ["probability_impact", "monte_carlo", "qualitative", "quantitative"],
+          "options": [
+            "probability_impact",
+            "monte_carlo",
+            "qualitative",
+            "quantitative"
+          ],
           "required": true
         },
         {
@@ -38,20 +43,28 @@
           "display_name": "Risk Search Keywords",
           "description": "Extra keywords appended to external risk queries",
           "param_type": "string_list",
-          "default_value": ["risk", "incident", "supplier"],
+          "default_value": [
+            "risk",
+            "incident",
+            "supplier"
+          ],
           "required": false
         }
       ],
-      "capabilities": ["risk_identification", "risk_assessment", "issue_tracking"],
+      "capabilities": [
+        "risk_identification",
+        "risk_assessment",
+        "issue_tracking"
+      ],
       "updated_at": "2026-01-27T12:00:00Z",
       "updated_by": "admin"
     }
   },
   "project_configs": {
     "project-apollo": {
-      "agent_015": {
+      "risk-management-agent": {
         "project_id": "project-apollo",
-        "agent_id": "agent_015",
+        "agent_id": "risk-management-agent",
         "enabled": true,
         "parameter_overrides": {
           "risk_assessment_method": "monte_carlo"

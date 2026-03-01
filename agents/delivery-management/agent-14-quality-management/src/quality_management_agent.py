@@ -48,7 +48,7 @@ class QualityManagementAgent(BaseAgent):
     - Compliance and standards management
     """
 
-    def __init__(self, agent_id: str = "agent_014", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "quality-management-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

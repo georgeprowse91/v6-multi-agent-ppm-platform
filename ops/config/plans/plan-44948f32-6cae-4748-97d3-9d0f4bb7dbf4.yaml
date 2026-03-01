@@ -1,7 +1,7 @@
 plan_id: plan-44948f32-6cae-4748-97d3-9d0f4bb7dbf4
 tasks:
 - task_id: task-1
-  agent_id: risk-management
+  agent_id: risk-management-agent
   action: null
   dependencies: []
   metadata:

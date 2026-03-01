@@ -326,7 +326,7 @@ class AnalyticsInsightsAgent(BaseAgent):
     - Portfolio health aggregation from lifecycle events
     """
 
-    def __init__(self, agent_id: str = "agent_022", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "analytics-insights-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

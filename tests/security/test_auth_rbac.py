@@ -91,7 +91,7 @@ def test_rbac_allows_portfolio_admin(monkeypatch) -> None:
             "data": {"message": "ok"},
             "metadata": {
                 "agent_id": "router",
-                "catalog_id": "intent-router",
+                "catalog_id": "intent-router-agent",
                 "timestamp": "2024-01-01T00:00:00Z",
                 "correlation_id": "corr-123",
             },

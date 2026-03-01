@@ -207,7 +207,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
     - Stakeholder engagement dashboards
     """
 
-    def __init__(self, agent_id: str = "agent_021", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "stakeholder-communications-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

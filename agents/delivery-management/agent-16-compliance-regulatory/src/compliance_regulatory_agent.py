@@ -141,7 +141,7 @@ class ComplianceRegulatoryAgent(BaseAgent):
     - Regulatory change monitoring
     """
 
-    def __init__(self, agent_id: str = "agent_016", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "compliance-governance-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

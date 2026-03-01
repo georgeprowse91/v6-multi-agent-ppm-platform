@@ -9,7 +9,7 @@ import pytest
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parents[3]
 SRC_DIR = TESTS_DIR.parent / "src"
-APPROVAL_SRC = REPO_ROOT / "agents" / "core-orchestration" / "agent-03-approval-workflow" / "src"
+APPROVAL_SRC = REPO_ROOT / "agents" / "core-orchestration" / "agent-03-approval-workflow-agent" / "src"
 CONTRACTS_SRC = REPO_ROOT / "packages" / "contracts" / "src"
 OBSERVABILITY_SRC = REPO_ROOT / "packages" / "observability" / "src"
 sys.path.extend(

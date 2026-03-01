@@ -441,7 +441,7 @@ class RiskManagementAgent(BaseAgent):
     - Monte Carlo simulation
     """
 
-    def __init__(self, agent_id: str = "agent_015", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "risk-management-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

@@ -1,15 +1,15 @@
 # Optional per-agent demo participation toggles.
 # Agents not listed default to demoEnabled: false.
 agents:
-  - agentId: intent-router
+  - agentId: intent-router-agent
     demoEnabled: true
-  - agentId: response-orchestration
+  - agentId: response-orchestration-agent
     demoEnabled: true
-  - agentId: demand-intake
+  - agentId: demand-intake-agent
     demoEnabled: true
-  - agentId: program-management
+  - agentId: program-management-agent
     demoEnabled: true
-  - agentId: project-lifecycle-governance
+  - agentId: lifecycle-governance-agent
     demoEnabled: true
-  - agentId: agent_023
+  - agentId: data-synchronisation-agent
     demoEnabled: true

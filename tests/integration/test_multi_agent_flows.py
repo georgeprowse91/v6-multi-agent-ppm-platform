@@ -45,7 +45,7 @@ async def orchestration_agent() -> ResponseOrchestrationAgent:
 async def test_portfolio_intake_to_business_case(
     orchestration_agent: ResponseOrchestrationAgent,
 ) -> None:
-    intake_connector = MockConnector(data={"source": "demand-intake"})
+    intake_connector = MockConnector(data={"source": "demand-intake-agent"})
     business_case_connector = MockConnector(data={"source": "business-case"})
 
     demand_intake_agent = MockAgent(
@@ -70,18 +70,18 @@ async def test_portfolio_intake_to_business_case(
     )
 
     orchestration_agent.agent_registry = {
-        "agent-04-demand-intake": demand_intake_agent,
-        "agent-05-business-case-investment": business_case_agent,
+        "agent-04-demand-intake-agent": demand_intake_agent,
+        "agent-05-business-case-agent": business_case_agent,
     }
 
     response = await orchestration_agent.process(
         {
             "routing": [
-                {"agent_id": "agent-04-demand-intake", "action": "submit_request"},
+                {"agent_id": "agent-04-demand-intake-agent", "action": "submit_request"},
                 {
-                    "agent_id": "agent-05-business-case-investment",
+                    "agent_id": "agent-05-business-case-agent",
                     "action": "generate_business_case",
-                    "depends_on": ["agent-04-demand-intake"],
+                    "depends_on": ["agent-04-demand-intake-agent"],
                 },
             ],
             "parameters": {
@@ -101,11 +101,11 @@ async def test_portfolio_intake_to_business_case(
 
     assert payload["execution_summary"]["successful"] == 2
     assert payload["execution_summary"]["failed"] == 0
-    assert "agent-04-demand-intake" in payload["aggregated_response"]
-    assert "agent-05-business-case-investment" in payload["aggregated_response"]
+    assert "agent-04-demand-intake-agent" in payload["aggregated_response"]
+    assert "agent-05-business-case-agent" in payload["aggregated_response"]
 
-    intake_response = payload["aggregated_response"]["agent-04-demand-intake"]
-    business_case_response = payload["aggregated_response"]["agent-05-business-case-investment"]
+    intake_response = payload["aggregated_response"]["agent-04-demand-intake-agent"]
+    business_case_response = payload["aggregated_response"]["agent-05-business-case-agent"]
     assert intake_response["classification"] == "project"
     assert intake_response["demand_id"] == "DEM-4201"
     assert business_case_response["demand_id"] == intake_response["demand_id"]
@@ -130,24 +130,24 @@ async def test_project_definition_schedule_planning_resource_capacity_flow(
     )
 
     orchestration_agent.agent_registry = {
-        "project-definition": project_definition_agent,
-        "schedule-planning": schedule_planning_agent,
-        "resource-capacity": resource_capacity_agent,
+        "scope-definition-agent": project_definition_agent,
+        "schedule-planning-agent": schedule_planning_agent,
+        "resource-management-agent": resource_capacity_agent,
     }
 
     response = await orchestration_agent.process(
         {
             "routing": [
-                {"agent_id": "project-definition", "action": "generate_charter"},
+                {"agent_id": "scope-definition-agent", "action": "generate_charter"},
                 {
-                    "agent_id": "schedule-planning",
+                    "agent_id": "schedule-planning-agent",
                     "action": "generate_schedule",
-                    "depends_on": ["project-definition"],
+                    "depends_on": ["scope-definition-agent"],
                 },
                 {
-                    "agent_id": "resource-capacity",
+                    "agent_id": "resource-management-agent",
                     "action": "analyze_capacity",
-                    "depends_on": ["schedule-planning"],
+                    "depends_on": ["schedule-planning-agent"],
                 },
             ],
             "parameters": {"project_name": "Apollo"},
@@ -160,9 +160,9 @@ async def test_project_definition_schedule_planning_resource_capacity_flow(
 
     assert payload["execution_summary"]["successful"] == 3
     assert payload["execution_summary"]["failed"] == 0
-    assert payload["aggregated_response"]["project-definition"]["project_id"] == "PROJ-44"
-    assert payload["aggregated_response"]["schedule-planning"]["schedule_id"] == "SCH-44"
-    assert payload["aggregated_response"]["resource-capacity"]["resource_capacity"]["gap_fte"] == 2
+    assert payload["aggregated_response"]["scope-definition-agent"]["project_id"] == "PROJ-44"
+    assert payload["aggregated_response"]["schedule-planning-agent"]["schedule_id"] == "SCH-44"
+    assert payload["aggregated_response"]["resource-management-agent"]["resource_capacity"]["gap_fte"] == 2
 
 
 @pytest.mark.asyncio
@@ -178,24 +178,24 @@ async def test_risk_management_compliance_approval_flow(
     )
 
     orchestration_agent.agent_registry = {
-        "risk-management": risk_agent,
-        "compliance-regulatory": compliance_agent,
-        "approval-workflow": approval_agent,
+        "risk-management-agent": risk_agent,
+        "compliance-governance-agent": compliance_agent,
+        "approval-workflow-agent": approval_agent,
     }
 
     response = await orchestration_agent.process(
         {
             "routing": [
-                {"agent_id": "risk-management", "action": "assess_risks"},
+                {"agent_id": "risk-management-agent", "action": "assess_risks"},
                 {
-                    "agent_id": "compliance-regulatory",
+                    "agent_id": "compliance-governance-agent",
                     "action": "run_compliance_check",
-                    "depends_on": ["risk-management"],
+                    "depends_on": ["risk-management-agent"],
                 },
                 {
-                    "agent_id": "approval-workflow",
+                    "agent_id": "approval-workflow-agent",
                     "action": "submit_for_approval",
-                    "depends_on": ["compliance-regulatory"],
+                    "depends_on": ["compliance-governance-agent"],
                 },
             ],
             "parameters": {"project_id": "PROJ-77"},
@@ -208,6 +208,6 @@ async def test_risk_management_compliance_approval_flow(
 
     assert payload["execution_summary"]["successful"] == 3
     assert payload["execution_summary"]["failed"] == 0
-    assert payload["aggregated_response"]["risk-management"]["risk_register_id"] == "RISK-77"
-    assert payload["aggregated_response"]["compliance-regulatory"]["status"] == "conditional"
-    assert payload["aggregated_response"]["approval-workflow"]["status"] == "approved"
+    assert payload["aggregated_response"]["risk-management-agent"]["risk_register_id"] == "RISK-77"
+    assert payload["aggregated_response"]["compliance-governance-agent"]["status"] == "conditional"
+    assert payload["aggregated_response"]["approval-workflow-agent"]["status"] == "approved"

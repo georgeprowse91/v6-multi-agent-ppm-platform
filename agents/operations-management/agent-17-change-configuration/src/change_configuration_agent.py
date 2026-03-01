@@ -616,7 +616,7 @@ class ChangeConfigurationAgent(BaseAgent):
     - Configuration visualization and dependency mapping
     """
 
-    def __init__(self, agent_id: str = "agent_017", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "change-control-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

@@ -35,7 +35,7 @@ def _load_agent_class() -> type:
     repo_root = REPO_ROOT
     sys.path.append(
         str(
-            repo_root / "agents" / "operations-management" / "agent-17-change-configuration" / "src"
+            repo_root / "agents" / "operations-management" / "agent-17-change-control-agent" / "src"
         ),
     )
     sys.path.append(str(repo_root / "packages" / "contracts" / "src"))

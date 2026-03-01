@@ -102,8 +102,8 @@ async def test_orchestrator_routes_query_and_dependency_lifecycle(
             "parameters": {"foo": "bar"},
         },
         "metadata": {
-            "agent_id": "intent-router",
-            "catalog_id": "intent-router",
+            "agent_id": "intent-router-agent",
+            "catalog_id": "intent-router-agent",
             "timestamp": "2024-01-01T00:00:00Z",
             "correlation_id": "corr-1",
             "trace_id": None,
@@ -125,7 +125,7 @@ async def test_orchestrator_routes_query_and_dependency_lifecycle(
         },
     }
 
-    orchestrator.intent_router = StubAgent("intent-router", intent_response)
+    orchestrator.intent_router = StubAgent("intent-router-agent", intent_response)
     orchestrator.response_orchestrator = StubAgent("response-orchestrator", response_payload)
 
     routed = await orchestrator.process_query(

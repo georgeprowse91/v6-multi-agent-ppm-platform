@@ -65,7 +65,7 @@ class ProjectLifecycleAgent(BaseAgent):
 
     def __init__(
         self,
-        agent_id: str = "project-lifecycle-governance",
+        agent_id: str = "lifecycle-governance-agent",
         config: dict[str, Any] | None = None,
     ):
         super().__init__(agent_id, config)

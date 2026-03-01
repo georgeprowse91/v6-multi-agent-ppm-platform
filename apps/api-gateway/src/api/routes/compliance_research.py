@@ -33,7 +33,7 @@ async def research_compliance(
     if not orchestrator or not orchestrator.initialized:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
 
-    agent = orchestrator.get_agent("agent_016") if orchestrator else None
+    agent = orchestrator.get_agent("compliance-governance-agent") if orchestrator else None
     if not agent:
         raise HTTPException(status_code=404, detail="Compliance agent not available")
 

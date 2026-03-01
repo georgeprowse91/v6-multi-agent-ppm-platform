@@ -1,13 +1,13 @@
 plan_id: example-plan-v1
 tasks:
   - task_id: task-1
-    agent_id: financial-management
+    agent_id: financial-management-agent
     action: assess_budget
     dependencies: []
     metadata:
       priority: 0.9
   - task_id: task-2
-    agent_id: risk-management
+    agent_id: risk-management-agent
     action: evaluate_risk
     dependencies:
       - task-1

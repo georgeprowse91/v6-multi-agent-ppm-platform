@@ -134,7 +134,7 @@
         },
         "agent_id": {
           "type": "string",
-          "description": "Runtime agent identifier (e.g., 'agent_015')"
+          "description": "Runtime agent identifier (e.g., 'risk-management')"
         },
         "display_name": {
           "type": "string",
@@ -225,7 +225,7 @@
       "agents": {
         "agent-15-risk-issue-management": {
           "catalog_id": "agent-15-risk-issue-management",
-          "agent_id": "agent_015",
+          "agent_id": "risk-management-agent",
           "display_name": "Risk & Issue Management",
           "description": "Identifies, assesses, and manages project risks and issues",
           "category": "operations",
@@ -285,9 +285,9 @@
       },
       "project_configs": {
         "project-apollo": {
-          "agent_015": {
+          "risk-management-agent": {
             "project_id": "project-apollo",
-            "agent_id": "agent_015",
+            "agent_id": "risk-management-agent",
             "enabled": true,
             "parameter_overrides": {
               "risk_assessment_method": "monte_carlo"

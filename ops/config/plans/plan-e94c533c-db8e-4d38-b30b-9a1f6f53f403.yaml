@@ -1,7 +1,7 @@
 plan_id: plan-e94c533c-db8e-4d38-b30b-9a1f6f53f403
 tasks:
 - task_id: task-1
-  agent_id: agent-04-demand-intake
+  agent_id: demand-intake-agent
   action: submit_request
   dependencies: []
   metadata:

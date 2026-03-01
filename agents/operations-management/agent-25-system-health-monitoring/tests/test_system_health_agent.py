@@ -19,7 +19,7 @@ from integrations.services.integration.analytics import (
 
 MODULE_PATH = (
     Path(__file__).resolve().parents[2]
-    / "agent-25-system-health-monitoring"
+    / "agent-25-system-health-agent"
     / "src"
     / "system_health_agent.py"
 )

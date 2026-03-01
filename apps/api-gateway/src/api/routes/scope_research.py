@@ -39,7 +39,7 @@ async def generate_scope_research(
     if not orchestrator or not orchestrator.initialized:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
 
-    agent = orchestrator.get_agent("project-definition") if orchestrator else None
+    agent = orchestrator.get_agent("scope-definition-agent") if orchestrator else None
     if not agent:
         raise HTTPException(status_code=404, detail="Project Definition agent not available")
 

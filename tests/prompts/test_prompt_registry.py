@@ -32,21 +32,21 @@ def registry() -> PromptRegistry:
 
 
 def test_prompt_registry_loads_latest_prompt(registry: PromptRegistry) -> None:
-    prompt = registry.get_prompt("intent-router")
+    prompt = registry.get_prompt("intent-router-agent")
 
     assert "You are the intent router" in prompt
 
 
 def test_prompt_registry_returns_specific_version(registry: PromptRegistry) -> None:
-    prompt = registry.get_prompt("intent-router", version=1)
-    record = registry.get_prompt_record("intent-router", version=1)
+    prompt = registry.get_prompt("intent-router-agent", version=1)
+    record = registry.get_prompt_record("intent-router-agent", version=1)
 
     assert "Return JSON in the form" in prompt
     assert record.version == 1
 
 
 def test_prompt_registry_next_version(registry: PromptRegistry) -> None:
-    assert registry.next_version("intent-router") == 2
+    assert registry.next_version("intent-router-agent") == 2
     assert registry.next_version("non-existent-agent") == 1
 
 
@@ -63,7 +63,7 @@ async def test_intent_router_includes_prompt_version() -> None:
                 "  - name: portfolio_query",
                 "    min_confidence: 0.6",
                 "    routes:",
-                "      - agent_id: portfolio-strategy-optimization",
+                "      - agent_id: portfolio-optimisation-agent",
             ]
         ),
         encoding="utf-8",

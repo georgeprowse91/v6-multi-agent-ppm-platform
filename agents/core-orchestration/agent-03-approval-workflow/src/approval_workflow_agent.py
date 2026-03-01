@@ -272,7 +272,7 @@ class ApprovalWorkflowAgent(BaseAgent):
 
     def __init__(
         self,
-        agent_id: str = "agent_003_approval_workflow",
+        agent_id: str = "approval-workflow-agent",
         config: dict[str, Any] | None = None,
     ):
         super().__init__(agent_id, config)

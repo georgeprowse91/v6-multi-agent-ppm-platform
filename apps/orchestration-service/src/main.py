@@ -276,7 +276,7 @@ async def upload_workflow(
 ) -> WorkflowUploadResponse:
     auth = request.state.auth
     orchestrator = request.app.state.orchestrator
-    workflow_agent = orchestrator.agents.get("agent_024")
+    workflow_agent = orchestrator.agents.get("workflow-engine-agent")
     if not workflow_agent:
         raise HTTPException(status_code=503, detail="Workflow engine agent not available")
     bpmn_payload = (await file.read()).decode("utf-8")

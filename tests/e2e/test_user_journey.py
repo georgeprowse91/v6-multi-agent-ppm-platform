@@ -93,8 +93,8 @@ def test_end_to_end_workflow(monkeypatch) -> None:
             "success": True,
             "data": {"ok": True},
             "metadata": {
-                "agent_id": "intent-router",
-                "catalog_id": "intent-router",
+                "agent_id": "intent-router-agent",
+                "catalog_id": "intent-router-agent",
                 "timestamp": "2024-01-01T00:00:00Z",
                 "correlation_id": "test-corr-e2e",
             },

@@ -943,7 +943,7 @@ class VendorProcurementAgent(BaseAgent):
         },
     }
 
-    def __init__(self, agent_id: str = "agent_013", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "vendor-procurement-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

@@ -1,6 +1,6 @@
 # Demand & Intake Agent Configuration
 demand_intake:
-  agent_id: "demand-intake"
+  agent_id: "demand-intake-agent"
   enabled: true
   similarity_threshold: 0.85
   mandatory_fields:
@@ -22,7 +22,7 @@ demand_intake:
 
 # Business Case & Investment Analysis Agent
 business_case:
-  agent_id: "business-case"
+  agent_id: "business-case-agent"
   enabled: true
   roi_calculation:
     discount_rate: 0.10
@@ -38,7 +38,7 @@ business_case:
 
 # Portfolio Strategy & Optimization Agent
 portfolio_strategy:
-  agent_id: "portfolio-strategy"
+  agent_id: "portfolio-optimisation-agent"
   enabled: true
   optimization:
     algorithm: "nsga2"  # Multi-objective genetic algorithm
@@ -58,7 +58,7 @@ portfolio_strategy:
 
 # Program Management Agent
 program_management:
-  agent_id: "program-management"
+  agent_id: "program-management-agent"
   enabled: true
   dependency_tracking:
     enabled: true

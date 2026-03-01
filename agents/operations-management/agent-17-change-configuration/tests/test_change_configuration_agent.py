@@ -8,7 +8,7 @@ import pytest
 
 MODULE_PATH = (
     Path(__file__).resolve().parents[2]
-    / "agent-17-change-configuration"
+    / "agent-17-change-control-agent"
     / "src"
     / "change_configuration_agent.py"
 )

@@ -109,7 +109,7 @@ class ResponseOrchestrationAgent(BaseAgent):
     """
 
     def __init__(
-        self, agent_id: str = "response-orchestration", config: dict[str, Any] | None = None
+        self, agent_id: str = "response-orchestration-agent", config: dict[str, Any] | None = None
     ):
         super().__init__(agent_id, config)
         self.max_concurrency = config.get("max_concurrency", 5) if config else 5

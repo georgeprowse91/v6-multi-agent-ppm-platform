@@ -1,14 +1,14 @@
 plan_id: plan-e283c8f9-fa4a-4db2-8551-b46b422524b6
 tasks:
 - task_id: task-1
-  agent_id: project-definition
+  agent_id: scope-definition-agent
   action: generate_charter
   dependencies: []
   metadata:
     priority: null
     intent: null
 - task_id: task-2
-  agent_id: schedule-planning
+  agent_id: schedule-planning-agent
   action: generate_schedule
   dependencies:
   - project-definition

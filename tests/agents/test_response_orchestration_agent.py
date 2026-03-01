@@ -28,8 +28,8 @@ async def test_response_orchestration_dependency_dag():
         agent = ResponseOrchestrationAgent(
             config={
                 "agent_endpoints": {
-                    "financial-management": "http://test/financial",
-                    "risk-management": "http://test/risk",
+                    "financial-management-agent": "http://test/financial",
+                    "risk-management-agent": "http://test/risk",
                 },
                 "http_client": client,
                 "event_bus": event_bus,
@@ -40,10 +40,10 @@ async def test_response_orchestration_dependency_dag():
         result = await agent.process(
             {
                 "routing": [
-                    {"agent_id": "financial-management"},
+                    {"agent_id": "financial-management-agent"},
                     {
-                        "agent_id": "risk-management",
-                        "depends_on": ["financial-management"],
+                        "agent_id": "risk-management-agent",
+                        "depends_on": ["financial-management-agent"],
                     },
                 ],
                 "parameters": {"project_id": "APOLLO"},
@@ -55,8 +55,8 @@ async def test_response_orchestration_dependency_dag():
 
     assert payload["execution_summary"]["total_agents"] == 2
     assert invocation_order == ["/financial", "/risk"]
-    assert any(event["agent_id"] == "financial-management" for event in events)
-    assert "financial-management" in payload["aggregated_response"]
+    assert any(event["agent_id"] == "financial-management-agent" for event in events)
+    assert "financial-management-agent" in payload["aggregated_response"]
 
 
 @pytest.mark.asyncio
@@ -74,7 +74,7 @@ async def test_response_orchestration_retries():
     async with httpx.AsyncClient(transport=transport) as client:
         agent = ResponseOrchestrationAgent(
             config={
-                "agent_endpoints": {"risk-management": "http://test/risk"},
+                "agent_endpoints": {"risk-management-agent": "http://test/risk"},
                 "http_client": client,
                 "max_retries": 1,
                 "retry_backoff_base": 0,
@@ -84,7 +84,7 @@ async def test_response_orchestration_retries():
         await agent.initialize()
         result = await agent.process(
             {
-                "routing": [{"agent_id": "risk-management"}],
+                "routing": [{"agent_id": "risk-management-agent"}],
                 "parameters": {"project_id": "APOLLO"},
                 "query": "test",
                 "approval_decision": "approve",
@@ -108,7 +108,7 @@ async def test_response_orchestration_cache_hits():
     async with httpx.AsyncClient(transport=transport) as client:
         agent = ResponseOrchestrationAgent(
             config={
-                "agent_endpoints": {"financial-management": "http://test/financial"},
+                "agent_endpoints": {"financial-management-agent": "http://test/financial"},
                 "http_client": client,
                 "cache_ttl": 60,
                 "event_bus": build_test_event_bus(),
@@ -117,7 +117,7 @@ async def test_response_orchestration_cache_hits():
         await agent.initialize()
 
         payload = {
-            "routing": [{"agent_id": "financial-management"}],
+            "routing": [{"agent_id": "financial-management-agent"}],
             "parameters": {"project_id": "APOLLO"},
             "query": "test",
             "approval_decision": "approve",
@@ -142,7 +142,7 @@ async def test_response_orchestration_timeout_failure():
     async with httpx.AsyncClient(transport=transport) as client:
         agent = ResponseOrchestrationAgent(
             config={
-                "agent_endpoints": {"risk-management": "http://test/risk"},
+                "agent_endpoints": {"risk-management-agent": "http://test/risk"},
                 "http_client": client,
                 "agent_timeout": 0.001,
                 "event_bus": build_test_event_bus(),
@@ -151,7 +151,7 @@ async def test_response_orchestration_timeout_failure():
         await agent.initialize()
         result = await agent.process(
             {
-                "routing": [{"agent_id": "risk-management"}],
+                "routing": [{"agent_id": "risk-management-agent"}],
                 "parameters": {},
                 "query": "test",
                 "approval_decision": "approve",
@@ -174,7 +174,7 @@ async def test_response_orchestration_includes_prompt_metadata():
     async with httpx.AsyncClient(transport=transport) as client:
         agent = ResponseOrchestrationAgent(
             config={
-                "agent_endpoints": {"risk-management": "http://test/risk"},
+                "agent_endpoints": {"risk-management-agent": "http://test/risk"},
                 "http_client": client,
                 "event_bus": build_test_event_bus(),
             }
@@ -182,7 +182,7 @@ async def test_response_orchestration_includes_prompt_metadata():
         await agent.initialize()
         result = await agent.process(
             {
-                "routing": [{"agent_id": "risk-management"}],
+                "routing": [{"agent_id": "risk-management-agent"}],
                 "parameters": {},
                 "query": "identify risks",
                 "approval_decision": "approve",
@@ -210,8 +210,8 @@ async def test_response_orchestration_detects_dependency_cycle():
         await agent.process(
             {
                 "routing": [
-                    {"agent_id": "financial-management", "depends_on": ["risk-management"]},
-                    {"agent_id": "risk-management", "depends_on": ["financial-management"]},
+                    {"agent_id": "financial-management-agent", "depends_on": ["risk-management-agent"]},
+                    {"agent_id": "risk-management-agent", "depends_on": ["financial-management-agent"]},
                 ],
                 "parameters": {},
                 "query": "test",
@@ -232,7 +232,7 @@ async def test_response_orchestration_supports_duplicate_agent_routes_for_multi_
     async with httpx.AsyncClient(transport=transport) as client:
         agent = ResponseOrchestrationAgent(
             config={
-                "agent_endpoints": {"schedule-planning": "http://test/schedule"},
+                "agent_endpoints": {"schedule-planning-agent": "http://test/schedule"},
                 "http_client": client,
                 "event_bus": build_test_event_bus(),
                 "cache_ttl": -1,
@@ -244,12 +244,12 @@ async def test_response_orchestration_supports_duplicate_agent_routes_for_multi_
             {
                 "routing": [
                     {
-                        "agent_id": "schedule-planning",
+                        "agent_id": "schedule-planning-agent",
                         "intent": "schedule_query",
                         "action": "get_schedule",
                     },
                     {
-                        "agent_id": "schedule-planning",
+                        "agent_id": "schedule-planning-agent",
                         "intent": "schedule_update",
                         "action": "update_schedule",
                     },
@@ -279,8 +279,8 @@ async def test_response_orchestration_emits_agent_activity() -> None:
         agent = ResponseOrchestrationAgent(
             config={
                 "agent_endpoints": {
-                    "financial-management": "http://test/financial",
-                    "risk-management": "http://test/risk",
+                    "financial-management-agent": "http://test/financial",
+                    "risk-management-agent": "http://test/risk",
                 },
                 "http_client": client,
                 "event_bus": build_test_event_bus(),
@@ -290,8 +290,8 @@ async def test_response_orchestration_emits_agent_activity() -> None:
         result = await agent.process(
             {
                 "routing": [
-                    {"agent_id": "financial-management"},
-                    {"agent_id": "risk-management"},
+                    {"agent_id": "financial-management-agent"},
+                    {"agent_id": "risk-management-agent"},
                 ],
                 "parameters": {},
                 "query": "test",

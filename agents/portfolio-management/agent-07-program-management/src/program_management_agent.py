@@ -43,7 +43,7 @@ class ProgramManagementAgent(BaseAgent):
     - Program governance & reporting
     """
 
-    def __init__(self, agent_id: str = "program-management", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "program-management-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

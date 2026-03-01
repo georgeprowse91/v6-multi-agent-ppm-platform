@@ -51,21 +51,21 @@
       ],
       "agent_bindings": {
         "generate": [
-          "intent-router",
-          "project-definition"
+          "intent-router-agent",
+          "scope-definition-agent"
         ],
         "update": [
-          "schedule-planning",
-          "program-management"
+          "schedule-planning-agent",
+          "program-management-agent"
         ],
         "review": [
-          "project-lifecycle-governance"
+          "lifecycle-governance-agent"
         ],
         "approve": [
-          "agent_003_approval_workflow"
+          "approval-workflow-agent"
         ],
         "publish": [
-          "response-orchestration"
+          "response-orchestration-agent"
         ],
         "orchestration": {
           "dag_name": "adaptive_delivery_workflow",
@@ -192,21 +192,21 @@
       ],
       "agent_bindings": {
         "generate": [
-          "business-case-investment",
-          "schedule-planning"
+          "business-case-agent",
+          "schedule-planning-agent"
         ],
         "update": [
-          "financial-management",
-          "program-management"
+          "financial-management-agent",
+          "program-management-agent"
         ],
         "review": [
-          "project-lifecycle-governance"
+          "lifecycle-governance-agent"
         ],
         "approve": [
-          "agent_003_approval_workflow"
+          "approval-workflow-agent"
         ],
         "publish": [
-          "response-orchestration"
+          "response-orchestration-agent"
         ],
         "orchestration": {
           "dag_name": "predictive_infrastructure_workflow",
@@ -332,21 +332,21 @@
       ],
       "agent_bindings": {
         "generate": [
-          "project-definition",
-          "program-management"
+          "scope-definition-agent",
+          "program-management-agent"
         ],
         "update": [
-          "project-lifecycle-governance"
+          "lifecycle-governance-agent"
         ],
         "review": [
-          "project-lifecycle-governance",
-          "agent_003_approval_workflow"
+          "lifecycle-governance-agent",
+          "approval-workflow-agent"
         ],
         "approve": [
-          "agent_003_approval_workflow"
+          "approval-workflow-agent"
         ],
         "publish": [
-          "response-orchestration"
+          "response-orchestration-agent"
         ],
         "orchestration": {
           "dag_name": "hybrid_transformation_workflow",

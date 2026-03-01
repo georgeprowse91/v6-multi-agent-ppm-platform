@@ -151,7 +151,7 @@ class IntentRouterAgent(BaseAgent):
     - Agent routing and prioritization
     """
 
-    def __init__(self, agent_id: str = "intent-router", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "intent-router-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
         self.agent_config = self._load_agent_config()
         self.routing_config = self._load_routing_config()
@@ -380,7 +380,7 @@ class IntentRouterAgent(BaseAgent):
         config_path = Path(
             self.config.get("routing_config_path")
             or os.getenv("INTENT_ROUTING_CONFIG_PATH")
-            or (Path(__file__).resolve().parents[4] / "config" / "agents" / "intent-routing.yaml")
+            or (Path(__file__).resolve().parents[4] / "ops" / "config" / "agents" / "intent-routing.yaml")
         )
         try:
             payload = yaml.safe_load(config_path.read_text())

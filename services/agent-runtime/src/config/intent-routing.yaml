@@ -1,3 +1,5 @@
+# Runtime intent-routing config — used exclusively by services/agent-runtime.
+# Agent IDs must match AgentSpec.agent_id values registered in runtime.py.
 version: 1
 default_min_confidence: 0.6
 fallback_intent: general_query
@@ -6,63 +8,63 @@ intents:
     description: Portfolio health, initiative mix, or portfolio status queries.
     min_confidence: 0.6
     routes:
-      - agent_id: portfolio-strategy-optimization
+      - agent_id: portfolio-optimisation-agent
         action: get_portfolio_status
         dependencies: []
   - name: project_create
     description: Project creation or initiation requests.
     min_confidence: 0.65
     routes:
-      - agent_id: project-definition
+      - agent_id: scope-definition-agent
         action: create_project
         dependencies: []
   - name: schedule_query
     description: Scheduling, timeline, or milestone inquiries.
     min_confidence: 0.6
     routes:
-      - agent_id: schedule-planning
+      - agent_id: schedule-planning-agent
         action: get_schedule
         dependencies: []
   - name: financial_query
     description: Budget, cost, or financial performance questions.
     min_confidence: 0.6
     routes:
-      - agent_id: financial-management
+      - agent_id: financial-management-agent
         action: get_financial_summary
         dependencies: []
   - name: risk_query
     description: Risk, issue, or mitigation analysis requests.
     min_confidence: 0.6
     routes:
-      - agent_id: agent_015
+      - agent_id: risk-management-agent
         action: get_risk_dashboard
         dependencies: []
   - name: resource_query
     description: Staffing, utilization, or capacity planning requests.
     min_confidence: 0.6
     routes:
-      - agent_id: resource-capacity-management
+      - agent_id: resource-management-agent
         action: get_resource_pool
         dependencies: []
   - name: demand_intake
     description: Demand intake and new proposal requests.
     min_confidence: 0.6
     routes:
-      - agent_id: demand-intake
+      - agent_id: demand-intake-agent
         action: submit_request
         dependencies: []
   - name: compliance_query
     description: Compliance, audit, or regulatory questions.
     min_confidence: 0.6
     routes:
-      - agent_id: agent_016
+      - agent_id: compliance-governance-agent
         action: get_compliance_status
         dependencies: []
   - name: analytics_query
     description: Analytics, insights, reporting, or KPI questions.
     min_confidence: 0.6
     routes:
-      - agent_id: agent_022
+      - agent_id: analytics-insights-agent
         action: get_insights
         dependencies: []
   - name: general_query

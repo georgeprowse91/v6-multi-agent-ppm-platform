@@ -43,7 +43,7 @@ def test_resolve_runtime_returns_complete_contract_for_multiple_methodologies() 
     predictive = resolve_runtime(
         "predictive",
         "0.4-planning",
-        "0.4.2-schedule-planning",
+        "0.4.2-schedule-planning-agent",
         None,
         "generate",
     )

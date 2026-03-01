@@ -32,7 +32,7 @@ class ProcessMiningAgent(BaseAgent):
     - Improvement culture enablement
     """
 
-    def __init__(self, agent_id: str = "agent_020", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "continuous-improvement-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

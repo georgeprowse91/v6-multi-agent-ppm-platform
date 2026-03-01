@@ -1,3 +1,8 @@
+# Each entity type is registered in both singular and plural form because external
+# systems may send either form as the entity_type field. Both forms are intentionally
+# identical; the agent does not normalise entity_type at lookup time.
+# TODO: update data_sync_agent._load_schema_registry to normalise to singular, then
+# remove plural entries from this file to eliminate the duplication.
 entities:
   - name: project
     version: "1.0"

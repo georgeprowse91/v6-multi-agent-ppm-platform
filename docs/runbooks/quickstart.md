@@ -89,9 +89,9 @@ Expected output:
 - `success: true`
 - `data.execution_summary.total_agents: 3`
 - Agent results include:
-  - `portfolio-strategy-optimization`
-  - `financial-management`
-  - `risk-management`
+  - `portfolio-optimisation-agent`
+  - `financial-management-agent`
+  - `risk-management-agent`
 
 ### 3) Verify health endpoints
 ```bash

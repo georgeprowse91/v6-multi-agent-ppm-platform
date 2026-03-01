@@ -261,7 +261,7 @@ def test_runtime_action_known_template_mappings(client, monkeypatch):
         json={
             "methodology_id": "predictive",
             "stage_id": "0.4-planning",
-            "activity_id": "0.4.2-schedule-planning",
+            "activity_id": "0.4.2-schedule-planning-agent",
             "lifecycle_event": "generate",
             "user_input": {"workspace_id": "demo-1"},
         },

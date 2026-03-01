@@ -5,7 +5,7 @@
     "agent_results": [
       {
         "success": true,
-        "agent_id": "portfolio-strategy-optimization",
+        "agent_id": "portfolio-optimisation-agent",
         "data": {
           "success": true,
           "data": {
@@ -15,7 +15,7 @@
       },
       {
         "success": true,
-        "agent_id": "financial-management",
+        "agent_id": "financial-management-agent",
         "data": {
           "success": true,
           "data": {
@@ -25,7 +25,7 @@
       },
       {
         "success": true,
-        "agent_id": "risk-management",
+        "agent_id": "risk-management-agent",
         "data": {
           "success": true,
           "data": {

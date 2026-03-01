@@ -75,7 +75,7 @@ async def test_intent_router_falls_back_on_malformed_llm_output():
 
     assert any(intent["intent"] == "portfolio_query" for intent in result["intents"])
     assert any(
-        route["agent_id"] == "portfolio-strategy-optimization" for route in result["routing"]
+        route["agent_id"] == "portfolio-optimisation-agent" for route in result["routing"]
     )
 
 
@@ -92,7 +92,7 @@ async def test_intent_router_falls_back_on_missing_fields():
     result = await agent.process({"query": "show risk register for project Apollo"})
 
     assert any(intent["intent"] == "risk_query" for intent in result["intents"])
-    assert any(route["agent_id"] == "risk-management" for route in result["routing"])
+    assert any(route["agent_id"] == "risk-management-agent" for route in result["routing"])
 
 
 @pytest.mark.asyncio
@@ -110,4 +110,4 @@ async def test_intent_router_falls_back_on_low_confidence():
     result = await agent.process({"query": "show schedule timeline"})
 
     assert any(intent["intent"] == "schedule_query" for intent in result["intents"])
-    assert any(route["agent_id"] == "schedule-planning" for route in result["routing"])
+    assert any(route["agent_id"] == "schedule-planning-agent" for route in result["routing"])

@@ -1,6 +1,6 @@
 # Intent Router Agent Configuration
 intent_router:
-  agent_id: "intent-router"
+  agent_id: "intent-router-agent"
   enabled: true
   model:
     provider: "${INTENT_ROUTER_MODEL_PROVIDER}"
@@ -26,7 +26,7 @@ intent_router:
 
 # Response Orchestration Agent Configuration
 response_orchestration:
-  agent_id: "response-orchestration"
+  agent_id: "response-orchestration-agent"
   enabled: true
   max_concurrency: 5
   concurrency_limits:

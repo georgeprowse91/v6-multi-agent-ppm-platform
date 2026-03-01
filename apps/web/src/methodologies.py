@@ -17,7 +17,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
     "adaptive": {
         "default": {
             "template_id": "project_management_plan_template",
-            "agent_id": "project-lifecycle-governance",
+            "agent_id": "lifecycle-governance-agent",
             "connector_id": "jira",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -27,7 +27,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.1": {
             "template_id": "project-charter",
-            "agent_id": "demand-intake",
+            "agent_id": "demand-intake-agent",
             "connector_id": "jira",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -37,7 +37,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.2": {
             "template_id": "product-strategy-canvas",
-            "agent_id": "portfolio-strategy-optimisation",
+            "agent_id": "portfolio-optimisation-agent",
             "connector_id": "power-bi",
             "canvas_ui": "dashboard",
             "assistant_suggested_actions": [
@@ -47,7 +47,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.3": {
             "template_id": "project_management_plan_template",
-            "agent_id": "project-definition-scope",
+            "agent_id": "scope-definition-agent",
             "connector_id": "confluence",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -57,7 +57,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.4": {
             "template_id": "overall_product_backlog_template",
-            "agent_id": "project-definition-scope",
+            "agent_id": "scope-definition-agent",
             "connector_id": "jira",
             "canvas_ui": "tree",
             "assistant_suggested_actions": [
@@ -67,7 +67,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.5": {
             "template_id": "sprint-planning-template",
-            "agent_id": "schedule-planning",
+            "agent_id": "schedule-planning-agent",
             "connector_id": "azure-devops",
             "canvas_ui": "timeline",
             "assistant_suggested_actions": [
@@ -77,7 +77,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.6": {
             "template_id": "issue-log",
-            "agent_id": "risk-issue-management",
+            "agent_id": "risk-management-agent",
             "connector_id": "servicenow",
             "canvas_ui": "dependency-map",
             "assistant_suggested_actions": [
@@ -89,7 +89,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
     "predictive": {
         "default": {
             "template_id": "project_management_plan_template",
-            "agent_id": "project-lifecycle-governance",
+            "agent_id": "lifecycle-governance-agent",
             "connector_id": "microsoft-project",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -99,7 +99,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.1": {
             "template_id": "it-project-charter",
-            "agent_id": "demand-intake",
+            "agent_id": "demand-intake-agent",
             "connector_id": "servicenow",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -109,7 +109,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.2": {
             "template_id": "business_requirements_document_template",
-            "agent_id": "project-definition-scope",
+            "agent_id": "scope-definition-agent",
             "connector_id": "confluence",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -119,7 +119,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.3": {
             "template_id": "project_management_plan_template",
-            "agent_id": "schedule-planning",
+            "agent_id": "schedule-planning-agent",
             "connector_id": "microsoft-project",
             "canvas_ui": "timeline",
             "assistant_suggested_actions": [
@@ -129,7 +129,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.4": {
             "template_id": "risk_register_template",
-            "agent_id": "risk-issue-management",
+            "agent_id": "risk-management-agent",
             "connector_id": "sharepoint",
             "canvas_ui": "spreadsheet",
             "assistant_suggested_actions": [
@@ -139,7 +139,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.5": {
             "template_id": "status-report-template",
-            "agent_id": "stakeholder-comms",
+            "agent_id": "stakeholder-communications-agent",
             "connector_id": "power-bi",
             "canvas_ui": "dashboard",
             "assistant_suggested_actions": [
@@ -151,7 +151,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
     "hybrid": {
         "default": {
             "template_id": "hybrid-project-management-plan-template",
-            "agent_id": "workflow-process-engine",
+            "agent_id": "workflow-engine-agent",
             "connector_id": "jira",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -161,7 +161,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.1": {
             "template_id": "it-project-charter",
-            "agent_id": "demand-intake",
+            "agent_id": "demand-intake-agent",
             "connector_id": "jira",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -171,7 +171,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.2": {
             "template_id": "hybrid-project-management-plan-template",
-            "agent_id": "portfolio-strategy-optimisation",
+            "agent_id": "portfolio-optimisation-agent",
             "connector_id": "power-bi",
             "canvas_ui": "dashboard",
             "assistant_suggested_actions": [
@@ -181,7 +181,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.3": {
             "template_id": "project_management_plan_template",
-            "agent_id": "project-lifecycle-governance",
+            "agent_id": "lifecycle-governance-agent",
             "connector_id": "confluence",
             "canvas_ui": "program-roadmap",
             "assistant_suggested_actions": [
@@ -191,7 +191,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.4": {
             "template_id": "software-requirements-specification-template",
-            "agent_id": "project-definition-scope",
+            "agent_id": "scope-definition-agent",
             "connector_id": "azure-devops",
             "canvas_ui": "tree",
             "assistant_suggested_actions": [
@@ -201,7 +201,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.5": {
             "template_id": "safe_program_increment_planning_template",
-            "agent_id": "workflow-process-engine",
+            "agent_id": "workflow-engine-agent",
             "connector_id": "jira",
             "canvas_ui": "timeline",
             "assistant_suggested_actions": [
@@ -211,7 +211,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
         },
         "0.6": {
             "template_id": "sprint-review-template",
-            "agent_id": "quality-management",
+            "agent_id": "quality-management-agent",
             "connector_id": "github",
             "canvas_ui": "document",
             "assistant_suggested_actions": [
@@ -225,7 +225,7 @@ DEFAULT_STAGE_RELATIONSHIPS: dict[str, dict[str, dict[str, Any]]] = {
 DEFAULT_MONITORING_RELATIONSHIPS: dict[str, dict[str, Any]] = {
     "adaptive": {
         "template_id": "status-report-template",
-        "agent_id": "project-lifecycle-governance",
+        "agent_id": "lifecycle-governance-agent",
         "connector_id": "power-bi",
         "canvas_ui": "dashboard",
         "assistant_suggested_actions": [
@@ -235,7 +235,7 @@ DEFAULT_MONITORING_RELATIONSHIPS: dict[str, dict[str, Any]] = {
     },
     "predictive": {
         "template_id": "status-report-template",
-        "agent_id": "project-lifecycle-governance",
+        "agent_id": "lifecycle-governance-agent",
         "connector_id": "power-bi",
         "canvas_ui": "dashboard",
         "assistant_suggested_actions": [
@@ -245,7 +245,7 @@ DEFAULT_MONITORING_RELATIONSHIPS: dict[str, dict[str, Any]] = {
     },
     "hybrid": {
         "template_id": "status-report-template",
-        "agent_id": "workflow-process-engine",
+        "agent_id": "workflow-engine-agent",
         "connector_id": "power-bi",
         "canvas_ui": "dashboard",
         "assistant_suggested_actions": [
@@ -287,7 +287,7 @@ def _build_monitoring_activities(methodology_id: str) -> list[dict[str, Any]]:
             "prerequisites": [],
             "metadata": {
                 "template_id": "risk_register_template",
-                "agent_id": "risk-issue-management",
+                "agent_id": "risk-management-agent",
                 "connector_id": "servicenow",
             },
         },
@@ -304,7 +304,7 @@ def _build_monitoring_activities(methodology_id: str) -> list[dict[str, Any]]:
             "prerequisites": [],
             "metadata": {
                 "template_id": "benefits-realisation-plan",
-                "agent_id": "analytics-insights",
+                "agent_id": "analytics-insights-agent",
                 "connector_id": "power-bi",
             },
         },

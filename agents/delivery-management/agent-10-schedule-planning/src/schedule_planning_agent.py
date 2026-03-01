@@ -63,7 +63,7 @@ class SchedulePlanningAgent(BaseAgent):
     - Baseline management and variance tracking
     """
 
-    def __init__(self, agent_id: str = "schedule-planning", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "schedule-planning-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

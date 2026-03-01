@@ -43,7 +43,7 @@ class PortfolioStrategyAgent(BaseAgent):
 
     def __init__(
         self,
-        agent_id: str = "portfolio-strategy-optimization",
+        agent_id: str = "portfolio-optimisation-agent",
         config: dict[str, Any] | None = None,
     ):
         super().__init__(agent_id, config)

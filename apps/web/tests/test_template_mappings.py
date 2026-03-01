@@ -30,7 +30,7 @@ def test_list_templates_for_methodology_node_across_methods() -> None:
     predictive = list_templates_for_methodology_node(
         "predictive",
         "0.4-planning",
-        "0.4.2-schedule-planning",
+        "0.4.2-schedule-planning-agent",
         task_id=None,
         lifecycle_event="generate",
     )
