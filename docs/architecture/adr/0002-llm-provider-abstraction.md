@@ -27,5 +27,5 @@ Agent runtimes call the LLM client and pass system/user prompts from the prompt 
 ## References
 
 - `packages/llm/src/llm/client.py`
-- `agents/core-orchestration/agent-01-intent-router/src/intent_router_agent.py`
+- `agents/core-orchestration/intent-router-agent/src/intent_router_agent.py`
 - `docs/architecture/ai-architecture.md`

@@ -56,5 +56,5 @@ Configure index settings in `ops/ops/config/vector_store.yaml`:
 
 ## Current agent usage
 
-- Demand & Intake Agent (`agent-04`) uses the `demand_intake` index profile.
-- Business Case & Investment Agent (`agent-05`) uses the `business_case` index profile.
+- Demand & Intake Agent (`demand-intake-agent`) uses the `demand_intake` index profile.
+- Business Case & Investment Agent (`business-case-agent`) uses the `business_case` index profile.

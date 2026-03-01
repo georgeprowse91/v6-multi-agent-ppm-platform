@@ -37,7 +37,7 @@ def test_workflow_engine_emits_standard_business_metrics() -> None:
 
 def test_connector_sync_emits_standard_business_metrics() -> None:
     source = _read(
-        "agents/operations-management/agent-23-data-synchronisation-quality/src/data_sync_agent.py"
+        "agents/operations-management/data-synchronisation-agent/src/data_sync_agent.py"
     )
     assert (
         "build_business_workflow_metrics" in source

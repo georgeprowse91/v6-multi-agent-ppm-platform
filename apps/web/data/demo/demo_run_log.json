@@ -4,7 +4,7 @@
   "total_agents_executed": 25,
   "agents": [
     {
-      "agent_id": "agent-01",
+      "agent_id": "intent-router-agent",
       "status": "completed",
       "duration_seconds": 42,
       "artifacts": [
@@ -13,7 +13,7 @@
       ]
     },
     {
-      "agent_id": "agent-02",
+      "agent_id": "response-orchestration-agent",
       "status": "completed",
       "duration_seconds": 49,
       "artifacts": [
@@ -22,7 +22,7 @@
       ]
     },
     {
-      "agent_id": "agent-03",
+      "agent_id": "approval-workflow-agent",
       "status": "completed",
       "duration_seconds": 56,
       "artifacts": [
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "agent_id": "agent-04",
+      "agent_id": "demand-intake-agent",
       "status": "completed",
       "duration_seconds": 63,
       "artifacts": [
@@ -39,7 +39,7 @@
       ]
     },
     {
-      "agent_id": "agent-05",
+      "agent_id": "business-case-agent",
       "status": "completed",
       "duration_seconds": 70,
       "artifacts": [
@@ -48,7 +48,7 @@
       ]
     },
     {
-      "agent_id": "agent-06",
+      "agent_id": "portfolio-optimisation-agent",
       "status": "completed",
       "duration_seconds": 77,
       "artifacts": [
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "agent_id": "agent-07",
+      "agent_id": "program-management-agent",
       "status": "completed",
       "duration_seconds": 84,
       "artifacts": [
@@ -65,7 +65,7 @@
       ]
     },
     {
-      "agent_id": "agent-08",
+      "agent_id": "scope-definition-agent",
       "status": "completed",
       "duration_seconds": 91,
       "artifacts": [
@@ -74,7 +74,7 @@
       ]
     },
     {
-      "agent_id": "agent-09",
+      "agent_id": "lifecycle-governance-agent",
       "status": "completed",
       "duration_seconds": 98,
       "artifacts": [
@@ -82,7 +82,7 @@
       ]
     },
     {
-      "agent_id": "agent-10",
+      "agent_id": "schedule-planning-agent",
       "status": "completed",
       "duration_seconds": 105,
       "artifacts": [
@@ -91,7 +91,7 @@
       ]
     },
     {
-      "agent_id": "agent-11",
+      "agent_id": "resource-management-agent",
       "status": "completed",
       "duration_seconds": 112,
       "artifacts": [
@@ -100,7 +100,7 @@
       ]
     },
     {
-      "agent_id": "agent-12",
+      "agent_id": "financial-management-agent",
       "status": "completed",
       "duration_seconds": 119,
       "artifacts": [
@@ -108,7 +108,7 @@
       ]
     },
     {
-      "agent_id": "agent-13",
+      "agent_id": "vendor-procurement-agent",
       "status": "completed",
       "duration_seconds": 126,
       "artifacts": [
@@ -117,7 +117,7 @@
       ]
     },
     {
-      "agent_id": "agent-14",
+      "agent_id": "quality-management-agent",
       "status": "completed",
       "duration_seconds": 133,
       "artifacts": [
@@ -126,7 +126,7 @@
       ]
     },
     {
-      "agent_id": "agent-15",
+      "agent_id": "risk-management-agent",
       "status": "completed",
       "duration_seconds": 140,
       "artifacts": [
@@ -134,7 +134,7 @@
       ]
     },
     {
-      "agent_id": "agent-16",
+      "agent_id": "compliance-governance-agent",
       "status": "completed",
       "duration_seconds": 147,
       "artifacts": [
@@ -143,7 +143,7 @@
       ]
     },
     {
-      "agent_id": "agent-17",
+      "agent_id": "change-control-agent",
       "status": "completed",
       "duration_seconds": 154,
       "artifacts": [
@@ -152,7 +152,7 @@
       ]
     },
     {
-      "agent_id": "agent-18",
+      "agent_id": "release-deployment-agent",
       "status": "completed",
       "duration_seconds": 161,
       "artifacts": [
@@ -160,7 +160,7 @@
       ]
     },
     {
-      "agent_id": "agent-19",
+      "agent_id": "knowledge-management-agent",
       "status": "completed",
       "duration_seconds": 168,
       "artifacts": [
@@ -169,7 +169,7 @@
       ]
     },
     {
-      "agent_id": "agent-20",
+      "agent_id": "continuous-improvement-agent",
       "status": "completed",
       "duration_seconds": 175,
       "artifacts": [
@@ -178,7 +178,7 @@
       ]
     },
     {
-      "agent_id": "agent-21",
+      "agent_id": "stakeholder-communications-agent",
       "status": "completed",
       "duration_seconds": 182,
       "artifacts": [
@@ -186,7 +186,7 @@
       ]
     },
     {
-      "agent_id": "agent-22",
+      "agent_id": "analytics-insights-agent",
       "status": "completed",
       "duration_seconds": 189,
       "artifacts": [
@@ -195,7 +195,7 @@
       ]
     },
     {
-      "agent_id": "agent-23",
+      "agent_id": "data-synchronisation-agent",
       "status": "completed",
       "duration_seconds": 196,
       "artifacts": [
@@ -204,7 +204,7 @@
       ]
     },
     {
-      "agent_id": "agent-24",
+      "agent_id": "workflow-engine-agent",
       "status": "completed_with_warnings",
       "duration_seconds": 203,
       "artifacts": [
@@ -212,7 +212,7 @@
       ]
     },
     {
-      "agent_id": "agent-25",
+      "agent_id": "system-health-agent",
       "status": "completed",
       "duration_seconds": 210,
       "artifacts": [

@@ -55,8 +55,8 @@ All agent runtime configuration lives under `ops/config/agents/`. The table belo
 | `ops/config/agents/orchestration.yaml` | Intent routing + response orchestration settings. | `intent_router.model.*`, `intent_router.intents`, `response_orchestration.max_concurrency`, `response_orchestration.retry_policy.*` |
 | `ops/config/agents/portfolio.yaml` | Domain agent configuration for demand, business case, portfolio strategy, and program management. | `demand_intake.*`, `business_case.*`, `portfolio_strategy.*`, `program_management.*` |
 | `ops/config/agents/demo-participants.yaml` | Demo participant configuration for local and demo environments. | `participants[].name`, `participants[].role` |
-| `ops/config/agents/agent-23/` | Per-agent config for Agent 23 (data sync): mapping rules, quality thresholds, pipelines, schema registry, validation rules. | — |
-| `ops/config/agents/agent-24/` | Per-agent config for Agent 24 (workflow engine): durable workflow definitions and templates. | — |
+| `ops/config/agents/data-synchronisation-agent/` | Per-agent config for Agent 23 (data sync): mapping rules, quality thresholds, pipelines, schema registry, validation rules. | — |
+| `ops/config/agents/workflow-engine-agent/` | Per-agent config for Agent 24 (workflow engine): durable workflow definitions and templates. | — |
 
 > **Note on runtime config:** `services/agent-runtime/src/config/intent-routing.yaml` is a separate runtime-only copy that uses numeric agent IDs (e.g. `agent_015`) matching the IDs registered in `services/agent-runtime/src/runtime.py`. See the comment at the top of that file for details.
 

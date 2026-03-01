@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "stakeholder-communications-agent",
+      "summary": "Demo fixture for stakeholder comms was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "schedule",
+          "id": "stakeholder-communications-agent-artifact-001",
+          "title": "Stakeholder Comms Demo Artifact"
+        }
+      ]
+    }
+  }
+}

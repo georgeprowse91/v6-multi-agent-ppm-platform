@@ -9,8 +9,8 @@ This directory contains agent runtime, orchestration, and intent routing configu
 | Path | Description |
 | --- | --- |
 | [schema/](./schema/) | JSON schema for intent routing configuration validation |
-| [agent-23/](./agent-23/) | Per-agent config for Agent 23 – Data Synchronization & Quality |
-| [agent-24/](./agent-24/) | Per-agent config for Agent 24 – Workflow & Process Engine |
+| [data-synchronisation-agent/](./data-synchronisation-agent/) | Per-agent config for Agent 23 – Data Synchronization & Quality |
+| [workflow-engine-agent/](./workflow-engine-agent/) | Per-agent config for Agent 24 – Workflow & Process Engine |
 
 ## Key files
 
@@ -33,8 +33,8 @@ Complex agents with many config files use a dedicated subdirectory:
 
 | Directory | Agent | Files |
 | --- | --- | --- |
-| [agent-23/](./agent-23/) | Agent 23 – Data Sync | `mapping_rules.yaml`, `quality_thresholds.yaml`, `pipelines.yaml`, `schema_registry.yaml`, `validation_rules.yaml` |
-| [agent-24/](./agent-24/) | Agent 24 – Workflow Engine | `durable_workflows.yaml`, `workflow_templates.yaml` |
+| [data-synchronisation-agent/](./data-synchronisation-agent/) | Agent 23 – Data Sync | `mapping_rules.yaml`, `quality_thresholds.yaml`, `pipelines.yaml`, `schema_registry.yaml`, `validation_rules.yaml` |
+| [workflow-engine-agent/](./workflow-engine-agent/) | Agent 24 – Workflow Engine | `durable_workflows.yaml`, `workflow_templates.yaml` |
 
 ## Notes
 
@@ -54,5 +54,5 @@ Most config values can be overridden via environment variables at runtime. Key o
 | Env var | Overrides | Default |
 | --- | --- | --- |
 | `INTENT_ROUTING_CONFIG_PATH` | Agent 01 routing config path | `ops/config/agents/intent-routing.yaml` |
-| `DURABLE_WORKFLOW_CONFIG` | Agent 24 durable workflows path | `ops/config/agents/agent-24/durable_workflows.yaml` |
-| `WORKFLOW_TEMPLATES_PATH` | Agent 24 workflow templates path | `ops/config/agents/agent-24/workflow_templates.yaml` |
+| `DURABLE_WORKFLOW_CONFIG` | Agent 24 durable workflows path | `ops/config/agents/workflow-engine-agent/durable_workflows.yaml` |
+| `WORKFLOW_TEMPLATES_PATH` | Agent 24 workflow templates path | `ops/config/agents/workflow-engine-agent/workflow_templates.yaml` |

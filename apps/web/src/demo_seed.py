@@ -226,7 +226,7 @@ def _seed_demo_entities(demo_outbox: DemoOutbox | None = None) -> None:
                 "portfolio_id": DEMO_PORTFOLIO_ID,
                 "program_id": DEMO_PROGRAM_ID,
             },
-            "agent_config": {"enabled": ["agent-01", "agent-10"], "disabled": []},
+            "agent_config": {"enabled": ["intent-router-agent", "schedule-planning-agent"], "disabled": []},
             "connector_config": {"enabled": ["jira", "sap"], "disabled": []},
             "initial_tabs": [
                 {"type": "document", "title": "Project Charter", "activity_id": None},

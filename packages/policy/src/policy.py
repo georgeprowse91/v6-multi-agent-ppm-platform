@@ -35,7 +35,7 @@ class PolicyContext:
     """The operation being attempted (e.g. 'agents:update', 'projects:create')."""
 
     resource: str
-    """The resource being acted upon (e.g. 'agent-01-intent-router', '*')."""
+    """The resource being acted upon (e.g. 'intent-router-agent', '*')."""
 
     roles: list[str] = field(default_factory=list)
     """Roles assigned to the subject."""

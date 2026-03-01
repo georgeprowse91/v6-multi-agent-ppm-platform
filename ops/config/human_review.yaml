@@ -5,7 +5,7 @@ review_rules:
   - name: high_risk_mitigation_recommendations
     action_type: risk_mitigation
     agent_ids:
-      - agent-15-risk-management
+      - risk-management-agent
     conditions:
       - field: action.risk_score
         operator: gte
@@ -14,7 +14,7 @@ review_rules:
   - name: material_schedule_adjustments
     action_type: schedule_adjustment
     agent_ids:
-      - agent-10-schedule-management
+      - schedule-planning-agent
     conditions:
       - field: action.schedule_delta_days
         operator: gte
@@ -23,7 +23,7 @@ review_rules:
   - name: strategic_resource_reallocation
     action_type: resource_reallocation
     agent_ids:
-      - agent-11-resource-management
+      - resource-management-agent
     conditions:
       - field: action.reallocation_percent
         operator: gte

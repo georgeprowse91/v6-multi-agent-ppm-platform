@@ -191,18 +191,18 @@
       ]
     },
     {
-      "match": ["intent router", "agent-01", "routing", "classify"],
-      "summary": "Intent Router (agent-01) has classified your request and dispatched it.",
+      "match": ["intent router", "intent-router-agent", "routing", "classify"],
+      "summary": "Intent Router (intent-router-agent) has classified your request and dispatched it.",
       "items": [
         "Request classified: project delivery — risk escalation",
-        "Routing to Risk Issue Management agent (agent-15)",
+        "Routing to Risk Issue Management agent (risk-management-agent)",
         "Context injected: project ID, stage, current RAID log",
         "Expected output: rebaseline recommendation and RAID update"
       ]
     },
     {
-      "match": ["demand intake", "agent-04", "intake form"],
-      "summary": "Demand Intake agent (agent-04) is processing the intake submission.",
+      "match": ["demand intake", "demand-intake-agent", "intake form"],
+      "summary": "Demand Intake agent (demand-intake-agent) is processing the intake submission.",
       "items": [
         "Intake record created and validated against portfolio thresholds",
         "Business case placeholder generated from intake data",
@@ -211,8 +211,8 @@
       ]
     },
     {
-      "match": ["analytics", "agent-22", "insights", "dashboard", "metrics"],
-      "summary": "Analytics Insights agent (agent-22) has generated the portfolio analytics report.",
+      "match": ["analytics", "analytics-insights-agent", "insights", "dashboard", "metrics"],
+      "summary": "Analytics Insights agent (analytics-insights-agent) has generated the portfolio analytics report.",
       "items": [
         "Portfolio health score: 74/100 (was 71 last week — improving)",
         "Predictive alert: resource capacity likely to breach 90% in 3 weeks",
@@ -221,8 +221,8 @@
       ]
     },
     {
-      "match": ["data sync", "agent-23", "connector", "synchronisation"],
-      "summary": "Data Synchronisation agent (agent-23) has completed the connector health check.",
+      "match": ["data sync", "data-synchronisation-agent", "connector", "synchronisation"],
+      "summary": "Data Synchronisation agent (data-synchronisation-agent) has completed the connector health check.",
       "items": [
         "Jira connector: healthy — last sync 30 min ago",
         "SAP connector: degraded — partial metadata (retry scheduled)",
@@ -231,8 +231,8 @@
       ]
     },
     {
-      "match": ["system health", "agent-25", "monitoring", "infrastructure", "observability"],
-      "summary": "System Health agent (agent-25) has completed the platform health check.",
+      "match": ["system health", "system-health-agent", "monitoring", "infrastructure", "observability"],
+      "summary": "System Health agent (system-health-agent) has completed the platform health check.",
       "items": [
         "All 8 platform services reporting healthy",
         "API response time P95: 340ms (threshold: 500ms)",

@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "compliance-governance-agent",
+      "summary": "Demo fixture for compliance regulatory was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "approval",
+          "id": "compliance-governance-agent-artifact-001",
+          "title": "Compliance Regulatory Demo Artifact"
+        }
+      ]
+    }
+  }
+}

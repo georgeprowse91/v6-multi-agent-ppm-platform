@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "analytics-insights-agent",
+      "summary": "Demo fixture for analytics insights was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "dashboard",
+          "id": "analytics-insights-agent-artifact-001",
+          "title": "Analytics Insights Demo Artifact"
+        }
+      ]
+    }
+  }
+}

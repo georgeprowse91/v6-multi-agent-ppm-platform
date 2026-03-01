@@ -70,18 +70,18 @@ async def test_portfolio_intake_to_business_case(
     )
 
     orchestration_agent.agent_registry = {
-        "agent-04-demand-intake-agent": demand_intake_agent,
-        "agent-05-business-case-agent": business_case_agent,
+        "demand-intake-agent": demand_intake_agent,
+        "business-case-agent": business_case_agent,
     }
 
     response = await orchestration_agent.process(
         {
             "routing": [
-                {"agent_id": "agent-04-demand-intake-agent", "action": "submit_request"},
+                {"agent_id": "demand-intake-agent", "action": "submit_request"},
                 {
-                    "agent_id": "agent-05-business-case-agent",
+                    "agent_id": "business-case-agent",
                     "action": "generate_business_case",
-                    "depends_on": ["agent-04-demand-intake-agent"],
+                    "depends_on": ["demand-intake-agent"],
                 },
             ],
             "parameters": {
@@ -101,11 +101,11 @@ async def test_portfolio_intake_to_business_case(
 
     assert payload["execution_summary"]["successful"] == 2
     assert payload["execution_summary"]["failed"] == 0
-    assert "agent-04-demand-intake-agent" in payload["aggregated_response"]
-    assert "agent-05-business-case-agent" in payload["aggregated_response"]
+    assert "demand-intake-agent" in payload["aggregated_response"]
+    assert "business-case-agent" in payload["aggregated_response"]
 
-    intake_response = payload["aggregated_response"]["agent-04-demand-intake-agent"]
-    business_case_response = payload["aggregated_response"]["agent-05-business-case-agent"]
+    intake_response = payload["aggregated_response"]["demand-intake-agent"]
+    business_case_response = payload["aggregated_response"]["business-case-agent"]
     assert intake_response["classification"] == "project"
     assert intake_response["demand_id"] == "DEM-4201"
     assert business_case_response["demand_id"] == intake_response["demand_id"]

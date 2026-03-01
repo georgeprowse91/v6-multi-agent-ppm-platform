@@ -9,7 +9,7 @@ from tools.component_runner import discover_agents, discover_connectors
 def test_discover_agents_contains_known_agent() -> None:
     agents = discover_agents()
     names = {agent.name for agent in agents}
-    assert "agent-10-schedule-planning-agent" in names
+    assert "schedule-planning-agent" in names
 
 
 def test_discover_connectors_contains_known_connector() -> None:

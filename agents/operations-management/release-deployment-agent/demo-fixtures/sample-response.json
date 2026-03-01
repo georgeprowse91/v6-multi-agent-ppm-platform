@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "release-deployment-agent",
+      "summary": "Demo fixture for release deployment was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "notification",
+          "id": "release-deployment-agent-artifact-001",
+          "title": "Release Deployment Demo Artifact"
+        }
+      ]
+    }
+  }
+}

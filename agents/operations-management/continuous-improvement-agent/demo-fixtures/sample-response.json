@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "continuous-improvement-agent",
+      "summary": "Demo fixture for continuous improvement process mining was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "register",
+          "id": "continuous-improvement-agent-artifact-001",
+          "title": "Continuous Improvement Process Mining Demo Artifact"
+        }
+      ]
+    }
+  }
+}

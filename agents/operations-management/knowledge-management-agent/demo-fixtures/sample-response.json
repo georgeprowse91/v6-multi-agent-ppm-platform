@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "knowledge-management-agent",
+      "summary": "Demo fixture for knowledge document management was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "document",
+          "id": "knowledge-management-agent-artifact-001",
+          "title": "Knowledge Document Management Demo Artifact"
+        }
+      ]
+    }
+  }
+}

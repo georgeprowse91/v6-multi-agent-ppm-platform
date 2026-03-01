@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "system-health-agent",
+      "summary": "Demo fixture for system health monitoring was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "notification",
+          "id": "system-health-agent-artifact-001",
+          "title": "System Health Monitoring Demo Artifact"
+        }
+      ]
+    }
+  }
+}

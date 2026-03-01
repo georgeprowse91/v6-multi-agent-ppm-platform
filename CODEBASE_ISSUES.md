@@ -318,7 +318,7 @@ apps/web/src/
 allocation algorithms, and reporting helpers that can be split:
 
 ```
-agents/delivery-management/agent-11-resource-capacity/src/
+agents/delivery-management/resource-management-agent/src/
 ├── resource_capacity_agent.py   # Agent class (~300 lines, process() + lifecycle)
 ├── capacity_calculator.py       # Pure functions for capacity math
 ├── allocation_engine.py         # Allocation optimization logic

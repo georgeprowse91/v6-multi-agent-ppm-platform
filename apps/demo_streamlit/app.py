@@ -416,7 +416,7 @@ class DemoDataHub:
                         if approvals
                         else "Gate approval"
                     ),
-                    "agent_id": run.get("agent_id", "agent-01"),
+                    "agent_id": run.get("agent_id", "intent-router-agent"),
                 }
             )
         return rows
@@ -1308,7 +1308,7 @@ def init_state(hub: DemoDataHub) -> None:
         "collection_search": "",
         "selected_intake_request": None,
         "selected_agent_id": None,
-        "selected_invocation_agent": "agent-01",
+        "selected_invocation_agent": "intent-router-agent",
         "selected_approval_type": "all",
         "what_if_budget_delta": 0,
         "what_if_scope_delta": 0,
@@ -2776,11 +2776,11 @@ def render_workflow_designer(hub: DemoDataHub) -> None:
 
     if "wf_designer_nodes" not in st.session_state:
         st.session_state["wf_designer_nodes"] = [
-            {"node_id": "node-1", "type": "task", "label": "Receive intake request", "agent": "agent-01", "position": 1},
-            {"node_id": "node-2", "type": "decision", "label": "Check duplicates", "agent": "agent-02", "position": 2},
+            {"node_id": "node-1", "type": "task", "label": "Receive intake request", "agent": "intent-router-agent", "position": 1},
+            {"node_id": "node-2", "type": "decision", "label": "Check duplicates", "agent": "response-orchestration-agent", "position": 2},
             {"node_id": "node-3", "type": "approval", "label": "Manager approval gate", "agent": None, "position": 3},
-            {"node_id": "node-4", "type": "notification", "label": "Notify stakeholders", "agent": "agent-05", "position": 4},
-            {"node_id": "node-5", "type": "task", "label": "Provision workspace", "agent": "agent-03", "position": 5},
+            {"node_id": "node-4", "type": "notification", "label": "Notify stakeholders", "agent": "business-case-agent", "position": 4},
+            {"node_id": "node-5", "type": "task", "label": "Provision workspace", "agent": "approval-workflow-agent", "position": 5},
         ]
     if "wf_designer_edges" not in st.session_state:
         st.session_state["wf_designer_edges"] = [
@@ -2825,10 +2825,10 @@ def render_workflow_designer(hub: DemoDataHub) -> None:
 
     with tab_routing:
         routing_rules = [
-            {"intent": "intake.submit", "agent": "agent-01", "priority": 1, "dependency": None},
-            {"intent": "duplicate.check", "agent": "agent-02", "priority": 2, "dependency": "agent-01"},
-            {"intent": "approval.route", "agent": "agent-04", "priority": 3, "dependency": "agent-02"},
-            {"intent": "workspace.provision", "agent": "agent-03", "priority": 4, "dependency": "agent-04"},
+            {"intent": "intake.submit", "agent": "intent-router-agent", "priority": 1, "dependency": None},
+            {"intent": "duplicate.check", "agent": "response-orchestration-agent", "priority": 2, "dependency": "intent-router-agent"},
+            {"intent": "approval.route", "agent": "demand-intake-agent", "priority": 3, "dependency": "response-orchestration-agent"},
+            {"intent": "workspace.provision", "agent": "approval-workflow-agent", "priority": 4, "dependency": "demand-intake-agent"},
         ]
         st.dataframe(routing_rules, hide_index=True, use_container_width=True)
 

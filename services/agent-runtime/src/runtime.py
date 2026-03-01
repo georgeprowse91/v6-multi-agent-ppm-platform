@@ -750,7 +750,7 @@ class AgentRuntime:
                 agent_id="intent-router-agent",
                 path=AGENTS_ROOT
                 / "core-orchestration"
-                / "agent-01-intent-router"
+                / "intent-router-agent"
                 / "src"
                 / "intent_router_agent.py",
                 config={
@@ -762,7 +762,7 @@ class AgentRuntime:
                 agent_id="response-orchestration-agent",
                 path=AGENTS_ROOT
                 / "core-orchestration"
-                / "agent-02-response-orchestration"
+                / "response-orchestration-agent"
                 / "src"
                 / "response_orchestration_agent.py",
                 config={
@@ -775,7 +775,7 @@ class AgentRuntime:
                 agent_id="approval-workflow-agent",
                 path=AGENTS_ROOT
                 / "core-orchestration"
-                / "agent-03-approval-workflow"
+                / "approval-workflow-agent"
                 / "src"
                 / "approval_workflow_agent.py",
                 config={
@@ -787,7 +787,7 @@ class AgentRuntime:
                 agent_id="demand-intake-agent",
                 path=AGENTS_ROOT
                 / "portfolio-management"
-                / "agent-04-demand-intake"
+                / "demand-intake-agent"
                 / "src"
                 / "demand_intake_agent.py",
                 config={
@@ -799,7 +799,7 @@ class AgentRuntime:
                 agent_id="business-case-agent",
                 path=AGENTS_ROOT
                 / "portfolio-management"
-                / "agent-05-business-case-investment"
+                / "business-case-agent"
                 / "src"
                 / "business_case_investment_agent.py",
                 config={
@@ -811,7 +811,7 @@ class AgentRuntime:
                 agent_id="portfolio-optimisation-agent",
                 path=AGENTS_ROOT
                 / "portfolio-management"
-                / "agent-06-portfolio-strategy-optimisation"
+                / "portfolio-optimisation-agent"
                 / "src"
                 / "portfolio_strategy_agent.py",
                 config={
@@ -823,7 +823,7 @@ class AgentRuntime:
                 agent_id="program-management-agent",
                 path=AGENTS_ROOT
                 / "portfolio-management"
-                / "agent-07-program-management"
+                / "program-management-agent"
                 / "src"
                 / "program_management_agent.py",
                 config={
@@ -841,7 +841,7 @@ class AgentRuntime:
                 agent_id="scope-definition-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-08-project-definition-scope"
+                / "scope-definition-agent"
                 / "src"
                 / "project_definition_agent.py",
                 config={
@@ -855,7 +855,7 @@ class AgentRuntime:
                 agent_id="lifecycle-governance-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-09-lifecycle-governance"
+                / "lifecycle-governance-agent"
                 / "src"
                 / "project_lifecycle_agent.py",
                 config={
@@ -869,7 +869,7 @@ class AgentRuntime:
                 agent_id="schedule-planning-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-10-schedule-planning"
+                / "schedule-planning-agent"
                 / "src"
                 / "schedule_planning_agent.py",
                 config={
@@ -885,7 +885,7 @@ class AgentRuntime:
                 agent_id="resource-management-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-11-resource-capacity"
+                / "resource-management-agent"
                 / "src"
                 / "resource_capacity_agent.py",
                 config={
@@ -898,7 +898,7 @@ class AgentRuntime:
                 agent_id="financial-management-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-12-financial-management"
+                / "financial-management-agent"
                 / "src"
                 / "financial_management_agent.py",
                 config={
@@ -913,7 +913,7 @@ class AgentRuntime:
                 agent_id="vendor-procurement-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-13-vendor-procurement"
+                / "vendor-procurement-agent"
                 / "src"
                 / "vendor_procurement_agent.py",
                 config={
@@ -928,7 +928,7 @@ class AgentRuntime:
                 agent_id="quality-management-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-14-quality-management"
+                / "quality-management-agent"
                 / "src"
                 / "quality_management_agent.py",
                 config={
@@ -943,7 +943,7 @@ class AgentRuntime:
                 agent_id="risk-management-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-15-risk-issue-management"
+                / "risk-management-agent"
                 / "src"
                 / "risk_management_agent.py",
                 config={
@@ -955,7 +955,7 @@ class AgentRuntime:
                 agent_id="compliance-governance-agent",
                 path=AGENTS_ROOT
                 / "delivery-management"
-                / "agent-16-compliance-regulatory"
+                / "compliance-governance-agent"
                 / "src"
                 / "compliance_regulatory_agent.py",
                 config={
@@ -967,7 +967,7 @@ class AgentRuntime:
                 agent_id="change-control-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-17-change-configuration"
+                / "change-control-agent"
                 / "src"
                 / "change_configuration_agent.py",
                 config={
@@ -981,7 +981,7 @@ class AgentRuntime:
                 agent_id="release-deployment-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-18-release-deployment"
+                / "release-deployment-agent"
                 / "src"
                 / "release_deployment_agent.py",
                 config={
@@ -995,7 +995,7 @@ class AgentRuntime:
                 agent_id="knowledge-management-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-19-knowledge-document-management"
+                / "knowledge-management-agent"
                 / "src"
                 / "knowledge_management_agent.py",
                 config={
@@ -1007,7 +1007,7 @@ class AgentRuntime:
                 agent_id="continuous-improvement-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-20-continuous-improvement-process-mining"
+                / "continuous-improvement-agent"
                 / "src"
                 / "process_mining_agent.py",
                 config={
@@ -1019,7 +1019,7 @@ class AgentRuntime:
                 agent_id="stakeholder-communications-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-21-stakeholder-comms"
+                / "stakeholder-communications-agent"
                 / "src"
                 / "stakeholder_communications_agent.py",
                 config={
@@ -1031,7 +1031,7 @@ class AgentRuntime:
                 agent_id="analytics-insights-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-22-analytics-insights"
+                / "analytics-insights-agent"
                 / "src"
                 / "analytics_insights_agent.py",
                 config={
@@ -1048,7 +1048,7 @@ class AgentRuntime:
                 agent_id="data-synchronisation-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-23-data-synchronisation-quality"
+                / "data-synchronisation-agent"
                 / "src"
                 / "data_sync_agent.py",
                 config={
@@ -1063,7 +1063,7 @@ class AgentRuntime:
                 agent_id="workflow-engine-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-24-workflow-process-engine"
+                / "workflow-engine-agent"
                 / "src"
                 / "workflow_engine_agent.py",
                 config={
@@ -1083,7 +1083,7 @@ class AgentRuntime:
                 agent_id="system-health-agent",
                 path=AGENTS_ROOT
                 / "operations-management"
-                / "agent-25-system-health-monitoring"
+                / "system-health-agent"
                 / "src"
                 / "system_health_agent.py",
                 config={

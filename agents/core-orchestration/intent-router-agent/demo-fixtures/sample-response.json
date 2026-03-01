@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "intent-router-agent",
+      "summary": "Demo fixture for intent router was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "document",
+          "id": "intent-router-agent-artifact-001",
+          "title": "Intent Router Demo Artifact"
+        }
+      ]
+    }
+  }
+}

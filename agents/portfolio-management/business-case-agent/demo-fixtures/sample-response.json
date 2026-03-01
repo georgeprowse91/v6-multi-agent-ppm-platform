@@ -1,0 +1,17 @@
+{
+  "scripted_response": {
+    "success": true,
+    "data": {
+      "demo": true,
+      "agent_id": "business-case-agent",
+      "summary": "Demo fixture for business case investment was executed successfully and produced deterministic artifacts for downstream orchestration checks.",
+      "artifacts": [
+        {
+          "type": "register",
+          "id": "business-case-agent-artifact-001",
+          "title": "Business Case Investment Demo Artifact"
+        }
+      ]
+    }
+  }
+}

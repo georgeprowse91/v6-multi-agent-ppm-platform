@@ -385,8 +385,8 @@ class AgentConfigStore:
         agents = {}
 
         # Core Agents
-        agents["agent-01-intent-router"] = AgentConfig(
-            catalog_id="agent-01-intent-router",
+        agents["intent-router-agent"] = AgentConfig(
+            catalog_id="intent-router-agent",
             agent_id="intent-router-agent",
             display_name="Intent Router",
             description="Routes user queries to appropriate specialized agents",
@@ -406,8 +406,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-02-response-orchestration"] = AgentConfig(
-            catalog_id="agent-02-response-orchestration",
+        agents["response-orchestration-agent"] = AgentConfig(
+            catalog_id="response-orchestration-agent",
             agent_id="response-orchestration-agent",
             display_name="Response Orchestration",
             description="Orchestrates responses from multiple agents",
@@ -437,8 +437,8 @@ class AgentConfigStore:
         ).to_dict()
 
         # Governance Agents
-        agents["agent-03-approval-workflow"] = AgentConfig(
-            catalog_id="agent-03-approval-workflow",
+        agents["approval-workflow-agent"] = AgentConfig(
+            catalog_id="approval-workflow-agent",
             agent_id="approval-workflow-agent",
             display_name="Approval Workflow",
             description="Manages approval workflows and gate reviews",
@@ -448,8 +448,8 @@ class AgentConfigStore:
         ).to_dict()
 
         # Portfolio Agents
-        agents["agent-04-demand-intake"] = AgentConfig(
-            catalog_id="agent-04-demand-intake",
+        agents["demand-intake-agent"] = AgentConfig(
+            catalog_id="demand-intake-agent",
             agent_id="demand-intake-agent",
             display_name="Demand Intake",
             description="Handles intake of new project demands and requests",
@@ -458,8 +458,8 @@ class AgentConfigStore:
             capabilities=["demand_capture", "prioritization", "initial_assessment"],
         ).to_dict()
 
-        agents["agent-05-business-case-investment"] = AgentConfig(
-            catalog_id="agent-05-business-case-investment",
+        agents["business-case-agent"] = AgentConfig(
+            catalog_id="business-case-agent",
             agent_id="business-case-agent",
             display_name="Business Case & Investment",
             description="Analyzes business cases and investment decisions",
@@ -468,8 +468,8 @@ class AgentConfigStore:
             capabilities=["roi_analysis", "benefit_tracking", "investment_modeling"],
         ).to_dict()
 
-        agents["agent-06-portfolio-strategy-optimisation"] = AgentConfig(
-            catalog_id="agent-06-portfolio-strategy-optimisation",
+        agents["portfolio-optimisation-agent"] = AgentConfig(
+            catalog_id="portfolio-optimisation-agent",
             agent_id="portfolio-optimisation-agent",
             display_name="Portfolio Strategy & Optimization",
             description="Optimizes portfolio mix and strategic alignment",
@@ -479,8 +479,8 @@ class AgentConfigStore:
         ).to_dict()
 
         # Delivery Agents
-        agents["agent-07-program-management"] = AgentConfig(
-            catalog_id="agent-07-program-management",
+        agents["program-management-agent"] = AgentConfig(
+            catalog_id="program-management-agent",
             agent_id="program-management-agent",
             display_name="Program Management",
             description="Manages programs and cross-project coordination",
@@ -489,8 +489,8 @@ class AgentConfigStore:
             capabilities=["program_planning", "dependency_management", "benefit_realization"],
         ).to_dict()
 
-        agents["agent-08-project-definition-scope"] = AgentConfig(
-            catalog_id="agent-08-project-definition-scope",
+        agents["scope-definition-agent"] = AgentConfig(
+            catalog_id="scope-definition-agent",
             agent_id="scope-definition-agent",
             display_name="Project Definition & Scope",
             description="Defines project scope and deliverables",
@@ -517,8 +517,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-09-lifecycle-governance"] = AgentConfig(
-            catalog_id="agent-09-lifecycle-governance",
+        agents["lifecycle-governance-agent"] = AgentConfig(
+            catalog_id="lifecycle-governance-agent",
             agent_id="lifecycle-governance-agent",
             display_name="Project Lifecycle & Governance",
             description="Manages project lifecycle and governance processes",
@@ -528,8 +528,8 @@ class AgentConfigStore:
         ).to_dict()
 
         # Schedule & Planning Agent - with detailed parameters
-        agents["agent-10-schedule-planning"] = AgentConfig(
-            catalog_id="agent-10-schedule-planning",
+        agents["schedule-planning-agent"] = AgentConfig(
+            catalog_id="schedule-planning-agent",
             agent_id="schedule-planning-agent",
             display_name="Schedule & Planning",
             description="Manages project schedules, timelines, and critical path analysis",
@@ -702,8 +702,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-11-resource-capacity"] = AgentConfig(
-            catalog_id="agent-11-resource-capacity",
+        agents["resource-management-agent"] = AgentConfig(
+            catalog_id="resource-management-agent",
             agent_id="resource-management-agent",
             display_name="Resource & Capacity",
             description="Manages resource allocation and capacity planning",
@@ -713,8 +713,8 @@ class AgentConfigStore:
         ).to_dict()
 
         # Financial Management Agent - with detailed parameters
-        agents["agent-12-financial-management"] = AgentConfig(
-            catalog_id="agent-12-financial-management",
+        agents["financial-management-agent"] = AgentConfig(
+            catalog_id="financial-management-agent",
             agent_id="financial-management-agent",
             display_name="Financial Management",
             description="Manages project finances, budgets, forecasts, and cost tracking",
@@ -781,8 +781,8 @@ class AgentConfigStore:
         ).to_dict()
 
         # Operations Agents
-        agents["agent-13-vendor-procurement"] = AgentConfig(
-            catalog_id="agent-13-vendor-procurement",
+        agents["vendor-procurement-agent"] = AgentConfig(
+            catalog_id="vendor-procurement-agent",
             agent_id="vendor-procurement-agent",
             display_name="Vendor & Procurement",
             description="Manages vendor relationships and procurement processes",
@@ -849,8 +849,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-14-quality-management"] = AgentConfig(
-            catalog_id="agent-14-quality-management",
+        agents["quality-management-agent"] = AgentConfig(
+            catalog_id="quality-management-agent",
             agent_id="quality-management-agent",
             display_name="Quality Management",
             description="Manages quality assurance and quality control processes",
@@ -896,8 +896,8 @@ class AgentConfigStore:
         ).to_dict()
 
         # Risk & Issue Management Agent - with detailed parameters
-        agents["agent-15-risk-issue-management"] = AgentConfig(
-            catalog_id="agent-15-risk-issue-management",
+        agents["risk-management-agent"] = AgentConfig(
+            catalog_id="risk-management-agent",
             agent_id="risk-management-agent",
             display_name="Risk & Issue Management",
             description="Identifies, assesses, and manages project risks and issues",
@@ -972,8 +972,8 @@ class AgentConfigStore:
         ).to_dict()
 
         # Platform Agents
-        agents["agent-16-compliance-regulatory"] = AgentConfig(
-            catalog_id="agent-16-compliance-regulatory",
+        agents["compliance-governance-agent"] = AgentConfig(
+            catalog_id="compliance-governance-agent",
             agent_id="compliance-governance-agent",
             display_name="Compliance & Regulatory",
             description="Manages compliance requirements and regulatory adherence",
@@ -1001,8 +1001,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-17-change-configuration"] = AgentConfig(
-            catalog_id="agent-17-change-configuration",
+        agents["change-control-agent"] = AgentConfig(
+            catalog_id="change-control-agent",
             agent_id="change-control-agent",
             display_name="Change & Configuration",
             description="Manages change requests and configuration management",
@@ -1054,8 +1054,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-18-release-deployment"] = AgentConfig(
-            catalog_id="agent-18-release-deployment",
+        agents["release-deployment-agent"] = AgentConfig(
+            catalog_id="release-deployment-agent",
             agent_id="release-deployment-agent",
             display_name="Release & Deployment",
             description="Manages release planning and deployment coordination",
@@ -1100,8 +1100,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-19-knowledge-document-management"] = AgentConfig(
-            catalog_id="agent-19-knowledge-document-management",
+        agents["knowledge-management-agent"] = AgentConfig(
+            catalog_id="knowledge-management-agent",
             agent_id="knowledge-management-agent",
             display_name="Knowledge & Document Management",
             description="Manages project documentation and knowledge base",
@@ -1167,8 +1167,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-20-continuous-improvement-process-mining"] = AgentConfig(
-            catalog_id="agent-20-continuous-improvement-process-mining",
+        agents["continuous-improvement-agent"] = AgentConfig(
+            catalog_id="continuous-improvement-agent",
             agent_id="continuous-improvement-agent",
             display_name="Continuous Improvement",
             description="Analyzes processes and identifies improvement opportunities",
@@ -1214,8 +1214,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-21-stakeholder-comms"] = AgentConfig(
-            catalog_id="agent-21-stakeholder-comms",
+        agents["stakeholder-communications-agent"] = AgentConfig(
+            catalog_id="stakeholder-communications-agent",
             agent_id="stakeholder-communications-agent",
             display_name="Stakeholder & Communications",
             description="Manages stakeholder engagement and communications",
@@ -1251,8 +1251,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-22-analytics-insights"] = AgentConfig(
-            catalog_id="agent-22-analytics-insights",
+        agents["analytics-insights-agent"] = AgentConfig(
+            catalog_id="analytics-insights-agent",
             agent_id="analytics-insights-agent",
             display_name="Analytics & Insights",
             description="Provides analytics, dashboards, and business insights",
@@ -1290,8 +1290,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-23-data-synchronisation-quality"] = AgentConfig(
-            catalog_id="agent-23-data-synchronisation-quality",
+        agents["data-synchronisation-agent"] = AgentConfig(
+            catalog_id="data-synchronisation-agent",
             agent_id="data-synchronisation-agent",
             display_name="Data Synchronization & Quality",
             description="Ensures data quality and synchronization across systems",
@@ -1328,8 +1328,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-24-workflow-process-engine"] = AgentConfig(
-            catalog_id="agent-24-workflow-process-engine",
+        agents["workflow-engine-agent"] = AgentConfig(
+            catalog_id="workflow-engine-agent",
             agent_id="workflow-engine-agent",
             display_name="Workflow & Process Engine",
             description="Executes and manages automated workflows",
@@ -1367,8 +1367,8 @@ class AgentConfigStore:
             ],
         ).to_dict()
 
-        agents["agent-25-system-health-monitoring"] = AgentConfig(
-            catalog_id="agent-25-system-health-monitoring",
+        agents["system-health-agent"] = AgentConfig(
+            catalog_id="system-health-agent",
             agent_id="system-health-agent",
             display_name="System Health & Monitoring",
             description="Monitors system health and performance",

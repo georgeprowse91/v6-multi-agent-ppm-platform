@@ -9,7 +9,7 @@
       "created_at": "2026-02-23T08:10:00Z",
       "read": false,
       "project_id": "demo-project-01",
-      "agent_id": "agent-15"
+      "agent_id": "risk-management-agent"
     },
     {
       "id": "notif-s-002",
@@ -20,7 +20,7 @@
       "created_at": "2026-02-23T08:45:00Z",
       "read": false,
       "project_id": "demo-project-01",
-      "agent_id": "agent-09"
+      "agent_id": "lifecycle-governance-agent"
     },
     {
       "id": "notif-s-003",
@@ -31,7 +31,7 @@
       "created_at": "2026-02-23T09:00:00Z",
       "read": false,
       "project_id": "demo-project-01",
-      "agent_id": "agent-12"
+      "agent_id": "financial-management-agent"
     },
     {
       "id": "notif-s-004",
@@ -41,7 +41,7 @@
       "severity": "medium",
       "created_at": "2026-02-23T09:15:00Z",
       "read": false,
-      "agent_id": "agent-24"
+      "agent_id": "workflow-engine-agent"
     },
     {
       "id": "notif-s-005",
@@ -51,7 +51,7 @@
       "severity": "medium",
       "created_at": "2026-02-23T09:30:00Z",
       "read": false,
-      "agent_id": "agent-23"
+      "agent_id": "data-synchronisation-agent"
     },
     {
       "id": "notif-s-006",
@@ -62,17 +62,17 @@
       "created_at": "2026-02-23T10:00:00Z",
       "read": true,
       "project_id": "demo-project-01",
-      "agent_id": "agent-21"
+      "agent_id": "stakeholder-communications-agent"
     },
     {
       "id": "notif-s-007",
       "type": "agent",
       "title": "Agent run completed — Portfolio Strategy Optimisation",
-      "message": "agent-06 completed portfolio optimisation in 77s. Output: re-ranked project list, resource reallocation scenario (£180k saving), optimisation report.",
+      "message": "portfolio-optimisation-agent completed portfolio optimisation in 77s. Output: re-ranked project list, resource reallocation scenario (£180k saving), optimisation report.",
       "severity": "low",
       "created_at": "2026-02-23T10:20:00Z",
       "read": true,
-      "agent_id": "agent-06"
+      "agent_id": "portfolio-optimisation-agent"
     },
     {
       "id": "notif-s-008",
@@ -83,7 +83,7 @@
       "created_at": "2026-02-23T10:45:00Z",
       "read": true,
       "project_id": "demo-project-01",
-      "agent_id": "agent-11"
+      "agent_id": "resource-management-agent"
     },
     {
       "id": "notif-s-009",
@@ -94,7 +94,7 @@
       "created_at": "2026-02-23T11:00:00Z",
       "read": true,
       "project_id": "demo-project-01",
-      "agent_id": "agent-19"
+      "agent_id": "knowledge-management-agent"
     },
     {
       "id": "notif-s-010",
@@ -104,7 +104,7 @@
       "severity": "medium",
       "created_at": "2026-02-23T11:30:00Z",
       "read": false,
-      "agent_id": "agent-22"
+      "agent_id": "analytics-insights-agent"
     }
   ]
 }
