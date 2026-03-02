@@ -138,7 +138,7 @@ class FinancialManagementAgent(BaseAgent):
         self.db_service = DatabaseStorageService(db_config)
         self.logger.info("Database Storage Service initialized")
 
-        # Initialize ERP Integration Service (SAP, Oracle, Workday Financials, Dynamics 365)
+        # Initialize ERP Finance Integration Service (SAP, Oracle, NetSuite, Dynamics 365)
         erp_config = self.config.get("erp_integration", {}) if self.config else {}
         erp_config = {**erp_config, **self._resolve_secret_config("erp_integration")}
         self.erp_service = ERPIntegrationService(erp_config)

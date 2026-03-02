@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-WORKFLOW_SRC = Path(__file__).resolve().parents[2] / "apps" / "workflow-engine" / "src"
+WORKFLOW_SRC = Path(__file__).resolve().parents[2] / "apps" / "workflow-service" / "src"
 if str(WORKFLOW_SRC) not in sys.path:
     sys.path.insert(0, str(WORKFLOW_SRC))
 

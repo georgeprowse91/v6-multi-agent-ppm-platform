@@ -122,7 +122,7 @@ Example payload:
 ### Decision responsibilities
 
 - **Must decide**: change classification, approval routing, approval requirement, risk/impact recommendations, and whether to proceed/roll back based on staging/tests.
-- **Must not decide**: final deployment scheduling mechanics (delegated to the Release Deployment agent), workflow orchestration definition/templating (delegated to the Workflow Engine agent), or approval policy governance beyond configured thresholds.
+- **Must not decide**: final deployment scheduling mechanics (delegated to the Release Deployment agent), workflow orchestration definition/templating (delegated to the Approval Workflow agent), or approval policy governance beyond configured thresholds.
 
 ### Must / must-not behaviors
 
@@ -134,7 +134,7 @@ Example payload:
 
 **Must not**
 - Deploy releases directly or manage runtime deployment plans.
-- Modify workflow templates or orchestration definitions owned by the workflow engine.
+- Modify workflow templates or orchestration definitions owned by the Approval Workflow agent.
 - Bypass approval requirements when thresholds dictate approval.
 
 ## Overlap analysis and handoff boundaries
@@ -148,17 +148,17 @@ Example payload:
 - the Change Control agent **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`).
 - the Release Deployment agent **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.
 
-### Workflow Process Engine
+### Approval Workflow agent
 
 **Potential overlap**
 - Both handle workflow orchestration; the Change Control agent builds a change workflow instance.
 
 **Handoff boundary**
-- the Change Control agent **requests** workflow creation and manages change state; the Workflow Engine agent **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence.
+- the Change Control agent **requests** workflow creation and manages change state; the Approval Workflow agent **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence.
 
 ## Gaps, inconsistencies, and alignment requirements
 
-- **Workflow orchestration alignment**: the Change Control agent uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while the Workflow Engine agent defines workflow specs/templates. Align on a shared workflow schema and ensure the Change Control agent payloads conform to the templates/versions maintained by the Workflow Engine agent.
+- **Workflow orchestration alignment**: the Change Control agent uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while the Approval Workflow agent defines workflow specs/templates. Align on a shared workflow schema and ensure the Change Control agent payloads conform to the templates/versions maintained by the Approval Workflow agent.
 - **Deployment status contract**: the Change Control agent expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with the Release Deployment agent, including intermediate states (queued, in-progress, rolled-back).
 - **Approval policy governance**: the Change Control agent uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.
 - **Event taxonomy**: the Change Control agent emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by Agents 18 and 24.
@@ -167,7 +167,7 @@ Example payload:
 ### Checkpoint: change control handoffs
 
 - the Change Control agent submits change workflows (creates/updates change state).
-- the Workflow Engine agent runs and governs workflow definitions/execution.
+- the Approval Workflow agent runs and governs workflow definitions/execution.
 - the Release Deployment agent executes deployment and reports status.
 
 ## Troubleshooting

@@ -41,7 +41,7 @@ async def test_process_mining_persists_logs_and_emits_recommendations(tmp_path):
     agent = ProcessMiningAgent(
         config={
             "event_log_store_path": tmp_path / "event_logs.json",
-            "workflow_engine_agent": workflow_mock,
+            "approval_workflow_agent": workflow_mock,
         }
     )
     await agent.initialize()

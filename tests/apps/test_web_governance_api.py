@@ -41,7 +41,7 @@ def test_governance_api_endpoints(monkeypatch: pytest.MonkeyPatch) -> None:
     # Set required env vars so web app config validation passes
     monkeypatch.setenv("API_GATEWAY_URL", "http://api-gateway:8000")
     monkeypatch.setenv("IDENTITY_ACCESS_URL", "http://identity:8000")
-    monkeypatch.setenv("WORKFLOW_ENGINE_URL", "http://workflow:8000")
+    monkeypatch.setenv("WORKFLOW_SERVICE_URL", "http://workflow:8000")
     # Clear the lru_cache so our env vars take effect
     try:
         import config as _web_cfg  # noqa: PLC0415

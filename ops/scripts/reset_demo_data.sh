@@ -7,7 +7,7 @@ cd "$ROOT_DIR"
 COMPOSE_CMD="${COMPOSE_CMD:-docker compose}"
 DB_SERVICE="${DB_SERVICE:-db}"
 CACHE_SERVICE="${CACHE_SERVICE:-redis}"
-APP_SERVICES=("api" "workflow-engine" "web")
+APP_SERVICES=("api" "workflow-service" "web")
 
 REGENERATE=0
 GENERATOR_ARGS=()

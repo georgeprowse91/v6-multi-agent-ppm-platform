@@ -8,7 +8,7 @@ Define service-level objectives (SLOs) and the service-level indicators (SLIs) u
 
 - API Gateway (`apps/api-gateway`)
 - Orchestration Service (`apps/orchestration-service`)
-- Workflow Engine (`apps/workflow-engine`)
+- Workflow Service (`apps/workflow-service`)
 - Data Sync Service (`services/data-sync-service`)
 - Audit Log Service (`services/audit-log`)
 
@@ -26,7 +26,7 @@ Define service-level objectives (SLOs) and the service-level indicators (SLIs) u
 
 These targets are aligned with the SLO template in `docs/templates/quality/slo-alert-definition-cross.yaml` and should be adjusted per deployment.
 
-- **Availability:** 99.9% over 30 days for API Gateway and Workflow Engine.
+- **Availability:** 99.9% over 30 days for API Gateway and Workflow Service.
 - **Latency (P95):** < 750 ms for `/v1/query` and `/v1/workflows/start` over 7 days.
 - **Error rate:** < 0.5% 5xx responses for core APIs.
 - **Queue freshness:** 95% of sync jobs start within 5 minutes of enqueue.

@@ -519,7 +519,7 @@ Runtime configuration is supplied via `.env` and service URLs in the repo config
 
 Key environment variables:
 - `API_GATEWAY_URL`: URL of the API gateway (default: `http://localhost:8000`)
-- `WORKFLOW_ENGINE_URL`: URL of the workflow engine (default: `http://localhost:8082`)
+- `WORKFLOW_SERVICE_URL`: URL of the workflow service (default: `http://localhost:8082`)
 - `DOCUMENT_SERVICE_URL`: URL of the document service (default: `http://document-service:8080`)
 - `OIDC_*`: OIDC authentication settings (optional for dev mode)
 

@@ -106,16 +106,16 @@ def test_identity_token_validation(monkeypatch) -> None:
     assert response.json()["active"] is True
 
 
-def test_workflow_engine_healthz() -> None:
-    client = _client_for(["apps", "workflow-engine", "src", "main.py"], "workflow_main_health")
+def test_workflow_service_healthz() -> None:
+    client = _client_for(["apps", "workflow-service", "src", "main.py"], "workflow_main_health")
     response = client.get("/healthz")
     assert response.status_code == 200
-    assert response.json()["service"] == "workflow-engine"
+    assert response.json()["service"] == "workflow-service"
 
 
-def test_workflow_engine_start(monkeypatch) -> None:
+def test_workflow_service_start(monkeypatch) -> None:
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
-    client = _client_for(["apps", "workflow-engine", "src", "main.py"], "workflow_main_start")
+    client = _client_for(["apps", "workflow-service", "src", "main.py"], "workflow_main_start")
     payload = {
         "workflow_id": "intake-triage",
         "tenant_id": "tenant-alpha",

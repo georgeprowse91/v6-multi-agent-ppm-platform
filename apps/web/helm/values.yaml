@@ -14,7 +14,7 @@ env:
   DEMO_MODE: "false"
   API_GATEWAY_URL: "http://api-gateway:8000"
   IDENTITY_ACCESS_URL: "http://identity-access:8080"
-  WORKFLOW_ENGINE_URL: "http://workflow-engine:8080"
+  WORKFLOW_SERVICE_URL: "http://workflow-service:8080"
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
   WEB_CONCURRENCY: "4"

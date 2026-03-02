@@ -711,9 +711,9 @@ jobs:
           - service: orchestration-service
             dockerfile: Dockerfile
             context: apps/orchestration-service
-          - service: workflow-engine
+          - service: workflow-service
             dockerfile: Dockerfile
-            context: apps/workflow-engine
+            context: apps/workflow-service
           - service: web
             dockerfile: Dockerfile
             context: apps/web

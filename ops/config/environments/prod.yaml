@@ -7,7 +7,7 @@ endpoints:
   audit_log: "file:/mnt/secrets-store/audit-log-endpoint"
   telemetry: "file:/mnt/secrets-store/telemetry-endpoint"
   data_sync: "file:/mnt/secrets-store/data-sync-endpoint"
-  workflow_engine: "file:/mnt/secrets-store/workflow-engine-endpoint"
+  workflow_service: "file:/mnt/secrets-store/workflow-service-endpoint"
   orchestration_service: "file:/mnt/secrets-store/orchestration-service-endpoint"
   ui: "file:/mnt/secrets-store/ui-endpoint"
 vault:
@@ -32,7 +32,7 @@ vault:
     sendgrid_api_key: "file:/mnt/secrets-store/sendgrid-api-key"
     sendgrid_from_address: "file:/mnt/secrets-store/sendgrid-from-address"
 feature_flags:
-  enable_workflow_engine: true
+  enable_workflow_service: true
   enable_data_sync: true
   enable_connector_hub: true
   enable_audit_worm: true

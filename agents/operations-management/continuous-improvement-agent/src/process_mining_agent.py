@@ -85,7 +85,7 @@ class ProcessMiningAgent(BaseAgent):
         self.integration_clients = config.get("integration_clients", {}) if config else {}
         self.integration_status: dict[str, bool] = {}
         self.financial_agent = config.get("financial_agent") if config else None
-        self.workflow_engine_agent = config.get("workflow_engine_agent") if config else None
+        self.approval_workflow_agent = config.get("approval_workflow_agent") if config else None
         self.knowledge_agent = config.get("knowledge_agent") if config else None
         self.event_bus = config.get("event_bus") if config else None
         if self.event_bus is None:
@@ -752,7 +752,7 @@ class ProcessMiningAgent(BaseAgent):
     async def _emit_improvement_recommendation(
         self, tenant_id: str, improvement: dict[str, Any]
     ) -> None:
-        """Emit improvement recommendation to workflow engine."""
+        """Emit improvement recommendation to the Approval Workflow agent."""
         event_payload = {
             "event_type": "workflow.improvement.recommendation",
             "data": {
@@ -763,8 +763,8 @@ class ProcessMiningAgent(BaseAgent):
                 "expected_benefits": improvement.get("expected_benefits"),
             },
         }
-        if self.workflow_engine_agent:
-            await self.workflow_engine_agent.process(
+        if self.approval_workflow_agent:
+            await self.approval_workflow_agent.process(
                 {"action": "handle_event", "event": event_payload}
             )
             return
@@ -1581,8 +1581,8 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _get_designed_process_model(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         """Get designed process model."""
-        if self.workflow_engine_agent:
-            response = await self.workflow_engine_agent.process(
+        if self.approval_workflow_agent:
+            response = await self.approval_workflow_agent.process(
                 {"action": "get_process_model", "process_id": process_id}
             )
             if isinstance(response, dict) and response.get("model"):

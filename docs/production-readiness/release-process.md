@@ -58,16 +58,16 @@ checks, tagging, and post-release validation.
    - Obtain approval from release manager and security lead.
    - Deploy with Helm in the documented service order.
 
-## Migration notes (workflow engine distributed execution)
+## Migration notes (workflow service distributed execution)
 
-- Deploy the Celery broker (Redis or RabbitMQ) before scaling workflow engine pods.
-- Roll out the `workflow-engine` Celery worker deployment alongside the API service.
+- Deploy the Celery broker (Redis or RabbitMQ) before scaling workflow service pods.
+- Roll out the `workflow-service` Celery worker deployment alongside the API service.
 - Set `WORKFLOW_BROKER_URL` and `WORKFLOW_RESULT_BACKEND` in the environment or Helm values.
 - Monitor worker queues for retries and ensure idempotent workflow steps are enabled before cutover.
 
 ## Post-release validation
 
-- Confirm `/healthz` for API gateway, workflow engine, and core services.
+- Confirm `/healthz` for API gateway, workflow service, and core services.
 - Verify audit log ingestion and retention policy execution.
 - Validate telemetry ingestion and alerting.
 - Notify stakeholders in the release channel with summary and rollback plan.

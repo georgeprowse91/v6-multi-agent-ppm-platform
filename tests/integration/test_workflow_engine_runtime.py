@@ -18,9 +18,9 @@ pytest.importorskip("cryptography")
 
 def _load_module():
     module_path = (
-        Path(__file__).resolve().parents[2] / "apps" / "workflow-engine" / "src" / "main.py"
+        Path(__file__).resolve().parents[2] / "apps" / "workflow-service" / "src" / "main.py"
     )
-    spec = spec_from_file_location("workflow_engine_main", module_path)
+    spec = spec_from_file_location("workflow_service_main", module_path)
     module = module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = module

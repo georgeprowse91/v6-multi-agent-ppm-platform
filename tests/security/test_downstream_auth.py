@@ -225,11 +225,11 @@ def test_telemetry_requires_auth(monkeypatch) -> None:
     assert response.status_code == 403
 
 
-def test_workflow_engine_requires_auth(monkeypatch) -> None:
+def test_workflow_service_requires_auth(monkeypatch) -> None:
     _set_auth_env(monkeypatch)
     client = _load_client(
-        REPO_ROOT / "apps" / "workflow-engine" / "src" / "main.py",
-        "workflow_engine_auth",
+        REPO_ROOT / "apps" / "workflow-service" / "src" / "main.py",
+        "workflow_service_auth",
     )
 
     payload = {

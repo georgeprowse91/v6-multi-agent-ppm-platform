@@ -1,5 +1,0 @@
-apiVersion: v2
-name: workflow-engine
-description: Helm chart for the workflow engine component in the multi-agent PPM platform
-version: 0.1.0
-appVersion: "0.1.0"

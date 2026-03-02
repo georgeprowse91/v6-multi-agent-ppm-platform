@@ -7,7 +7,7 @@ trust boundaries, and mitigations that protect tenant data, workflows, and audit
 
 ## Scope
 
-- API Gateway, Workflow Engine, orchestration layer, and core services.
+- API Gateway, Workflow Service, orchestration layer, and core services.
 - Data stores: Postgres, Redis, and immutable audit storage.
 - External integrations: connectors to PPM/ERP/Collaboration systems.
 

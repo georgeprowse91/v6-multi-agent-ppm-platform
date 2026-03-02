@@ -5,7 +5,21 @@ Provides high-level integration services that wrap the platform's connectors
 for use by agents. These services handle:
 - Document management (SharePoint, Confluence)
 - GRC platforms (ServiceNow GRC, RSA Archer)
-- Documentation repository publishing
+- Documentation repository publishing (facade over DocumentManagementService)
+- ERP finance (SAP, Oracle, NetSuite, Dynamics 365)
+- HRIS (Workday, SuccessFactors, ADP)
+- Project/work management (Planview, MS Project, Jira, Azure DevOps)
+- ITSM (ServiceNow, Jira Service Management, BMC Remedy)
+- Notifications (email, Teams, Slack, push)
+- Calendar (Outlook, Google Calendar)
+- Database storage (Azure SQL, Cosmos DB, local JSON)
+- ML prediction (Azure ML)
+
+All write operations should go through the ConnectorWriteGate to enforce:
+- Connector configured + connected
+- Approval present if required by policy
+- Dry-run capability
+- Consistent audit logging and idempotency checks
 """
 
 from __future__ import annotations
@@ -49,6 +63,132 @@ def _get_connector_types() -> tuple[type, type]:
 ConnectorConfig, ConnectorCategory = _get_connector_types()
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Write-gating hook used by all integration services
+# ---------------------------------------------------------------------------
+
+@dataclass
+class WriteGateResult:
+    """Result of a write-gating check."""
+
+    allowed: bool
+    reason: str = ""
+    idempotency_key: str = ""
+    audit_entry: dict[str, Any] = field(default_factory=dict)
+
+
+class ConnectorWriteGate:
+    """Standard write-gating hook enforced before any connector write operation.
+
+    Every integration service SHOULD call ``check`` before writing to an
+    external system of record.  The gate verifies:
+
+    1. The connector is configured **and** connected (status >=
+       ``permissions_validated`` or ``connected``).
+    2. An approval is present when required by organisational policy.
+    3. A dry-run has been executed successfully (when ``require_dry_run`` is
+       set).
+    4. An idempotency key is generated so the same write is not executed
+       twice.
+    5. An audit log entry is emitted for every write attempt (pass or fail).
+    """
+
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config = config or {}
+        self.require_dry_run = self.config.get("require_dry_run", False)
+
+    def check(
+        self,
+        *,
+        connector_status: str,
+        approval_status: str | None = None,
+        approval_required: bool = False,
+        dry_run_passed: bool | None = None,
+        operation: str = "",
+        entity_id: str = "",
+        agent_id: str = "",
+        tenant_id: str = "",
+    ) -> WriteGateResult:
+        """Evaluate write-gate preconditions and return a result."""
+        idempotency_key = hashlib.sha256(
+            f"{agent_id}:{tenant_id}:{operation}:{entity_id}:{datetime.now(timezone.utc).isoformat()}".encode()
+        ).hexdigest()[:32]
+
+        audit_entry = {
+            "gate": "connector_write_gate",
+            "agent_id": agent_id,
+            "tenant_id": tenant_id,
+            "operation": operation,
+            "entity_id": entity_id,
+            "connector_status": connector_status,
+            "approval_required": approval_required,
+            "approval_status": approval_status,
+            "dry_run_passed": dry_run_passed,
+            "idempotency_key": idempotency_key,
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        # 1. Connector must be configured + connected
+        valid_statuses = {"connected", "permissions_validated"}
+        if connector_status not in valid_statuses:
+            audit_entry["result"] = "blocked"
+            audit_entry["reason"] = f"connector_status={connector_status}"
+            logger.warning(
+                "Write gate blocked: connector not ready (status=%s, op=%s)",
+                connector_status,
+                operation,
+            )
+            return WriteGateResult(
+                allowed=False,
+                reason=f"Connector status '{connector_status}' does not meet minimum requirement. Must be one of: {valid_statuses}",
+                idempotency_key=idempotency_key,
+                audit_entry=audit_entry,
+            )
+
+        # 2. Approval present if required
+        if approval_required and approval_status != "approved":
+            audit_entry["result"] = "blocked"
+            audit_entry["reason"] = f"approval_status={approval_status}"
+            logger.warning(
+                "Write gate blocked: approval required but status=%s (op=%s)",
+                approval_status,
+                operation,
+            )
+            return WriteGateResult(
+                allowed=False,
+                reason=f"Approval required but current status is '{approval_status}'",
+                idempotency_key=idempotency_key,
+                audit_entry=audit_entry,
+            )
+
+        # 3. Dry-run passed if required
+        if self.require_dry_run and dry_run_passed is not True:
+            audit_entry["result"] = "blocked"
+            audit_entry["reason"] = "dry_run_not_passed"
+            logger.warning(
+                "Write gate blocked: dry-run not passed (op=%s)", operation
+            )
+            return WriteGateResult(
+                allowed=False,
+                reason="Dry-run is required but has not passed",
+                idempotency_key=idempotency_key,
+                audit_entry=audit_entry,
+            )
+
+        audit_entry["result"] = "allowed"
+        logger.info(
+            "Write gate passed (op=%s, entity=%s, idempotency=%s)",
+            operation,
+            entity_id,
+            idempotency_key,
+        )
+        return WriteGateResult(
+            allowed=True,
+            idempotency_key=idempotency_key,
+            audit_entry=audit_entry,
+        )
 
 
 @dataclass
@@ -569,10 +709,13 @@ class GRCIntegrationService:
 
 class ERPIntegrationService:
     """
-    ERP Integration Service.
+    ERP Finance Integration Service.
 
-    Provides methods to sync financial data with ERP systems such as
-    SAP, Oracle, Workday, and Dynamics 365.
+    Provides methods to sync financial data with ERP finance systems:
+    SAP, Oracle, NetSuite, and Dynamics 365.
+
+    Note: Workday is classified under HRISService.  Use ``ERPFinanceService``
+    (alias for this class) in new code for clarity.
     """
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
@@ -584,7 +727,7 @@ class ERPIntegrationService:
         connector_envs = {
             "sap": "SAP_URL",
             "oracle": "ORACLE_URL",
-            "workday": "WORKDAY_API_URL",
+            "netsuite": "NETSUITE_URL",
             "dynamics_365": "DYNAMICS365_URL",
         }
         preferred_env = connector_envs.get(self._connector_type)
@@ -626,16 +769,9 @@ class ERPIntegrationService:
                     instance_url=os.getenv("ORACLE_URL", ""),
                 )
                 self._connector = OracleConnector(connector_config)
-            elif connector_type == "workday":
-                from workday_connector import WorkdayConnector
-
-                connector_config = ConnectorConfig(
-                    connector_id="workday",
-                    name="Workday",
-                    category=ConnectorCategory.HRIS,
-                    instance_url=os.getenv("WORKDAY_API_URL", ""),
-                )
-                self._connector = WorkdayConnector(connector_config)
+            elif connector_type == "netsuite":
+                logger.warning("NetSuite connector not available - using mock ERP service")
+                return None
             elif connector_type == "dynamics_365":
                 logger.warning("Dynamics 365 connector not available - using mock ERP service")
                 return None
@@ -774,6 +910,169 @@ class ERPIntegrationService:
         ) as exc:
             logger.error("Failed to post journal entry: %s", exc)
             return {"status": "failed", "error": str(exc)}
+
+
+# Explicit alias — new code should use ERPFinanceService.
+ERPFinanceService = ERPIntegrationService
+
+
+class HRISService:
+    """
+    HRIS (Human Resource Information System) Integration Service.
+
+    Provides methods to sync HR data with HRIS platforms:
+    Workday, SAP SuccessFactors, and ADP.
+
+    Previously Workday was bundled inside ERPIntegrationService; it is now
+    correctly classified here under HRIS.
+    """
+
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config = config or {}
+        self._connector = None
+        self._connector_type = self.config.get("connector_type", "workday")
+
+    def _select_connector_type(self) -> str | None:
+        connector_envs = {
+            "workday": "WORKDAY_API_URL",
+            "successfactors": "SUCCESSFACTORS_URL",
+            "adp": "ADP_API_URL",
+        }
+        preferred_env = connector_envs.get(self._connector_type)
+        if preferred_env and os.getenv(preferred_env):
+            return self._connector_type
+        for connector_type, env_var in connector_envs.items():
+            if os.getenv(env_var):
+                return connector_type
+        return None
+
+    def _get_connector(self) -> Any:
+        """Lazy-load and return the HRIS connector."""
+        if self._connector is not None:
+            return self._connector
+
+        connector_type = self._select_connector_type()
+        if not connector_type:
+            logger.warning("HRIS platform not configured - using mock HRIS service")
+            return None
+
+        try:
+            if connector_type == "workday":
+                from workday_connector import WorkdayConnector
+
+                connector_config = ConnectorConfig(
+                    connector_id="workday",
+                    name="Workday",
+                    category=ConnectorCategory.HRIS,
+                    instance_url=os.getenv("WORKDAY_API_URL", ""),
+                )
+                self._connector = WorkdayConnector(connector_config)
+            elif connector_type == "successfactors":
+                logger.warning("SuccessFactors connector not available - using mock HRIS service")
+                return None
+            elif connector_type == "adp":
+                logger.warning("ADP connector not available - using mock HRIS service")
+                return None
+            else:
+                logger.warning("Unsupported HRIS connector type - using mock HRIS service")
+                return None
+            self._connector_type = connector_type
+            return self._connector
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
+            logger.warning("Failed to initialize HRIS connector (%s): %s", connector_type, exc)
+            return None
+
+    async def get_employees(
+        self, filters: dict[str, Any] | None = None, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        """Retrieve employee records from the HRIS platform."""
+        connector = self._get_connector()
+
+        if connector is None:
+            logger.info("Mock retrieving employees")
+            return [
+                {"employee_id": "EMP-001", "name": "Sample Employee", "status": "active"},
+            ]
+
+        try:
+            return connector.read("workers", filters=filters, limit=limit)
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
+            logger.error("Failed to retrieve employees: %s", exc)
+            return []
+
+    async def sync_resource_data(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Sync resource/capacity data from the HRIS platform."""
+        connector = self._get_connector()
+
+        if connector is None:
+            logger.info("Mock syncing resource data")
+            return {
+                "status": "synced_mock",
+                "connector": self._connector_type,
+                "synced_at": datetime.now(timezone.utc).isoformat(),
+            }
+
+        try:
+            result = connector.read("workers", filters=payload, limit=500)
+            return {
+                "status": "synced",
+                "connector": self._connector_type,
+                "record_count": len(result),
+                "synced_at": datetime.now(timezone.utc).isoformat(),
+            }
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
+            logger.error("Failed to sync resource data: %s", exc)
+            return {"status": "failed", "connector": self._connector_type, "error": str(exc)}
+
+    async def get_org_structure(
+        self, filters: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
+        """Retrieve organisational structure from the HRIS platform."""
+        connector = self._get_connector()
+
+        if connector is None:
+            logger.info("Mock retrieving org structure")
+            return [
+                {"org_id": "ORG-001", "name": "Engineering", "manager": "EMP-001"},
+            ]
+
+        try:
+            return connector.read("organizations", filters=filters)
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
+            logger.error("Failed to retrieve org structure: %s", exc)
+            return []
 
 
 class ITSMIntegrationService:
@@ -2327,10 +2626,16 @@ class MLPredictionService:
 
 class DocumentationPublishingService:
     """
-    Documentation Repository Publishing Service.
+    Documentation Repository Publishing Service (thin facade).
 
-    Provides methods to publish release notes, technical documentation,
-    and other content to documentation repositories (Confluence, SharePoint).
+    This is a **thin facade** over ``DocumentManagementService`` that adds
+    Confluence-first publishing with SharePoint fallback and convenience
+    methods for release notes and technical docs.
+
+    It does NOT duplicate document storage — all writes ultimately flow
+    through ``DocumentManagementService`` when Confluence is unavailable.
+    Agents that only need basic document CRUD should use
+    ``DocumentManagementService`` directly.
     """
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:

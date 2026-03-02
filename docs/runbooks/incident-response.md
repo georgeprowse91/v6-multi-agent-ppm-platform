@@ -15,7 +15,7 @@ This runbook outlines incident response steps, severity definitions, and escalat
 | Service | RTO | RPO | Priority |
 | --- | --- | --- | --- |
 | API Gateway | 15 minutes | N/A | Critical |
-| Workflow Engine | 30 minutes | 5 minutes | Critical |
+| Workflow Service | 30 minutes | 5 minutes | Critical |
 | Data Service | 1 hour | 15 minutes | High |
 | Audit Log | 2 hours | 0 minutes (WORM) | High |
 | Analytics | 4 hours | 30 minutes | Medium |

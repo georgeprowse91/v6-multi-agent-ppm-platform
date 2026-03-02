@@ -70,16 +70,16 @@ Referenced by the agent runtime and orchestration docs when routing requests, an
 - **Handoff boundary**: the Data Synchronisation agent publishes quality events/metrics; the Analytics Insights agent consumes, aggregates, and generates dashboards, KPIs, narratives, and forecasting.
 - **Leakage to avoid**: the Data Synchronisation agent should not compute portfolio-level KPIs, forecasts, or narrative summaries.
 
-### Workflow Process Engine
+### Approval Workflow agent
 
-- **Overlap risk**: the Workflow Engine agent can orchestrate retries/compensation workflows. the Data Synchronisation agent owns data sync quality decisions and retry eligibility.
-- **Handoff boundary**: the Data Synchronisation agent emits `sync.complete` and `conflict.detected` events and publishes retry queue status; the Workflow Engine agent uses these signals to trigger workflows (e.g., human review for manual conflict resolution).
-- **Leakage to avoid**: the Data Synchronisation agent should not orchestrate complex multi-step workflow routing; defer to the Workflow Engine agent for orchestration.
+- **Overlap risk**: the Approval Workflow agent can orchestrate retries/compensation workflows. the Data Synchronisation agent owns data sync quality decisions and retry eligibility.
+- **Handoff boundary**: the Data Synchronisation agent emits `sync.complete` and `conflict.detected` events and publishes retry queue status; the Approval Workflow agent uses these signals to trigger workflows (e.g., human review for manual conflict resolution).
+- **Leakage to avoid**: the Data Synchronisation agent should not orchestrate complex multi-step workflow routing; defer to the Approval Workflow agent for orchestration.
 
 ## Functional gaps, inconsistencies, and alignment needs
 
 - **Prompt/tool alignment**: ensure agent runner routes `get_quality_report`, `get_dashboard`, and retry actions to the Data Synchronisation agent instead of analytics agents.
-- **Template alignment**: add/confirm templates for quality exception review workflows in the Workflow Engine agent and dashboards in analytics agents.
+- **Template alignment**: add/confirm templates for quality exception review workflows in the Approval Workflow agent and dashboards in analytics agents.
 - **Connector alignment**: confirm connector credential availability in Key Vault for Planview/SAP/Jira/Workday and ensure sync mappings exist in `mapping_rules.yaml`.
 - **UI alignment**: dashboards should visualize quality dimensions (completeness, consistency, timeliness) and include retry queue counts and conflict backlog.
 - **Schema versioning**: ensure `schema_registry.yaml` and registered schemas include version metadata to avoid mismatched validation.
@@ -104,7 +104,7 @@ Minimum rules and thresholds for execution readiness:
 
 **Downstream dependencies**
 - Analytics agent (The Analytics Insights agent): quality metrics, reports, and sync telemetry.
-- the Workflow Engine agent Workflow Engine: conflict and retry orchestration.
+- Approval Workflow agent: conflict and retry orchestration.
 - Data stores: SQL/Cosmos for master records and audit history.
 
 **Key events**

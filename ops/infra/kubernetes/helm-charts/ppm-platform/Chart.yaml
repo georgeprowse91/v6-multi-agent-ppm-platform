@@ -8,9 +8,9 @@ dependencies:
   - name: api-gateway
     version: 0.1.0
     repository: "file://../../../apps/api-gateway/helm"
-  - name: workflow-engine
+  - name: workflow-service
     version: 0.1.0
-    repository: "file://../../../apps/workflow-engine/helm"
+    repository: "file://../../../apps/workflow-service/helm"
   - name: orchestration-service
     version: 0.1.0
     repository: "file://../../../apps/orchestration-service/helm"

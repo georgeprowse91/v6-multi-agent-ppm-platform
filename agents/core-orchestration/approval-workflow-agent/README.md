@@ -34,7 +34,7 @@ pytest agents/core-orchestration/approval-workflow-agent/tests
 
 Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
 
-Workflow definitions and templates are loaded from `ops/config/agents/workflow-engine-agent/` (durable workflow definitions and workflow templates).
+Workflow definitions and templates are loaded from `ops/config/agents/approval-workflow-agent/` (durable workflow definitions and workflow templates).
 
 ### Dynamic escalation policy
 
@@ -115,9 +115,9 @@ To add a new locale:
 - **"My approvals" queue:** Support listing, filtering, opening, and deciding on pending approvals from a personal queue view.
 - **Audit logging:** Log every approval lifecycle transition (requested, assigned, delegated, reminded, escalated, decided, closed) as a structured audit event.
 
-### How approvals fit inside workflows
+### Approvals are a workflow pattern
 
-Approvals are represented as a workflow pattern using the `approval_gate` step type within the `ppm.workflow/v1` specification. An approval gate step defines:
+Approvals are **not** a separate subsystem — they are represented as a first-class workflow pattern using the `approval_gate` step type within the `ppm.workflow/v1` specification. This means every approval chain shares the same execution engine, state persistence, retry/compensation logic, audit trail, and monitoring infrastructure as any other workflow. An approval gate step defines:
 
 ```yaml
 # ppm.workflow/v1
@@ -310,6 +310,18 @@ All events include `tenant_id`, `correlation_id`, `workflow_id` or `approval_id`
 | **Downstream dependencies** | Event bus consumers; audit trail storage; governance agents (e.g., the Lifecycle Governance agent); the Continuous Improvement agent; the Change Control agent; the Data Synchronisation agent. |
 | **Data contracts** | Workflow definition schema (`ppm.workflow/v1`), approval request schema, decision schema, workflow instance schema, task inbox schema, and event payloads (workflow and approval lifecycle events). |
 | **Infrastructure** | PostgreSQL or JSON file-backed state store; RabbitMQ or in-process task queue; Azure Monitor and Azure Event Grid for event integration; Azure Service Bus for event publishing. |
+
+## Integration services used
+
+The approval-workflow-agent consumes the following shared integration services from `agents/common/connector_integration.py`:
+
+| Service | Usage |
+| --- | --- |
+| **NotificationService** | Deliver approval notifications, reminders, and escalation alerts via email, Teams, Slack, and push channels. |
+| **DatabaseStorageService** | Persist workflow definitions, workflow instance state, task inbox entries, and approval decision records. |
+| **CalendarIntegrationService** (optional) | Schedule approval deadline reminders and review meetings in Outlook/Google Calendar. |
+
+Workflow instance state is also backed by `workflow_state_store.py` (database-backed persistence) and `workflow_task_queue.py` (queue-driven task distribution) under `src/`.
 
 ## Troubleshooting
 

@@ -52,9 +52,9 @@ services:
       start_period: 180s
     restart: unless-stopped
 
-  workflow-engine:
+  workflow-service:
     build:
-      context: ../../apps/workflow-engine
+      context: ../../apps/workflow-service
       dockerfile: Dockerfile
       additional_contexts:
         repo-root: ../..
@@ -67,9 +67,9 @@ services:
       - AUTH_DEV_ROLES=${AUTH_DEV_ROLES}
       - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID}
       - DEMO_MODE=${DEMO_MODE}
-      - WORKFLOW_DB_PATH=${WORKFLOW_DB_PATH:-/app/apps/workflow-engine/storage/workflows.db}
+      - WORKFLOW_DB_PATH=${WORKFLOW_DB_PATH:-/app/apps/workflow-service/storage/workflows.db}
     volumes:
-      - ../../apps/workflow-engine:/app/apps/workflow-engine
+      - ../../apps/workflow-service:/app/apps/workflow-service
     depends_on:
       db:
         condition: service_healthy
@@ -133,7 +133,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      workflow-engine:
+      workflow-service:
         condition: service_healthy
     networks:
       - ppm-network
@@ -486,12 +486,12 @@ services:
     environment:
       - API_GATEWAY_URL=${API_GATEWAY_URL}
       - IDENTITY_ACCESS_URL=${IDENTITY_ACCESS_URL}
-      - WORKFLOW_ENGINE_URL=${WORKFLOW_ENGINE_URL}
+      - WORKFLOW_SERVICE_URL=${WORKFLOW_SERVICE_URL}
       - DEMO_MODE=${DEMO_MODE}
       - DOCUMENT_SESSION_DB_PATH=${DOCUMENT_SESSION_DB_PATH:-/app/data/documents/sessions.db}
     depends_on:
       - api
-      - workflow-engine
+      - workflow-service
       - identity-access
     networks:
       - ppm-network

@@ -10,7 +10,7 @@ This directory contains configuration assets consumed by services, agents, and t
 | --- | --- |
 | [abac/](./abac/) | Attribute-based access control policies |
 | [data-synchronisation-agent/](./data-synchronisation-agent/) | the Data Synchronisation agent specific configuration |
-| [workflow-engine-agent/](./workflow-engine-agent/) | Workflow engine configuration (consumed by approval-workflow-agent) |
+| [approval-workflow-agent/](./approval-workflow-agent/) | Approval Workflow agent workflow configuration (durable workflow definitions and templates) |
 | [agents/](./agents/) | Agent runtime and routing configuration (has schema/ subdir) |
 | [connectors/](../../connectors/) | Connector integration configuration |
 | [data-classification/](./data-classification/) | Data classification levels |

@@ -16,7 +16,7 @@ Catalog the user-facing applications and their deployment assets.
 | [mobile/](./mobile/) | React Native mobile application |
 | [orchestration-service/](./orchestration-service/) | Orchestration service for agent coordination |
 | [web/](./web/) | Web console (React SPA frontend with Streamlit fallback) |
-| [workflow-engine/](./workflow-engine/) | Workflow persistence and execution engine |
+| [workflow-service/](./workflow-service/) | Workflow persistence and execution engine |
 
 Connector Hub now lives under [`integrations/apps/connector-hub/`](../integrations/apps/connector-hub/).
 

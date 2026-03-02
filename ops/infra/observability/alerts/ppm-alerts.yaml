@@ -50,7 +50,7 @@ groups:
           summary: "API Gateway availability budget burn"
           description: "Availability below 99.9% for 30 minutes."
       - alert: WorkflowEngineHighLatency
-        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="workflow-engine"}[5m])) by (le)) > 0.75
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{service="workflow-service"}[5m])) by (le)) > 0.75
         for: 10m
         labels:
           severity: warning

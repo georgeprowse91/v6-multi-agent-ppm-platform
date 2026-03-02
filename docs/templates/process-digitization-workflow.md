@@ -48,7 +48,7 @@ This template provides a structured approach to digitizing business processes, e
 ### Technology Architecture
 **Solution Components:**
 - [ ] **User Interface:** [Web portal/mobile app/desktop application]
-- [ ] **Workflow Engine:** [Process automation platform]
+- [ ] **Workflow Service:** [Process automation platform]
 - [ ] **Data Management:** [Database/cloud storage/data lake]
 - [ ] **Integration Layer:** [APIs/middleware/ESB]
 - [ ] **Analytics Platform:** [Reporting/dashboard/AI/ML components]

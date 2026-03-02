@@ -7,7 +7,7 @@ This runbook outlines DR planning, RTO/RPO targets, and recovery steps for the M
 | Component | RTO | RPO | Notes |
 | --- | --- | --- | --- |
 | API Gateway + UI | 1 hour | 15 minutes | Stateless services behind load balancer. |
-| Workflow Engine | 2 hours | 30 minutes | Requires workflow state DB recovery. |
+| Workflow Service | 2 hours | 30 minutes | Requires workflow state DB recovery. |
 | Audit Log (WORM) | 4 hours | 0 minutes | Immutable storage with geo-redundancy. |
 | Data Sync Service | 2 hours | 30 minutes | Resume from Service Bus checkpoints. |
 
@@ -32,7 +32,7 @@ This runbook outlines DR planning, RTO/RPO targets, and recovery steps for the M
    - Restore Postgres snapshot to DR instance.
    - Validate schema using `alembic upgrade head` if required.
 5. **Restore workflow state**
-   - Validate workflow engine DB and resume pending workflows.
+   - Validate workflow service DB and resume pending workflows.
    - Replay audit events for in-flight workflows if needed.
 6. **Rehydrate audit log**
    - Verify WORM container immutability policies.

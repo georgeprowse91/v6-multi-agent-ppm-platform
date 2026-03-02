@@ -12,7 +12,7 @@ This guide covers common operational issues and how to resolve them.
 ## Workflow failures
 - **Symptoms:** workflows stuck in `running` or `failed`.
 - **Checks:**
-  - Inspect workflow engine logs for exceptions.
+  - Inspect workflow service logs for exceptions.
   - Ensure Postgres connectivity and migrations are current.
   - Verify queue backlogs are draining.
 

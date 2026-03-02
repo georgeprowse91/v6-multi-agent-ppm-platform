@@ -30,7 +30,7 @@ def _validate_workflow_payload(payload: WorkflowDefinitionPayload) -> None:
 
 
 async def _sync_workflow_definition(request: Request, workflow_id: str, definition: dict[str, Any]) -> None:
-    workflow_url = os.getenv("WORKFLOW_ENGINE_URL")
+    workflow_url = os.getenv("WORKFLOW_SERVICE_URL")
     if not workflow_url:
         return
     session = _require_session(request)
@@ -43,7 +43,7 @@ async def _sync_workflow_definition(request: Request, workflow_id: str, definiti
 
 
 async def _delete_workflow_definition(request: Request, workflow_id: str) -> None:
-    workflow_url = os.getenv("WORKFLOW_ENGINE_URL")
+    workflow_url = os.getenv("WORKFLOW_SERVICE_URL")
     if not workflow_url:
         return
     session = _require_session(request)
@@ -107,7 +107,7 @@ async def delete_workflow_definition(workflow_id: str, request: Request) -> dict
 @router.post("/api/workflows/start", response_model=WorkflowStartResponse)
 async def api_start_workflow(request: Request, payload: WorkflowStartRequest) -> dict[str, Any]:
     session = _require_session(request)
-    workflow_url = os.getenv("WORKFLOW_ENGINE_URL", "http://localhost:8082")
+    workflow_url = os.getenv("WORKFLOW_SERVICE_URL", "http://localhost:8082")
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.post(
             f"{workflow_url}/v1/workflows/start",

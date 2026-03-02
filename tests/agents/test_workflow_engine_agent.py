@@ -1,5 +1,5 @@
 import pytest
-from workflow_engine_agent import WorkflowEngineAgent
+from workflow_service_agent import WorkflowEngineAgent
 from workflow_task_queue import InMemoryWorkflowTaskQueue
 
 
@@ -21,7 +21,7 @@ class FakeEventBus:
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_bpmn_deploy_parses_tasks(tmp_path):
+async def test_workflow_service_bpmn_deploy_parses_tasks(tmp_path):
     task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
@@ -62,7 +62,7 @@ async def test_workflow_engine_bpmn_deploy_parses_tasks(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_upload_bpmn_file(tmp_path):
+async def test_workflow_service_upload_bpmn_file(tmp_path):
     task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
@@ -103,7 +103,7 @@ async def test_workflow_engine_upload_bpmn_file(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_loads_durable_config(tmp_path):
+async def test_workflow_service_loads_durable_config(tmp_path):
     config_path = tmp_path / "durable.yaml"
     config_path.write_text(
         """
@@ -149,7 +149,7 @@ workflows:
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_persists_and_handles_events(tmp_path):
+async def test_workflow_service_persists_and_handles_events(tmp_path):
     task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
@@ -196,7 +196,7 @@ async def test_workflow_engine_persists_and_handles_events(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_instances_success(tmp_path):
+async def test_workflow_service_instances_success(tmp_path):
     task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
@@ -218,7 +218,7 @@ async def test_workflow_engine_instances_success(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_trigger_task_event_executes_automated_task(tmp_path):
+async def test_workflow_service_trigger_task_event_executes_automated_task(tmp_path):
     task_queue = InMemoryWorkflowTaskQueue()
     event_bus = FakeEventBus()
     agent = WorkflowEngineAgent(
@@ -284,7 +284,7 @@ async def test_workflow_engine_trigger_task_event_executes_automated_task(tmp_pa
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_resume_and_compensation(tmp_path):
+async def test_workflow_service_resume_and_compensation(tmp_path):
     task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
@@ -352,7 +352,7 @@ async def test_workflow_engine_resume_and_compensation(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_validation_rejects_invalid_action(tmp_path):
+async def test_workflow_service_validation_rejects_invalid_action(tmp_path):
     task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={
@@ -370,7 +370,7 @@ async def test_workflow_engine_validation_rejects_invalid_action(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_workflow_engine_validation_rejects_missing_fields(tmp_path):
+async def test_workflow_service_validation_rejects_missing_fields(tmp_path):
     task_queue = InMemoryWorkflowTaskQueue()
     agent = WorkflowEngineAgent(
         config={

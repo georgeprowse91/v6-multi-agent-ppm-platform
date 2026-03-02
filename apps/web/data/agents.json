@@ -1916,7 +1916,7 @@
             "Publish events for key lifecycle transitions.",
             "**Must not**",
             "Deploy releases directly or manage runtime deployment plans.",
-            "Modify workflow templates or orchestration definitions owned by the workflow engine.",
+            "Modify workflow templates or orchestration definitions owned by the Approval Workflow agent.",
             "Bypass approval requirements when thresholds dictate approval."
           ]
         },
@@ -2218,14 +2218,14 @@
         {
           "heading": "Intended scope",
           "content": [
-            "the Continuous Improvement agent owns continuous improvement and process mining for operational workflows. It ingests execution event logs, discovers as-is process models, checks conformance against designed processes, detects bottlenecks/deviations, and turns findings into improvement initiatives with benefit tracking. It is not a general analytics warehouse or workflow engine; it is the process-insight-to-improvement loop.",
+            "the Continuous Improvement agent owns continuous improvement and process mining for operational workflows. It ingests execution event logs, discovers as-is process models, checks conformance against designed processes, detects bottlenecks/deviations, and turns findings into improvement initiatives with benefit tracking. It is not a general analytics warehouse or orchestration engine; it is the process-insight-to-improvement loop.",
             "### Primary responsibilities",
             "Ingest and validate event logs for process instances.",
             "Discover process models and performance metrics from execution traces.",
             "Detect bottlenecks, deviations, and root causes.",
             "Generate improvement recommendations and backlog items.",
             "Track benefit realization and benchmark performance.",
-            "Share best practices with the knowledge agent and notify workflow engine of improvement",
+            "Share best practices with the knowledge agent and notify the Approval Workflow agent of improvement",
             "recommendations."
           ]
         },
@@ -2259,7 +2259,7 @@
             "Selecting mining algorithms for discovery (defaulting to heuristic miner).",
             "Determining bottleneck thresholds and deviation thresholds for alerts.",
             "Prioritizing improvements based on benefits and feasibility scoring.",
-            "Emitting workflow improvement recommendations to the workflow engine.",
+            "Emitting workflow improvement recommendations to the Approval Workflow agent.",
             "the Continuous Improvement agent is not responsible for:",
             "Approving or executing workflow changes (The Approval Workflow agent handles workflow execution).",
             "Curating enterprise-wide analytics models/warehouses (Agents 22/25).",
@@ -2272,10 +2272,10 @@
             "### Must",
             "Validate action inputs before processing.",
             "Persist event logs, models, conformance reports, and recommendations by tenant.",
-            "Emit improvement recommendation events to the workflow engine when improvements are created.",
+            "Emit improvement recommendation events to the Approval Workflow agent when improvements are created.",
             "Publish process discovery and benefit realization events to the event bus.",
             "### Must not",
-            "Trigger workflow execution directly outside of the workflow engine interface.",
+            "Trigger workflow execution directly outside of the Approval Workflow agent.",
             "Overwrite curated analytics KPIs owned by analytics agents.",
             "Generate recommendations without traceable evidence from event logs/metrics."
           ]
@@ -2834,7 +2834,7 @@
             "Event bus: Azure Service Bus / Event Grid.",
             "**Downstream dependencies**",
             "Analytics agent (The Analytics Insights agent): quality metrics, reports, and sync telemetry.",
-            "the Approval Workflow agent Workflow Engine: conflict and retry orchestration.",
+            "Approval Workflow agent: conflict and retry orchestration.",
             "Data stores: SQL/Cosmos for master records and audit history.",
             "**Key events**",
             "`sync.start`, `sync.complete`, `conflict.detected`."

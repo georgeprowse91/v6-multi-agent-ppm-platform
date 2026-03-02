@@ -15,7 +15,7 @@ Resilience covers agent orchestration, connector sync, data availability, and AI
 | Connector API outage | Circuit breakers open after repeated failures; fallback response returned | API Gateway |
 | LLM service degradation | Use cached responses; require human approval | Orchestrator (02) |
 | Data store failure | Scheduled backups + restore procedures; read-only mode | Platform Ops |
-| Queue backlog | Shed non-critical jobs; prioritize gates | Workflow Engine (24) |
+| Queue backlog | Shed non-critical jobs; prioritize gates | Workflow Service (24) |
 
 ## LLM degradation modes
 

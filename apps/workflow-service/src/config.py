@@ -1,0 +1,54 @@
+from __future__ import annotations
+
+import sys
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+
+from pydantic import Field, ValidationError
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+_COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
+if str(_COMMON_SRC) not in sys.path:
+    sys.path.insert(0, str(_COMMON_SRC))
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+ensure_monorepo_paths(REPO_ROOT)
+
+from common.env_validation import build_validation_diagnostics, format_validation_report
+
+
+class Settings(BaseSettings):
+    environment: Literal["development", "dev", "staging", "production"] = "development"
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    demo_mode: bool = False
+    auth_dev_mode: bool = False
+    workflow_service_url: str = "http://localhost:8080"
+    api_gateway_url: str = "http://localhost:8000"
+
+    model_config = SettingsConfigDict(
+        env_file=(str(REPO_ROOT / ".env"), str(REPO_ROOT / ".env.example")),
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()
+
+
+def validate_startup_config() -> Settings:
+    try:
+        settings = get_settings()
+    except ValidationError as exc:
+        diagnostics = build_validation_diagnostics(exc)
+        raise RuntimeError(format_validation_report("workflow-service", diagnostics)) from exc
+    if settings.auth_dev_mode and settings.environment in ("production", "staging"):
+        raise RuntimeError(
+            "AUTH_DEV_MODE must not be enabled in production or staging. "
+            "Set AUTH_DEV_MODE=false in the environment configuration."
+        )
+    return settings

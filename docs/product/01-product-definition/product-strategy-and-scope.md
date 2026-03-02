@@ -66,7 +66,7 @@ The platform covers the full project and portfolio lifecycle:
 
 ## Implementation Alignment
 
-The repository contains a working implementation of the core execution stack: API gateway, orchestration service, workflow engine, agent runtime, 14 FastAPI Python microservices, a React 18 web console with methodology navigation and assistant panel, and a React Native mobile application. The platform runs on PostgreSQL 15 and Redis 7, with Azure OpenAI providing LLM capabilities via LangChain.
+The repository contains a working implementation of the core execution stack: API gateway, orchestration service, workflow service, agent runtime, 14 FastAPI Python microservices, a React 18 web console with methodology navigation and assistant panel, and a React Native mobile application. The platform runs on PostgreSQL 15 and Redis 7, with Azure OpenAI providing LLM capabilities via LangChain.
 
 For architecture details, see the [Architecture Documentation](../../architecture/). For the cross-cutting solution index, see [docs/solution-index.md](../../solution-index.md). Validate any feature claims in commercial collateral against these references before using them in delivery commitments.
 

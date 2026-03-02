@@ -511,8 +511,6 @@ class AgentOrchestrator:
         from process_mining_agent import ProcessMiningAgent
         from release_deployment_agent import ReleaseDeploymentAgent
         from system_health_agent import SystemHealthAgent
-        from workflow_engine_agent import WorkflowEngineAgent
-
         release_agent = ReleaseDeploymentAgent()
         await self._initialize_and_register_agent(release_agent)
 
@@ -531,10 +529,6 @@ class AgentOrchestrator:
         # Data Synchronization & Consistency
         data_sync_agent = DataSyncAgent()
         await self._initialize_and_register_agent(data_sync_agent)
-
-        # Workflow & Process Engine
-        workflow_agent = WorkflowEngineAgent()
-        await self._initialize_and_register_agent(workflow_agent)
 
         # System Health & Monitoring
         health_agent = SystemHealthAgent()

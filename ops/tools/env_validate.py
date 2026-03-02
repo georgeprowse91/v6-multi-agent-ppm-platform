@@ -17,7 +17,7 @@ SERVICES: dict[str, tuple[str, str]] = {
     "api-gateway": ("apps/api-gateway/src", "api.config"),
     "orchestration-service": ("apps/orchestration-service/src", "config"),
     "document-service": ("apps/document-service/src", "config"),
-    "workflow-engine": ("apps/workflow-engine/src", "config"),
+    "workflow-service": ("apps/workflow-service/src", "config"),
     "analytics-service": ("apps/analytics-service/src", "config"),
     "web": ("apps/web/src", "config"),
 }

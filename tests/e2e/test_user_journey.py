@@ -63,8 +63,8 @@ def _gateway_client():
 
 
 def _workflow_client():
-    path = _REPO_ROOT / "apps" / "workflow-engine" / "src" / "main.py"
-    return TestClient(_load_app(path, "workflow_engine_main"))
+    path = _REPO_ROOT / "apps" / "workflow-service" / "src" / "main.py"
+    return TestClient(_load_app(path, "workflow_service_main"))
 
 
 def test_end_to_end_workflow(monkeypatch) -> None:
@@ -209,12 +209,12 @@ def test_workflow_idempotency_prevents_duplicate_side_effects(monkeypatch, tmp_p
     assert first.json()["run_id"] == second.json()["run_id"]
 
 
-def test_workflow_engine_degraded_health_when_store_unavailable(monkeypatch) -> None:
+def test_workflow_service_degraded_health_when_store_unavailable(monkeypatch) -> None:
     """Workflow health endpoint should surface degraded mode when dependencies are down."""
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
     workflow = _workflow_client()
 
-    with patch("workflow_engine_main.store.ping", side_effect=RuntimeError("store down")):
+    with patch("workflow_service_main.store.ping", side_effect=RuntimeError("store down")):
         health = workflow.get("/healthz")
 
     assert health.status_code == 503

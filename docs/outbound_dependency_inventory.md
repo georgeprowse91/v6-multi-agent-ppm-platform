@@ -4,8 +4,8 @@
 - `packages/llm/src/llm/client.py` (`OpenAIProviderAdapter`, `AzureProviderAdapter`) uses HTTP clients for completion + streaming.
 
 ## Workflow HTTP clients
-- `apps/orchestration-service/src/workflow_client.py` calls workflow-engine APIs.
-- `apps/workflow-engine/src/agent_client.py` and runtime HTTP step execution in `apps/workflow-engine/src/workflow_runtime.py`.
+- `apps/orchestration-service/src/workflow_client.py` calls workflow-service APIs.
+- `apps/workflow-service/src/agent_client.py` and runtime HTTP step execution in `apps/workflow-service/src/workflow_runtime.py`.
 
 ## Identity / OIDC clients
 - `packages/security/src/security/auth.py` uses OIDC discovery, JWKS, and token fetch.

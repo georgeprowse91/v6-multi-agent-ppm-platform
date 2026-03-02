@@ -16,7 +16,7 @@ cloud "External Systems" as external {
 node "AKS Cluster" as aks {
   [Ingress Controller] as ingress
   [API Gateway] as api
-  [Workflow Engine] as workflow
+  [Workflow Service] as workflow
   [Orchestration Service] as orchestration
   [Core Services] as services
 }

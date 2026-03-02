@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-WORKFLOW_SRC = Path(__file__).resolve().parents[2] / "apps" / "workflow-engine" / "src"
+WORKFLOW_SRC = Path(__file__).resolve().parents[2] / "apps" / "workflow-service" / "src"
 sys.path.insert(0, str(WORKFLOW_SRC))
 
 from workflow_runtime import WorkflowRuntime  # noqa: E402

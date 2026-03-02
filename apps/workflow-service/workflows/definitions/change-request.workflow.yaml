@@ -1,0 +1,48 @@
+apiVersion: ppm.workflows/v1
+kind: Workflow
+metadata:
+  name: change-request
+  version: "1.0.0"
+  owner: workflow-service
+  description: Route change requests with impact analysis and approvals.
+steps:
+  - id: intake-change
+    type: task
+    next: impact-analysis
+    config:
+      agent: change_management_agent
+      action: intake_request
+  - id: impact-analysis
+    type: task
+    next: approval-gate
+    retry:
+      max_attempts: 2
+      delay_seconds: 5
+    config:
+      agent: analytics_agent
+      action: assess_impact
+  - id: approval-gate
+    type: approval
+    next: implement-change
+    config:
+      request_type: change_request
+      request_id: $.payload.change_id
+      requester: $.payload.requester
+      approvers:
+        - change_control_board
+  - id: implement-change
+    type: task
+    next: notify-stakeholders
+    config:
+      agent: delivery_agent
+      action: implement_change
+    on_error:
+      compensation:
+        agent: change_management_agent
+        action: rollback_change
+  - id: notify-stakeholders
+    type: notification
+    next: null
+    config:
+      channel: email
+      template: change-request-complete

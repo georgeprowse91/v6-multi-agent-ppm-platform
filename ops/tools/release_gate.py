@@ -13,7 +13,7 @@ ARTIFACT_DIR = REPO_ROOT / "artifacts" / "release-gate"
 REQUIRED_SERVICES = [
     "api",
     "orchestration-service",
-    "workflow-engine",
+    "workflow-service",
     "data-service",
     "policy-engine",
     "document-service",

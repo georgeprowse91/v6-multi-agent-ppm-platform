@@ -134,7 +134,7 @@ their primary endpoints when run locally (each service defaults to port `8080` u
 | Service | Description | Primary endpoints |
 | --- | --- | --- |
 | API Gateway | Front door for client requests, auth hand-off, and orchestration fan-out. | `GET /healthz`, `POST /v1/query`, `GET /v1/status` |
-| Workflow Engine | Workflow persistence and execution for deterministic flows. | `GET /healthz`, `POST /v1/workflows/start`, `GET /v1/workflows/{workflow_id}` |
+| Workflow Service | Workflow persistence and execution for deterministic flows. | `GET /healthz`, `POST /v1/workflows/start`, `GET /v1/workflows/{workflow_id}` |
 | Audit Log | Immutable audit trail with retention enforcement. | `GET /healthz`, `POST /v1/audit/events`, `GET /v1/audit/events/{event_id}` |
 | Data Service | Canonical schema and entity storage. | `GET /healthz`, `POST /v1/schemas`, `POST /v1/entities/{schema_name}` |
 | Data Sync Service | Connector-driven sync jobs and conflict management. | `GET /healthz`, `POST /v1/sync/run`, `GET /v1/sync/status/{job_id}`, `GET /v1/sync/conflicts` |
@@ -272,7 +272,7 @@ Kubernetes `Secret` objects, or Azure Key Vault-backed secret injection):
 | `LOG_LEVEL` | Runtime logging level. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Traces OTLP endpoint URL. |
 | `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | Metrics OTLP endpoint URL. |
-| `WORKFLOW_ENGINE_RATE_LIMIT` | Workflow engine request throttling. |
+| `WORKFLOW_SERVICE_RATE_LIMIT` | Workflow engine request throttling. |
 | `NOTIFICATION_SERVICE_RATE_LIMIT` | Notification service throttling. |
 | `KEYVAULT_URL` | Azure Key Vault URL (e.g., `https://<vault>.vault.azure.net`). |
 | `KEYVAULT_NAME` | Azure Key Vault resource name. |

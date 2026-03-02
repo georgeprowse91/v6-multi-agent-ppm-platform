@@ -142,7 +142,7 @@ from urllib.parse import urlencode  # noqa: E402
 async def config() -> UIConfig:
     return UIConfig(
         api_gateway_url=os.getenv("API_GATEWAY_URL", "http://api-gateway:8000"),
-        workflow_engine_url=os.getenv("WORKFLOW_ENGINE_URL", "http://localhost:8082"),
+        workflow_service_url=os.getenv("WORKFLOW_SERVICE_URL", "http://localhost:8082"),
         oidc_enabled=_oidc_enabled(),
         login_url="/login",
         logout_url="/logout",

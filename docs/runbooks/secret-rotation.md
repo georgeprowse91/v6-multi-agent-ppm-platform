@@ -12,7 +12,7 @@ This runbook defines the procedures for rotating secrets safely across all envir
 ## Automation workflow
 - **CronJob:** `ops/infra/kubernetes/secret-rotation-cronjob.yaml` runs `mcr.microsoft.com/azure-cli:latest` with the `ppm-admin` service account.
 - **Script ConfigMap:** `ops/infra/kubernetes/secret-rotation-scripts.yaml` mounts `rotate_secrets.sh` at `/scripts`.
-- **Rotation behavior:** the script replaces every Key Vault secret with a new 32-byte hex value and triggers rollouts for workflow-engine, notification-service, data-service, policy-engine, identity-access, telemetry-service, and audit-log deployments.
+- **Rotation behavior:** the script replaces every Key Vault secret with a new 32-byte hex value and triggers rollouts for workflow-service, notification-service, data-service, policy-engine, identity-access, telemetry-service, and audit-log deployments.
 
 ## Rotation process
 1. **Generate new secret value** in Azure Key Vault.

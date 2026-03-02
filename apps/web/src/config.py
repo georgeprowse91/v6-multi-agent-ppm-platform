@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
     api_gateway_url: str
     identity_access_url: str
-    workflow_engine_url: str
+    workflow_service_url: str
     llm_provider: str = "mock"
     demo_mode: bool = False
     auth_dev_mode: bool = False

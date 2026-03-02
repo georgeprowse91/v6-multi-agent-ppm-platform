@@ -97,7 +97,7 @@ class WorkflowStepExecutor:
         )
 
     def _load_definition(self, workflow_id: str) -> dict[str, Any]:
-        workflow_root = REPO_ROOT / "apps" / "workflow-engine"
+        workflow_root = REPO_ROOT / "apps" / "workflow-service"
         definition_path = (
             workflow_root / "workflows" / "definitions" / f"{workflow_id}.workflow.yaml"
         )

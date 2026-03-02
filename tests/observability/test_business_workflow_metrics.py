@@ -22,11 +22,11 @@ def test_orchestrator_emits_standard_business_metrics() -> None:
     assert '"trace.id"' in source
 
 
-def test_workflow_engine_emits_standard_business_metrics() -> None:
-    source = _read("apps/workflow-engine/src/workflow_runtime.py")
+def test_workflow_service_emits_standard_business_metrics() -> None:
+    source = _read("apps/workflow-service/src/workflow_runtime.py")
     assert (
         "build_business_workflow_metrics" in source
-        and "workflow-engine" in source
+        and "workflow-service" in source
         and '"workflow"' in source
     )
     assert "self._workflow_business_metrics.executions_total.add" in source

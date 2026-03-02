@@ -61,7 +61,7 @@
     }
   },
   {
-    "name": "workflow-engine-health",
+    "name": "workflow-service-health",
     "base_url": "https://staging.workflow.ppm-platform.com",
     "target_url": "/healthz",
     "profiles": {

@@ -38,7 +38,7 @@ def _load_web_app():
 def test_legacy_routes_always_redirect_to_spa(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("API_GATEWAY_URL", "http://api-gateway:8000")
     monkeypatch.setenv("IDENTITY_ACCESS_URL", "http://identity:8000")
-    monkeypatch.setenv("WORKFLOW_ENGINE_URL", "http://workflow:8000")
+    monkeypatch.setenv("WORKFLOW_SERVICE_URL", "http://workflow:8000")
     try:
         import config as _web_cfg  # noqa: PLC0415
         _web_cfg.get_settings.cache_clear()
@@ -64,7 +64,7 @@ def test_legacy_routes_always_redirect_to_spa(monkeypatch: pytest.MonkeyPatch) -
 def test_migration_map_reports_redirect_compatibility(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("API_GATEWAY_URL", "http://api-gateway:8000")
     monkeypatch.setenv("IDENTITY_ACCESS_URL", "http://identity:8000")
-    monkeypatch.setenv("WORKFLOW_ENGINE_URL", "http://workflow:8000")
+    monkeypatch.setenv("WORKFLOW_SERVICE_URL", "http://workflow:8000")
     try:
         import config as _web_cfg  # noqa: PLC0415
         _web_cfg.get_settings.cache_clear()

@@ -190,6 +190,20 @@ This sequence ensures that all external systems are configured and accessible be
 | **Data contracts** | Workspace record schema, connector configuration schema, provisioned assets schema, setup status schema, and event payloads (`workspace.setup.*`). |
 | **External systems** | Teams Graph API, SharePoint REST API, Jira REST API, Planview OData API, SAP APIs (as configured). |
 
+## Integration services used
+
+The workspace-setup-agent consumes the following shared integration services from `agents/common/connector_integration.py`:
+
+| Service | Usage |
+| --- | --- |
+| **DocumentManagementService** | Create SharePoint document libraries, folders, and initial artefact templates for the project workspace. |
+| **ProjectManagementService** | Provision or link Jira projects/boards and Planview project shells. |
+| **NotificationService** | Send workspace setup status notifications (email, Teams, Slack). |
+| **DatabaseStorageService** | Persist workspace record, connector configuration state, provisioned assets registry, and setup status. |
+| **CalendarIntegrationService** (optional) | Create shared project calendar entries for methodology gates/milestones. |
+
+All write operations executed by this agent go through the `ConnectorWriteGate` to enforce connector readiness, approval (where policy requires), dry-run capability, and audit logging.
+
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.

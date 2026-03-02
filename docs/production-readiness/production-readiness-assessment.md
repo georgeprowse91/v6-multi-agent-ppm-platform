@@ -33,7 +33,7 @@ The Multi-Agent PPM Platform demonstrates **strong production readiness** across
 
 ### Strengths
 
-- **Microservices architecture**: 16+ independently deployable services with clear domain boundaries (API Gateway, Workflow Engine, Identity & Access, Policy Engine, Audit Log, Data Service, Notification, Telemetry, etc.).
+- **Microservices architecture**: 16+ independently deployable services with clear domain boundaries (API Gateway, Workflow Service, Identity & Access, Policy Engine, Audit Log, Data Service, Notification, Telemetry, etc.).
 - **Agent-based orchestration**: 25 specialized domain agents organized into logical groups (Core Orchestration, Portfolio Management, Delivery Management, Operations Management) with a well-defined base agent contract.
 - **Multi-tenant ready**: RBAC and ABAC policy engines, tenant-scoped configuration under `ops/config/tenants/`.
 - **Event-driven patterns**: Azure Service Bus and Event Hub integration with event schemas and workflows.
@@ -264,7 +264,7 @@ The Multi-Agent PPM Platform demonstrates **strong production readiness** across
 - **Performance benchmarks**: Automated performance smoke tests on PRs with summary comments.
 - **HPA**: Mentioned in production readiness checklist (Kubernetes HPA for CPU autoscaling).
 - **AKS autoscaling**: User node pool configured with min/max count (2-6 nodes).
-- **Rate limiting**: Environment variables for workflow engine and notification service rate limits.
+- **Rate limiting**: Environment variables for workflow service and notification service rate limits.
 - **Redis caching**: Premium tier Redis with `allkeys-lru` eviction policy.
 
 ### Concerns
@@ -427,9 +427,9 @@ helm upgrade --install data-lineage-service services/data-lineage-service/helm \
 helm upgrade --install data-sync-service services/data-sync-service/helm \
   --namespace $NAMESPACE --set image.repository=$REGISTRY/data-sync-service --set image.tag=$TAG --atomic --wait
 
-# 9. Workflow Engine
-helm upgrade --install workflow-engine apps/workflow-engine/helm \
-  --namespace $NAMESPACE --set image.repository=$REGISTRY/workflow-engine --set image.tag=$TAG --atomic --wait
+# 9. Workflow Service
+helm upgrade --install workflow-service apps/workflow-service/helm \
+  --namespace $NAMESPACE --set image.repository=$REGISTRY/workflow-service --set image.tag=$TAG --atomic --wait
 
 # 10. Orchestration Service
 helm upgrade --install orchestration-service apps/orchestration-service/helm \

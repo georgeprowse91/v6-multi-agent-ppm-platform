@@ -32,7 +32,7 @@ jobs:
           - service: connector-hub
           - service: document-service
           - service: orchestration-service
-          - service: workflow-engine
+          - service: workflow-service
           - service: web
           - service: audit-log
           - service: data-lineage-service
@@ -90,8 +90,8 @@ jobs:
             chart: apps/document-service/helm
           - service: orchestration-service
             chart: apps/orchestration-service/helm
-          - service: workflow-engine
-            chart: apps/workflow-engine/helm
+          - service: workflow-service
+            chart: apps/workflow-service/helm
           - service: web
             chart: apps/web/helm
           - service: audit-log
@@ -198,8 +198,8 @@ jobs:
             chart: apps/document-service/helm
           - service: orchestration-service
             chart: apps/orchestration-service/helm
-          - service: workflow-engine
-            chart: apps/workflow-engine/helm
+          - service: workflow-service
+            chart: apps/workflow-service/helm
           - service: web
             chart: apps/web/helm
           - service: audit-log

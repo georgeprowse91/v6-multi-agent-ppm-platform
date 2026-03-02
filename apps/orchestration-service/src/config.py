@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     demo_mode: bool = False
     orchestration_state_backend: Literal["db", "memory"] = "db"
     database_url: str
-    workflow_engine_url: str
+    workflow_service_url: str
     auth_dev_mode: bool = False
     auth_dev_roles: str = "PMO_ADMIN"
     auth_dev_tenant_id: str = "dev-tenant-local"

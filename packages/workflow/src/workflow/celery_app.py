@@ -19,9 +19,9 @@ def create_celery_app() -> Celery:
     result_backend = os.getenv("WORKFLOW_RESULT_BACKEND") or os.getenv(
         "CELERY_RESULT_BACKEND", broker_url
     )
-    app = Celery("workflow_engine", broker=broker_url, backend=result_backend)
+    app = Celery("workflow_service", broker=broker_url, backend=result_backend)
     app.conf.update(
-        task_default_queue=os.getenv("WORKFLOW_QUEUE", "workflow-engine"),
+        task_default_queue=os.getenv("WORKFLOW_QUEUE", "workflow-service"),
         task_serializer="json",
         result_serializer="json",
         accept_content=["json"],

@@ -16,7 +16,7 @@ from pathlib import Path
 # These are set via setdefault so they never override values already in the env.
 os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379")
-os.environ.setdefault("WORKFLOW_ENGINE_URL", "http://localhost:8001")
+os.environ.setdefault("WORKFLOW_SERVICE_URL", "http://localhost:8001")
 # Provide a fallback JWT secret so auth middleware can validate (and reject)
 # tokens in tests that don't explicitly set IDENTITY_JWT_SECRET.
 os.environ.setdefault("IDENTITY_JWT_SECRET", "ci-test-default-secret-32chars!!")
@@ -199,7 +199,7 @@ def pytest_ignore_collect(collection_path: Path, config):
     ) and not _module_available("sqlalchemy.exc"):
         return True
     if path_str.endswith(
-        "tests/integration/test_workflow_engine_runtime.py"
+        "tests/integration/test_workflow_service_runtime.py"
     ) and not _module_available("cryptography"):
         return True
     if path_str.endswith("tests/test_artifact_validation.py") and not _jsonschema_has_validator():

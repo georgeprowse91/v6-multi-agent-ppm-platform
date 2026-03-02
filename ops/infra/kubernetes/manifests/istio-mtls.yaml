@@ -92,7 +92,7 @@ spec:
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
-  name: allow-workflow-engine
+  name: allow-workflow-service
   namespace: ppm-platform
 spec:
   selector:
@@ -101,7 +101,7 @@ spec:
   rules:
     - from:
         - source:
-            principals: ["cluster.local/ns/ppm-platform/sa/ppm-workflow-engine"]
+            principals: ["cluster.local/ns/ppm-platform/sa/ppm-workflow-service"]
 ---
 # Service-specific authorization: Data service can reach database services
 apiVersion: security.istio.io/v1

@@ -4,6 +4,6 @@ VAULT_NAME="${VAULT_NAME}"
 for secret in $(az keyvault secret list --vault-name "$VAULT_NAME" --query "[].name" -o tsv); do
   az keyvault secret set --vault-name "$VAULT_NAME" --name "$secret" --value "$(openssl rand -hex 32)"
 done
-for deploy in workflow-engine notification-service data-service policy-engine identity-access telemetry-service audit-log; do
+for deploy in workflow-service notification-service data-service policy-engine identity-access telemetry-service audit-log; do
   kubectl rollout restart deployment "$deploy" -n "$NAMESPACE"
 done

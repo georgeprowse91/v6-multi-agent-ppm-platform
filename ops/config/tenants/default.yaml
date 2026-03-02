@@ -2,7 +2,7 @@ id: "tenant-template"
 name: "Default Tenant"
 region: "eastus"
 features:
-  workflow_engine: true
+  workflow_service: true
   data_sync: true
   audit_logging: true
   telemetry: true

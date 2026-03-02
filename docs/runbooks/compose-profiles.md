@@ -13,7 +13,7 @@ This runbook documents deterministic local stack startup using Compose profiles:
 Compose enforces health-gated `depends_on` links. The effective startup sequence is:
 
 1. `db`, `redis`
-2. foundational APIs: `workflow-engine`, `identity-access`, `data-service`
+2. foundational APIs: `workflow-service`, `identity-access`, `data-service`
 3. domain/core APIs: `api`, `orchestration-service`, `policy-engine`, `document-service`, `audit-log`, `notification-service`
 4. extended/full APIs (full profile): `analytics-service`, `data-lineage-service`, `data-sync-service`, `telemetry-service`, `agent-runtime`, `auth-service`, `realtime-coedit-service`
 5. `web`
@@ -25,7 +25,7 @@ Compose enforces health-gated `depends_on` links. The effective startup sequence
 | Service | Host port | Container port | Health endpoint |
 |---|---:|---:|---|
 | api | 8000 | 8000 | `/healthz` |
-| workflow-engine | 8080 | 8080 | `/healthz` |
+| workflow-service | 8080 | 8080 | `/healthz` |
 | web | 8501 | 8501 | `/healthz` |
 | db | 5432 | 5432 | `pg_isready` |
 | redis | 6379 | 6379 | `redis-cli ping` |

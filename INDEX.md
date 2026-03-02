@@ -261,7 +261,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_data_sync_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── workflow-engine-agent
+│   │   ├── workflow-engine-lib
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
@@ -275,8 +275,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── workflows
 │   │   │   │   └── schema
 │   │   │   │       └── workflow_spec.schema.json
-│   │   │   ├── Dockerfile
-│   │   │   └── README.md
+│   │   │   └── Dockerfile
 │   │   ├── system-health-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
@@ -1027,7 +1026,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   │   │   ├── index.ts
 │   │   │   │   │   │   ├── useProjectConnectorStore.test.ts
 │   │   │   │   │   │   └── useProjectConnectorStore.ts
-│   ├── workflow-engine
+│   ├── workflow-service
 │   │   ├── helm
 │   │   │   ├── templates
 │   │   │   │   ├── _helpers.tpl
@@ -7020,7 +7019,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── 0001-record-architecture.md
 │   │   │   ├── 0002-llm-provider-abstraction.md
 │   │   │   ├── 0003-eventing-and-message-bus.md
-│   │   │   ├── 0004-workflow-engine-selection.md
+│   │   │   ├── 0004-workflow-service-selection.md
 │   │   │   ├── 0005-rbac-abac-field-level-security.md
 │   │   │   ├── 0006-data-lineage-and-audit.md
 │   │   │   ├── 0007-connector-certification.md
@@ -7686,7 +7685,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── quality_thresholds.yaml
 │   │   │   ├── schema_registry.yaml
 │   │   │   └── validation_rules.yaml
-│   │   ├── workflow-engine-agent
+│   │   ├── approval-workflow-agent
 │   │   │   ├── durable_workflows.yaml
 │   │   │   └── workflow_templates.yaml
 │   │   ├── agents

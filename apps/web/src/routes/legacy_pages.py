@@ -87,7 +87,7 @@ async def audit_log_feed() -> dict[str, Any]:
     return {
         "filters": ["Actor", "Action", "Object", "Framework", "Date"],
         "entries": [
-            {"timestamp": "09:32", "action": "Approval", "object": "Gate Exit", "actor": "A. Lee", "source": "Workflow Engine", "hash": "a13f9c2"},
+            {"timestamp": "09:32", "action": "Approval", "object": "Gate Exit", "actor": "A. Lee", "source": "Approval Workflow", "hash": "a13f9c2"},
             {"timestamp": "09:14", "action": "Workflow Retry", "object": "WF-2041", "actor": "Orchestrator", "source": "Automation", "hash": "b82c4d1"},
         ],
         "evidence_packs": [{"id": "pack-7", "label": "Q1 Compliance Review", "integrity": "SHA256"}],

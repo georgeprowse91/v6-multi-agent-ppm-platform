@@ -1,0 +1,52 @@
+apiVersion: ppm.workflows/v1
+kind: Workflow
+metadata:
+  name: risk-mitigation
+  version: "1.0.0"
+  owner: workflow-service
+  description: Mitigate high risks with monitoring loop and notifications.
+steps:
+  - id: register-risk
+    type: task
+    next: evaluate-risk
+    config:
+      agent: risk_management_agent
+      action: register_risk
+  - id: evaluate-risk
+    type: decision
+    next: monitor-risk
+    branches:
+      - name: critical
+        condition:
+          field: $.payload.severity
+          operator: equals
+          value: critical
+        next: mitigation-plan
+    default_next: monitor-risk
+  - id: mitigation-plan
+    type: task
+    next: monitor-risk
+    config:
+      agent: risk_management_agent
+      action: create_mitigation_plan
+  - id: monitor-risk
+    type: loop
+    next: refresh-risk
+    exit: notify-closure
+    max_iterations: 3
+    condition:
+      field: $.payload.status
+      operator: equals
+      value: open
+  - id: refresh-risk
+    type: task
+    next: monitor-risk
+    config:
+      agent: risk_management_agent
+      action: refresh_status
+  - id: notify-closure
+    type: notification
+    next: null
+    config:
+      channel: teams
+      template: risk-mitigation-complete

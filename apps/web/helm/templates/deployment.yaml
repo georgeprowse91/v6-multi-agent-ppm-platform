@@ -30,8 +30,8 @@ spec:
               value: {{ .Values.env.API_GATEWAY_URL | quote }}
             - name: IDENTITY_ACCESS_URL
               value: {{ .Values.env.IDENTITY_ACCESS_URL | quote }}
-            - name: WORKFLOW_ENGINE_URL
-              value: {{ .Values.env.WORKFLOW_ENGINE_URL | quote }}
+            - name: WORKFLOW_SERVICE_URL
+              value: {{ .Values.env.WORKFLOW_SERVICE_URL | quote }}
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: {{ .Values.env.OTEL_EXPORTER_OTLP_ENDPOINT | quote }}
             - name: OTEL_EXPORTER_OTLP_METRICS_ENDPOINT

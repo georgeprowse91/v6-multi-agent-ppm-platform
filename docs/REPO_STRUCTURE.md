@@ -405,7 +405,7 @@ multi-agent-ppm-platform-v4/
 │   │   ├── static/{index.html,styles.css}
 │   │   └── tests/
 │   │       └── test_*.py  (38 test modules)
-│   └── workflow-engine/
+│   └── workflow-service/
 │       ├── Dockerfile
 │       ├── requirements.txt
 │       ├── workflow_registry.py
@@ -721,7 +721,7 @@ multi-agent-ppm-platform-v4/
 | Path | Purpose |
 |------|---------|
 | `agents/` | 25 specialised AI agents grouped into core-orchestration, portfolio, delivery, and operations domains |
-| `apps/` | Deployable services: web app, API gateway, analytics, document, orchestration, workflow-engine, mobile, admin console |
+| `apps/` | Deployable services: web app, API gateway, analytics, document, orchestration, workflow-service, mobile, admin console |
 | `integrations/` | Connector hub + 30+ third-party connectors (Jira, SAP, Workday, Salesforce, ServiceNow, etc.) |
 | `packages/` | Shared libraries: LLM abstraction, canvas engine, event bus, security, observability, contracts, UI kit |
 | `services/` | Backend microservices: auth, audit log, data lineage, data sync, identity access, notification, policy engine, telemetry |

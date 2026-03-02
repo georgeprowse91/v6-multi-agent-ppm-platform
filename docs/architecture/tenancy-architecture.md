@@ -16,7 +16,7 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
 
 ## Data isolation approach
 
-- **Logical isolation:** Tenant identifiers are persisted with records in workflow, analytics, audit, and document stores (`apps/workflow-engine/src/workflow_storage.py`, `apps/analytics-service/src/scheduler.py`, `services/audit-log/src/main.py`, `apps/document-service/src/main.py`).
+- **Logical isolation:** Tenant identifiers are persisted with records in workflow, analytics, audit, and document stores (`apps/workflow-service/src/workflow_storage.py`, `apps/analytics-service/src/scheduler.py`, `services/audit-log/src/main.py`, `apps/document-service/src/main.py`).
 - **Authorization enforcement:** RBAC and classification-based checks occur in the gateway (field masking and permission checks) and the policy engine (`services/policy-engine`).
 - **Storage boundaries:** The default local stores use SQLite files scoped by service; for production deployments, replace local storage with environment-specific backing stores via Helm/Terraform configuration.
 
@@ -48,7 +48,7 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
   ```
 - Validate workflow storage includes tenant IDs:
   ```bash
-  rg -n "tenant_id" apps/workflow-engine/src/workflow_storage.py
+  rg -n "tenant_id" apps/workflow-service/src/workflow_storage.py
   ```
 
 ## Implementation status

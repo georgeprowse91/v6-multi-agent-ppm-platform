@@ -19,7 +19,7 @@ Tenant configuration is loaded by API gateway, policy engine, and agent runtime 
 | `id` | Template tenant identifier used for bootstrapping. |
 | `name` | Tenant display name. |
 | `region` | Default deployment region for tenant resources. |
-| `features.workflow_engine` | Enable the workflow engine for the tenant. |
+| `features.workflow_service` | Enable the workflow service for the tenant. |
 | `features.data_sync` | Enable connector sync services. |
 | `features.audit_logging` | Enable audit log emission. |
 | `features.telemetry` | Enable telemetry and metrics. |

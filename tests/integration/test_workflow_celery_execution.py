@@ -8,7 +8,7 @@ import pytest
 
 pytest.importorskip("celery")
 
-WORKFLOW_SRC = Path(__file__).resolve().parents[2] / "apps" / "workflow-engine" / "src"
+WORKFLOW_SRC = Path(__file__).resolve().parents[2] / "apps" / "workflow-service" / "src"
 WORKFLOW_PACKAGE = Path(__file__).resolve().parents[2] / "packages" / "workflow" / "src"
 for path in (WORKFLOW_SRC, WORKFLOW_PACKAGE):
     if str(path) not in sys.path:

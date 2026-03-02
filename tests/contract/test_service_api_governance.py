@@ -20,7 +20,7 @@ SERVICE_ENTRYPOINTS = [
     "services/identity-access/src/main.py",
     "apps/orchestration-service/src/main.py",
     "apps/document-service/src/main.py",
-    "apps/workflow-engine/src/main.py",
+    "apps/workflow-service/src/main.py",
     "apps/analytics-service/src/main.py",
     "apps/web/src/main.py",
 ]

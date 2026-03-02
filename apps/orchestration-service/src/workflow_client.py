@@ -16,19 +16,19 @@ class WorkflowClient:
         max_retries: int | None = None,
         retry_backoff_s: float | None = None,
     ) -> None:
-        fallback_url = os.getenv("WORKFLOW_ENGINE_URL")
-        self.base_url = base_url or fallback_url or "http://workflow-engine:8080"
+        fallback_url = os.getenv("WORKFLOW_SERVICE_URL")
+        self.base_url = base_url or fallback_url or "http://workflow-service:8080"
         if timeout is None:
-            timeout = float(os.getenv("WORKFLOW_ENGINE_TIMEOUT_S", "10"))
+            timeout = float(os.getenv("WORKFLOW_SERVICE_TIMEOUT_S", "10"))
         self.timeout: float = timeout
         self.transport: httpx.AsyncBaseTransport | None = transport
         if max_retries is None:
-            max_retries = int(os.getenv("WORKFLOW_ENGINE_MAX_RETRIES", "2"))
+            max_retries = int(os.getenv("WORKFLOW_SERVICE_MAX_RETRIES", "2"))
         if retry_backoff_s is None:
-            retry_backoff_s = float(os.getenv("WORKFLOW_ENGINE_RETRY_BACKOFF_S", "0.5"))
+            retry_backoff_s = float(os.getenv("WORKFLOW_SERVICE_RETRY_BACKOFF_S", "0.5"))
         self.middleware = ResilienceMiddleware(
             dependency_config_from_env(
-                "workflow_engine",
+                "workflow_service",
                 timeout_s=self.timeout,
                 max_attempts=max_retries + 1,
                 initial_backoff_s=retry_backoff_s,

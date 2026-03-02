@@ -1,7 +1,7 @@
 # Quickstart (Local, Deterministic)
 
 ## Purpose
-This quickstart spins up a local stack (API gateway, orchestration, workflow engine, and backing services)
+This quickstart spins up a local stack (API gateway, orchestration, workflow service, and backing services)
 then runs a deterministic, end-to-end scenario that exercises the intent router, orchestration layer,
 three domain agents, and workflow persistence.
 
@@ -30,17 +30,17 @@ Docker Compose now uses health-gated startup for dependent services:
 
 1. `db` and `redis` start first and must report healthy.
 2. `api` waits for healthy `db` and healthy `redis`.
-3. `workflow-engine` starts independently and must report healthy.
-4. `web` waits for both `api` and `workflow-engine` to be healthy.
+3. `workflow-service` starts independently and must report healthy.
+4. `web` waits for both `api` and `workflow-service` to be healthy.
 
 Health checks are intentionally lightweight and deterministic:
 - `db`: `pg_isready`
 - `redis`: `redis-cli ping`
-- `api`, `workflow-engine`, `web`: local `GET /healthz` probes from inside each container
+- `api`, `workflow-service`, `web`: local `GET /healthz` probes from inside each container
 
 Failure behavior expectations:
 - If `db` or `redis` is unhealthy, `api` does not transition to running.
-- If `api` or `workflow-engine` is unhealthy, `web` does not transition to running.
+- If `api` or `workflow-service` is unhealthy, `web` does not transition to running.
 - A service becoming unhealthy after startup does not automatically restart dependents; use `docker compose ps` and `docker compose logs <service>` for diagnosis.
 - Verify dependency health with `docker compose ps` before running migrations or smoke flows.
 
@@ -65,7 +65,7 @@ The scenario uses:
 - Portfolio strategy, financial management, and risk management agents
 - Workflow engine persistence
 
-### 1) Post a workflow run (workflow engine)
+### 1) Post a workflow run (workflow service)
 ```bash
 curl -sS -X POST "http://localhost:8080/v1/workflows/start" \
   -H "Content-Type: application/json" \

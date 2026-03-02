@@ -15,7 +15,7 @@ locally, understand core services, and start contributing safely.
 
 ## Repository tour (fast path)
 
-- `apps/`: API gateway, workflow engine, admin console, and web console.
+- `apps/`: API gateway, workflow service, admin console, and web console.
 - `services/`: audit log, data sync, data lineage, identity, policy, telemetry.
 - `agents/`: agent prompts, orchestrators, and domain agents.
 - `docs/`: architecture, compliance, runbooks, and this guide.
@@ -78,7 +78,7 @@ locally, understand core services, and start contributing safely.
   - `GET /healthz`
   - `POST /v1/query`
   - `GET /v1/status`
-- Workflow Engine: `http://localhost:8080`
+- Workflow Service: `http://localhost:8080`
   - `POST /v1/workflows/start`
   - `GET /v1/workflows/{run_id}`
 - Web Console: `http://localhost:8501`

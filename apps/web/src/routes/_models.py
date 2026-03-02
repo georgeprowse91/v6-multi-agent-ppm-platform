@@ -27,7 +27,7 @@ class HealthResponse(BaseModel):
 
 class UIConfig(BaseModel):
     api_gateway_url: str
-    workflow_engine_url: str
+    workflow_service_url: str
     oidc_enabled: bool
     login_url: str
     logout_url: str

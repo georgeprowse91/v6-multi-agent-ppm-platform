@@ -232,7 +232,7 @@ class ProcurementEventPublisher:
 
 
 class TaskManagementClient:
-    """Client for publishing mitigation tasks to the workflow engine/task queue."""
+    """Client for publishing mitigation tasks to the task queue."""
 
     def __init__(self, config: dict[str, Any] | None = None, logger: logging.Logger | None = None):
         self.config = config or {}

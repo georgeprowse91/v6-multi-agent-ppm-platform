@@ -80,7 +80,7 @@ def test_web_oidc_session_flow(monkeypatch) -> None:
     monkeypatch.setenv("OIDC_JWKS_URL", "https://login.test/.well-known/jwks.json")
     monkeypatch.setenv("SESSION_COOKIE_SECURE", "false")
     monkeypatch.setenv("API_GATEWAY_URL", "https://api.test")
-    monkeypatch.setenv("WORKFLOW_ENGINE_URL", "https://workflow.test")
+    monkeypatch.setenv("WORKFLOW_SERVICE_URL", "https://workflow.test")
     monkeypatch.setattr(web, "httpx", type("Httpx", (), {"AsyncClient": _mock_client}))
 
     token = jwt.encode(

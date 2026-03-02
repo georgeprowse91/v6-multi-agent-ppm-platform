@@ -31,7 +31,7 @@ router = APIRouter()
 
 bootstrap_runtime_paths()
 
-WORKFLOW_ROOT = REPO_ROOT / "apps" / "workflow-engine"
+WORKFLOW_ROOT = REPO_ROOT / "apps" / "workflow-service"
 DEFINITIONS_DIR = WORKFLOW_ROOT / "workflows" / "definitions"
 SCHEMA_PATH = WORKFLOW_ROOT / "workflows" / "schema" / "workflow.schema.json"
 ENVIRONMENT = environment_value(os.environ)
