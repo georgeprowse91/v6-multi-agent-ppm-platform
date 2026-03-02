@@ -5,7 +5,7 @@ Purpose:
 Orchestrates complex workflows and processes across the PPM platform, providing dynamic
 workflow execution, state management, and human task coordination.
 
-Specification: agents/operations-management/workflow-engine-agent/README.md
+Specification: agents/operations-management/workflow-engine-lib/README.md
 """
 
 import importlib
@@ -41,7 +41,7 @@ class WorkflowEngineAgent(BaseAgent):
     - Exception handling and compensation
     """
 
-    def __init__(self, agent_id: str = "workflow-engine-agent", config: dict[str, Any] | None = None):
+    def __init__(self, agent_id: str = "approval-workflow-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         config = config or {}

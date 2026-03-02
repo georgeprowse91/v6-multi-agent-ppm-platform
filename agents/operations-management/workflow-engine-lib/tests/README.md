@@ -5,7 +5,7 @@ Tests for the workflow engine library (workflow spec parsing, state store, task 
 ## How to run
 
 ```bash
-pytest agents/operations-management/workflow-engine-agent/tests
+pytest agents/operations-management/workflow-engine-lib/tests
 ```
 
 ## Troubleshooting

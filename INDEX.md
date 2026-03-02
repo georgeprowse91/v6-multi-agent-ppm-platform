@@ -261,22 +261,21 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_data_sync_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── workflow-engine-agent
+│   │   ├── workflow-engine-lib
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
 │   │   │   ├── src
-│   │   │   │   ├── workflow_engine_agent.py
+│   │   │   │   ├── workflow_engine.py
 │   │   │   │   ├── workflow_spec.py
 │   │   │   │   ├── workflow_state_store.py
 │   │   │   │   └── workflow_task_queue.py
 │   │   │   ├── tests
 │   │   │   │   ├── README.md
-│   │   │   │   └── test_workflow_engine_agent.py
+│   │   │   │   └── test_workflow_engine.py
 │   │   │   ├── workflows
 │   │   │   │   └── schema
 │   │   │   │       └── workflow_spec.schema.json
-│   │   │   ├── Dockerfile
-│   │   │   └── README.md
+│   │   │   └── Dockerfile
 │   │   ├── system-health-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json
@@ -7686,7 +7685,7 @@ multi-agent-ppm-platform-v4/
 │   │   │   ├── quality_thresholds.yaml
 │   │   │   ├── schema_registry.yaml
 │   │   │   └── validation_rules.yaml
-│   │   ├── workflow-engine-agent
+│   │   ├── approval-workflow-agent
 │   │   │   ├── durable_workflows.yaml
 │   │   │   └── workflow_templates.yaml
 │   │   ├── agents
