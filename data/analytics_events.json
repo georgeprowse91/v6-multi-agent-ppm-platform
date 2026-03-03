@@ -656,6 +656,15 @@
         "resource_id": "res-1"
       },
       "received_at": "2026-03-01T10:35:13.553015+00:00"
+    },
+    "evt-27164b62be1f466d83e96e701f3e9396": {
+      "event_id": "evt-27164b62be1f466d83e96e701f3e9396",
+      "event_type": "resource.updated",
+      "domain": "resource",
+      "payload": {
+        "resource_id": "res-1"
+      },
+      "received_at": "2026-03-03T09:30:45.968171+00:00"
     }
   }
 }
