@@ -174,12 +174,18 @@ def load_pipeline_config(agent: DataSyncAgent) -> tuple[list[str], list[str]]:
 # ---------------------------------------------------------------------------
 
 
-async def initialize_key_vault_secrets(agent: DataSyncAgent) -> None:
+async def initialize_key_vault_secrets(
+    agent: DataSyncAgent,
+    credential_cls: Any | None = None,
+    secret_client_cls: Any | None = None,
+) -> None:
+    credential_cls = credential_cls or DefaultAzureCredential
+    secret_client_cls = secret_client_cls or SecretClient
     key_vault_url = agent._get_setting("AZURE_KEY_VAULT_URL")
-    if not key_vault_url or not DefaultAzureCredential or not SecretClient:
+    if not key_vault_url or not credential_cls or not secret_client_cls:
         return
-    credential = DefaultAzureCredential()
-    client = SecretClient(vault_url=key_vault_url, credential=credential)
+    credential = credential_cls()
+    client = secret_client_cls(vault_url=key_vault_url, credential=credential)
     secret_names = [
         "PLANVIEW_CLIENT_ID", "PLANVIEW_CLIENT_SECRET", "PLANVIEW_REFRESH_TOKEN", "PLANVIEW_INSTANCE_URL",
         "SAP_USERNAME", "SAP_PASSWORD", "SAP_URL",

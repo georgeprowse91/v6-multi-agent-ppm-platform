@@ -7,7 +7,6 @@ import statistics
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
-from health_integrations import create_servicenow_incident, emit_event_hub_event
 from health_utils import recommend_actions_for_anomaly, generate_anomaly_id
 
 if TYPE_CHECKING:
