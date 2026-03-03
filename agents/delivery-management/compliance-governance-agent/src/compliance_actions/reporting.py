@@ -81,7 +81,7 @@ async def _generate_summary_report(
     project_id = filters.get("project_id")
     assessment = None
     if project_id:
-        from actions.assess_compliance import handle_assess_compliance
+        from compliance_actions.assess_compliance import handle_assess_compliance
 
         assessment = await handle_assess_compliance(agent, project_id, {"mapping": filters})
     report_data = {
@@ -141,7 +141,7 @@ async def _generate_audit_report(
 async def _generate_certification_report(
     agent: ComplianceRegulatoryAgent, report_type: str, filters: dict[str, Any]
 ) -> dict[str, Any]:
-    from actions.assess_compliance import handle_assess_compliance
+    from compliance_actions.assess_compliance import handle_assess_compliance
 
     normalized_type = report_type.replace("-", "").lower()
     project_id = filters.get("project_id")

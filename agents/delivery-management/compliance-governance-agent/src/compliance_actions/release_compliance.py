@@ -14,7 +14,7 @@ async def handle_verify_release_compliance(
     release_id: str | None,
     release_data: dict[str, Any],
 ) -> dict[str, Any]:
-    from actions.assess_compliance import handle_assess_compliance
+    from compliance_actions.assess_compliance import handle_assess_compliance
 
     project_id = release_data.get("project_id") or release_data.get("project") or "unknown"
     assessment = await handle_assess_compliance(

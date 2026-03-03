@@ -456,7 +456,11 @@ class DataSyncAgent(BaseAgent):
 
     # Azure initialization (delegates to infra, exposed for tests)
     async def _initialize_key_vault_secrets(self):
-        return await infra.initialize_key_vault_secrets(self)
+        return await infra.initialize_key_vault_secrets(
+            self,
+            credential_cls=DefaultAzureCredential,
+            secret_client_cls=SecretClient,
+        )
 
     async def _initialize_connectors(self):
         return await infra.initialize_connectors(self)
