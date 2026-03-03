@@ -80,13 +80,13 @@ async def _handle_task_message(agent: WorkflowEngineAgent, message: Any) -> dict
 
     if assignment.get("task_type") == "automated":
         result_payload = await _execute_automated_task(agent, tenant_id, assignment)
-        from actions.complete_task import handle_complete_task
+        from workflow_actions.complete_task import handle_complete_task
 
         result = await handle_complete_task(agent, tenant_id, task_id, result_payload)
         return result
     if assignment.get("task_type") == "logic_app":
         await agent._invoke_logic_app(tenant_id, assignment)
-        from actions.complete_task import handle_complete_task
+        from workflow_actions.complete_task import handle_complete_task
 
         result = await handle_complete_task(
             agent, tenant_id, task_id, {"status": "logic_app_triggered"}

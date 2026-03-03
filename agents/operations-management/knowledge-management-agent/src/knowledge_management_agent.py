@@ -211,64 +211,39 @@ class KnowledgeManagementAgent(BaseAgent):
     # Validation
     # ------------------------------------------------------------------
 
+    _VALID_ACTIONS = {
+        "upload_document", "ingest_sources", "ingest_agent_output",
+        "search_documents", "search_semantic", "get_document", "update_document",
+        "delete_document", "classify_document", "summarize_document",
+        "extract_entities", "build_knowledge_graph", "query_knowledge_graph",
+        "capture_lesson_learned", "recommend_documents", "manage_taxonomy",
+        "track_document_access", "get_document_version_history",
+        "annotate_document", "review_document", "approve_document", "link_documents",
+    }
+
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
         """Validate input data based on the requested action."""
         action = input_data.get("action", "")
-
         if not action:
             self.logger.warning("No action specified")
             return False
-
-        valid_actions = [
-            "upload_document",
-            "ingest_sources",
-            "ingest_agent_output",
-            "search_documents",
-            "search_semantic",
-            "get_document",
-            "update_document",
-            "delete_document",
-            "classify_document",
-            "summarize_document",
-            "extract_entities",
-            "build_knowledge_graph",
-            "query_knowledge_graph",
-            "capture_lesson_learned",
-            "recommend_documents",
-            "manage_taxonomy",
-            "track_document_access",
-            "get_document_version_history",
-            "annotate_document",
-            "review_document",
-            "approve_document",
-            "link_documents",
-        ]
-
-        if action not in valid_actions:
+        if action not in self._VALID_ACTIONS:
             self.logger.warning("Invalid action: %s", action)
             return False
-
         if action == "upload_document":
-            document_data = input_data.get("document", {})
-            if not document_data.get("title") or not document_data.get("content"):
+            doc = input_data.get("document", {})
+            if not doc.get("title") or not doc.get("content"):
                 self.logger.warning("Missing required document fields")
                 return False
-
-        elif action == "ingest_sources":
-            if not input_data.get("sources"):
-                self.logger.warning("Missing ingestion sources")
-                return False
-
-        elif action == "ingest_agent_output":
-            if not input_data.get("payload"):
-                self.logger.warning("Missing agent output payload")
-                return False
-
-        elif action in {"search_documents", "search_semantic"}:
-            if "query" not in input_data:
-                self.logger.warning("Missing search query")
-                return False
-
+        elif action == "ingest_sources" and not input_data.get("sources"):
+            self.logger.warning("Missing ingestion sources")
+            return False
+        elif action == "ingest_agent_output" and not input_data.get("payload"):
+            self.logger.warning("Missing agent output payload")
+            return False
+        elif action in {"search_documents", "search_semantic"} and "query" not in input_data:
+            self.logger.warning("Missing search query")
+            return False
         return True
 
     # ------------------------------------------------------------------

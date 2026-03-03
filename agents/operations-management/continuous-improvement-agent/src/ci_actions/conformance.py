@@ -14,7 +14,7 @@ from mining_utils import (
     safe_parse_timestamp,
 )
 
-from actions.discovery import discover_process
+from ci_actions.discovery import discover_process
 
 
 async def check_conformance(

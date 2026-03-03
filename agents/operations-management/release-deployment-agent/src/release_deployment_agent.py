@@ -20,8 +20,8 @@ from agents.common.connector_integration import (
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 
-# -- action handlers (each lives in its own module under actions/) --
-from actions import (
+# -- action handlers (each lives in its own module under release_actions/) --
+from release_actions import (
     assess_readiness,
     check_configuration_drift,
     create_deployment_plan,

@@ -95,7 +95,7 @@ async def _resume_from_checkpoint(
     last_checkpoint = instance.get("last_checkpoint")
     if not last_checkpoint:
         return
-    from actions.complete_task import determine_next_tasks
+    from workflow_actions.complete_task import determine_next_tasks
 
     next_tasks = await determine_next_tasks(agent, instance, last_checkpoint)
     for next_task in next_tasks:

@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
-from actions.submit_change import notify_stakeholders, publish_event, record_change_audit
+from change_actions.submit_change import notify_stakeholders, publish_event, record_change_audit
 
 if TYPE_CHECKING:
     from change_configuration_agent import ChangeConfigurationAgent

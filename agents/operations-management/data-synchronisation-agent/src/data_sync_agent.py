@@ -26,7 +26,7 @@ from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
 
 from sync_models import InMemorySecretContext, SecretContext  # noqa: E402
-from actions import (  # noqa: E402
+from sync_actions import (  # noqa: E402
     apply_conflict_resolution,
     detect_update_conflicts,
     enqueue_retry,

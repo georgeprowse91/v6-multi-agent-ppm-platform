@@ -27,14 +27,14 @@ from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 
 # Action handlers ---------------------------------------------------------
-from actions.benchmarking import benchmark_performance, share_best_practices
-from actions.conformance import (
+from ci_actions.benchmarking import benchmark_performance, share_best_practices
+from ci_actions.conformance import (
     check_conformance,
     detect_bottlenecks,
     detect_deviations,
 )
-from actions.discovery import discover_process
-from actions.improvement import (
+from ci_actions.discovery import discover_process
+from ci_actions.improvement import (
     complete_improvement,
     create_improvement,
     get_improvement_backlog,
@@ -42,15 +42,15 @@ from actions.improvement import (
     prioritize_improvements,
     track_benefits,
 )
-from actions.ingest import ingest_analytics_report, ingest_event_log
-from actions.insights import (
+from ci_actions.ingest import ingest_analytics_report, ingest_event_log
+from ci_actions.insights import (
     get_conformance_report,
     get_kpi_report,
     get_process_insights,
     get_process_model,
     get_recommendations,
 )
-from actions.root_cause import analyze_root_cause
+from ci_actions.root_cause import analyze_root_cause
 
 # Utilities ---------------------------------------------------------------
 from mining_utils import calculate_compliance_rate, resolve_store_path
@@ -407,7 +407,7 @@ class ProcessMiningAgent(BaseAgent):
         return await calculate_compliance_rate(deviations, total_expected_activities, total_cases)
 
     async def _get_designed_process_model(self, tenant_id: str, process_id: str) -> dict[str, Any]:
-        from actions.conformance import _get_designed_process_model
+        from ci_actions.conformance import _get_designed_process_model
         return await _get_designed_process_model(self, tenant_id, process_id)
 
     # ------------------------------------------------------------------

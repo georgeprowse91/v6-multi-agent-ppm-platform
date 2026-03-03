@@ -51,7 +51,7 @@ from vendor_models import (  # noqa: E402
 )
 
 # Action handlers
-from actions import (  # noqa: E402
+from vendor_actions import (  # noqa: E402
     handle_create_contract,
     handle_create_procurement_request,
     handle_create_purchase_order,
@@ -72,7 +72,7 @@ from actions import (  # noqa: E402
     handle_track_vendor_performance,
     handle_update_vendor_profile,
 )
-from actions.event_handlers import register_event_handlers  # noqa: E402
+from vendor_actions.event_handlers import register_event_handlers  # noqa: E402
 
 # Utilities used directly by the agent class
 from vendor_utils import (  # noqa: E402

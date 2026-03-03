@@ -48,7 +48,7 @@ async def execute_deployment(
 
     if agent.enforce_readiness_gates:
         # Import here to avoid circular dependency at module level
-        from actions.assess_readiness import assess_readiness
+        from release_actions.assess_readiness import assess_readiness
 
         readiness = await assess_readiness(agent, release_id)
         if readiness.get("recommendation") != "GO":

@@ -70,7 +70,7 @@ from change_actions import (
     update_change_request,
     visualize_dependencies,
 )
-from actions.classify_and_assess import (
+from change_actions.classify_and_assess import (
     assess_compliance_impact,
     recommend_mitigation,
 )

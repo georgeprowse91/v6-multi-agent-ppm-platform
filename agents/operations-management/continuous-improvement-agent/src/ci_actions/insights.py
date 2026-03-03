@@ -16,13 +16,13 @@ from mining_utils import (
     safe_parse_timestamp,
 )
 
-from actions.conformance import (
+from ci_actions.conformance import (
     check_conformance,
     detect_bottlenecks,
     detect_deviations,
 )
-from actions.conformance import _get_designed_process_model
-from actions.discovery import discover_process
+from ci_actions.conformance import _get_designed_process_model
+from ci_actions.discovery import discover_process
 
 
 async def get_process_insights(
