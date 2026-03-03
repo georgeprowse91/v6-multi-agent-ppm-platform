@@ -1,8 +1,8 @@
-# Stakeholder & Communications Agent Specification
+# Stakeholder Communications Agent Specification
 
 ## Purpose
 
-Define the responsibilities, workflows, and integration points for the Stakeholder & Communications Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
+Define the responsibilities, workflows, and integration points for the Stakeholder Communications Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
 ## Intended scope
 
