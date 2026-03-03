@@ -112,7 +112,7 @@ Agents interact with external systems through a set of shared integration servic
 
 ---
 
-# the Intent Router agent — Intent Router
+# Intent Router Agent
 
 **Category:** Core Orchestration
 **Role:** Platform Dispatcher
@@ -190,7 +190,7 @@ The Intent Router feeds its output directly into **The Response Orchestration ag
 
 ---
 
-# the Response Orchestration agent — Response Orchestration
+# Response Orchestration Agent
 
 **Category:** Core Orchestration
 **Role:** Execution Coordinator
@@ -275,7 +275,7 @@ The Response Orchestration agent connects to every domain agent in the platform.
 
 ---
 
-# the Approval Workflow agent — Approval Workflow
+# the Approval Workflow Agent
 
 **Category:** Core Orchestration
 **Role:** Workflow Orchestration and Governance
@@ -441,7 +441,7 @@ The Approval Workflow agent is used by virtually every other agent in the platfo
 
 ---
 
-# the Demand Intake agent — Demand and Intake
+# Demand Intake Agent
 
 **Category:** Portfolio Management
 **Role:** Project Request Handler
@@ -529,7 +529,7 @@ Once a demand item has been approved for development, the Demand and Intake agen
 
 ---
 
-# the Business Case agent — Business Case and Investment Analysis
+# Business Case Agent
 
 **Category:** Portfolio Management
 **Role:** Financial Justification and Investment Advisor
@@ -622,7 +622,7 @@ The Business Case and Investment Analysis agent receives its input from **The De
 
 ---
 
-# the Portfolio Optimisation agent — Portfolio Strategy and Optimisation
+# Portfolio Optimisation Agent
 
 **Category:** Portfolio Management
 **Role:** Investment Prioritisation and Portfolio Advisor
@@ -710,7 +710,7 @@ The Portfolio Strategy and Optimisation agent draws on business case data from *
 
 ---
 
-# the Program Management agent — Programme Management
+# Program Management Agent
 
 **Category:** Portfolio Management
 **Role:** Programme Coordinator and Benefits Tracker
@@ -805,7 +805,7 @@ The Programme Management agent draws on portfolio decisions from **The Portfolio
 
 ---
 
-# the Scope Definition agent — Project Definition and Scope
+# Scope Definition Agent
 
 **Category:** Delivery Management
 **Role:** Project Charter and Scope Baseline Manager
@@ -897,7 +897,7 @@ The project charter and scope baseline produced by this agent feed directly into
 
 ---
 
-# the Lifecycle Governance agent — Project Lifecycle and Governance
+# Lifecycle Governance Agent
 
 **Category:** Delivery Management
 **Role:** Stage-Gate Enforcer and Project Health Monitor
@@ -989,7 +989,7 @@ The Lifecycle and Governance agent draws health data from **Agents 10, 12, 14 an
 
 ---
 
-# the Schedule Planning agent — Schedule and Planning
+# Schedule Planning Agent
 
 **Category:** Delivery Management
 **Role:** Schedule Builder and Milestone Manager
@@ -1085,7 +1085,7 @@ The Schedule and Planning agent receives its WBS input from **The Scope Definiti
 
 ---
 
-# the Resource Management agent — Resource and Capacity Management
+# Resource Management Agent
 
 **Category:** Delivery Management
 **Role:** Resource Allocator and Capacity Planner
@@ -1174,7 +1174,7 @@ The Resource and Capacity Management agent is a dependency for multiple other ag
 
 ---
 
-# the Financial Management agent — Financial Management
+# Financial Management Agent
 
 **Category:** Delivery Management
 **Role:** Budget Tracker and Financial Controller
@@ -1270,7 +1270,7 @@ The Financial Management agent receives its baseline from **The Business Case ag
 
 ---
 
-# the Vendor Procurement agent — Vendor and Procurement Management
+# Vendor Procurement Management Agent
 
 **Category:** Delivery Management
 **Role:** Vendor Lifecycle and Procurement Coordinator
@@ -1364,7 +1364,7 @@ The Vendor and Procurement agent draws on budget data from **The Financial Manag
 
 ---
 
-# the Quality Management agent — Quality Management
+# Quality Management Agent
 
 **Category:** Delivery Management
 **Role:** Quality Planner and Test Coordinator
@@ -1457,7 +1457,7 @@ The Quality Management agent receives requirements from **The Scope Definition a
 
 ---
 
-# the Risk Management agent — Risk and Issue Management
+# Risk Management Agent
 
 **Category:** Delivery Management
 **Role:** Risk Identifier, Assessor, and Issue Tracker
@@ -1552,7 +1552,7 @@ The Risk and Issue Management agent draws on scope, schedule, and financial data
 
 ---
 
-# the Compliance Governance agent — Compliance and Regulatory
+# Regulatory Compliance Agent
 
 **Category:** Delivery Management
 **Role:** Regulatory Framework Manager and Compliance Monitor
@@ -1648,7 +1648,7 @@ The Compliance and Regulatory agent draws evidence from the platform's immutable
 
 ---
 
-# the Change Control agent — Change and Configuration Management
+# Change Control Agent
 
 **Category:** Operations Management
 **Role:** Change Controller and Configuration Authority
@@ -1744,7 +1744,7 @@ The Change and Configuration agent coordinates with **Agents 08, 10, and 12** to
 
 ---
 
-# the Release Deployment agent — Release and Deployment
+# Release Deployment Agent
 
 **Category:** Operations Management
 **Role:** Release Coordinator and Deployment Orchestrator
@@ -1835,7 +1835,7 @@ The Release and Deployment agent is a consumer of quality, compliance, and chang
 
 ---
 
-# the Knowledge Management agent — Knowledge and Document Management
+# Knowledge Management Agent
 
 **Category:** Operations Management
 **Role:** Document Librarian and Knowledge Curator
@@ -2024,7 +2024,7 @@ The Continuous Improvement agent ingests data from virtually every other agent v
 
 ---
 
-# the Stakeholder Communications agent — Stakeholder Communications
+# Stakeholder Communications Agent
 
 **Category:** Operations Management
 **Role:** Communications Planner and Engagement Manager
@@ -2225,7 +2225,7 @@ The Analytics and Insights agent is a consumer of data from every other agent in
 
 ---
 
-# the Data Synchronisation agent — Data Synchronisation and Quality
+# Data Synchronisation Agent
 
 **Category:** Operations Management
 **Role:** Data Integrity Guardian and Sync Coordinator
@@ -2323,7 +2323,7 @@ The Data Synchronisation and Quality agent is a foundational service that suppor
 
 ---
 
-# the Workspace Setup agent — Workspace Setup
+# Workspace Setup Agent
 
 **Category:** Core Orchestration
 **Role:** Project Workspace Initialiser
@@ -2422,7 +2422,7 @@ The Workspace Setup agent sits at a specific point in the platform lifecycle —
 
 ---
 
-# the System Health agent — System Health and Monitoring
+# System Health Agent
 
 **Category:** Operations Management
 **Role:** Platform Reliability Guardian
