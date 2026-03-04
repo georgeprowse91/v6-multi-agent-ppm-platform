@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
@@ -10,7 +11,8 @@ from azure.servicebus import ServiceBusClient, ServiceBusMessage
 IOT_CONNECTORS = {"iot"}
 
 
-class QueueClient:
+class QueueClient(ABC):
+    @abstractmethod
     def send(self, payload: dict[str, Any]) -> None:
         raise NotImplementedError
 

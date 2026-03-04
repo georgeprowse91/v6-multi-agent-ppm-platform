@@ -4,6 +4,7 @@ import base64
 import json
 import logging
 import os
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -28,21 +29,26 @@ class AuditRetentionPolicy:
     duration_days: int
 
 
-class WORMStorage:
+class WORMStorage(ABC):
+    @abstractmethod
     def persist_event(
         self, event_id: str, payload: dict[str, Any], retention: AuditRetentionPolicy
     ) -> None:
         raise NotImplementedError
 
+    @abstractmethod
     def fetch_event(self, event_id: str) -> dict[str, Any] | None:
         raise NotImplementedError
 
+    @abstractmethod
     def list_events(self) -> list[dict[str, Any]]:
         raise NotImplementedError
 
+    @abstractmethod
     def prune_expired(self, now: datetime | None = None) -> int:
         raise NotImplementedError
 
+    @abstractmethod
     def ping(self) -> None:
         raise NotImplementedError
 

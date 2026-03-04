@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import statistics
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional
@@ -48,10 +49,12 @@ class AnalyticsRecord:
     metadata: Dict[str, Any]
 
 
-class AnalyticsProvider:
+class AnalyticsProvider(ABC):
+    @abstractmethod
     def record(self, record: AnalyticsRecord) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
+    @abstractmethod
     def list_records(self) -> List[AnalyticsRecord]:  # pragma: no cover - interface
         raise NotImplementedError
 

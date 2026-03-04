@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import time
+from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
 from hashlib import sha256
@@ -212,12 +213,14 @@ class TokenBudgetManager:
         self._usage[tenant_id] = self._usage.get(tenant_id, 0) + usage.total_tokens
 
 
-class ProviderAdapter:
+class ProviderAdapter(ABC):
     name: str
 
+    @abstractmethod
     async def complete(self, *, system_prompt: str, user_prompt: str) -> LLMResponse:
         raise NotImplementedError
 
+    @abstractmethod
     def stream(self, *, system_prompt: str, user_prompt: str) -> AsyncIterator[LLMStreamChunk]:
         raise NotImplementedError
 

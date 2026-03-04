@@ -6,6 +6,7 @@ import json
 import logging
 import time
 import uuid
+from abc import ABC, abstractmethod
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -86,16 +87,20 @@ class EventBusSettings(BaseSettings):
     kafka_topic: str = "ppm-events"
 
 
-class EventBusProvider:
+class EventBusProvider(ABC):
+    @abstractmethod
     def create_topic(self, name: str) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
+    @abstractmethod
     def create_queue(self, name: str) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
+    @abstractmethod
     def publish(self, topic: str, payload: Dict[str, Any]) -> None:  # pragma: no cover
         raise NotImplementedError
 
+    @abstractmethod
     def subscribe(self, topic: str, handler: Callable[[Dict[str, Any]], None]) -> None:
         raise NotImplementedError
 
