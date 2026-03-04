@@ -18,7 +18,7 @@ These planes are orchestrated through intent routing, task planning, and policy 
 
 - **Intent Router (The Intent Router agent)**: classifies user intent and routes to domain agents.
 - **Response Orchestrator (The Response Orchestration agent)**: builds multi-step plans and composes responses.
-- **Domain agents (Agents 03–25)**: own specific PPM domain processes (see the [Agent Catalog](../agents/agent-catalog.md)).
+- **Domain agents (Agents 03–25)**: own specific PPM domain processes (see the [Agent Catalog](../../agents/AGENT_CATALOG.md)).
 - **Connector runtime**: translates between canonical schemas and external APIs.
 - **Data services**: enforce schema validation, lineage capture, and quality scoring.
 
@@ -50,7 +50,7 @@ Check that the logical architecture file references the agent catalog:
 rg -n "Agent Catalog" docs/architecture/logical-architecture.md
 ```
 
-Expected output: a reference to `docs/agents/agent-catalog.md`.
+Expected output: a reference to `agents/AGENT_CATALOG.md`.
 
 ## Implementation status
 
@@ -59,6 +59,6 @@ Expected output: a reference to `docs/agents/agent-catalog.md`.
 
 ## Related docs
 
-- [Agent Catalog](../agents/agent-catalog.md)
+- [Agent Catalog](../../agents/AGENT_CATALOG.md)
 - [Agent Orchestration](agent-orchestration.md)
 - [Data Architecture](data-architecture.md)
