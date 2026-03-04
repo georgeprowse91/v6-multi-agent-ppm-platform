@@ -237,7 +237,7 @@ async def initialize_connectors(agent: DataSyncAgent) -> None:
             cfg = ConnectorConfig(connector_id=cid, name=cname, category=cat, instance_url=agent._get_setting(url_key, "") or "")
             agent.connectors[cid] = cls(cfg)
         except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
-            agent.logger.warning(f"{cid}_connector_failed", extra={"error": str(exc)})
+            agent.logger.warning("%s_connector_failed", cid, extra={"error": str(exc)})
 
 
 async def initialize_service_bus(agent: DataSyncAgent) -> None:

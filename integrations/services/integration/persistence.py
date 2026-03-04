@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, ClassVar, Dict, Optional
@@ -483,10 +484,12 @@ class SqlRepository:
         return log
 
 
-class DocumentStore:
+class DocumentStore(ABC):
+    @abstractmethod
     def upsert(self, doc_id: str, data: Dict[str, Any]) -> Dict[str, Any]:  # pragma: no cover
         raise NotImplementedError
 
+    @abstractmethod
     def read(self, doc_id: str) -> Optional[Dict[str, Any]]:  # pragma: no cover
         raise NotImplementedError
 
@@ -499,10 +502,12 @@ class CacheSettings(BaseSettings):
     default_ttl_seconds: int = 600
 
 
-class CacheProvider:
+class CacheProvider(ABC):
+    @abstractmethod
     def get(self, key: str) -> Optional[Dict[str, Any]]:  # pragma: no cover
         raise NotImplementedError
 
+    @abstractmethod
     def set(self, key: str, value: Dict[str, Any], ttl_seconds: int) -> None:  # pragma: no cover
         raise NotImplementedError
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
@@ -17,10 +18,12 @@ class JiraIssue:
     updated_at: str
 
 
-class JiraClient:
+class JiraClient(ABC):
+    @abstractmethod
     def fetch_issues(self, project_key: str | None = None) -> list[JiraIssue]:
         raise NotImplementedError
 
+    @abstractmethod
     def update_issue(self, issue_id: str, fields: dict[str, Any]) -> bool:
         raise NotImplementedError
 

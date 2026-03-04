@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
 
-class DocumentStore:
+class DocumentStore(ABC):
+    @abstractmethod
     def upsert(self, doc_id: str, data: dict[str, Any]) -> dict[str, Any]:
         raise NotImplementedError
 
+    @abstractmethod
     def read(self, doc_id: str) -> dict[str, Any] | None:
         raise NotImplementedError
 
+    @abstractmethod
     def query(self, record_type: str, tenant_id: str, project_id: str) -> list[dict[str, Any]]:
         raise NotImplementedError
 
