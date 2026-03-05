@@ -1,81 +1,62 @@
-# Documentation Hub
+# Documentation
 
-## Overview
+> Canonical documentation for the multi-agent PPM platform. Each subdirectory contains a hub `README.md` that consolidates all topic files with a linked table of contents.
 
-This directory contains the canonical documentation set for the multi-agent PPM platform. It covers architecture narratives, API contracts, agent specifications, compliance guidance, onboarding material, operational runbooks, and shared templates. These documents are referenced by the root README and provide the authoritative explanations for the platform architecture, data model, and operating procedures.
+## Quick navigation
 
-## Directory structure
+| Area | Hub document | What's inside |
+| --- | --- | --- |
+| [Architecture](./architecture/README.md) | [architecture/README.md](./architecture/README.md) | System context, logical/physical/deployment design, AI and agent layers, data, connectors, security, observability, resilience, performance, tenancy, and ADR index |
+| [Agents](./agents/README.md) | [agents/README.md](./agents/README.md) | Specifications for all 25 agents across 4 domains, integration service taxonomy, configuration reference |
+| [API](./api/README.md) | [api/README.md](./api/README.md) | Authentication (JWT/OIDC/SAML/SCIM), event contracts, API governance, webhooks |
+| [Connectors](./connectors/README.md) | [connectors/README.md](./connectors/README.md) | 38 connector overview, auth patterns, data mapping, REST config, certification, maturity rubric, M365 mappings, IoT spec, MCP connector docs |
+| [Compliance](./compliance/README.md) | [compliance/README.md](./compliance/README.md) | Controls mapping, data classification, retention, DPIA, threat model, audit evidence, certification evidence, financial-services template |
+| [Runbooks](./runbooks/README.md) | [runbooks/README.md](./runbooks/README.md) | Quick start, deployment, on-call, monitoring, SLOs/SLIs, incident response, troubleshooting, LLM degradation, data-sync failures, backup/recovery, disaster recovery, secrets, schema rollback, credentials, Compose profiles |
+| [Data](./data/README.md) | [data/README.md](./data/README.md) | Canonical data model, data quality rules, lineage events |
+| [Methodology](./methodology/README.md) | [methodology/README.md](./methodology/README.md) | Predictive (waterfall), adaptive (Agile/Scrum), and hybrid delivery methodologies |
+| [Production Readiness](./production-readiness/README.md) | [production-readiness/README.md](./production-readiness/README.md) | Pre-release checklist, maturity model, assessment, release process, security baseline, evidence pack, maturity scorecards |
+| [Testing](./testing/README.md) | [testing/README.md](./testing/README.md) | Acceptance and test strategy, test dependency matrix, CI profile rules |
+| [UI](./ui/README.md) | [ui/README.md](./ui/README.md) | Component reference, coverage matrix, known gaps |
+| [Change Management](./change-management/README.md) | [change-management/README.md](./change-management/README.md) | Implementation and change plan, training curriculum |
+| [Product](./product/README.md) | [product/README.md](./product/README.md) | Product strategy, personas, requirements, user journeys, competitive positioning, GTM, packaging, user guides |
+| [Templates](./templates/template-index.md) | [templates/template-index.md](./templates/template-index.md) | 100+ project management templates (risk registers, sprint planning, charters, etc.) |
+| [Generated Services](./generated/services/README.md) | [generated/services/README.md](./generated/services/README.md) | Auto-generated FastAPI endpoint references per microservice |
 
-| Folder | Description |
-| --- | --- |
-| [agents/](./agents/) | Agent specifications and catalog |
-| [api/](./api/) | API schemas, OpenAPI specs, and contracts |
-| [architecture/](./architecture/) | Architecture narratives, diagrams, and ADRs |
-| [assets/ui/screenshots/](./assets/ui/screenshots/) | Centralized UI screenshots for documentation |
-| [change-management/](./change-management/) | Change management training plan and adoption guidance |
-| [compliance/](./compliance/) | Compliance guidance, DPIA, threat model |
-| [connectors/](./connectors/) | Connector documentation and integration guides |
-| [generated/services/](./generated/services/) | Generated FastAPI endpoint references per service |
-| [connectors/generated/](./connectors/generated/) | Generated connector capability docs from manifests + maturity inventory |
-| [data/](./data/) | Data model, quality, and lineage docs |
-| [dependencies/](./dependencies/) | Dependency management policy and inventory |
-| [methodology/](./methodology/) | Methodology maps (adaptive, predictive, hybrid) with templates |
-| [onboarding/](./onboarding/) | Developer onboarding guides |
-| [product/](./product/) | Product documentation, personas, user guides |
-| [production-readiness/](./production-readiness/) | Release checklists and evidence packs |
-| [runbooks/](./runbooks/) | Operational runbooks |
-| [templates/](./templates/) | Shared template library |
-| [testing/](./testing/) | Test dependency matrix and testing strategy |
-| [ui/](./ui/) | UI route coverage matrix and gap analysis |
-
-## Key files
+## Standalone reference files
 
 | File | Description |
 | --- | --- |
 | [versioning.md](./versioning.md) | API and documentation versioning policy |
 | [solution-index.md](./solution-index.md) | Cross-cutting solution index |
-| [dr-runbook.md](./dr-runbook.md) | Disaster recovery runbook |
 | [design-system.md](./design-system.md) | Design system token guidelines |
 | [demo-environment.md](./demo-environment.md) | Demo environment setup and cloud provisioning guide |
+| [onboarding/developer-onboarding.md](./onboarding/developer-onboarding.md) | Developer onboarding guide |
 | [frontend-spa-migration.md](./frontend-spa-migration.md) | SPA route migration map and state baseline |
-| [merge-conflict-troubleshooting.md](./merge-conflict-troubleshooting.md) | Guide for resolving merge conflicts |
+| [schema-compatibility-matrix.md](./schema-compatibility-matrix.md) | Schema versioning compatibility matrix |
 | [outbound_dependency_inventory.md](./outbound_dependency_inventory.md) | Inventory of outbound HTTP clients and LLM providers |
-| [react-native-typescript-alignment.md](./react-native-typescript-alignment.md) | React/React Native/TypeScript version alignment plan |
-| [root-file-policy.md](./root-file-policy.md) | Policy governing artifacts allowed at the repository root |
-| [schema-compatibility-matrix.md](./schema-compatibility-matrix.md) | Schema versioning compatibility matrix and CLI tooling |
+| [merge-conflict-troubleshooting.md](./merge-conflict-troubleshooting.md) | Guide for resolving merge conflicts |
+| [react-native-typescript-alignment.md](./react-native-typescript-alignment.md) | React Native and TypeScript version alignment plan |
+| [root-file-policy.md](./root-file-policy.md) | Policy governing artefacts allowed at the repository root |
+| [dr-runbook.md](./dr-runbook.md) | Standalone disaster recovery runbook (also covered in [runbooks/README.md](./runbooks/README.md)) |
+| [CHANGELOG.md](./CHANGELOG.md) | Documentation changelog |
 
-## Onboarding & release references
+## Generated artefacts
 
-- Developer onboarding guide: [docs/onboarding/developer-onboarding.md](./onboarding/developer-onboarding.md)
-- Release process: [docs/production-readiness/release-process.md](./production-readiness/release-process.md)
-- Operational runbooks: [docs/runbooks/](./runbooks/)
+The following files are code-derived and should not be edited manually:
 
-## How to run / develop / test
+- **Service endpoint references** — [`generated/services/`](./generated/services/)
+- **Connector capability matrix** — [`connectors/generated/capability-matrix.md`](./connectors/generated/capability-matrix.md)
 
-Validate internal links across docs:
-
-```bash
-python ops/scripts/check-links.py
-```
-
-## Configuration
-
-No configuration. Documentation content lives in Markdown and YAML files under this folder.
-
-## Troubleshooting
-
-- Broken links: run the link checker and fix any relative path mismatches.
-- Missing diagrams: verify files exist under `docs/architecture/diagrams/` where referenced.
-
-## Generated artifacts
-
-The following docs are code-derived and should be treated as source of truth:
-
-- Service endpoints: [`docs/generated/services/`](./generated/services/)
-- Connector capabilities: [`docs/connectors/generated/capability-matrix.md`](./connectors/generated/capability-matrix.md)
-
-Regenerate them with:
+Regenerate with:
 
 ```bash
 python ops/tools/codegen/generate_docs.py
+```
+
+## Link validation
+
+Run the link checker to verify all internal markdown links resolve:
+
+```bash
+python ops/scripts/check-links.py
 ```

@@ -5,6 +5,9 @@ Source: `services/data-service/src/main.py`
 | Method | Path | Handler |
 | --- | --- | --- |
 | `GET` | `/healthz` | `healthz` |
+| `GET` | `/livez` | `livez` |
+| `GET` | `/readyz` | `readyz` |
+| `GET` | `/readyz/deep` | `deep_readyz` |
 | `GET` | `/v1/agent-runs` | `list_agent_runs` |
 | `POST` | `/v1/agent-runs` | `ingest_agent_run` |
 | `GET` | `/v1/agent-runs/{agent_run_id}` | `get_agent_run` |

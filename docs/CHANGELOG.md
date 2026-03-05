@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Product, marketing, success metrics, and solution index documentation aligned to delivered capabilities.
 - `docs/README.md` updated to include all documentation subdirectories (`change-management/`, `dependencies/`, `testing/`, `ui/`) and all top-level key files.
-- `services/README.md` updated to include `memory_service` (conversation context persistence) and `scope_baseline` (project scope baseline persistence) services.
+- `services/README.md` updated to include `memory_service` (conversation context persistence) and `scope_baseline` (scope baseline development artefact; not a deployed microservice).
 - `packages/README.md` updated to include `connectors` (shared connector SDK utilities), `design-tokens` (design system tokens), `feedback` (agent feedback capture), and `vector_store` (FAISS-backed vector store) packages.
 - `apps/README.md` updated to include `demo_streamlit` (Streamlit-based interactive demo application).
 - `docs/solution-index.md` connector inventory expanded to reflect all 38 implemented connectors across PPM, ERP, GRC, HR, collaboration, and communications domains.

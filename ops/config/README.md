@@ -9,8 +9,6 @@ This directory contains configuration assets consumed by services, agents, and t
 | Folder | Description |
 | --- | --- |
 | [abac/](./abac/) | Attribute-based access control policies |
-| [data-synchronisation-agent/](./data-synchronisation-agent/) | the Data Synchronisation agent specific configuration |
-| [approval-workflow-agent/](./approval-workflow-agent/) | Approval Workflow agent workflow configuration (durable workflow definitions and templates) |
 | [agents/](./agents/) | Agent runtime and routing configuration (has schema/ subdir) |
 | [connectors/](../../connectors/) | Connector integration configuration |
 | [data-classification/](./data-classification/) | Data classification levels |
@@ -25,18 +23,18 @@ This directory contains configuration assets consumed by services, agents, and t
 
 ## What's inside
 
-- [policies.yaml](/config/abac/policies.yaml): Attribute-based access control policies.
-- [*.yaml](/config/agents/*.yaml): Agent runtime, intent routing, and domain agent configuration.
-- [integrations.yaml](/config/connectors/integrations.yaml): Connector credentials, sync cadence, and field mapping overrides.
-- [levels.yaml](/config/data-classification/levels.yaml): Data classification tiers and retention bindings.
-- [*.yaml](/config/environments/*.yaml): Environment-specific endpoints, vault references, and feature toggles.
-- [flags.yaml](/config/feature-flags/flags.yaml): Feature flag toggles by name.
-- [*.yaml](/config/rbac/*.yaml): Roles, permissions, and field-level access rules.
-- [policies.yaml](/config/retention/policies.yaml): Retention policy definitions by classification.
-- [dlp-policies.yaml](/config/security/dlp-policies.yaml): DLP policy thresholds and enforcement actions.
-- [](/config/signing/): Signing metadata for artifacts and images.
-- [default.yaml](/config/tenants/default.yaml): Default tenant bootstrap configuration.
-- [vector_store.yaml](/config/vector_store.yaml): Vector store shard, FAISS, cache, batch, and TTL settings.
+- `abac/policies.yaml`: Attribute-based access control policies.
+- `agents/*.yaml`: Agent runtime, intent routing, and domain agent configuration.
+- `connectors/integrations.yaml`: Connector credentials, sync cadence, and field mapping overrides.
+- `data-classification/levels.yaml`: Data classification tiers and retention bindings.
+- `environments/*.yaml`: Environment-specific endpoints, vault references, and feature toggles.
+- `feature-flags/flags.yaml`: Feature flag toggles by name.
+- `rbac/*.yaml`: Roles, permissions, and field-level access rules.
+- `retention/policies.yaml`: Retention policy definitions by classification.
+- `security/dlp-policies.yaml`: DLP policy thresholds and enforcement actions.
+- `signing/`: Signing metadata for artifacts and images.
+- `tenants/default.yaml`: Default tenant bootstrap configuration.
+- `vector_store.yaml`: Vector store shard, FAISS, cache, batch, and TTL settings.
 
 ## How it's used
 
@@ -140,7 +138,7 @@ MCP-enabled connectors can be configured to route requests through an MCP server
 
 ### Managing MCP OAuth secrets in Key Vault and Secrets Manager
 
-For production deployments, store MCP OAuth client IDs/secrets in a managed secret store and map them to the runtime environment variables consumed by the connector runtime. Follow the production guidance in [ADR 0010](../docs/architecture/adr/0010-secrets-management.md) for managed secret rotation and local `.env` usage.
+For production deployments, store MCP OAuth client IDs/secrets in a managed secret store and map them to the runtime environment variables consumed by the connector runtime. Follow the production guidance in [ADR 0010](../../docs/architecture/adr/0010-secrets-management.md) for managed secret rotation and local `.env` usage.
 
 **Azure Key Vault**
 
@@ -168,7 +166,7 @@ Example mapping (single JSON secret named `mcp/planview`):
 | `PLANVIEW_MCP_CLIENT_SECRET` | `PLANVIEW_MCP_CLIENT_SECRET` |
 | `PLANVIEW_MCP_SERVER_URL` | `PLANVIEW_MCP_SERVER_URL` |
 
-For local development, continue to use `.env` files that are excluded from source control, and only reference cloud secret managers in shared environments. See [ADR 0010](../docs/architecture/adr/0010-secrets-management.md) for the production versus local development split.
+For local development, continue to use `.env` files that are excluded from source control, and only reference cloud secret managers in shared environments. See [ADR 0010](../../docs/architecture/adr/0010-secrets-management.md) for the production versus local development split.
 
 ### `config/environments/*.yaml`
 

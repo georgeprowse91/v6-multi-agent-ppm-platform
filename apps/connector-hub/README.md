@@ -1,8 +1,11 @@
 # Connector Hub
 
+**Owner:** Platform Engineering
+**Support:** platform-engineering@example.com
+
 ## Purpose
 
-Describe the Connector Hub application and its role in the platform experience layer.
+The Connector Hub is a FastAPI application that provides a centralized management interface for the platform's 38 integration connectors. It exposes endpoints for browsing connector status, triggering sync jobs, managing field-mapping overrides, and surfacing connector maturity and health metrics to the web console and admin workflows.
 
 ## What's inside
 

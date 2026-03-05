@@ -5,6 +5,7 @@ Do not edit by hand; run `python ops/tools/codegen/generate_docs.py`.
 
 | Service | Endpoint docs |
 | --- | --- |
+| `agent-config` | [docs/generated/services/agent-config.md](./agent-config.md) |
 | `agent-runtime` | [docs/generated/services/agent-runtime.md](./agent-runtime.md) |
 | `audit-log` | [docs/generated/services/audit-log.md](./audit-log.md) |
 | `auth-service` | [docs/generated/services/auth-service.md](./auth-service.md) |

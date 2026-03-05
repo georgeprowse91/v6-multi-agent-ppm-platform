@@ -54,7 +54,7 @@ Product docs focus on vision, requirements, positioning, and user guides. For te
 |---|---|
 | System architecture (27 docs) | [docs/architecture/](../architecture/) |
 | Agent specifications (25 agents) | [docs/agents/](../agents/) |
-| Connector ecosystem (44 integrations) | [docs/connectors/](../connectors/) |
+| Connector ecosystem (38 connectors) | [docs/connectors/](../connectors/) |
 | API contracts and OpenAPI specs | [docs/api/](../api/) |
 | Data model, quality, and lineage | [docs/data/](../data/) |
 | Compliance controls and DPIA | [docs/compliance/](../compliance/) |

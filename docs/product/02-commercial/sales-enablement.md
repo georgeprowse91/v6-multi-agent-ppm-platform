@@ -24,7 +24,7 @@ Large organisations waste up to 40% of PMO time on manual data aggregation acros
 
 ### 2-Minute Version
 
-Every enterprise we speak to has the same problem: dozens of project tools that don't talk to each other, dashboards that are weeks stale, and governance that depends on people remembering to follow the process. Our Multi-Agent PPM Platform changes this. It connects to your existing systems through 44 pre-built integrations, orchestrates 25 AI agents that each specialise in a domain of project management, and presents everything through a three-panel workspace where your methodology becomes the navigation. The AI assistant is the primary interface — users describe what they need in plain English and the platform does the rest. Stage-gates are enforced automatically. Audit trails are immutable. And portfolio leaders get real-time visibility without chasing status reports.
+Every enterprise we speak to has the same problem: dozens of project tools that don't talk to each other, dashboards that are weeks stale, and governance that depends on people remembering to follow the process. Our Multi-Agent PPM Platform changes this. It connects to your existing systems through 38 pre-built connectors, orchestrates 25 AI agents that each specialise in a domain of project management, and presents everything through a three-panel workspace where your methodology becomes the navigation. The AI assistant is the primary interface — users describe what they need in plain English and the platform does the rest. Stage-gates are enforced automatically. Audit trails are immutable. And portfolio leaders get real-time visibility without chasing status reports.
 
 ### 5-Minute Version
 
@@ -36,7 +36,7 @@ Use the 2-minute pitch above, then walk through a demo scenario using the [Demo 
 
 | Persona | Primary Pain Point | Key Message | Proof Points |
 |---|---|---|---|
-| CIO / CTO | Tool sprawl and integration cost | Protect existing investments; add AI intelligence without rip-and-replace | 44 connectors, event-driven sync, open API |
+| CIO / CTO | Tool sprawl and integration cost | Protect existing investments; add AI intelligence without rip-and-replace | 38 connectors, event-driven sync, open API |
 | PMO Director | Manual reporting and stale dashboards | Real-time portfolio visibility and predictive support | Automated dashboards, AI health scoring, stage-gate enforcement |
 | CFO / Finance | Budget overruns and poor forecasting | Better financial confidence with variance analysis and EVM | ERP integration (SAP, Oracle, NetSuite), automated forecasting |
 | Project Manager | Administrative burden | Guided, compliant workflows with reduced admin load | AI-generated charters, automated risk registers, methodology map |
@@ -79,7 +79,7 @@ For a structured demo walkthrough, use the [Demo Environment Guide](../../demo-e
 | Pricing and packaging | [Packaging and Pricing](packaging-and-pricing.md) |
 | GTM execution plan | [Go-to-Market Plan](go-to-market-plan.md) |
 | Agent capabilities (25 agents) | [Agent Catalog](../../agents/) |
-| Connector ecosystem (44 integrations) | [Connector Documentation](../../connectors/) |
+| Connector ecosystem (38 connectors) | [Connector Documentation](../../connectors/) |
 | Architecture and security | [Architecture Documentation](../../architecture/) |
 | Compliance and regulatory | [Compliance Documentation](../../compliance/) |
 | Demo environment setup | [Demo Environment Guide](../../demo-environment.md) |
