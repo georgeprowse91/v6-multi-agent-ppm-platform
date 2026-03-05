@@ -18,7 +18,9 @@
 | [Testing](./testing/README.md) | [testing/README.md](./testing/README.md) | Acceptance and test strategy, test dependency matrix, CI profile rules |
 | [UI](./ui/README.md) | [ui/README.md](./ui/README.md) | Component reference, coverage matrix, known gaps |
 | [Change Management](./change-management/README.md) | [change-management/README.md](./change-management/README.md) | Implementation and change plan, training curriculum |
-| [Product](./product/README.md) | [product/README.md](./product/README.md) | Product strategy, personas, requirements, user journeys, competitive positioning, GTM, packaging, user guides |
+| [Platform Description](./platform-description.md) | [platform-description.md](./platform-description.md) | Product strategy, scope, requirements, personas, UX guidelines, methodology flows, template catalog |
+| [Platform Commercials](./platform-commercials.md) | [platform-commercials.md](./platform-commercials.md) | Market analysis, competitive positioning, GTM plan, packaging and pricing, sales enablement |
+| [Platform User Guide](./platform-userguide.md) | [platform-userguide.md](./platform-userguide.md) | AI assistant panel guide, prompt library, web console walkthroughs |
 | [Templates](./templates/template-index.md) | [templates/template-index.md](./templates/template-index.md) | 100+ project management templates (risk registers, sprint planning, charters, etc.) |
 | [Generated Services](./generated/services/README.md) | [generated/services/README.md](./generated/services/README.md) | Auto-generated FastAPI endpoint references per microservice |
 
