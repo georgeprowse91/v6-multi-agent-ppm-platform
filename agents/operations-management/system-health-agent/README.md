@@ -4,6 +4,77 @@
 
 Define the responsibilities, workflows, and integration points for the System Health Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
+## Intended scope
+
+### Responsibilities
+- Monitor platform service health via configurable health probes and endpoint checks.
+- Aggregate system telemetry from Azure Monitor, Application Insights, and Log Analytics.
+- Track SLO/SLA compliance and compute system health scores.
+- Detect anomalies in system metrics using Azure Anomaly Detector.
+- Route alerts to PagerDuty, OpsGenie, and ServiceNow for incident management.
+- Trigger auto-scaling actions when resource thresholds are breached.
+- Publish system health events and metrics via Event Hub and Prometheus.
+
+### Inputs
+- `action`: `check_health`, `get_system_status`, `run_diagnostics`, `get_metrics`, `create_alert`, `acknowledge_alert`.
+- Health probe definitions (endpoints, timeouts, intervals).
+- Telemetry queries against Log Analytics and Application Insights.
+- Alert and scaling threshold configurations.
+- `context`: `tenant_id`, `correlation_id` (optional; used for audit/event metadata).
+
+### Outputs
+- Aggregated health status (per-service and composite scores).
+- System metrics (CPU, memory, queue depth, latency, error rates).
+- Alert records with severity, status, and routing information.
+- Anomaly detection results with confidence scores.
+- Scaling event records and automation outcomes.
+- Event payloads published to Event Hub for downstream analytics.
+
+### Decision responsibilities
+- Determine overall system health status based on probe results and metric thresholds.
+- Decide alert severity and routing (PagerDuty, OpsGenie, ServiceNow) based on configured rules.
+- Trigger auto-scaling when CPU, memory, or queue depth thresholds are exceeded.
+- Identify anomalous metric patterns and flag for investigation.
+
+### Must / must-not behaviors
+- **Must** validate health probe configurations before execution.
+- **Must** publish health status and telemetry events to configured sinks (Event Hub, Prometheus).
+- **Must** route high-priority alerts to configured webhook endpoints.
+- **Must** record incident creation and updates in ServiceNow when configured.
+- **Must not** modify application code or deployment configurations directly.
+- **Must not** perform portfolio-level analytics or KPI computation (delegated to the Analytics Insights agent).
+- **Must not** execute change management workflows (delegated to the Change Control agent).
+
+## Overlap & handoff boundaries
+
+### Analytics Insights
+- **Overlap risk**: both agents handle metrics and telemetry data.
+- **Boundary**: The System Health agent focuses on system-level health telemetry, alerts, and SLO monitoring. The Analytics Insights agent focuses on portfolio health analytics, narrative generation, and business KPI dashboarding. The Analytics Insights agent can consume system health signals as inputs to dashboards or narrative summaries.
+
+### Change Control
+- **Overlap risk**: system health incidents may trigger change requests.
+- **Boundary**: The System Health agent detects and alerts on system health issues. The Change Control agent owns change request intake, classification, and approval workflows. The System Health agent may emit events that trigger change workflows but does not create or manage change records.
+
+## Functional gaps / inconsistencies & alignment needs
+
+- **Event taxonomy alignment**: ensure system health events use consistent naming with the platform-wide event schema.
+- **Alert routing configuration**: document the precedence and fallback behavior when multiple alert webhook endpoints are configured.
+- **Scaling action audit trail**: ensure auto-scaling actions are logged and published as events for governance and analytics consumption.
+- **UI alignment**: system health dashboards should surface probe status, SLO compliance, and alert history.
+
+## Checkpoint: system health monitoring + dependency map entry
+
+### Health monitoring criteria
+- All configured health probes return healthy status within timeout.
+- SLO metrics (availability, latency, error rate) are within defined thresholds.
+- Anomaly detection scores are below alert thresholds.
+- Alert routing webhooks are reachable and configured.
+
+### Dependency map entry
+- **Upstream**: Azure Monitor, Application Insights, Log Analytics, health probe endpoints.
+- **Core services**: Event Hub, Prometheus, PagerDuty/OpsGenie webhooks, ServiceNow API.
+- **Downstream**: Analytics Insights agent (health telemetry for dashboards), Change Control agent (incident-triggered changes).
+
 ## What's inside
 
 - [src](/agents/operations-management/system-health-agent/src): Implementation source for this component.

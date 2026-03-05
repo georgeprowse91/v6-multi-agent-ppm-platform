@@ -4,59 +4,69 @@
 
 Define the responsibilities, workflows, and integration points for the Resource Management Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
-## What's inside
+## Intended scope
 
-- [src](/agents/delivery-management/resource-management-agent/src): Implementation source for this component.
-- [tests](/agents/delivery-management/resource-management-agent/tests): Test suites and fixtures.
-- [Dockerfile](/agents/delivery-management/resource-management-agent/Dockerfile): Container build recipe for local or CI use.
-
-## How it's used
-
-Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution.
-
-## Scope, inputs/outputs, and decisioning
-
-### Intended scope
+### Responsibilities
 - Manage the resource pool (people/equipment), capacity calendars, and allocations.
 - Intake resource demand, match skills, and route approvals.
 - Forecast capacity vs. demand, plan capacity, and run scenarios.
 - Sync capacity and profile data from HRIS, Planview, and Jira Tempo sources.
 
-### Inputs (actions) and outputs
-Supported `action` values in `process()` and their expected output shape:
-- `add_resource`, `update_resource`, `delete_resource`: return resource profile and status.
-- `request_resource`: return request ID, recommended candidates, approver, and approval payload.
-- `approve_request`: return approval status and allocation if approved.
-- `search_resources`: return matching resources and count.
-- `match_skills`: return ranked candidates with match scores.
-- `forecast_capacity`: return capacity/demand forecast, bottlenecks, and recommendations.
-- `plan_capacity`: return capacity plan, gaps, and mitigation strategies.
-- `scenario_analysis`: return baseline vs. scenario comparison with recommendation.
-- `allocate_resource`: return allocation ID and allocation payload.
-- `get_availability`: return calendar availability by day with average availability.
-- `get_utilization`: return utilization summary and over/under allocations.
-- `identify_conflicts`: return conflicts and resolution recommendations.
-- `get_resource_pool`: return filtered resource pool.
+### Inputs
+- `action`: `add_resource`, `update_resource`, `delete_resource`, `request_resource`, `approve_request`, `search_resources`, `match_skills`, `forecast_capacity`, `plan_capacity`, `scenario_analysis`, `allocate_resource`, `get_availability`, `get_utilization`, `identify_conflicts`, `get_resource_pool`.
+- Resource profiles, allocation payloads, skill requirements, capacity parameters.
+- `context`: `tenant_id`, `correlation_id` (optional; used for audit/event metadata).
+
+### Outputs
+- `add_resource`/`update_resource`/`delete_resource`: resource profile and status.
+- `request_resource`: request ID, recommended candidates, approver, and approval payload.
+- `approve_request`: approval status and allocation if approved.
+- `search_resources`: matching resources and count.
+- `match_skills`: ranked candidates with match scores.
+- `forecast_capacity`: capacity/demand forecast, bottlenecks, and recommendations.
+- `plan_capacity`: capacity plan, gaps, and mitigation strategies.
+- `scenario_analysis`: baseline vs. scenario comparison with recommendation.
+- `allocate_resource`: allocation ID and allocation payload.
+- `get_availability`: calendar availability by day with average availability.
+- `get_utilization`: utilization summary and over/under allocations.
+- `identify_conflicts`: conflicts and resolution recommendations.
 
 ### Decision responsibilities
-- Determines if a resource request requires approval and routes it to approvers.
-- Calculates candidate ranking and skill match thresholds for recommended resources.
-- Validates allocations against allocation limits and overlap constraints.
-- Detects over-allocation conflicts and produces mitigation recommendations.
+- Determine if a resource request requires approval and route it to approvers.
+- Calculate candidate ranking and skill match thresholds for recommended resources.
+- Validate allocations against allocation limits and overlap constraints.
+- Detect over-allocation conflicts and produce mitigation recommendations.
 
 ### Must / must-not behaviors
-**Must**
-- Enforce allocation constraints when `enforce_allocation_constraints` is true.
-- Reject allocations with invalid percentage or invalid date ordering.
-- Persist resource/allocations to the state store and publish allocation events.
-- Publish resource events for create/update/request/approval flows.
+- **Must** enforce allocation constraints when `enforce_allocation_constraints` is true.
+- **Must** reject allocations with invalid percentage or invalid date ordering.
+- **Must** persist resource/allocations to the state store and publish allocation events.
+- **Must** publish resource events for create/update/request/approval flows.
+- **Must not** create allocations for unknown resources.
+- **Must not** exceed maximum concurrent allocations or allocation thresholds when enforcement is enabled.
+- **Must not** skip notification routing when approvals are required.
 
-**Must not**
-- Create allocations for unknown resources.
-- Exceed maximum concurrent allocations or allocation thresholds when enforcement is enabled.
-- Skip notification routing when approvals are required.
+## Overlap & handoff boundaries
 
-## Capacity allocation rules (execution-ready checkpoint)
+### Schedule Planning
+- **Overlap risk**: resource-constrained scheduling, allocation feasibility, and calendar-aware planning.
+- **Boundary**: The Resource Management agent owns resource availability, allocation validation, and utilization. The Schedule Planning agent owns schedule creation, dependency mapping, critical path, and baseline management. The Schedule Planning agent consumes allocation events (`resource.allocation.created`) and availability data (`get_availability`) rather than revalidating or mutating allocations.
+
+### Financial Management
+- **Overlap risk**: labor cost implications, forecast inputs, and resource cost rates.
+- **Boundary**: The Resource Management agent provides allocation/capacity facts and cost rates per resource; the Financial Management agent owns budgeting, cost tracking, and financial forecasting/variance analysis. The Financial Management agent should treat the Resource Management agent as the system of record for allocations and resource availability.
+
+## Functional gaps / inconsistencies & alignment needs
+
+- **Approval routing details**: approval routing hints exist, but the requester/approver resolution lacks explicit mapping rules in this spec (rely on `approval_routing` config).
+- **Cost rate usage**: allocations include `cost_rate` at the resource level, but there is no explicit cost roll-up output in allocation responses.
+- **Conflict resolution outputs**: conflict recommendations are generated but not persisted or published as events.
+- **Prompt & templates**: ensure prompts include required fields for `request_resource` and `allocate_resource` actions (project_id, dates, effort, resource_id).
+- **Connectors**: align Planview/Tempo connectors with allocation normalization fields (`allocation_id`, `resource_id`, `project_id`, dates, percentage).
+- **UI**: resource allocation screens must surface validation errors, approval status, and conflicts; calendar view should consume `get_availability` responses.
+- **Event schema**: downstream agents should subscribe to `resource.allocation.created` and `resource.request.approved/rejected` for schedule/financial sync.
+
+## Checkpoint: capacity allocation rules (execution-ready)
 
 Allocation validation must satisfy all of the following before persisting:
 1. Resource exists in the pool (or synced store).
@@ -67,30 +77,15 @@ Allocation validation must satisfy all of the following before persisting:
 
 If any check fails, return a validation error and do not persist or publish allocation events.
 
-## Overlap & handoff boundaries (Agents 10 & 12)
+## What's inside
 
-### the Schedule Planning agent (Schedule Planning)
-**Overlap:** Resource-constrained scheduling, allocation feasibility, and calendar-aware planning.  
-**Handoff boundary:** the Resource Management agent owns resource availability, allocation validation, and utilization. the Schedule Planning agent owns schedule creation, dependency mapping, critical path, and baseline management.  
-**Integration expectation:** the Schedule Planning agent consumes allocation events (`resource.allocation.created`) and availability data (`get_availability`) rather than revalidating or mutating allocations.
+- [src](/agents/delivery-management/resource-management-agent/src): Implementation source for this component.
+- [tests](/agents/delivery-management/resource-management-agent/tests): Test suites and fixtures.
+- [Dockerfile](/agents/delivery-management/resource-management-agent/Dockerfile): Container build recipe for local or CI use.
 
-### the Financial Management agent (Financial Management)
-**Overlap:** Labor cost implications, forecast inputs, and resource cost rates.  
-**Handoff boundary:** the Resource Management agent provides allocation/capacity facts and cost rates per resource; the Financial Management agent owns budgeting, cost tracking, and financial forecasting/variance analysis.  
-**Integration expectation:** the Financial Management agent should treat the Resource Management agent as the system of record for allocations and resource availability, and request updates via `get_utilization`, `forecast_capacity`, or allocation events.
+## How it's used
 
-## Gaps, inconsistencies, and alignment requirements
-
-### Functional gaps / inconsistencies
-- **Approval routing details**: approval routing hints exist, but the requester/approver resolution lacks explicit mapping rules in this spec (rely on `approval_routing` config).  
-- **Cost rate usage**: allocations include `cost_rate` at the resource level, but there is no explicit cost roll-up output in allocation responses.  
-- **Conflict resolution outputs**: conflict recommendations are generated but not persisted or published as events.  
-
-### Required alignment (prompt/tool/template/connector/UI)
-- **Prompt & templates**: Ensure prompts include required fields for `request_resource` and `allocate_resource` actions (project_id, dates, effort, resource_id).  
-- **Connectors**: Align Planview/Tempo connectors with allocation normalization fields (`allocation_id`, `resource_id`, `project_id`, dates, percentage).  
-- **UI**: Resource allocation screens must surface validation errors, approval status, and conflicts; calendar view should consume `get_availability` responses.  
-- **Event schema**: Downstream agents should subscribe to `resource.allocation.created` and `resource.request.approved/rejected` for schedule/financial sync.
+Referenced by the agent runtime and orchestration docs when routing requests, and discovered by `tools/agent_runner` during local execution.
 
 ## How to run / develop / test
 
@@ -110,7 +105,7 @@ pytest agents/delivery-management/resource-management-agent/tests
 
 Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
 
-### Resource & Capacity Agent Environment Variables
+### Resource & capacity agent environment variables
 
 **Identity & Notifications (Microsoft Graph)**
 - `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`: Azure AD application credentials.
@@ -143,26 +138,17 @@ Agent runtime configuration is centralized in `.env` (see `ops/config/.env.examp
 - `RESOURCE_CAPACITY_DATABASE_URL` (PostgreSQL SQLAlchemy URL)
 - `REDIS_URL`
 
-### Runtime Configuration Flags
+### Runtime configuration flags
 
 - `max_concurrent_allocations`: Maximum number of overlapping allocations allowed per resource.
 - `enforce_allocation_constraints`: Enable or disable conflict enforcement during allocation creation.
 
-### New Dependencies
-
-The agent uses these Python packages (already available in the repo requirements):
-- `msal`
-- `requests`
-- `sqlalchemy`
-- `redis`
-- `azure-servicebus`
+### Risk-based capacity integration
+- Applies risk load factors from `ops/config/agents/risk_adjustments.yaml` to demand and utilization calculations.
+- Includes risk-driven recommendations in `plan_capacity` output when high/medium risk is present.
 
 ## Troubleshooting
 
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
 - Runtime errors about missing secrets: populate the required env vars in `.env`.
 - Docker execution fails: verify Docker is running and the agent has a `Dockerfile`.
-
-## Risk-based capacity integration
-- Applies risk load factors from `ops/config/agents/risk_adjustments.yaml` to demand and utilization calculations.
-- Includes risk-driven recommendations in `plan_capacity` output when high/medium risk is present.

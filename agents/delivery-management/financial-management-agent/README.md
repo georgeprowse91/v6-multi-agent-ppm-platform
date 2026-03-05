@@ -4,6 +4,76 @@
 
 Define the responsibilities, workflows, and integration points for the Financial Management Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
+## Intended scope
+
+### Responsibilities
+- Own financial execution for in-flight portfolios, programs, and projects.
+- Manage budget baselines, cost tracking, forecasts, variance analysis, earned value, and profitability reporting.
+- Integrate with ERP systems to reconcile funding and actuals.
+- Publish finance events to the service bus for downstream consumers.
+- Support multi-currency conversions and tax handling where required by the portfolio.
+
+### Inputs
+- `action`: financial workflow selector (budget creation/update, cost tracking, forecast, variance, EVM, summary/reporting, currency conversion, profitability).
+- `budget`: budget payload with project/portfolio identifiers, totals, and cost breakdowns.
+- `costs`: cost/transaction payloads for tracking actuals and accruals.
+- `project_id` / `portfolio_id`: entity identifiers for finance queries.
+- `time_period`: reporting range for forecast/variance.
+- `context`: `tenant_id`, `correlation_id`, `actor_id` for auditability.
+
+### Outputs
+- Budget baseline and approval status.
+- Cost tracking summaries, accruals, and category breakdowns.
+- Forecast projections and estimate-at-completion values.
+- Variance and earned value metrics.
+- Financial summaries and standardized reports (summary, variance, forecast, cash flow, profitability).
+- Currency conversion results and profitability metrics (ROI/NPV/IRR/payback period).
+
+### Decision responsibilities
+- Validate budget integrity and data quality before persistence.
+- Determine variance thresholds and flagging based on configured percent/absolute limits.
+- Trigger approval workflows for budget baselines and updates.
+- Reconcile funding availability with ERP transactions before confirming budget readiness.
+- Publish finance events and audit logs for lifecycle visibility.
+
+### Must / must-not behaviors
+- **Must** enforce tenant scoping, correlation IDs, and actor attribution for auditability.
+- **Must** persist budgets, actuals, and forecasts to tenant stores and database storage.
+- **Must** emit audit events and publish finance lifecycle events for downstream analytics.
+- **Must** validate cost breakdowns and perform data quality checks before approvals.
+- **Must** resolve secrets via Key Vault configuration when provided.
+- **Must** call ERP integration for funding validation and cost transactions ingestion.
+- **Must not** replace the Business Case agent for initial ROI/business case creation.
+- **Must not** approve or reject procurement contracts (handoff to the Vendor Procurement agent).
+- **Must not** bypass approval workflows when approval integration is enabled.
+- **Must not** modify vendor records or procurement policies.
+
+## Overlap & handoff boundaries
+
+### Business Case Investment
+- **Overlap risk**: profitability and ROI metrics are calculated here for live performance, while the Business Case agent owns initial business case creation and investment recommendations.
+- **Boundary**: The Financial Management agent consumes approved business case cash flow inputs (via agent integration or related agent endpoint) and tracks actuals/variance against the approved baseline. The Business Case agent remains the source of truth for business-case narratives, scenario modeling, and investment decisions.
+
+### Vendor Procurement
+- **Overlap risk**: vendor invoices, contracts, and purchase orders influence actual costs.
+- **Boundary**: The Vendor Procurement agent owns vendor onboarding, contract management, invoice capture, and procurement approvals. The Financial Management agent consumes invoice/actuals data (ERP/AP connectors or events) to update cost tracking and forecasts, and provides budget availability checks back to the Vendor Procurement agent.
+
+## Functional gaps / inconsistencies & alignment needs
+
+- **Prompt alignment**: ensure orchestrator prompts pass `context` (tenant/correlation/actor IDs) and include `budget`/`costs` payloads with currency and cost breakdowns for approval readiness.
+- **Tool alignment**: ERP connector and Service Bus event publishing are mandatory for production workflows; ensure connector registry and secrets are configured before live execution.
+- **Template alignment**: use the finance templates (cost management plan, cost baseline, variance report, financial risk plan) when generating reports or delivering documentation.
+- **Connector alignment**: confirm exchange-rate/tax-rate provider configs or fixture paths are available for multi-currency and tax handling.
+- **UI alignment**: financial dashboards should surface budget status (draft/approved), variance alerts, forecast accuracy, and approval trail links to the audit log.
+
+## Checkpoint: financial controls + dependency map entry
+
+### Financial controls (ready for execution)
+- Approval workflow integration, audit events, variance thresholds, and ERP funding validation enabled.
+
+### Dependency map entry
+- The Financial Management agent depends on ERP finance connectors, approval workflow, service bus eventing, key vault secrets, and related agent endpoints for resource plans, schedule progress, and benefits.
+
 ## What's inside
 
 - [src](/agents/delivery-management/financial-management-agent/src): Implementation source for this component.
@@ -41,81 +111,6 @@ Additional configuration options supported by the Financial Management Agent:
 - `key_vault`: `{ "vault_url": "...", "secrets": { "service_bus.connection_string": "secret-name" } }` to resolve credentials.
 - `related_agent_endpoints`: `{ "resource_plan": "http://...", "schedule_progress": "http://...", "benefits": "http://..." }`.
 - `related_agent_fixtures`: inline fixtures for local development and tests.
-
-## Intended scope
-
-The Financial Management agent owns financial execution for in-flight portfolios, programs, and projects. It focuses on budget baselines, cost tracking, forecasts, variance analysis, earned value, and profitability reporting. The agent integrates with ERP systems to reconcile funding and actuals, and publishes finance events to the service bus for downstream consumers. It also supports multi-currency conversions and tax handling where required by the portfolio. Source of truth for business-case creation and procurement decisions stays with other agents (see handoffs below).
-
-## Inputs & outputs
-
-**Primary inputs**
-
-- `action`: Financial workflow selector (budget creation/update, cost tracking, forecast, variance, EVM, summary/reporting, currency conversion, profitability).  
-- `budget`: Budget payload with project/portfolio identifiers, totals, and cost breakdowns.
-- `costs`: Cost/transaction payloads for tracking actuals and accruals.
-- `project_id` / `portfolio_id`: Entity identifiers for finance queries.
-- `time_period`: Reporting range for forecast/variance.
-- `context`: `tenant_id`, `correlation_id`, `actor_id` for auditability.
-
-**Primary outputs**
-
-- Budget baseline and approval status.
-- Cost tracking summaries, accruals, and category breakdowns.
-- Forecast projections and estimate-at-completion values.
-- Variance and earned value metrics.
-- Financial summaries and standardized reports (summary, variance, forecast, cash flow, profitability).
-- Currency conversion results and profitability metrics (ROI/NPV/IRR/payback period).
-
-## Decision responsibilities
-
-- Validate budget integrity and data quality before persistence.
-- Determine variance thresholds and flagging based on configured percent/absolute limits.
-- Trigger approval workflows for budget baselines and updates.
-- Reconcile funding availability with ERP transactions before confirming budget readiness.
-- Publish finance events and audit logs for lifecycle visibility.
-
-## Must / must-not behaviors
-
-**Must**
-
-- Enforce tenant scoping, correlation IDs, and actor attribution for auditability.
-- Persist budgets, actuals, and forecasts to tenant stores and database storage.
-- Emit audit events and publish finance lifecycle events for downstream analytics.
-- Validate cost breakdowns and perform data quality checks before approvals.
-- Resolve secrets via Key Vault configuration when provided.
-- Call ERP integration for funding validation and cost transactions ingestion.
-
-**Must not**
-
-- Replace the Business Case & Investment agent for initial ROI/business case creation.
-- Approve or reject procurement contracts (handoff to Vendor & Procurement agent).
-- Bypass approval workflows when approval integration is enabled.
-- Modify vendor records or procurement policies.
-
-## Handoffs and overlap boundaries
-
-**The Business Case agent – Business Case & Investment**
-
-Overlap risk: profitability and ROI metrics are calculated here for live performance, while the Business Case agent owns initial business case creation and investment recommendations.  
-**Handoff boundary:** the Financial Management agent consumes approved business case cash flow inputs (via agent integration or related agent endpoint) and tracks actuals/variance against the approved baseline. the Business Case agent remains the source of truth for business-case narratives, scenario modeling, and investment decisions.
-
-**The Vendor Procurement agent – Vendor & Procurement**
-
-Overlap risk: vendor invoices, contracts, and purchase orders influence actual costs.  
-**Handoff boundary:** the Vendor Procurement agent owns vendor onboarding, contract management, invoice capture, and procurement approvals. the Financial Management agent consumes invoice/actuals data (ERP/AP connectors or events) to update cost tracking and forecasts, and provides budget availability checks back to the Vendor Procurement agent.
-
-## Functional gaps and alignment requirements
-
-- **Prompt alignment:** Ensure orchestrator prompts pass `context` (tenant/correlation/actor IDs) and include `budget`/`costs` payloads with currency and cost breakdowns for approval readiness.
-- **Tool alignment:** ERP connector and Service Bus event publishing are mandatory for production workflows; ensure connector registry and secrets are configured before live execution.
-- **Template alignment:** Use the finance templates (cost management plan, cost baseline, variance report, financial risk plan) when generating reports or delivering documentation.
-- **Connector alignment:** Confirm exchange-rate/tax-rate provider configs or fixture paths are available for multi-currency and tax handling.
-- **UI alignment:** Financial dashboards should surface budget status (draft/approved), variance alerts, forecast accuracy, and approval trail links to the audit log.
-
-## Execution checkpoints
-
-- **Financial controls ready:** approval workflow integration, audit events, variance thresholds, and ERP funding validation enabled.
-- **Dependency map entry ready:** the Financial Management agent depends on ERP finance connectors, approval workflow, service bus eventing, key vault secrets, and related agent endpoints for resource plans, schedule progress, and benefits.
 
 ## Troubleshooting
 

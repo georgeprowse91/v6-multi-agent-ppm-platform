@@ -4,6 +4,82 @@
 
 Define the responsibilities, workflows, and integration points for the Vendor Procurement Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
+## Intended scope
+
+### Responsibilities
+- Vendor onboarding, registration, and profile management.
+- Contract creation, negotiation tracking, and lifecycle management.
+- RFP generation and proposal evaluation/scoring.
+- Invoice processing and payment initiation via ERP/AP connectors.
+- Vendor performance tracking, SLA monitoring, and risk/compliance screening.
+- Procurement request classification and budget validation.
+
+### Inputs
+- `action`: `register_vendor`, `search_vendors`, `create_contract`, `generate_rfp`, `score_proposal`, `process_invoice`, `track_performance`, `screen_compliance`, `classify_request`, `check_budget`.
+- `vendor` payload: name, category, capabilities, certifications, contact details.
+- `contract` payload: vendor_id, terms, value, start/end dates, SLA definitions.
+- `rfp` payload: requirements, evaluation criteria, timeline.
+- `proposal` payload: vendor responses, pricing, technical approach.
+- `invoice` payload: vendor_id, contract_id, line items, amounts.
+- `context`: `tenant_id`, `correlation_id` (optional; used for audit/event metadata).
+
+### Outputs
+- Vendor records with registration status and compliance screening results.
+- Contract records with lifecycle status, milestones, and clause extraction.
+- RFP documents and proposal scoring matrices.
+- Invoice processing results and payment initiation records.
+- Performance scorecards with SLA compliance, delivery metrics, and risk flags.
+- Event emission: `vendor.registered`, `contract.created`, `invoice.processed`, `vendor.compliance.flagged`.
+
+### Decision responsibilities
+- Determine vendor compliance status based on third-party risk/sanctions screening.
+- Score and rank proposals using configurable or ML-based scoring weights.
+- Classify procurement requests into categories for routing.
+- Validate budget availability before procurement commitment.
+- Flag vendors on compliance watchlists and block procurement when policy requires.
+
+### Must / must-not behaviors
+- **Must** validate required fields for each action before processing.
+- **Must** persist vendor, contract, invoice, and performance records with tenant scoping.
+- **Must** publish procurement lifecycle events for downstream agents.
+- **Must** enforce compliance policies (block on fail, flag on watchlist) when configured.
+- **Must not** approve budgets or financial commitments (delegated to the Financial Management agent).
+- **Must not** modify project scope or schedule baselines.
+- **Must not** bypass approval workflows when `use_external_approval_agent` is enabled.
+
+## Overlap & handoff boundaries
+
+### Financial Management
+- **Overlap risk**: vendor invoices and procurement costs influence financial tracking.
+- **Boundary**: The Vendor Procurement agent owns vendor onboarding, contract management, invoice capture, and procurement approvals. The Financial Management agent consumes invoice/actuals data to update cost tracking and forecasts, and provides budget availability checks back to the Vendor Procurement agent.
+
+### Program Management
+- **Overlap risk**: program-level vendor synergies overlap with procurement actions.
+- **Boundary**: The Program Management agent flags program-level vendor synergies and consolidation opportunities. The Vendor Procurement agent owns the actual procurement actions, vendor relationships, and contract execution.
+
+## Functional gaps / inconsistencies & alignment needs
+
+- **Approval integration**: ensure the centralized approval workflow agent is invoked when `use_external_approval_agent` is enabled, rather than falling back to local auto-approval.
+- **Budget validation**: confirm financial agent endpoint or local budget data is configured for budget availability checks.
+- **Compliance screening**: document the expected API contract for third-party risk/sanctions sources and mock response behavior for testing.
+- **UI alignment**: vendor management UI should surface compliance status, contract lifecycle, performance scorecards, and procurement request classification.
+- **Connector alignment**: ensure ERP/AP connectors (SAP Ariba, Coupa, Oracle Procurement, Dynamics 365) are configured with credentials and endpoint mappings.
+
+## Checkpoint: vendor procurement lifecycle + dependency map entry
+
+### Vendor procurement lifecycle
+1. **Request**: classify procurement request and validate budget.
+2. **Source**: search vendors, generate RFP, collect proposals.
+3. **Evaluate**: score proposals, screen compliance, rank vendors.
+4. **Contract**: create contract, extract clauses, track milestones.
+5. **Execute**: process invoices, initiate payments, track delivery.
+6. **Monitor**: track performance, monitor SLAs, flag risks.
+
+### Dependency map entry
+- **Upstream**: procurement requests from project teams, budget data from the Financial Management agent.
+- **Core services**: approval workflow, compliance screening APIs, ERP/AP connectors, event bus.
+- **Downstream**: Financial Management agent (invoice/actuals for cost tracking), Program Management agent (vendor synergy signals).
+
 ## What's inside
 
 - [src](/agents/delivery-management/vendor-procurement-agent/src): Implementation source for this component.

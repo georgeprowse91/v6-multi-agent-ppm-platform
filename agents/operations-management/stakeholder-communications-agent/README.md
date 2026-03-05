@@ -6,25 +6,15 @@ Define the responsibilities, workflows, and integration points for the Stakehold
 
 ## Intended scope
 
-The Stakeholder Communications agent owns stakeholder communication operations, including:
+### Responsibilities
+- Maintain the stakeholder register and engagement profiles.
+- Classify stakeholders (influence/interest) and recommend engagement strategies.
+- Build communication plans tied to portfolio/project updates.
+- Generate, edit, schedule, and send outbound messages (email/Teams/Slack/SMS/push/portal).
+- Collect feedback and sentiment, track engagement, and produce comms reports.
+- Coordinate events/meetings and publish comms events to workflow/analytics systems.
 
-- Maintaining the stakeholder register and engagement profiles.
-- Classifying stakeholders (influence/interest) and recommending engagement strategies.
-- Building communication plans tied to portfolio/project updates.
-- Generating, editing, scheduling, and sending outbound messages (email/Teams/Slack/SMS/push/portal).
-- Collecting feedback and sentiment, tracking engagement, and producing comms reports.
-- Coordinating events/meetings and publishing comms events to workflow/analytics systems.
-
-Out of scope:
-
-- Approving outbound communications (handled by the Approval Workflow agent).
-- Authoring/curating official knowledge artifacts (handled by the Knowledge Management agent).
-- Portfolio governance decisions or delivery lifecycle approvals (handled by other agents).
-
-## Inputs and outputs
-
-### Primary inputs (by action)
-
+### Inputs
 - `register_stakeholder`: `stakeholder` payload with name, email, role, organization, preferences.
 - `classify_stakeholder`: `stakeholder_id`.
 - `create_communication_plan`: `plan` payload with project, stakeholders, schedule, channel.
@@ -38,62 +28,46 @@ Out of scope:
 - `get_stakeholder_dashboard` / `generate_communication_report`: project/filters.
 
 ### Outputs
-
 - Stakeholder records, classifications, engagement strategies, and preferences.
 - Communication plans, message drafts, delivery schedules, and send results.
 - Feedback/sentiment results, engagement metrics, and reporting summaries.
 - Workflow triggers, service bus events, and communication history entries.
 
-## Decision responsibilities
-
-The Stakeholder Communications agent is responsible for:
-
+### Decision responsibilities
 - Determining stakeholder classifications and engagement strategies.
 - Selecting delivery channels based on preferences, consent, and channel availability.
 - Scheduling batches/digests and optimizing send times.
 - Generating and personalizing message content.
 - Triggering workflow automation and publishing comms events/metrics.
 
-Approval decisions and policy enforcement (beyond consent) remain with the Approval Workflow agent.
+### Must / must-not behaviors
+- **Must** enforce consent/opt-out rules before sending communications.
+- **Must** store communication history and emit comms events for downstream analytics.
+- **Must** respect delivery modes (immediate, scheduled, digest) and batching controls.
+- **Must** provide traceable outputs for stakeholder updates and message actions.
+- **Must not** send outbound communications requiring approval before the Approval Workflow agent approval is granted.
+- **Must not** modify or overwrite authoritative knowledge documents owned by the Knowledge Management agent.
+- **Must not** exfiltrate or log secrets; use configured secret providers only.
 
-## Must / must-not behaviors
-
-Must:
-
-- Enforce consent/opt-out rules before sending communications.
-- Store communication history and emit comms events for downstream analytics.
-- Respect delivery modes (immediate, scheduled, digest) and batching controls.
-- Provide traceable outputs for stakeholder updates and message actions.
-
-Must not:
-
-- Send outbound communications requiring approval before the Approval Workflow agent approval is granted.
-- Modify or overwrite authoritative knowledge documents owned by the Knowledge Management agent.
-- Exfiltrate or log secrets; use configured secret providers only.
-
-## Overlap and handoff boundaries (Agents 19 & 03)
+## Overlap & handoff boundaries
 
 ### Approval Workflow
+- **Overlap risk**: outbound communications that require approval or escalation.
+- **Boundary**: The Stakeholder Communications agent submits message drafts + metadata to the Approval Workflow agent for approval when policy or content flags require it. The Stakeholder Communications agent resumes delivery only after approval status is returned. The Approval Workflow agent owns approval decisions, audit trails, and approval notifications. The Stakeholder Communications agent owns message preparation, delivery execution, and delivery telemetry.
 
-**Overlap risk:** outbound communications that require approval or escalation.  
-**Handoff:** the Stakeholder Communications agent submits message drafts + metadata to the Approval Workflow agent for approval when policy or content flags require it. the Stakeholder Communications agent resumes delivery only after approval status is returned.  
-**Boundary:** the Approval Workflow agent owns approval decisions, audit trails, and approval notifications. the Stakeholder Communications agent owns message preparation, delivery execution, and delivery telemetry.
+### Knowledge Management
+- **Overlap risk**: content summaries or reports that could become knowledge artifacts.
+- **Boundary**: The Stakeholder Communications agent can request approved knowledge snippets or finalized documents from the Knowledge Management agent to use in communications; the Stakeholder Communications agent can submit post-communication summaries for capture. The Knowledge Management agent manages canonical documents, versioning, and distribution repositories; the Stakeholder Communications agent only references or links those artifacts in outbound messages.
 
-### Knowledge Document Management
+## Functional gaps / inconsistencies & alignment needs
 
-**Overlap risk:** content summaries or reports that could become knowledge artifacts.  
-**Handoff:** the Stakeholder Communications agent can request approved knowledge snippets or finalized documents from the Knowledge Management agent to use in communications; the Stakeholder Communications agent can submit post-communication summaries for capture.  
-**Boundary:** the Knowledge Management agent manages canonical documents, versioning, and distribution repositories; the Stakeholder Communications agent only references or links those artifacts in outbound messages.
+- **Approval enforcement**: current implementation flags `review_required` but does not block send; align with the Approval Workflow agent by adding a required approval state gate.
+- **CRM alignment**: README lists Salesforce-specific variables while implementation supports generic CRM endpoints; document precedence and mapping.
+- **Connector alignment**: notification/calendar integrations are used in code but not documented in required env vars; add connector configuration or defaults.
+- **Templates/UI alignment**: communication templates and digest batching lack UI/portal configuration detail; define where templates live and how they are reviewed.
+- **Telemetry alignment**: define how delivery events map to analytics (the Analytics Insights agent) and knowledge capture (the Knowledge Management agent).
 
-## Functional gaps, inconsistencies, and alignment needs
-
-- **Approval enforcement:** current implementation flags `review_required` but does not block send; align with the Approval Workflow agent by adding a required approval state gate.
-- **CRM alignment:** README lists Salesforce-specific variables while implementation supports generic CRM endpoints; document precedence and mapping.
-- **Connector alignment:** Notification/Calendar integrations are used in code but not documented in required env vars; add connector configuration or defaults.
-- **Templates/UI alignment:** communication templates and digest batching lack UI/portal configuration detail; define where templates live and how they are reviewed.
-- **Telemetry alignment:** define how delivery events map to analytics (The Analytics Insights agent) and knowledge capture (The Knowledge Management agent).
-
-## Communications trigger matrix (execution-ready)
+## Checkpoint: communications trigger matrix
 
 | Trigger | Inputs | Action | Approval required | Output/records | Handoff |
 | --- | --- | --- | --- | --- | --- |
@@ -181,12 +155,6 @@ CRM sync (Salesforce connector):
 - Optional: `SALESFORCE_CONTACT_ENDPOINT`, `SALESFORCE_CONTACT_QUERY`
 
 ### Local run + deploy
-
-Local development:
-
-```bash
-python -m tools.agent_runner run-agent --name stakeholder-communications-agent --dry-run
-```
 
 Docker build and run:
 

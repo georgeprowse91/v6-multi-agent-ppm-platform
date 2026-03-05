@@ -6,26 +6,16 @@ Define the responsibilities, workflows, and integration points for the Continuou
 
 ## Intended scope
 
-The Continuous Improvement agent owns continuous improvement and process mining for operational workflows. It ingests
-execution event logs, discovers as-is process models, checks conformance against designed
-processes, detects bottlenecks/deviations, and turns findings into improvement initiatives with
-benefit tracking. It is not a general analytics warehouse or orchestration engine; it is the
-process-insight-to-improvement loop.
-
-### Primary responsibilities
-
+### Responsibilities
 - Ingest and validate event logs for process instances.
 - Discover process models and performance metrics from execution traces.
 - Detect bottlenecks, deviations, and root causes.
 - Generate improvement recommendations and backlog items.
 - Track benefit realization and benchmark performance.
-- Share best practices with the knowledge agent and notify the Approval Workflow agent of improvement
-  recommendations.
-
-## Inputs and outputs
+- Share best practices with the Knowledge Management agent and notify the Approval Workflow agent of improvement recommendations.
+- Consume periodic analytics from the Analytics Insights agent to operationalize continuous improvement.
 
 ### Inputs
-
 - `events` payloads for `ingest_event_log` (event logs with case/process identifiers).
 - `process_id` and optional `algorithm` for process discovery.
 - `process_id` plus `expected_model` or `process_model_id` for conformance.
@@ -36,7 +26,6 @@ process-insight-to-improvement loop.
 - `analytics_report` payload for `ingest_analytics_report` containing periodic trends, anomalies, and recommendations from the Analytics Insights agent.
 
 ### Outputs
-
 - Process models (activities, transitions, BPMN/Petri net representations).
 - Conformance reports with compliance rates and deviations.
 - Bottleneck and deviation analyses with recommendations.
@@ -46,76 +35,43 @@ process-insight-to-improvement loop.
 - Analytics-driven improvement backlog items with owners and target dates.
 - Persisted improvement completion history (`date`, `owner`, `outcome`) retrievable by tenant.
 
-## Decision responsibilities
-
-The Continuous Improvement agent is responsible for:
-
+### Decision responsibilities
 - Selecting mining algorithms for discovery (defaulting to heuristic miner).
 - Determining bottleneck thresholds and deviation thresholds for alerts.
 - Prioritizing improvements based on benefits and feasibility scoring.
 - Emitting workflow improvement recommendations to the Approval Workflow agent.
 
-The Continuous Improvement agent is not responsible for:
+### Must / must-not behaviors
+- **Must** validate action inputs before processing.
+- **Must** persist event logs, models, conformance reports, and recommendations by tenant.
+- **Must** emit improvement recommendation events to the Approval Workflow agent when improvements are created.
+- **Must** publish process discovery and benefit realization events to the event bus.
+- **Must not** trigger workflow execution directly outside of the Approval Workflow agent.
+- **Must not** overwrite curated analytics KPIs owned by analytics agents.
+- **Must not** generate recommendations without traceable evidence from event logs/metrics.
 
-- Approving or executing workflow changes (the Approval Workflow agent handles workflow execution).
-- Curating enterprise-wide analytics models/warehouses (Agents 22/25).
-- Authoring enterprise policy or compliance rules (handled by governance agents).
+## Overlap & handoff boundaries
 
-## Must / must-not behaviors
+### Analytics Insights
+- **Overlap risk**: both the Continuous Improvement agent and the Analytics Insights agent compute KPIs and performance metrics.
+- **Boundary**: The Continuous Improvement agent computes process-level KPIs for improvement decisions; the Analytics Insights agent consolidates portfolio-wide KPIs, predictive analytics, and dashboarding. The Continuous Improvement agent publishes process insights and benefit realization events; the Analytics Insights agent consumes these events for enterprise reporting and forecasting.
 
-### Must
+### Approval Workflow
+- **Overlap risk**: both agents operate on process models.
+- **Boundary**: The Continuous Improvement agent discovers as-is models and recommends improvements; the Approval Workflow agent owns the execution of to-be workflows and orchestration definitions. The Continuous Improvement agent emits `workflow.improvement.recommendation` events to the Approval Workflow agent; the Approval Workflow agent updates workflows, approvals, and execution state.
 
-- Validate action inputs before processing.
-- Persist event logs, models, conformance reports, and recommendations by tenant.
-- Emit improvement recommendation events to the Approval Workflow agent when improvements are created.
-- Publish process discovery and benefit realization events to the event bus.
-
-### Must not
-
-- Trigger workflow execution directly outside of the Approval Workflow agent.
-- Overwrite curated analytics KPIs owned by analytics agents.
-- Generate recommendations without traceable evidence from event logs/metrics.
-
-## Overlap and handoff boundaries
-
-### Analytics agent (The Analytics Insights agent)
-
-- **Overlap**: Both the Continuous Improvement agent and the Analytics Insights agent compute KPIs and performance metrics.
-- **Boundary**: the Continuous Improvement agent computes process-level KPIs for improvement decisions; the Analytics Insights agent
-  consolidate portfolio-wide KPIs, predictive analytics, and dashboarding.
-- **Handoff**: the Continuous Improvement agent publishes process insights and benefit realization events; analytics
-  agent consumes these events for enterprise reporting and forecasting.
-
-### Approval Workflow agent
-
-- **Overlap**: Both agents operate on process models.
-- **Boundary**: the Continuous Improvement agent discovers as-is models and recommends improvements; the Approval Workflow agent owns the
-  execution of to-be workflows and orchestration definitions.
-- **Handoff**: the Continuous Improvement agent emits `workflow.improvement.recommendation` events to the Approval Workflow agent; the Approval Workflow agent
-  updates workflows, approvals, and execution state.
-
-## Functional gaps and required alignment
-
-### Gaps / inconsistencies
+## Functional gaps / inconsistencies & alignment needs
 
 - Improvement backlog persistence is currently in-memory while other artifacts are tenant-stored.
-- Deviation and bottleneck thresholds are static defaults; no configuration guardrails are
-  documented for tenant overrides.
+- Deviation and bottleneck thresholds are static defaults; no configuration guardrails are documented for tenant overrides.
 - KPI rollups overlap analytics agent scopes without explicit governance rules.
+- **Prompt alignment**: ensure agent prompt explicitly distinguishes process-improvement KPIs vs enterprise analytics KPIs to avoid overlap with analytics agents.
+- **Tooling alignment**: align event schemas with analytics ingestion (`events.ingested`, `process.discovered`, `benefits.realized`) to avoid schema drift.
+- **Template alignment**: provide a standard improvement initiative template shared with the Approval Workflow agent to translate recommendations into workflow updates.
+- **Connector alignment**: ensure task-sync integration is configured for improvement backlog handoff.
+- **UI alignment**: expose improvement backlog, conformance reports, and benefit tracking dashboards separate from global analytics dashboards.
 
-### Required alignment (prompt/tool/template/connector/UI)
-
-- **Prompt**: Ensure agent prompt explicitly distinguishes process-improvement KPIs vs enterprise
-  analytics KPIs to avoid overlap with Agents 22/25.
-- **Tooling**: Align event schemas with analytics ingestion (`events.ingested`,
-  `process.discovered`, `benefits.realized`) to avoid schema drift.
-- **Templates**: Provide a standard improvement initiative template shared with the Approval Workflow agent to
-  translate recommendations into workflow updates.
-- **Connectors**: Ensure task-sync integration is configured for improvement backlog handoff.
-- **UI**: Expose improvement backlog, conformance reports, and benefit tracking dashboards
-  separate from global analytics dashboards.
-
-## Improvement feedback loop (checkpoint)
+## Checkpoint: improvement feedback loop
 
 1. **Ingest**: Receive execution events via `ingest_event_log` and persist by tenant.
 2. **Discover**: Build as-is process models and performance metrics.
@@ -126,34 +82,6 @@ The Continuous Improvement agent is not responsible for:
 7. **Implement**: The Approval Workflow agent executes approved changes.
 8. **Track**: Measure realized benefits, update KPIs, and publish benefit events.
 9. **Benchmark**: Compare against internal/external benchmarks for continuous calibration.
-
-## Closed-loop analytics integration (The Analytics Insights agent → the Continuous Improvement agent)
-
-The Continuous Improvement agent now consumes analytics insights to operationalize continuous improvement:
-
-1. Receive periodic analytics via `ingest_analytics_report`.
-2. Convert recommendations into backlog items, categorize them, and prioritize by impact/feasibility.
-3. Assign default or rule-based owners and set target dates.
-4. Publish the generated backlog to knowledge management (`knowledge_agent`) or event topic fallback (`knowledge.improvement_backlog.published`).
-5. Notify stakeholders on additions/completions through notification integration (`notification_service`) or event fallback (`notification.improvement`).
-6. Mark actions complete with `complete_improvement`.
-7. Persist completed actions into `improvement_history_store` and retrieve with `get_improvement_history`.
-
-### Suggested payload contract for `ingest_analytics_report`
-
-```json
-{
-  "action": "ingest_analytics_report",
-  "tenant_id": "tenant-a",
-  "analytics_report": {
-    "report_id": "RPT-2026-01",
-    "period": "monthly",
-    "recommendations": ["..."],
-    "anomalies": [{"metric": "cycle_time_days", "value": 25}],
-    "trends": [{"pattern": "recurring_scope_creep", "count": 4}]
-  }
-}
-```
 
 ## What's inside
 
@@ -182,6 +110,34 @@ pytest agents/operations-management/continuous-improvement-agent/tests
 ## Configuration
 
 Agent runtime configuration is centralized in `.env` (see `ops/config/.env.example`) and shared agent settings such as `MAX_AGENT_CONCURRENCY` and `AGENT_TIMEOUT_SECONDS`. Check the agent implementation under `src/` for any additional required environment variables.
+
+### Closed-loop analytics integration (Analytics Insights → Continuous Improvement)
+
+The Continuous Improvement agent consumes analytics insights to operationalize continuous improvement:
+
+1. Receive periodic analytics via `ingest_analytics_report`.
+2. Convert recommendations into backlog items, categorize them, and prioritize by impact/feasibility.
+3. Assign default or rule-based owners and set target dates.
+4. Publish the generated backlog to knowledge management (`knowledge_agent`) or event topic fallback (`knowledge.improvement_backlog.published`).
+5. Notify stakeholders on additions/completions through notification integration (`notification_service`) or event fallback (`notification.improvement`).
+6. Mark actions complete with `complete_improvement`.
+7. Persist completed actions into `improvement_history_store` and retrieve with `get_improvement_history`.
+
+#### Suggested payload contract for `ingest_analytics_report`
+
+```json
+{
+  "action": "ingest_analytics_report",
+  "tenant_id": "tenant-a",
+  "analytics_report": {
+    "report_id": "RPT-2026-01",
+    "period": "monthly",
+    "recommendations": ["..."],
+    "anomalies": [{"metric": "cycle_time_days", "value": 25}],
+    "trends": [{"pattern": "recurring_scope_creep", "count": 4}]
+  }
+}
+```
 
 ## Troubleshooting
 

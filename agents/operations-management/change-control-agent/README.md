@@ -4,6 +4,63 @@
 
 Define the responsibilities, workflows, and integration points for the Change Control Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
+## Intended scope
+
+### Responsibilities
+- Change request intake, classification, and risk/impact assessment.
+- Approval workflow coordination and auditing.
+- CMDB/CI registration, baselines, and dependency visualization.
+- Change implementation gating (staging/automated tests) and rollback triggers.
+- Publishing change events/metrics to the event bus and notifying stakeholders.
+
+### Inputs
+- `action` (required): one of the supported actions in `process` (e.g., `submit_change_request`, `assess_impact`, `approve_change`, `implement_change`, `cicd_webhook`).
+- `change` (for submit/predict): title, description, requester, priority, repo references (`repo_provider`, `repo_slug`, `pull_request_id`, `commit_id`), IaC paths (`iac_files`, `iac_repo_path`), optional `ci_ids`, `risk_category`, `knowledge_query`.
+- `approval`, `review`, `implementation`, `updates`, and `filters` payloads for respective actions.
+- `context` (optional): `tenant_id`, `correlation_id`, `user_id` (actor) for traceability.
+
+### Outputs
+- Structured JSON payloads that include `change_id` and status fields for each action.
+- Persisted change records, audit entries, and CMDB updates via storage services.
+- Published events for lifecycle steps (created, approved/rejected, implementation started, rolled back, metrics).
+
+### Decision responsibilities
+- **Must decide**: change classification, approval routing, approval requirement, risk/impact recommendations, and whether to proceed/roll back based on staging/tests.
+- **Must not decide**: final deployment scheduling mechanics (delegated to the Release Deployment agent), workflow orchestration definition/templating (delegated to the Approval Workflow agent), or approval policy governance beyond configured thresholds.
+
+### Must / must-not behaviors
+- **Must** validate `action` and required fields for `submit_change_request`.
+- **Must** persist change records and audit entries on each state transition.
+- **Must** enrich change context with repo/IaC/knowledge data when provided.
+- **Must** publish events for key lifecycle transitions.
+- **Must not** deploy releases directly or manage runtime deployment plans.
+- **Must not** modify workflow templates or orchestration definitions owned by the Approval Workflow agent.
+- **Must not** bypass approval requirements when thresholds dictate approval.
+
+## Overlap & handoff boundaries
+
+### Release Deployment
+- **Overlap risk**: change implementation and deployment coordination are adjacent to release orchestration.
+- **Boundary**: The Change Control agent **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`). The Release Deployment agent **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.
+
+### Approval Workflow
+- **Overlap risk**: both handle workflow orchestration; the Change Control agent builds a change workflow instance.
+- **Boundary**: The Change Control agent **requests** workflow creation and manages change state; the Approval Workflow agent **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence.
+
+## Functional gaps / inconsistencies & alignment needs
+
+- **Workflow orchestration alignment**: the Change Control agent uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while the Approval Workflow agent defines workflow specs/templates. Align on a shared workflow schema and ensure the Change Control agent payloads conform to the templates/versions maintained by the Approval Workflow agent.
+- **Deployment status contract**: the Change Control agent expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with the Release Deployment agent, including intermediate states (queued, in-progress, rolled-back).
+- **Approval policy governance**: the Change Control agent uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.
+- **Event taxonomy**: the Change Control agent emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by other agents.
+- **Connector/UI alignment**: ensure UI fields for change intake map to the expected input keys (`repo_provider`, `repo_slug`, IaC paths) and that connectors (ITSM, repo APIs, Service Bus) are configured consistently across environments.
+
+## Checkpoint: change control handoffs
+
+- The Change Control agent submits change workflows (creates/updates change state).
+- The Approval Workflow agent runs and governs workflow definitions/execution.
+- The Release Deployment agent executes deployment and reports status.
+
 ## What's inside
 
 - [src](/agents/operations-management/change-control-agent/src): Implementation source for this component.
@@ -69,7 +126,7 @@ Use the agent config to point at workflow orchestration and modeling options:
 }
 ```
 
-## Change workflow example
+### Change workflow example
 
 1. **Submit change request** with repository references and IaC file paths.
 2. **Agent enriches context** with repo metadata, IaC resource diff parsing, and KB articles.
@@ -95,80 +152,6 @@ Example payload:
   }
 }
 ```
-
-## Scope validation
-
-### Intended scope (what the Change Control agent owns)
-
-- Change request intake, classification, and risk/impact assessment.
-- Approval workflow coordination and auditing.
-- CMDB/CI registration, baselines, and dependency visualization.
-- Change implementation gating (staging/automated tests) and rollback triggers.
-- Publishing change events/metrics to the event bus and notifying stakeholders.
-
-### Inputs (expected)
-
-- `action` (required): One of the supported actions in `process` (e.g., `submit_change_request`, `assess_impact`, `approve_change`, `implement_change`, `cicd_webhook`).
-- `change` (for submit/predict): Title, description, requester, priority, repo references (`repo_provider`, `repo_slug`, `pull_request_id`, `commit_id`), IaC paths (`iac_files`, `iac_repo_path`), optional `ci_ids`, `risk_category`, `knowledge_query`.
-- `approval`, `review`, `implementation`, `updates`, and `filters` payloads for respective actions.
-- `context` (optional): `tenant_id`, `correlation_id`, `user_id` (actor) for traceability.
-
-### Outputs (guaranteed)
-
-- Structured JSON payloads that include `change_id` and status fields for each action.
-- Persisted change records, audit entries, and CMDB updates via storage services.
-- Published events for lifecycle steps (created, approved/rejected, implementation started, rolled back, metrics).
-
-### Decision responsibilities
-
-- **Must decide**: change classification, approval routing, approval requirement, risk/impact recommendations, and whether to proceed/roll back based on staging/tests.
-- **Must not decide**: final deployment scheduling mechanics (delegated to the Release Deployment agent), workflow orchestration definition/templating (delegated to the Approval Workflow agent), or approval policy governance beyond configured thresholds.
-
-### Must / must-not behaviors
-
-**Must**
-- Validate `action` and required fields for `submit_change_request`.
-- Persist change records and audit entries on each state transition.
-- Enrich change context with repo/IaC/knowledge data when provided.
-- Publish events for key lifecycle transitions.
-
-**Must not**
-- Deploy releases directly or manage runtime deployment plans.
-- Modify workflow templates or orchestration definitions owned by the Approval Workflow agent.
-- Bypass approval requirements when thresholds dictate approval.
-
-## Overlap analysis and handoff boundaries
-
-### Release Deployment
-
-**Potential overlap**
-- Change implementation and deployment coordination are adjacent to release orchestration.
-
-**Handoff boundary**
-- the Change Control agent **initiates** deployment coordination via `release_deployment_endpoint` and only tracks deployment status updates (e.g., `cicd_webhook`).
-- the Release Deployment agent **executes** release/deployment orchestration, scheduling, and rollout mechanics, then reports status back.
-
-### Approval Workflow agent
-
-**Potential overlap**
-- Both handle workflow orchestration; the Change Control agent builds a change workflow instance.
-
-**Handoff boundary**
-- the Change Control agent **requests** workflow creation and manages change state; the Approval Workflow agent **owns** workflow definitions, step orchestration, retries/compensation, and workflow persistence.
-
-## Gaps, inconsistencies, and alignment requirements
-
-- **Workflow orchestration alignment**: the Change Control agent uses `workflow_orchestrator` config (Durable Functions or Logic Apps), while the Approval Workflow agent defines workflow specs/templates. Align on a shared workflow schema and ensure the Change Control agent payloads conform to the templates/versions maintained by the Approval Workflow agent.
-- **Deployment status contract**: the Change Control agent expects `deployment_status` values (`scheduled`, `succeeded`, `failed`). Formalize a shared status enum with the Release Deployment agent, including intermediate states (queued, in-progress, rolled-back).
-- **Approval policy governance**: the Change Control agent uses `approval_priority_thresholds` and `approval_change_types`. Document org-wide policy ownership and how updates propagate to avoid bypassing CAB requirements.
-- **Event taxonomy**: the Change Control agent emits `change.*` and `stakeholder.comms.*` events. Verify event names/fields match the platform-wide event schema used by Agents 18 and 24.
-- **Connector/UI alignment**: Ensure UI fields for change intake map to the expected input keys (`repo_provider`, `repo_slug`, IaC paths) and that connectors (ITSM, repo APIs, Service Bus) are configured consistently across environments.
-
-### Checkpoint: change control handoffs
-
-- the Change Control agent submits change workflows (creates/updates change state).
-- the Approval Workflow agent runs and governs workflow definitions/execution.
-- the Release Deployment agent executes deployment and reports status.
 
 ## Troubleshooting
 

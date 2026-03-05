@@ -4,13 +4,13 @@
 
 Define the responsibilities, workflows, and integration points for the Risk Management Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
-## Scope, intent, and decision rights
+## Intended scope
 
-### Intended scope
-- Owns the end-to-end risk/issue lifecycle: identification, assessment, scoring, prioritization, mitigation planning, and ongoing monitoring across projects, programs, and portfolios.
-- Maintains a central risk register with scoring, triggers, mitigation plans, and event history.
-- Produces quantitative outputs (Monte Carlo, sensitivity analysis) and qualitative guidance (mitigation strategies).
-- Publishes risk events for downstream agents and dashboards.
+### Responsibilities
+- Own the end-to-end risk/issue lifecycle: identification, assessment, scoring, prioritization, mitigation planning, and ongoing monitoring across projects, programs, and portfolios.
+- Maintain a central risk register with scoring, triggers, mitigation plans, and event history.
+- Produce quantitative outputs (Monte Carlo, sensitivity analysis) and qualitative guidance (mitigation strategies).
+- Publish risk events for downstream agents and dashboards.
 
 ### Inputs
 - Project/portfolio context: project_id, portfolio_id, owners, classifications.
@@ -25,6 +25,8 @@ Define the responsibilities, workflows, and integration points for the Risk Mana
 - Risk datasets stored in data lake/synapse and optional GRC integration objects.
 - Event bus messages (e.g., `risk.triggered`, `risk.created`, `risk.updated`) to drive escalation and governance.
 - Reports: summary, detailed, mitigation status.
+- Risk prioritization and matrix outputs with `risk_level` and optional `task_id`/`project_id` fields.
+- Dashboard responses with `risk_data` payload for schedule and resource agents.
 
 ### Decision responsibilities
 - Determine risk classification, scoring, and priority ordering.
@@ -33,33 +35,31 @@ Define the responsibilities, workflows, and integration points for the Risk Mana
 - Escalate high-severity risks to governance and compliance agents and flag owners.
 
 ### Must / must-not behaviors
-- Must validate risk records against schema and data-quality rules before publishing.
-- Must capture source/provenance for extracted risks (connector, doc, model).
-- Must emit event updates when risk status, scoring, or triggers change materially.
-- Must not change project scope, schedule baselines, or financial forecasts directly (handoff to Agents 09/10/12).
-- Must not triage or close defects directly (handoff to the Quality Management agent).
-- Must not approve compliance exceptions (handoff to the Compliance Governance agent).
+- **Must** validate risk records against schema and data-quality rules before publishing.
+- **Must** capture source/provenance for extracted risks (connector, doc, model).
+- **Must** emit event updates when risk status, scoring, or triggers change materially.
+- **Must not** change project scope, schedule baselines, or financial forecasts directly (handoff to delivery agents).
+- **Must not** triage or close defects directly (handoff to the Quality Management agent).
+- **Must not** approve compliance exceptions (handoff to the Compliance Governance agent).
 
-## Overlap and handoff boundaries
+## Overlap & handoff boundaries
 
 ### Quality Management
-- Overlap: quality defects, test failures, and quality KPIs are risk signals.
-- Handoff boundary: the Quality Management agent owns defect triage and quality remediation. the Risk Management agent only interprets those signals to update risk scores, create risk entries, and trigger escalation when thresholds are exceeded.
-- Required interface: structured quality signals (defect rate, severity, trend) and QA milestone outcomes.
+- **Overlap risk**: quality defects, test failures, and quality KPIs are risk signals.
+- **Boundary**: The Quality Management agent owns defect triage and quality remediation. The Risk Management agent only interprets those signals to update risk scores, create risk entries, and trigger escalation when thresholds are exceeded. Required interface: structured quality signals (defect rate, severity, trend) and QA milestone outcomes.
 
 ### Lifecycle Governance
-- Overlap: project health and governance escalations depend on risk status.
-- Handoff boundary: the Lifecycle Governance agent owns phase-gate decisions and portfolio health reporting. the Risk Management agent supplies risk status, trigger events, and mitigation readiness for inclusion in governance scorecards.
-- Required interface: governance receives `risk.triggered`/`risk.updated` events and risk summaries per project/portfolio.
+- **Overlap risk**: project health and governance escalations depend on risk status.
+- **Boundary**: The Lifecycle Governance agent owns phase-gate decisions and portfolio health reporting. The Risk Management agent supplies risk status, trigger events, and mitigation readiness for inclusion in governance scorecards. Required interface: governance receives `risk.triggered`/`risk.updated` events and risk summaries per project/portfolio.
 
-## Gaps, inconsistencies, and alignment needs
+## Functional gaps / inconsistencies & alignment needs
 
-- Escalation taxonomy: ensure event names and severity labels are consistent with the governance event catalog so the Lifecycle Governance agent can consume them without translation.
-- Issue vs. risk distinction: clarify in UI/templates when an item is a realized issue versus a potential risk; current implementation emphasizes risks and may need explicit “issue” status mapping.
-- Connector alignment: PM connectors use heterogeneous fields (priority/severity/labels). Normalize into a shared risk signal schema for UI and reporting consistency.
-- Mitigation ownership: mitigation plans are stored but require explicit ownership/approval workflow; align with governance templates for accountability and follow-through.
+- **Escalation taxonomy**: ensure event names and severity labels are consistent with the governance event catalog so the Lifecycle Governance agent can consume them without translation.
+- **Issue vs. risk distinction**: clarify in UI/templates when an item is a realized issue versus a potential risk; current implementation emphasizes risks and may need explicit "issue" status mapping.
+- **Connector alignment**: PM connectors use heterogeneous fields (priority/severity/labels). Normalize into a shared risk signal schema for UI and reporting consistency.
+- **Mitigation ownership**: mitigation plans are stored but require explicit ownership/approval workflow; align with governance templates for accountability and follow-through.
 
-## Risk/issue escalation map (checkpoint)
+## Checkpoint: risk/issue escalation map
 
 | Trigger type | Threshold signal | Risk action | Escalation event | Governance handoff |
 | --- | --- | --- | --- | --- |
@@ -115,7 +115,3 @@ The risk management agent can connect to Azure services and project management p
 - `run-agent` fails with missing entrypoint: ensure a Python module exists under `src/`.
 - Runtime errors about missing secrets: populate the required env vars in `.env`.
 - Docker execution fails: verify Docker is running and the agent has a `Dockerfile`.
-
-## Risk data outputs for downstream planning
-- Risk prioritization and matrix outputs now include `risk_level` and optional `task_id`/`project_id` fields.
-- Dashboard responses include a `risk_data` payload for schedule and resource agents.

@@ -4,17 +4,15 @@
 
 Define the responsibilities, workflows, and integration points for the Lifecycle Governance Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
-## Scope & Responsibilities
+## Intended scope
 
-- Owns project lifecycle state, phase transitions, and governance gate enforcement.
-- Monitors project health, publishes health events, and produces health dashboards/reports.
-- Recommends and adapts delivery methodologies; maintains gate criteria and methodology maps.
-- Records audit data for gate evaluations, overrides, and summaries.
+### Responsibilities
+- Own project lifecycle state, phase transitions, and governance gate enforcement.
+- Monitor project health, publish health events, and produce health dashboards/reports.
+- Recommend and adapt delivery methodologies; maintain gate criteria and methodology maps.
+- Record audit data for gate evaluations, overrides, and summaries.
 
-## Inputs & Outputs
-
-### Accepted actions (inputs)
-
+### Inputs
 - `initiate_project` (requires `project_data.project_id`, `name`, `methodology`).
 - `transition_phase` (requires `project_id`, `target_phase`, plus orchestration metadata).
 - `evaluate_gate`, `override_gate`, `get_gate_history`.
@@ -22,56 +20,44 @@ Define the responsibilities, workflows, and integration points for the Lifecycle
 - `recommend_methodology`, `adjust_methodology`, `update_methodology_config`.
 - `get_project_status`, `get_readiness_scores`, `train_readiness_model`, `score_readiness`.
 
-### Primary outputs
-
+### Outputs
 - Lifecycle records (`current_phase`, `methodology_map`, `gates_passed`, readiness scores).
 - Gate evaluation results (criteria status, readiness score, summaries, override audit).
 - Health telemetry (composite score, metrics, status, recommendations).
-- Events: `gate.passed`, `gate.failed`, `gate.overridden`, `phase.changed`, `project.transitioned`,
-  `project.health.updated`, `project.health.report.generated`.
+- Events: `gate.passed`, `gate.failed`, `gate.overridden`, `phase.changed`, `project.transitioned`, `project.health.updated`, `project.health.report.generated`.
 
-## Decision Responsibilities
-
+### Decision responsibilities
 - Enforce gate criteria before phase transitions; block transitions when criteria fail.
-- Escalate gate override decisions to the Approval Workflow agent (Approval Workflow) and record approvals.
+- Escalate gate override decisions to the Approval Workflow agent and record approvals.
 - Publish governance/health events for downstream analytics and UI consumption.
 
-## Must / Must-Not Behaviors
+### Must / must-not behaviors
+- **Must** validate action inputs and required identifiers before processing.
+- **Must** persist gate evaluations, health metrics, and lifecycle state updates.
+- **Must** notify external systems and subscribers when gates pass/fail or health changes.
+- **Must not** auto-override failed gates without an explicit approval workflow decision.
+- **Must not** allow phase transitions when gate criteria are unmet (unless override approved).
 
-**Must**
+## Overlap & handoff boundaries
 
-- Validate action inputs and required identifiers before processing.
-- Persist gate evaluations, health metrics, and lifecycle state updates.
-- Notify external systems and subscribers when gates pass/fail or health changes.
+### Approval Workflow
+- **Overlap risk**: gate override requests require approval decisions.
+- **Boundary**: The Lifecycle Governance agent owns gate evaluation but must hand off any override request for approval; the Approval Workflow agent returns approval status and audit ID that the Lifecycle Governance agent records.
 
-**Must-Not**
+### Compliance Governance
+- **Overlap risk**: compliance attestations are gate criteria evidence.
+- **Boundary**: The Lifecycle Governance agent owns lifecycle gating but relies on the Compliance Governance agent to supply regulatory/compliance attestations that become gate criteria evidence (e.g., compliance sign-offs, audit readiness).
 
-- Must not auto-override failed gates without an explicit approval workflow decision.
-- Must not allow phase transitions when gate criteria are unmet (unless override approved).
+## Functional gaps / inconsistencies & alignment needs
 
-## Overlaps & Handoff Boundaries
+- **Compliance monitoring gap**: the Lifecycle Governance agent declares compliance monitoring but currently has no explicit connector to the Compliance Governance agent for compliance evidence; define an event contract or API call.
+- **Gate evidence ingestion**: gate criteria depend on artifacts/approvals stored on the project record; UI/forms must capture these fields and sync them into the lifecycle store.
+- **Prompt/template alignment**: gate summaries and readiness scoring should use standardized checklist templates so that AI summaries and audits are consistent across phases.
+- **Connector alignment**: external sync should map gate results into Planview/Clarity/Jira/Azure DevOps with consistent field names so dashboards reflect governance status.
 
-- **The Approval Workflow agent (Approval Workflow):** the Lifecycle Governance agent owns gate evaluation but must hand off any override
-  request for approval; the Approval Workflow agent returns approval status and audit ID that the Lifecycle Governance agent records.
-- **The Compliance Governance agent (Compliance Regulatory):** the Lifecycle Governance agent owns lifecycle gating but relies on the Compliance Governance agent to
-  supply regulatory/compliance attestations that become gate criteria evidence (e.g., compliance
-  sign-offs, audit readiness).
+## Checkpoint: governance gate definitions (execution-ready defaults)
 
-## Functional Gaps / Alignment Needs
-
-- **Compliance monitoring gap:** the Lifecycle Governance agent declares compliance monitoring but currently has no
-  explicit connector to the Compliance Governance agent for compliance evidence; define an event contract or API call.
-- **Gate evidence ingestion:** Gate criteria depend on artifacts/approvals stored on the project
-  record; UI/forms must capture these fields and sync them into the lifecycle store.
-- **Prompt/template alignment:** Gate summaries and readiness scoring should use standardized
-  checklist templates so that AI summaries and audits are consistent across phases.
-- **Connector alignment:** External sync should map gate results into Planview/Clarity/Jira/Azure
-  DevOps with consistent field names so dashboards reflect governance status.
-
-## Governance Gate Definitions (Execution-Ready Defaults)
-
-Default gates are derived from phase transitions and/or explicit gate requests. Criteria names
-map directly to project artifacts/approvals and are evaluated during gate checks.
+Default gates are derived from phase transitions and/or explicit gate requests. Criteria names map directly to project artifacts/approvals and are evaluated during gate checks.
 
 | Gate / Transition | Criteria (all required) | Evidence source |
 | --- | --- | --- |
@@ -86,8 +72,7 @@ map directly to project artifacts/approvals and are evaluated during gate checks
 | `Sprint 1 → Sprint 2` | `sprint_review_complete`, `sprint_retrospective_complete` | Sprint review/retro artifacts |
 | `Sprint 1 → Release` | `sprint_review_complete`, `sprint_retrospective_complete`, `release_criteria_met` | Sprint review/retro artifacts, release readiness |
 
-Explicit gate requests (e.g., `charter_approved`, `baseline_approved`, `acceptance_complete`,
-`closure_approved`, `release_criteria_met`) map to the same criteria list above.
+Explicit gate requests (e.g., `charter_approved`, `baseline_approved`, `acceptance_complete`, `closure_approved`, `release_criteria_met`) map to the same criteria list above.
 
 ## What's inside
 

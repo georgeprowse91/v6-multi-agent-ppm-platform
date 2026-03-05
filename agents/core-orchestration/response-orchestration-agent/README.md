@@ -4,14 +4,15 @@
 
 Define the responsibilities, workflows, and integration points for the Response Orchestration Agent. This README captures how the agent is expected to behave in the multi-agent orchestration flow.
 
-## Scope and responsibilities
+## Intended scope
 
-The Response Orchestration agent is responsible for executing the multi-agent plan created by the intent router, coordinating parallel/sequential agent execution, and aggregating responses into a single payload for the caller. It owns orchestration-specific behaviors such as retry logic, caching, circuit breaking, and audit event emission. It does **not** decide which intents/agents to run, nor does it enforce approval policies beyond invoking downstream agents that require approvals.
+### Responsibilities
+- Execute the multi-agent plan created by the intent router, coordinating parallel/sequential agent execution.
+- Aggregate responses from multiple downstream agents into a single payload for the caller.
+- Manage retry logic, caching, circuit breaking, and audit event emission for orchestration.
+- Optionally enrich parameters with external research when prompt metadata indicates vendor/compliance needs.
 
 ### Inputs
-
-The Response Orchestration agent accepts an orchestration request with:
-
 - `routing`: ordered routing entries (agent id, optional action, dependencies).
 - `parameters`: shared parameters for downstream agents (including optional `prompt` metadata).
 - `query`: original user query (informational).
@@ -19,15 +20,11 @@ The Response Orchestration agent accepts an orchestration request with:
 - `correlation_id`, `tenant_id`, `prompt_id`, `prompt_description`, `prompt_tags`: optional prompt context when not already embedded in `parameters.prompt`.
 
 ### Outputs
-
-The Response Orchestration agent returns:
-
 - `aggregated_response`: merged text output from successful agent calls.
 - `agent_results`: per-agent status and payloads (success/failure, cached status).
 - `execution_summary`: counts of total/successful/failed agents.
 
-### Decisions owned by the Response Orchestration agent
-
+### Decision responsibilities
 - Execution grouping derived from dependencies (parallel vs sequential).
 - Retry/backoff policy for each agent invocation.
 - Circuit breaker state and cache usage.
@@ -35,43 +32,39 @@ The Response Orchestration agent returns:
 - Optional external research enrichment when prompt metadata indicates vendor/compliance needs.
 
 ### Must / must-not behaviors
+- **Must** honor dependency ordering in routing entries.
+- **Must** preserve correlation/tenant metadata when invoking downstream agents.
+- **Must** emit audit events for invocations, failures, and aggregation.
+- **Must** respect configured timeouts, retries, and concurrency limits.
+- **Must not** re-route or reinterpret intents (owned by the Intent Router agent).
+- **Must not** initiate approval workflows directly (owned by the Approval Workflow agent).
+- **Must not** override downstream agent responses beyond aggregation and lightweight summarization.
 
-Must:
-- Honor dependency ordering in routing entries.
-- Preserve correlation/tenant metadata when invoking downstream agents.
-- Emit audit events for invocations, failures, and aggregation.
-- Respect configured timeouts, retries, and concurrency limits.
+## Overlap & handoff boundaries
 
-Must not:
-- Re-route or reinterpret intents (owned by the Intent Router agent).
-- Initiate approval workflows directly (owned by the Approval Workflow agent).
-- Override downstream agent responses beyond aggregation and lightweight summarization.
+### Intent Router
+- **Overlap risk**: routing vs orchestration boundaries.
+- **Boundary**: The Intent Router agent hands off the routing plan and parameters; the Response Orchestration agent executes exactly what is provided and returns results + summary. The Response Orchestration agent should not choose or reorder intents; if it receives empty or cyclic routing, it must return an error (cycle detection) rather than attempt to infer intent.
 
-## Orchestration flow + dependency map entry
+### Approval Workflow
+- **Overlap risk**: the Response Orchestration agent should not implement approval logic itself.
+- **Boundary**: The Approval Workflow agent owns approval gating and state transitions; the Response Orchestration agent only invokes the approval agent when included in routing. Ensure the routing plan includes the approval agent for guarded actions.
+
+## Functional gaps / inconsistencies & alignment needs
+
+- **Prompt metadata alignment**: ensure prompt templates and UI inputs supply `prompt_id`, `prompt_description`, and `prompt_tags` consistently so external research behavior is deterministic.
+- **Routing contract**: `depends_on` should be validated upstream in the Intent Router agent and/or `config/agents/intent-routing.yaml` to avoid runtime dependency cycles.
+- **Connector alignment**: downstream agents that require approval should expose explicit actions so the routing plan can include the Approval Workflow agent prior to execution.
+- **UI/UX alignment**: surface partial-failure aggregation messaging to users so they understand which agents succeeded vs failed.
+
+## Checkpoint: orchestration flow + dependency map entry
 
 **Flow:** `the Intent Router agent (Intent Router) → the Response Orchestration agent (Response Orchestration) → Downstream Agents → Aggregated Response`
 
 **Dependencies:**
 - Upstream: the Intent Router agent provides `routing` entries and shared parameters.
-- Downstream: Specialized agents execute tasks; the Approval Workflow agent is invoked only if the routing plan includes approval-specific agents/actions.
+- Downstream: specialized agents execute tasks; the Approval Workflow agent is invoked only if the routing plan includes approval-specific agents/actions.
 - Shared services: event bus (publish `agent.requested`, `agent.completed`, `agent.failed`), audit logging, and observability metrics.
-
-**Handoff boundaries:**
-- the Intent Router agent hands off the routing plan and parameters; the Response Orchestration agent executes exactly what is provided and returns results + summary.
-- the Approval Workflow agent owns approval gating and state transitions; the Response Orchestration agent only invokes the approval agent when included in routing.
-
-## Overlap / leakage considerations
-
-- **Routing vs orchestration:** the Response Orchestration agent should not choose or reorder intents; if it receives empty or cyclic routing, it must return an error (cycle detection) rather than attempt to infer intent.
-- **Approval workflows:** the Response Orchestration agent should not implement approval logic itself; ensure the routing plan includes the approval agent for guarded actions.
-- **Prompt enrichment:** the Response Orchestration agent enriches parameters with external research based on prompt metadata; prompt ownership remains with prompt templates and the Intent Router agent configuration.
-
-## Gaps, inconsistencies, and alignment needs
-
-- **Prompt metadata alignment:** Ensure prompt templates and UI inputs supply `prompt_id`, `prompt_description`, and `prompt_tags` consistently so external research behavior is deterministic.
-- **Routing contract:** `depends_on` should be validated upstream in the Intent Router agent and/or `config/agents/intent-routing.yaml` to avoid runtime dependency cycles.
-- **Connector alignment:** Downstream agents that require approval should expose explicit actions so the routing plan can include the Approval Workflow agent prior to execution.
-- **UI/UX alignment:** Surface partial-failure aggregation messaging to users so they understand which agents succeeded vs failed.
 
 ## What's inside
 
