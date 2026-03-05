@@ -1,6 +1,6 @@
 # Data
 
-> This section covers the canonical data layer of the Multi-Agent PPM platform: the entity model that normalises data across all systems, the quality rules that govern ingestion, and the lineage infrastructure that provides end-to-end traceability from external connectors to canonical schemas. Validate internal links with `python ops/scripts/check-links.py`.
+> This section documents the canonical data layer of the Multi-Agent PPM platform: the entity model and schemas that all agents and connectors share, the quality scoring rules applied during sync, and the lineage tracing that provides end-to-end auditability from external systems through to canonical storage.
 
 ## Contents
 
@@ -13,36 +13,25 @@
 
 ## Overview
 
-The platform uses a canonical schema layer to normalise data from multiple systems. All schemas are stored in `data/schemas/` and are referenced by connectors, agents, and services to validate payloads and maintain lineage. The documents in this section describe the entities, quality rules, and lineage mechanisms that underpin agent accuracy and auditability.
+The platform uses a canonical schema layer to normalise data from multiple source systems. All schemas live under `data/schemas/` and are the authoritative definition of every entity. Connectors, agents, and services validate payloads against these schemas before persisting or propagating data.
 
-Related assets:
-
-- Schema files: `data/schemas/`
-- Quality rules: `data/quality/rules.yaml`
-- Lineage artifacts: `data/lineage/`
-- Related architecture docs: [Data Architecture](../architecture/data-architecture.md)
-
-Validate internal links across all docs:
+Internal links across this documentation can be validated with:
 
 ```bash
 python ops/scripts/check-links.py
 ```
 
+If a diagram referenced in these docs cannot be found, verify that the file exists under `docs/architecture/diagrams/`.
+
 ---
 
 ## Data Model
 
-### Purpose
-
-Describe the canonical PPM entities, where their schemas live, and how agents and connectors use them.
-
-### Architecture-level context
-
-The platform uses a canonical schema layer to normalize data from multiple systems. Schemas are stored in `data/schemas/` and referenced by connectors, agents, and services to validate payloads and maintain lineage.
+The canonical data model describes every PPM entity, where its schema lives, and which agent or service owns it.
 
 ### Canonical entities
 
-| Entity | Schema file | Primary owner (agent/service) |
+| Entity | Schema file | Primary owner |
 | --- | --- | --- |
 | Audit event | `data/schemas/audit-event.schema.json` | Audit Log Service |
 | Budget | `data/schemas/budget.schema.json` | Financial Management agent |
@@ -82,66 +71,54 @@ The platform uses a canonical schema layer to normalize data from multiple syste
 }
 ```
 
-### Viewing schema files
-
 List all schema files:
 
 ```bash
 ls data/schemas
 ```
 
-Inspect the project schema:
-
-```bash
-sed -n '1,80p' data/schemas/project.schema.json
-```
-
 ### Propagation rules and conflict handling
 
-Canonical entities propagate updates between connectors, agents, and downstream consumers using explicit rules stored in the data sync service.
+Canonical entities propagate updates between connectors, agents, and downstream consumers using explicit rules stored in the Data Sync Service.
 
-#### Propagation rules
+**Propagation rules**
 
 - **Directional propagation:** Updates flow from a declared source system to a target canonical entity.
 - **Mode-aware application:**
-  - **merge:** Update only fields present in the incoming payload, preserving existing canonical values.
-  - **replace:** Overwrite the canonical payload with the incoming payload.
-  - **enrich:** Append non-null fields without overwriting existing canonical values.
+  - `merge` — update only fields present in the incoming payload, preserving existing canonical values.
+  - `replace` — overwrite the canonical payload with the incoming payload.
+  - `enrich` — append non-null fields without overwriting existing canonical values.
 - **Field-level constraints:** Only mapped target fields are eligible for propagation.
 - **Lineage requirements:** Every propagated update emits lineage metadata with source, target, and transformation steps.
 
-#### Conflict handling
+**Conflict handling strategies**
 
-- **source_of_truth:** Always accept updates from the declared source system.
-- **last_write_wins:** Compare `updated_at` timestamps; apply the newer update and skip stale payloads.
-- **manual_required:** Record conflicts for review when updates collide or policy requires human approval.
-- **Audit trail:** Conflicts are logged with source, target entity, timestamps, and resolution strategy.
+- `source_of_truth` — always accept updates from the declared source system.
+- `last_write_wins` — compare `updated_at` timestamps; apply the newer update and skip stale payloads.
+- `manual_required` — record conflicts for review when updates collide or policy requires human approval.
+- **Audit trail** — conflicts are logged with source, target entity, timestamps, and strategy applied.
 
 ### Implementation status
 
-- **Implemented:** Base schemas in `data/schemas/` and validation in the audit log service.
-- **Implemented:** Schema registry APIs with versioning and promotion workflows in the data service.
+- Base schemas in `data/schemas/` and payload validation in the Audit Log Service are implemented.
+- Schema registry APIs with versioning and promotion workflows in the Data Service are implemented.
+
+**Related:** [Data Architecture](../architecture/data-architecture.md) · [Data Quality](#data-quality) · [Data Lineage](#data-lineage)
 
 ---
 
 ## Data Quality
 
-### Purpose
-
-Define the quality scoring approach for canonical data and provide example rules used during connector sync.
-
-### Architecture-level context
-
-Data quality scoring is executed by the Data Synchronisation agent. Rules are stored in `data/quality/rules.yaml` and applied to incoming data before it is persisted. Scores are captured in lineage artifacts for auditability.
+Data quality scoring is executed by the Data Synchronisation agent. Rules are stored in `data/quality/rules.yaml` and applied to every incoming record before it is persisted. Scores are captured in lineage artifacts for auditability.
 
 ### Quality dimensions
 
-- **Completeness:** Required fields are present.
-- **Validity:** Values match expected formats or ranges.
-- **Consistency:** Values align with canonical enums and references.
-- **Timeliness:** Data freshness meets the sync policy.
+- **Completeness** — required fields are present.
+- **Validity** — values match expected formats or ranges.
+- **Consistency** — values align with canonical enums and references.
+- **Timeliness** — data freshness meets sync policy.
 
-### Example rules
+### Example rule
 
 ```yaml
 - id: project-required-fields
@@ -151,9 +128,7 @@ Data quality scoring is executed by the Data Synchronisation agent. Rules are st
       type: required
 ```
 
-The full rule set is in `data/quality/rules.yaml`.
-
-View the rules file:
+Full rule set: `data/quality/rules.yaml`. View the first 120 lines:
 
 ```bash
 sed -n '1,120p' data/quality/rules.yaml
@@ -167,37 +142,31 @@ ls data/quality/rules.yaml
 
 ### Implementation status
 
-- **Implemented:** Baseline rules and scoring weights.
-- **Implemented:** Automated remediation workflows with API-triggered fixes in the lineage service.
+- Baseline rules and scoring weights are implemented.
+- Automated remediation workflows with API-triggered fixes in the Lineage Service are implemented.
+
+**Related:** [Data Model](#data-model) · [Data Lineage](#data-lineage)
 
 ---
 
 ## Data Lineage
 
-### Purpose
+Lineage provides end-to-end traceability from external systems into canonical schemas. Every connector sync and agent write emits a lineage event that is persisted in the `lineage_events` database table for audit, compliance, and analytics purposes.
 
-Explain how lineage is captured for connector syncs and agent transformations, with concrete examples.
+### Capture approach
 
-### Architecture-level context
-
-Lineage provides end-to-end traceability from external systems into canonical schemas. The connector runtime emits lineage events that are persisted in the `lineage_events` database table for audit, compliance, and analytics.
-
-### Lineage capture approach
-
-- **Trigger:** Every connector sync or agent write.
-- **Payload:** Source system, record IDs, transformations, quality score.
+- **Trigger:** every connector sync or agent write.
+- **Payload:** source system, record IDs, transformations applied, quality score.
 - **Storage:** `lineage_events` database table (schema below).
 
-### Lineage storage table
-
-`lineage_events` captures connector sync lineage events with enough metadata to filter by connector or work item.
+### `lineage_events` table
 
 | Column | Type | Notes |
 | --- | --- | --- |
 | `lineage_id` | text (PK) | Unique lineage event ID |
 | `tenant_id` | text | Tenant scope |
 | `connector_id` | text | Connector identifier |
-| `work_item_id` | text (nullable) | Populated when the target schema is `work-item` |
+| `work_item_id` | text (nullable) | Populated when target schema is `work-item` |
 | `source_entity` | json | Source entity metadata |
 | `target_entity` | json | Target entity metadata |
 | `transformations` | json | Ordered list of transformation steps |
@@ -220,31 +189,25 @@ Lineage provides end-to-end traceability from external systems into canonical sc
 }
 ```
 
-The full example is at `data/lineage/example-lineage.json`.
+Full example: `data/lineage/example-lineage.json`.
 
-View the example lineage artifact:
+### Querying lineage
 
-```bash
-sed -n '1,160p' data/lineage/example-lineage.json
-```
-
-### Example lineage queries
-
-Query lineage by work item ID via the API gateway:
+Query by work item ID via the API gateway:
 
 ```bash
 curl -H "X-Tenant-ID: tenant-a" \
   "http://localhost:8000/v1/lineage?work_item_id=WI-100"
 ```
 
-Query lineage by connector ID via the API gateway:
+Query by connector ID via the API gateway:
 
 ```bash
 curl -H "X-Tenant-ID: tenant-a" \
   "http://localhost:8000/v1/lineage?connector_id=jira"
 ```
 
-Query lineage directly from the database:
+Query directly from the database:
 
 ```sql
 SELECT lineage_id, connector_id, work_item_id, timestamp
@@ -255,9 +218,6 @@ ORDER BY timestamp DESC;
 
 ### Implementation status
 
-- **Implemented:** Automated lineage generation, storage in `lineage_events`, and the query API.
+- Automated lineage generation, storage in `lineage_events`, and the query API are implemented.
 
-### Related docs
-
-- [Connector Overview](../connectors/overview.md)
-- [Data Quality](#data-quality)
+**Related:** [Connector Overview](../connectors/overview.md) · [Data Quality](#data-quality)
