@@ -357,11 +357,21 @@ The Programme Management agent provides the organisational layer between individ
 
 **Category:** Delivery Management | **Role:** Project Charter and Scope Baseline Manager
 
-Drafts project charters, establishes scope baselines, and manages the Work Breakdown Structure for individual projects.
+The Project Definition and Scope agent is the starting point for every project's delivery lifecycle — turning an approved demand record into a structured project charter, a hierarchical Work Breakdown Structure, and a locked scope baseline that downstream agents depend on.
 
-**Key outputs:** Project charters, WBS, scope baseline documents, scope change impact assessments.
+**What it does:**
+- **Generates project charters** from configurable templates (capital, technology, regulatory, operational) with objectives, constraints, success criteria, and methodology selection.
+- **Builds a hierarchical Work Breakdown Structure (WBS)** from scope statements, assigning unique WBS item identifiers for traceability.
+- **Manages requirements** — captures, organises, and prioritises requirements with metadata (priority thresholds: critical 0.9, high 0.7, medium 0.4, low 0.0).
+- **Creates traceability matrices** linking requirements to WBS deliverables with coverage status tracking (90% coverage threshold enforced).
+- **Performs stakeholder analysis** — identifies stakeholders, scores them by influence, and produces a stakeholder register with RACI matrix across deliverables.
+- **Locks scope baselines** in a SQL-backed repository, creating immutable snapshots with approval status tracking.
+- **Detects scope creep** by comparing the current scope against the locked baseline and flagging deviations that exceed a configurable threshold (default 10%).
+- **Enriches scope with external research** via optional AI-powered web search when configured.
 
-**Connects to:** Demand Intake (receives demand record), Approval Workflow (charter sign-off), Change Control (scope baseline updates), Lifecycle Governance (initiation gate).
+**What it produces:** Project charters, WBS hierarchies with unique IDs, requirements repositories, traceability matrices, stakeholder registers, RACI matrices, scope baseline snapshots, and scope creep variance reports. Publishes `baseline.created`, `traceability.matrix.created`, and `scope.baseline.locked` events.
+
+**Connects to:** Demand Intake (receives demand record), Approval Workflow (charter sign-off), Change Control (scope baseline updates), Lifecycle Governance (initiation gate). The scope baseline and WBS are critical inputs consumed by the Schedule Planning and Resource Management agents — neither can proceed until a scope baseline exists.
 
 ---
 
@@ -369,11 +379,20 @@ Drafts project charters, establishes scope baselines, and manages the Work Break
 
 **Category:** Delivery Management | **Role:** Stage-Gate Enforcer and Project Health Monitor
 
-Enforces phase transitions, evaluates stage gate criteria, and monitors project health throughout the delivery lifecycle. Consumes the `workspace.setup.completed` event from the Workspace Setup agent as a hard gate before initiation can proceed.
+The Project Lifecycle and Governance agent is the platform's phase-gate enforcer and health monitor — it controls how projects progress through their lifecycle, ensures gate criteria are met before transitions, and maintains a continuous composite health score that reflects the real state of every active project.
 
-**Key outputs:** Stage-gate assessments, health scores, transition approvals, lifecycle status updates.
+**What it does:**
+- **Manages project phase progression** through a configurable lifecycle (Initiate → Plan → Execute → Monitor → Iterate → Release → Close) with methodology-aware gate criteria for predictive, adaptive, and hybrid approaches.
+- **Evaluates stage gate criteria** before allowing phase transitions — blocking progression when criteria are unmet unless an override is approved via the Approval Workflow agent.
+- **Recommends and adapts methodologies** (predictive, adaptive, hybrid) based on project context, maintaining methodology maps and gate criteria per methodology.
+- **Monitors project health continuously** using a composite score weighted across schedule (25%), cost (25%), risk (20%), quality (15%), and resource (15%) dimensions, ingesting metrics from domain agents.
+- **Applies machine learning readiness scoring** trained on project history to predict gate readiness before formal evaluation.
+- **Tracks governance compliance** by consuming compliance sign-offs and attestations from the Compliance Governance agent as gate evidence.
+- **Publishes lifecycle events** (`gate.passed`, `gate.failed`, `gate.overridden`, `phase.changed`, `project.health.updated`) consumed by downstream agents.
 
-**Connects to:** Workspace Setup (gate consumer), Approval Workflow (gate approvals), Compliance Governance (compliance gate inputs), Change Control (assesses whether changes require gate review).
+**What it produces:** Lifecycle records with current phase and gates passed, gate evaluation results with criteria status and readiness scores, health telemetry with composite scores, status classifications, and recommendations.
+
+**Connects to:** Workspace Setup (consumes `workspace.setup.completed` as a hard gate — no project can progress past initiation until workspace setup is complete), Approval Workflow (gate override approvals), Compliance Governance (compliance attestations as gate evidence), Change Control (assesses whether changes require gate review). All domain agents feed health metrics via a configured metrics catalog.
 
 ---
 
@@ -381,11 +400,21 @@ Enforces phase transitions, evaluates stage gate criteria, and monitors project 
 
 **Category:** Delivery Management | **Role:** Schedule Builder and Milestone Manager
 
-Builds schedules and Work Breakdown Structures from scope inputs, manages baselines, and performs critical path analysis.
+The Schedule and Planning agent transforms the scope baseline and WBS into an executable, resource-aware schedule — applying critical path analysis, Monte Carlo simulation, and what-if modelling to give project teams a realistic plan and continuous visibility into schedule risk.
 
-**Key outputs:** Baselined schedules, WBS, critical path analysis, milestone status, schedule variance reports.
+**What it does:**
+- **Converts WBS to schedule** — transforms the Work Breakdown Structure into a sequenced, task-based schedule with dependency mapping (Finish-to-Start, Start-to-Start, Finish-to-Finish, Start-to-Finish).
+- **Estimates durations** using AI and historical data with confidence intervals, applying risk adjustments (high: 20% buffer, medium: 10%, low: 5%) from configuration.
+- **Calculates the critical path** using the Critical Path Method (CPM) — computing early/late start/finish dates, identifying the critical path, and determining total project duration and float.
+- **Performs resource-constrained scheduling** — applies resource availability constraints and performs resource levelling when resource data is provided by the Resource Management agent.
+- **Runs Monte Carlo simulation** (configurable iterations, default 1,000) for probabilistic schedule analysis — producing completion date distributions and risk scores.
+- **Supports what-if analysis** — compares scenarios (e.g., "+20% risk buffer", "resource constraints") with baseline to inform planning decisions.
+- **Manages schedule baselines** — locks baselines and tracks variance against actuals with trend analysis.
+- **Tracks milestones** — identifies milestone status, upcoming deadlines, and schedule health.
 
-**Connects to:** Scope Definition (scope inputs), Resource Management (resource constraints), Change Control (schedule baseline updates), Programme Management (programme roadmap).
+**What it produces:** Baselined schedules with Gantt data and task sequencing, critical path analysis with duration and float, risk-adjusted durations and buffers, Monte Carlo results with percentiles and risk drivers, milestone status, schedule variance reports, and what-if scenario comparisons.
+
+**Connects to:** Scope Definition (consumes WBS and scope baseline), Resource Management (exchanges resource availability and allocation events), Risk Management (publishes schedule risk metrics, consumes risk register updates), Change Control (schedule baseline updates), Programme Management (programme roadmap integration).
 
 ---
 
@@ -393,11 +422,22 @@ Builds schedules and Work Breakdown Structures from scope inputs, manages baseli
 
 **Category:** Delivery Management | **Role:** Resource Allocator and Capacity Planner
 
-Manages resource allocation and capacity planning across projects, identifying conflicts and forecasting demand.
+The Resource and Capacity Management agent is the single source of truth for who is available, where they are allocated, and what capacity the organisation has for future work — ensuring projects are staffed with the right skills and no one is over-committed.
 
-**Key outputs:** Resource allocation plans, capacity forecasts, utilisation reports, resource conflict flags.
+**What it does:**
+- **Maintains a centralised resource pool** of people and equipment with skills, certifications, availability windows, and cost rates.
+- **Matches resources to demand** using a weighted scoring algorithm (skills 60%, availability 20%, cost 10%, performance 10%) with a configurable skill match threshold (default 70%).
+- **Creates and validates allocations** with overlap and threshold enforcement — checking concurrent allocation limits (default 3) and total allocation percentage (default 100%).
+- **Forecasts capacity** across a configurable horizon (default 12 months) with seasonality factors, training impact (10% capacity reduction), and attrition rate modelling.
+- **Runs scenario analysis** — compares baseline capacity against scenarios (e.g., "+10% hiring", "−15% attrition") to inform workforce planning.
+- **Detects resource conflicts** — identifies over-allocations across projects and produces mitigation recommendations.
+- **Monitors utilisation** against a target threshold (default 85%), flagging both over- and under-utilisation.
+- **Syncs with HR systems** — integrates with Workday, SAP SuccessFactors, and Azure AD for employee profiles, and with Planview and Jira Tempo for external capacity data.
+- **Routes resource requests** to approvers based on configured routing rules, publishing `resource.allocation.created` and `resource.request.approved/rejected` events.
 
-**Connects to:** Schedule Planning (schedule constraints), HR systems via HRISService (Workday, SuccessFactors, ADP), Portfolio Optimisation (capacity constraints), Programme Management (cross-project resource view).
+**What it produces:** Resource profiles with skills and certifications, allocation records, capacity and demand forecasts with bottleneck identification, utilisation summaries, conflict reports with resolution recommendations.
+
+**Connects to:** Schedule Planning (provides resource availability for resource-constrained scheduling, consumes schedule constraints), Financial Management (provides allocation facts and cost rates for budget tracking), HR systems via HRISService (Workday, SuccessFactors, ADP), Portfolio Optimisation (capacity constraints), Programme Management (cross-project resource view and conflict resolution).
 
 ---
 
@@ -405,11 +445,22 @@ Manages resource allocation and capacity planning across projects, identifying c
 
 **Category:** Delivery Management | **Role:** Budget Tracker and Financial Controller
 
-Tracks budgets, actuals, and forecasts; produces variance and Earned Value Management reports; monitors profitability.
+The Financial Management agent provides continuous financial visibility across the delivery lifecycle — from budget baseline creation through cost tracking, forecasting, earned value analysis, and profitability reporting, with full ERP integration for actuals.
 
-**Key outputs:** Budget reports, cost forecasts, EVM reports, variance analysis, profitability metrics.
+**What it does:**
+- **Creates and manages budget baselines** with cost breakdowns by category (labour, overhead, materials, contracts, travel, software, other) and routes baselines through the Approval Workflow agent.
+- **Tracks actual costs and accruals** against budget, integrating with ERP systems (SAP, Oracle, NetSuite, Dynamics 365) for accounts payable transactions via Azure Data Factory pipelines.
+- **Generates ML-based cost and cash flow forecasts** with estimate-at-completion (EAC) values and confidence intervals.
+- **Performs variance analysis** comparing actuals to budget with configurable threshold alerting (default 10% or $10,000 absolute).
+- **Calculates Earned Value Management (EVM) metrics** — EV, PV, AC, CPI (cost performance index), and SPI (schedule performance index).
+- **Supports multi-currency budgets** with exchange rate lookup and tax handling by jurisdiction.
+- **Computes profitability metrics** — ROI, NPV (configurable discount rates), IRR, and payback period.
+- **Generates financial reports** in multiple formats: summary, variance, forecast, cash flow, and profitability.
+- **Publishes finance lifecycle events** (budget.created, costs.tracked, variance.alerted) to the Service Bus for downstream consumers.
 
-**Connects to:** Business Case (financial baseline), ERP systems via ERPFinanceService (SAP, Oracle, NetSuite), Approval Workflow (financial approvals), Change Control (budget baseline updates).
+**What it produces:** Budget baselines with approval status, cost tracking summaries and accruals, variance and trend reports, EAC forecasts with confidence intervals, EVM metrics, profitability analysis (ROI, NPV, IRR, payback), and financial reports across multiple formats.
+
+**Connects to:** Business Case (consumes approved cash flows for baseline tracking), Vendor Procurement (consumes invoice and actuals data, provides budget availability checks), Resource Management (consumes allocation facts and cost rates), ERP systems via ERPFinanceService (SAP, Oracle, NetSuite), Approval Workflow (financial approvals), Change Control (budget baseline updates), Analytics and Insights (financial events and metrics).
 
 ---
 
@@ -417,11 +468,21 @@ Tracks budgets, actuals, and forecasts; produces variance and Earned Value Manag
 
 **Category:** Delivery Management | **Role:** Vendor Lifecycle and Procurement Coordinator
 
-Manages the end-to-end vendor and procurement lifecycle from RFP through contract management and performance tracking.
+The Vendor and Procurement Management agent is the system of record for the entire vendor and procurement lifecycle — from vendor onboarding and compliance screening, through RFP generation and proposal evaluation, to contract management, invoice reconciliation, and ongoing performance monitoring.
 
-**Key outputs:** RFPs, vendor records, contracts, vendor performance reports, onboarding status.
+**What it does:**
+- **Onboards vendors** with compliance screening — sanctions checks, credit ratings, and anti-corruption verification — assigning risk scores and compliance status.
+- **Processes procurement requests** with ML-based categorisation, budget availability checks via Financial Management, and approval routing based on procurement thresholds.
+- **Generates RFPs** from configurable templates (software, services, consulting, cloud) using AI-based or template-based content generation, and publishes to external procurement connectors (SAP Ariba, Coupa, Oracle Procurement).
+- **Evaluates proposals** using an AI/ML scoring framework with multi-criteria vendor ranking and selection recommendations.
+- **Manages contracts** with clause extraction via Azure Form Recognizer, document publishing to managed storage, and key terms tracking.
+- **Handles the purchase order and invoice lifecycle** — PO creation and approval, invoice receipt, three-way matching (PO ↔ Invoice ↔ Receipt), and reconciliation with configurable tolerance.
+- **Monitors vendor performance** — tracks SLA metrics, quality and compliance KPIs, and generates vendor scorecards with trend analysis.
+- **Enforces vendor compliance policies** with configurable rules (block on failure, flag on watchlist, risk threshold enforcement).
 
-**Connects to:** Financial Management (procurement costs), Compliance Governance (vendor compliance), Approval Workflow (procurement approvals), Document Management (contract storage).
+**What it produces:** Vendor records with compliance status and risk scores, procurement request decisions, RFP documents, proposal evaluations with scoring, contracts with extracted metadata, PO confirmations, invoice reconciliation results, vendor scorecards, and procurement lifecycle events (vendor.onboarded, rfp.published, contract.created, invoice.reconciled, performance.updated).
+
+**Connects to:** Financial Management (budget availability checks, cost tracking for POs and invoices), Compliance Governance (vendor compliance outcomes as evidence, regulatory policy updates), Risk Management (vendor compliance failures as risk signals), Approval Workflow (procurement approvals), Document Management (contract storage), Stakeholder Communications (procurement milestone notifications).
 
 ---
 
@@ -429,11 +490,21 @@ Manages the end-to-end vendor and procurement lifecycle from RFP through contrac
 
 **Category:** Delivery Management | **Role:** Quality Planner and Test Coordinator
 
-Defines quality plans, manages test coordination, tracks defects, and evaluates quality gate criteria.
+The Quality Management agent owns the quality planning, testing, defect management, and continuous improvement lifecycle across delivery workstreams — ensuring projects meet defined quality standards and providing release readiness signals to downstream agents.
 
-**Key outputs:** Quality plans, test results, defect records, quality gate assessments, acceptance test reports.
+**What it does:**
+- **Creates quality plans** with standards definitions, acceptance criteria, and quality metric goals, routing plans through the Approval Workflow agent when enabled.
+- **Manages test cases and execution** — creates test cases linked to requirements, organises test suites, tracks execution with pass/fail results, and calculates coverage percentages with trending.
+- **Tracks and analyses defects** — logs defects with severity classification (critical, high, medium, low), manages defect workflow transitions, performs density calculations, and recommends root cause analysis (RCA).
+- **Predicts defects using ML** — trains Naive Bayes classifiers for defect categorisation and clustering for pattern identification.
+- **Evaluates quality gates** against execution-ready criteria: coverage ≥ 80%, defect density ≤ 0.05 per KLOC, pass rate ≥ 95%, and audit score ≥ 90% for regulated projects.
+- **Maintains requirement traceability** — maps test cases to requirements and verifies coverage completeness.
+- **Manages reviews and audits** — schedules reviews with calendar integration, tracks audit findings, and verifies compliance against standards (ISO 9001, CMMI, IEEE 829).
+- **Synchronises with external tools** — syncs defect tickets with Jira, Azure DevOps, and TestRail.
 
-**Connects to:** Approval Workflow (quality gate approvals), Compliance Governance (quality standards compliance), Release Deployment (release quality clearance), Lifecycle Governance (quality gate inputs).
+**What it produces:** Quality plans with objectives and metrics, test cases and suites, test execution results with coverage reports, defect records with RCA summaries, quality metrics (coverage %, pass rate, defect density), quality dashboards with heat maps and trends, quality gate assessments (pass/fail with exceptions), and release readiness signals.
+
+**Connects to:** Release Deployment (provides quality gate results for release decisioning), Risk Management (publishes defect rate as risk signal), Lifecycle Governance (supplies quality gate inputs for phase gate decisions), Compliance Governance (quality test results as compliance evidence), Approval Workflow (quality plan and gate approvals), Analytics and Insights (quality metrics for reporting).
 
 ---
 
@@ -441,11 +512,20 @@ Defines quality plans, manages test coordination, tracks defects, and evaluates 
 
 **Category:** Delivery Management | **Role:** Risk Identifier, Assessor, and Issue Tracker
 
-Maintains risk and issue registers, performs quantitative risk analysis, and tracks mitigations and resolutions.
+The Risk and Issue Management agent owns the end-to-end risk lifecycle — from identification and assessment through scoring, mitigation planning, and continuous monitoring — across projects, programmes, and portfolios, using both qualitative analysis and quantitative simulation.
 
-**Key outputs:** Risk registers, issue logs, quantified exposure reports, mitigation plans, risk trend analysis.
+**What it does:**
+- **Identifies risks from multiple sources** — user input, document mining (SharePoint, Confluence), project management connector signals (schedule delays, cost overruns, quality defect rates, resource utilisation), and ML-based prediction models.
+- **Assesses and scores risks** using both qualitative (low/medium/high) and quantitative (numerical) probability and impact scales, with category-based classification (technical, resource, schedule, financial, compliance, external, organisational).
+- **Runs Monte Carlo simulation** (default 10,000 iterations) for schedule and financial risk analysis, producing probability distributions, sensitivity analysis, and correlation between risks.
+- **Creates mitigation plans** with response strategies (avoid, mitigate, transfer, accept), action items, ownership assignment, and trigger thresholds.
+- **Monitors risk triggers in real time** — subscribes to schedule delay, cost overrun, quality defect rate, resource utilisation, milestone missed, and financial update signals, automatically updating risk scores and escalating when thresholds are breached.
+- **Searches a knowledge base** via Azure Cognitive Search for historical risk guidance and lessons learned.
+- **Exports risk data** to Azure Data Lake and Synapse for enterprise risk analytics.
 
-**Connects to:** GRC systems via GRCIntegrationService (ServiceNow GRC, RSA Archer), Programme Management (programme-level risk aggregation), Compliance Governance (compliance risk inputs), Analytics and Insights (risk dashboards).
+**What it produces:** Risk records with full metadata (probability, impact, score, status, category), risk assessments, mitigation plans with ownership, Monte Carlo simulation results with probability distributions, sensitivity analyses, risk matrices, risk dashboards, and risk reports. Publishes `risk.created`, `risk.updated`, `risk.triggered`, and `risk.escalated` events.
+
+**Connects to:** Quality Management (consumes defect rate as risk signal), Lifecycle Governance (supplies risk status for governance scorecards), Schedule Planning (consumes schedule delays and milestone misses), Financial Management (consumes cost overruns and budget updates), Resource Management (consumes resource utilisation signals), Compliance Governance (escalates compliance-related risks), Approval Workflow (escalates critical risks for governance review), GRC systems via GRCIntegrationService (ServiceNow GRC, RSA Archer), Programme Management (programme-level risk aggregation), Analytics and Insights (risk dashboards).
 
 ---
 
@@ -453,11 +533,22 @@ Maintains risk and issue registers, performs quantitative risk analysis, and tra
 
 **Category:** Delivery Management | **Role:** Regulatory Framework Manager and Compliance Monitor
 
-Verifies the platform's and projects' compliance posture against regulatory frameworks and internal policies, producing evidence packages for audit.
+The Compliance and Regulatory agent ensures projects, programmes, and portfolios adhere to external regulations, industry standards, and internal policies — managing the full compliance lifecycle from framework applicability through control mapping, evidence collection, gap analysis, and audit preparation.
 
-**Key outputs:** Compliance control records, evidence packages, audit reports, compliance gap assessments.
+**What it does:**
+- **Manages a regulatory framework library** (Privacy Act 1988, APRA CPS 234, ISO 27001, ASD ISM, PSPF — configurable) with applicability determination based on industry, geography, and data sensitivity.
+- **Maintains a control library** with requirement specifications (implementation, evidence, testing, audit logs, risk mitigation, quality tests, deployment checks, privacy, security scans) and test frequency assignment (critical: monthly, high: quarterly, medium: semi-annually, low: annually).
+- **Maps controls to projects** based on applicability rules and produces compliance assessments with gap identification, risk scoring, and remediation recommendations.
+- **Calculates compliance scores** (0–100%) using a rule engine that evaluates evidence against control requirements.
+- **Manages evidence collection** — uploads evidence artifacts (snapshots, audit logs, test results, security scans) and validates evidence completeness per control.
+- **Prepares audit packages** — scopes audits, defines samples, tracks execution, documents findings, and generates audit reports.
+- **Monitors regulatory changes** via optional external search, identifies impacted controls, and creates stakeholder tasks for affected regulations.
+- **Verifies release compliance** — performs pre-release compliance checks and publishes pass/fail signals for the Release Deployment agent.
+- **Responds to events** — subscribes to release, deployment, configuration, quality, risk, security, incident, and change events, automatically triggering compliance assessments and raising alerts when gaps are detected.
 
-**Connects to:** Audit Log service (evidence source), Quality Management (test evidence), Risk Management (compliance risk inputs), Lifecycle Governance (compliance gate clearance), Release Deployment (release compliance clearance), Analytics and Insights (portfolio compliance reporting).
+**What it produces:** Regulation records, control definitions with test frequencies, control-to-project mappings, compliance assessments with gap analysis and scores, remediation recommendations, control test results, evidence artifacts, audit packages and findings, compliance dashboards (controls by status, score, gaps by severity), compliance reports, release compliance verdicts, and regulatory change notifications.
+
+**Connects to:** Lifecycle Governance (provides compliance inputs for gate decisions), Vendor Procurement (receives vendor compliance outcomes as evidence, supplies policy updates), Release Deployment (supplies release compliance verification for deployment decisions), Quality Management (consumes quality test results as evidence), Risk Management (consumes high-severity risks for compliance escalation), Audit Log service (evidence source), GRC systems via GRCIntegrationService (ServiceNow GRC, RSA Archer), Analytics and Insights (portfolio compliance reporting).
 
 ---
 
@@ -486,11 +577,22 @@ Governs the controlled evolution of project scope, schedule, budget, and technic
 
 **Category:** Operations Management | **Role:** Release Coordinator and Deployment Orchestrator
 
-Coordinates the controlled movement of project outputs from the delivery environment into production, managing planning, readiness assessment, deployment orchestration, and rollback.
+The Release and Deployment agent coordinates the controlled movement of project outputs from delivery environments into production — managing release planning, readiness assessment, deployment orchestration, post-deployment verification, and rollback when things go wrong.
 
-**Key outputs:** Release plans, deployment records, rollback procedures, release readiness assessments, go/no-go decisions.
+**What it does:**
+- **Plans and schedules releases** across environments (dev, test, staging, production) with release calendar entries and environment reservation.
+- **Evaluates release readiness** via a multi-factor go/no-go assessment — checking approvals, change readiness, environment availability, test and coverage gates, and blocker status, producing an actionable recommendation with scoring.
+- **Orchestrates deployments** across multiple environments with minimal risk, integrating with CI/CD systems (Azure DevOps, GitHub Actions, Durable Functions).
+- **Manages environments** — reserves environments, tracks allocation, maintains an inventory, and detects configuration drift against CMDB baselines.
+- **Enforces release gates** configurable per environment, requiring approval via the Approval Workflow agent for production deployments.
+- **Handles rollback** — triggers automatic rollback on anomaly detection and supports manual rollback with scripted procedures.
+- **Generates release notes** automatically from release metadata and change records.
+- **Verifies deployments** post-deployment — runs verification checks and detects anomalies using monitoring integration.
+- **Tracks deployment metrics** and KPIs for release performance analysis.
 
-**Connects to:** Quality Management (release quality clearance), Compliance Governance (compliance clearance), Change Control (configuration record), Approval Workflow (deployment approvals), Calendar Integration (release scheduling).
+**What it produces:** Release calendar entries and schedules, readiness assessments with go/no-go status and compliance scores, deployment plans with workflow steps, rollback outcomes, configuration drift reports, release notes, deployment metrics and telemetry, and verification results.
+
+**Connects to:** Quality Management (consumes quality metrics, test results, and coverage gates), Change Control (exchanges approved change tickets, configuration baselines, and risk/impact summaries), Compliance Governance (consumes release compliance verification), Approval Workflow (requests and enforces approval for protected environments), System Health (consumes environment health for deployment gates), Calendar Integration (environment reservation and deployment window scheduling), Documentation Publishing (Confluence/SharePoint for release notes).
 
 ---
 
@@ -498,11 +600,22 @@ Coordinates the controlled movement of project outputs from the delivery environ
 
 **Category:** Operations Management | **Role:** Document Librarian and Knowledge Curator
 
-Manages the document lifecycle and maintains the platform's knowledge repository — indexing, versioning, and surfacing relevant knowledge assets.
+The Knowledge and Document Management agent is the platform's institutional memory — it ingests, classifies, indexes, and surfaces documents and knowledge assets, maintaining a semantic search index and a knowledge graph that connects documents, projects, risks, decisions, and lessons learned.
 
-**Key outputs:** Indexed document repository, lessons-learned records, knowledge search results, document version history.
+**What it does:**
+- **Manages the full document lifecycle** — CRUD operations with versioning, retention management, and metadata validation against the canonical document schema.
+- **Ingests from multiple sources** — user uploads, agent outputs, and external repositories (Confluence, SharePoint, Git) with normalisation and metadata enrichment.
+- **Auto-classifies documents** using a Naive Bayes classifier with taxonomy management and tagging.
+- **Provides semantic search** using sentence-transformer embeddings with a FAISS vector index (or in-memory vector store), returning results with relevance scores and summaries.
+- **Generates LLM-driven summaries** with configurable token limits and prompt injection sanitisation.
+- **Extracts entities** using an NLP pipeline and builds a knowledge graph linking documents, projects, programmes, portfolios, risks, and decisions.
+- **Supports knowledge graph traversal** — queries relationships to discover connected artifacts across the platform.
+- **Captures lessons learned** — records and retrieves lessons learned and best practices, categorised for future reuse.
+- **Enforces access control** — applies RBAC/ABAC before retrieval and tracks document access logs for audit.
 
-**Connects to:** SharePoint and Confluence via DocumentManagementService, all agents that produce documents (Scope Definition, Business Case, Risk Management, etc.).
+**What it produces:** Document records with versions and classification labels, search results with relevance scores and summaries, knowledge graph relationships and entity links, lessons learned artifacts, access logs and version history for audit, extracted entities and taxonomy assignments.
+
+**Connects to:** Stakeholder Communications (hands off curated knowledge — summaries, decision logs, lessons learned — for distribution), Analytics and Insights (provides document corpora and knowledge artifacts to enrich analytics models), Approval Workflow (coordinates approval of formal knowledge documents), SharePoint and Confluence via DocumentManagementService, all agents that produce documents (Scope Definition, Business Case, Risk Management, etc.).
 
 ---
 
@@ -510,11 +623,23 @@ Manages the document lifecycle and maintains the platform's knowledge repository
 
 **Category:** Operations Management | **Role:** Process Analyst and Improvement Engine
 
-Captures retrospective outcomes and applies process mining to telemetry data, producing improvement recommendations and a structured backlog.
+The Continuous Improvement and Process Mining agent discovers how processes actually execute by mining event logs, compares actual behaviour against designed process models, identifies bottlenecks and deviations, and produces a prioritised improvement backlog with measurable benefit tracking.
 
-**Key outputs:** Process deviation reports, improvement recommendations, retrospective summaries, process mining insights.
+**What it does:**
+- **Discovers as-is process models** from execution event logs using multiple algorithms (alpha miner, inductive miner, heuristic miner, fuzzy miner) and generates BPMN/Petri net representations.
+- **Checks conformance** — validates actual processes against expected/designed models and computes compliance rates.
+- **Detects bottlenecks** — identifies activities causing delays or resource constraints using configurable thresholds.
+- **Identifies deviations** from expected process paths and triggers configurable alerts.
+- **Performs root cause analysis** — analyses issues to identify contributing factors and actionable improvements.
+- **Creates improvement initiatives** as backlog items with priority scoring and expected benefits, assigning owners and target dates.
+- **Tracks benefit realisation and ROI** — measures realised benefits and financial impact of completed improvements.
+- **Benchmarks process performance** against internal and external benchmarks, sharing successful patterns across the organisation.
+- **Ingests events from across the platform** — subscribes to schedule, task, deployment, risk, approval, change, and incident events for process mining analysis.
+- **Generates KPI reports** with process-level metrics and trends at project, programme, and portfolio levels.
 
-**Connects to:** Approval Workflow (execution data for process analysis), Analytics and Insights (improvement metrics), Observability stack (telemetry inputs).
+**What it produces:** Process models with activities and transitions, conformance reports with compliance rates and deviation lists, bottleneck and deviation analyses with root causes and recommendations, improvement backlog entries with owners and expected benefits, benefit realisation metrics and ROI summaries, and KPI rollups across organisational levels.
+
+**Connects to:** Analytics and Insights (receives periodic analytics reports, publishes process insights and benefit events), Approval Workflow (emits improvement recommendations as workflow events, receives workflow execution events for process mining), Knowledge Management (publishes best practices and improvement backlog), Financial Management (tracks financial impact of improvements), Observability stack (telemetry inputs).
 
 ---
 
@@ -522,11 +647,23 @@ Captures retrospective outcomes and applies process mining to telemetry data, pr
 
 **Category:** Operations Management | **Role:** Communications Planner and Engagement Manager
 
-Plans and delivers stakeholder communications — status updates, milestone notifications, and engagement records — across configured channels.
+The Stakeholder Communications agent plans, personalises, and delivers communications across every channel the organisation uses — maintaining a stakeholder register, tracking engagement, collecting feedback with sentiment analysis, and ensuring the right people receive the right information at the right time.
 
-**Key outputs:** Communication plans, stakeholder engagement records, formatted status updates, notification messages.
+**What it does:**
+- **Maintains a stakeholder register** with profiles, roles, organisations, and communication preferences.
+- **Classifies stakeholders** by influence/interest matrix and recommends engagement strategies per segment.
+- **Creates communication plans** tied to portfolio and project updates with schedules, target audiences, and channel assignments.
+- **Generates personalised messages** from templates using AI (Azure OpenAI), supporting editing before delivery.
+- **Delivers across multiple channels** — email (Exchange/Azure Communication Services/SendGrid), Microsoft Teams, Slack, SMS (Twilio), push notifications (Firebase Cloud Messaging), and portal.
+- **Supports flexible scheduling** — immediate, scheduled, or digest (batched with configurable window and batch size) delivery modes with send-time optimisation.
+- **Collects feedback and analyses sentiment** using Azure Text Analytics, alerting on disengagement when sentiment drops below threshold.
+- **Tracks engagement metrics** — delivery status, bounce rates, open rates, and engagement scores with ML-based engagement scoring.
+- **Coordinates events and meetings** — schedules meetings with invitations via Calendar and Teams integration.
+- **Maintains full communication history** in a database with audit trail, emitting events to the Service Bus for analytics.
 
-**Connects to:** Programme Management (programme status signals), Schedule Planning (milestone triggers), Notification Service (delivery via Teams/Slack/email), Analytics and Insights (engagement metrics).
+**What it produces:** Stakeholder profiles with classifications and engagement strategies, communication plans and schedules, message drafts and delivery confirmations, feedback and sentiment scores, engagement dashboards, calendar events and meeting invitations, communication reports by project/role/locale, and delivery telemetry.
+
+**Connects to:** Approval Workflow (submits message drafts requiring approval for external-facing communications), Knowledge Management (requests curated knowledge snippets for use in communications, submits post-communication summaries), Programme Management (programme status signals), Schedule Planning (milestone triggers), Notification Service (delivery via Teams/Slack/email), Analytics and Insights (engagement metrics), CRM systems (Salesforce for stakeholder profile sync).
 
 ---
 
@@ -534,11 +671,23 @@ Plans and delivers stakeholder communications — status updates, milestone noti
 
 **Category:** Operations Management | **Role:** Portfolio Intelligence and Reporting Engine
 
-Produces dashboards, reports, and predictive forecasts across the full portfolio, programme, and project hierarchy.
+The Analytics and Insights agent is the platform's intelligence layer — aggregating data from every domain agent, producing interactive dashboards and reports, running predictive models, and generating narrative insights that help executives and project teams make evidence-based decisions.
 
-**Key outputs:** KPI dashboards, portfolio health reports, predictive forecasts, trend analysis, executive summaries.
+**What it does:**
+- **Aggregates data from multiple sources** via Azure Synapse Analytics and Azure Data Lake, building portfolio-wide analytics from lifecycle events across all domain agents.
+- **Creates interactive dashboards** with configurable widgets (max 20 per dashboard), embedding Power BI reports for rich visualisation with scheduled refresh.
+- **Generates comprehensive reports** with visualisations, supporting natural language queries for ad-hoc self-service analytics.
+- **Runs ML predictions** with configurable confidence thresholds (default 0.75) — including cost overrun prediction, schedule slip forecasting, and custom KPI models trained on historical data.
+- **Performs scenario and what-if analysis** — compares baseline against scenarios with simulations for portfolio planning.
+- **Produces narrative insights** using Azure OpenAI — generating insight stories, anomaly explanations, and pattern summaries embedded in reports and dashboards.
+- **Tracks KPIs and OKRs** with trend analysis and threshold monitoring, publishing `analytics.kpi.threshold_breached` alerts when thresholds are exceeded.
+- **Maintains data lineage** with source-to-sink mapping and PII masking for governance transparency.
+- **Orchestrates Azure analytics services** — Synapse pools, Data Factory ETL pipelines, Event Hub streaming, and Stream Analytics for real-time event ingestion.
+- **Generates periodic performance reports** (monthly by default) with cross-project metrics (cycle time, risk frequency, budget variance, late task ratio) and process improvement recommendations consumed by the Continuous Improvement agent.
 
-**Connects to:** All domain agents (data consumer), Canonical data schemas in the Data Service, Data Synchronisation agent (data quality inputs), Azure ML via MLPredictionService (forecasting).
+**What it produces:** Dashboard specifications with widget layouts and Power BI embed URLs, reports with visualisations and download URLs, prediction results with confidence intervals and recommendations, scenario comparisons, KPI values with trends and threshold statuses, narrative content, data lineage records, and periodic performance reports with anomalies and recommendations.
+
+**Connects to:** All domain agents (data consumer via event subscriptions), System Health (consumes health signals for dashboards), Continuous Improvement (receives periodic reports with improvement recommendations), Lifecycle Governance (consumes health and governance events), Data Synchronisation (data quality inputs), Canonical data schemas in the Data Service, Azure ML via MLPredictionService (forecasting).
 
 ---
 
@@ -546,11 +695,22 @@ Produces dashboards, reports, and predictive forecasts across the full portfolio
 
 **Category:** Operations Management | **Role:** Data Integrity Guardian and Sync Coordinator
 
-Synchronises data between the platform and external systems, scoring data quality and maintaining consistency across the integration layer.
+The Data Synchronisation and Quality agent is the platform's data integrity backbone — managing master data records, synchronising data between the platform and external systems in real time, resolving conflicts, detecting duplicates, enforcing data quality rules, and maintaining a full audit trail of every sync operation.
 
-**Key outputs:** Sync status reports, data quality dashboards, quality scores, sync logs, anomaly flags.
+**What it does:**
+- **Manages master data records** for PPM entities (project, resource, vendor, financial) with unique canonical IDs, tracking authoritative sources and sync authorisations.
+- **Synchronises data in real time** triggered by source system events, supporting both single-record and batch operations with incremental and full sync modes.
+- **Maps and transforms data** from source system fields to the canonical schema using configurable mapping rules, applying field defaults and computed values for each source (Planview, SAP, Jira, Workday).
+- **Detects and resolves conflicts** when multiple sources modify the same entity, with configurable strategies: last-write-wins, timestamp-based, authoritative-source, prefer-existing, or manual (queued for human review via Approval Workflow).
+- **Identifies duplicates** using fuzzy matching with a configurable confidence threshold (default 0.85) and merges records with primary record selection.
+- **Enforces data quality** — validates inbound payloads against JSON schemas, applies rule-based validation, and checks completeness, consistency, timeliness, and uniqueness against configurable quality thresholds.
+- **Manages a retry queue** for failed validations with configurable max retry attempts (default 3) and backoff strategies.
+- **Maintains a schema registry** with versioning to prevent mismatched validation across schema evolution.
+- **Tracks sync metrics** — latency (target SLA 60 seconds), success/failure rates, and quality dimensions, publishing metrics to Log Analytics.
 
-**Connects to:** All 40+ connectors via the governed connector runtime (ConnectorWriteGate), Approval Workflow (sync retry workflows), Data Lineage Service (provenance tracking).
+**What it produces:** Master records in canonical schema, sync status indicators (success, duplicate, failed, conflict), quality reports with completeness/consistency/timeliness scores, retry queue entries, audit and lineage events, conflict records for manual resolution, sync metrics for analytics, and dashboard data for sync monitoring.
+
+**Connects to:** All 40+ connectors via the governed connector runtime (ConnectorWriteGate), Approval Workflow (conflict and retry queue signals for workflow routing and human review), Analytics and Insights (consumes quality metrics and sync telemetry for dashboards), System Health (reports sync health metrics and latency anomalies), Continuous Improvement (sync quality trends for process recommendations), Data Lineage Service (provenance tracking).
 
 ---
 
@@ -558,11 +718,23 @@ Synchronises data between the platform and external systems, scoring data qualit
 
 **Category:** Operations Management | **Role:** Platform Reliability Guardian
 
-Monitors platform health across all services, evaluates SLO compliance, and escalates alerts for degraded or failing components.
+The System Health and Monitoring agent is the platform's reliability guardian — continuously monitoring infrastructure, application, and agent health across all services, detecting anomalies, managing incidents, and providing capacity planning recommendations to keep the platform running within its SLO targets.
 
-**Key outputs:** Health status reports, alerts, SLO compliance reports, degradation diagnostics.
+**What it does:**
+- **Monitors compute resources** — tracks CPU, memory, network, and storage utilisation across Kubernetes and Azure infrastructure, scraping Prometheus targets for container metrics.
+- **Probes application health** — checks `/healthz`, `/livez`, and `/readyz` endpoints at configurable intervals (default 60 seconds) with timeout settings, and collects application-specific metrics (request counts, error rates, latency).
+- **Tracks agent health** — monitors PPM agent execution metrics, health status, and performance.
+- **Manages alerts and incidents** — creates threshold-based alerts, manages alert acknowledgement lifecycle, routes high-priority alerts to PagerDuty/OpsGenie webhooks, and creates incidents in ServiceNow.
+- **Detects anomalies** using Azure Anomaly Detector with ML-based anomaly detection on metric streams, flagging unusual patterns in time-series data.
+- **Performs root cause analysis** — correlates events and metrics to identify patterns, generating diagnostic summaries with PII redaction.
+- **Plans capacity** — forecasts capacity needs based on growth trends and provides scaling recommendations (CPU, memory, queue depth) with auto-scaling via Logic App/Azure Automation webhooks.
+- **Generates dashboards and reports** — produces health dashboards with time range filters and Grafana integration, and creates postmortem reports after incidents.
+- **Exposes Prometheus metrics** on a configurable `/metrics` endpoint for integration with the observability stack.
+- **Streams telemetry** — publishes metrics to Event Hub for real-time streaming and stores metric history with configurable retention (default 90 days).
 
-**Connects to:** OpenTelemetry/Prometheus observability stack, Azure Monitor, all services via `/healthz` endpoints, Analytics and Insights (operational metrics).
+**What it produces:** Health status summaries with per-service indicators, metric collections with timestamps and values, alert records with threshold info and acknowledgement status, incident records with ServiceNow/PagerDuty IDs, anomaly detections with confidence scores, capacity forecasts with scaling recommendations, postmortem reports with timeline and root cause, health dashboards, and Prometheus metrics.
+
+**Connects to:** Analytics and Insights (provides health signals for portfolio dashboards and narrative generation), Release Deployment (provides environment health gates for deployment decisions), Approval Workflow (routes alerts and incidents for response automation), Continuous Improvement (health trends and incident data for process recommendations), OpenTelemetry/Prometheus observability stack, Azure Monitor, all services via `/healthz` endpoints.
 
 ---
 
