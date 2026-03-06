@@ -1,21 +1,25 @@
-"""Tests for project setup wizard (Enhancement 7)."""
+"""Tests for project setup wizard (Enhancement 7).
+
+Tests cover methodology recommendation, template loading/filtering,
+workspace configuration, and persistence.
+"""
 
 from __future__ import annotations
 
-import importlib.util
+import json
 import sys
 from pathlib import Path
 
 import pytest
 
+# Ensure helper is importable
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _route_test_helpers import load_route_module
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-_mod_path = Path(__file__).resolve().parents[2] / "apps" / "web" / "src" / "routes" / "project_setup.py"
-_spec = importlib.util.spec_from_file_location("project_setup", _mod_path)
-_mod = importlib.util.module_from_spec(_spec)
-sys.modules["project_setup"] = _mod
-_spec.loader.exec_module(_mod)
+_mod = load_route_module("project_setup.py")
 _router = _mod.router
 
 
@@ -48,6 +52,23 @@ def test_recommend_methodology(client):
     assert all(0 < r["match_score"] < 1 for r in recs)
 
 
+def test_recommend_methodology_high_risk(client):
+    resp = client.post(
+        "/api/project-setup/recommend-methodology",
+        json={
+            "industry": "pharma",
+            "team_size": 50,
+            "duration_months": 24,
+            "risk_level": "high",
+            "regulatory": ["GxP", "FDA"],
+        },
+    )
+    assert resp.status_code == 200
+    recs = resp.json()
+    # Predictive should score highest for high-risk regulated pharma
+    assert recs[0]["methodology"] == "predictive"
+
+
 def test_list_templates_all(client):
     resp = client.get("/api/project-setup/templates")
     assert resp.status_code == 200
@@ -71,3 +92,14 @@ def test_configure_workspace(client):
     assert data["project_name"] == "My New Project"
     assert data["project_id"].startswith("proj-")
     assert data["methodology"] == "adaptive"
+    assert data["created_at"]  # Should have a timestamp
+
+
+def test_configure_workspace_persisted(client):
+    resp = client.post(
+        "/api/project-setup/configure-workspace?project_name=Persisted%20Project&template_id=tmpl-waterfall-construct"
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["methodology"] == "predictive"
+    assert "persisted" in data

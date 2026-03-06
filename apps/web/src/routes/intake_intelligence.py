@@ -1,26 +1,173 @@
 """Intelligent demand intake — duplicate detection, auto-classification, business case generation.
 
-Uses vector store for semantic duplicate detection and LLM for
-business case generation and intelligent classification.
+Production-grade implementation using:
+- VectorSearchIndex (128-dim LocalEmbeddingService) for semantic duplicate detection
+- NaiveBayesTextClassifier trained on corpus for classification fallback
+- LLM for primary classification and business case generation
+- Real intake store and project data for the demand corpus
 """
 from __future__ import annotations
 
-import hashlib
 import logging
+import math
 import os
 from typing import Any
 
-import numpy as np
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from routes._deps import _load_projects, logger
-from routes._llm_helpers import llm_complete, llm_complete_json
+from routes._llm_helpers import llm_complete_json
 
 router = APIRouter(tags=["intake-intelligence"])
 
 # ---------------------------------------------------------------------------
-# Demand corpus — loaded from real intake store, grows as demands are added
+# Embedding and classification infrastructure
+# ---------------------------------------------------------------------------
+
+_embedding_service = None
+_search_index = None
+_classifier = None
+
+
+def _get_embedding_service():
+    """Lazy-init the LocalEmbeddingService."""
+    global _embedding_service
+    if _embedding_service is not None:
+        return _embedding_service
+    try:
+        from integration_services import LocalEmbeddingService
+        _embedding_service = LocalEmbeddingService(dimensions=128, seed=42)
+    except ImportError:
+        # Inline fallback
+        _embedding_service = _FallbackEmbeddingService()
+    return _embedding_service
+
+
+def _get_search_index():
+    """Lazy-init the VectorSearchIndex with corpus data."""
+    global _search_index
+    if _search_index is not None:
+        return _search_index
+
+    embedding_svc = _get_embedding_service()
+
+    try:
+        from integration_services import VectorSearchIndex
+        _search_index = VectorSearchIndex(embedding_svc)
+    except ImportError:
+        _search_index = _FallbackSearchIndex(embedding_svc)
+
+    # Populate with corpus
+    _ensure_corpus()
+    for demand in _demand_corpus:
+        text = f"{demand.get('title', '')} {demand.get('description', '')}"
+        if text.strip():
+            _search_index.add(
+                demand.get("id", f"demand-{len(_search_index._vectors) if hasattr(_search_index, '_vectors') else 0}"),
+                text,
+                demand,
+            )
+
+    return _search_index
+
+
+def _get_classifier():
+    """Lazy-init NaiveBayes classifier trained on corpus + training data."""
+    global _classifier
+    if _classifier is not None:
+        return _classifier
+
+    labels = ["strategic", "operational", "regulatory", "maintenance", "innovation"]
+
+    try:
+        from integration_services import NaiveBayesTextClassifier
+        _classifier = NaiveBayesTextClassifier(labels)
+    except ImportError:
+        _classifier = None
+        return None
+
+    # Training data — representative samples for each category
+    training_samples = [
+        ("digital transformation cloud migration competitive advantage market expansion", "strategic"),
+        ("AI machine learning platform modernization growth strategy", "strategic"),
+        ("new market entry competitive positioning brand strategy", "strategic"),
+        ("process automation workflow optimization efficiency improvement", "operational"),
+        ("internal tooling team collaboration mobile app for field workers", "operational"),
+        ("system integration data pipeline consolidation reporting", "operational"),
+        ("GDPR compliance privacy regulation data protection", "regulatory"),
+        ("SOX audit financial compliance reporting controls", "regulatory"),
+        ("HIPAA healthcare patient data security regulatory requirement", "regulatory"),
+        ("bug fix patch upgrade legacy system technical debt refactor", "maintenance"),
+        ("infrastructure upgrade server migration performance optimization", "maintenance"),
+        ("security patching vulnerability remediation system hardening", "maintenance"),
+        ("research prototype experiment emerging technology pilot", "innovation"),
+        ("blockchain IoT edge computing quantum computing POC", "innovation"),
+        ("machine learning research natural language processing computer vision", "innovation"),
+    ]
+
+    # Also train on corpus data
+    _ensure_corpus()
+    for demand in _demand_corpus:
+        cat = demand.get("category", "")
+        if cat in labels:
+            text = f"{demand.get('title', '')} {demand.get('description', '')}"
+            if text.strip():
+                training_samples.append((text, cat))
+
+    _classifier.fit(training_samples)
+    return _classifier
+
+
+# ---------------------------------------------------------------------------
+# Fallback implementations when integration_services not importable
+# ---------------------------------------------------------------------------
+
+
+class _FallbackEmbeddingService:
+    """Minimal embedding service using hash-based vectors."""
+    dimensions = 128
+
+    def embed(self, texts):
+        import hashlib
+        results = []
+        for text in texts:
+            vector = [0.0] * 128
+            for token in text.lower().split():
+                idx = int(hashlib.md5(token.encode()).hexdigest()[:8], 16) % 128
+                vector[idx] += 1.0
+            norm = math.sqrt(sum(v * v for v in vector))
+            if norm > 0:
+                vector = [v / norm for v in vector]
+            results.append(vector)
+        return results
+
+
+class _FallbackSearchIndex:
+    """Minimal vector search index."""
+    def __init__(self, embedding_service):
+        self._embedding = embedding_service
+        self._vectors = {}
+        self._metadata = {}
+
+    def add(self, doc_id, text, metadata):
+        self._vectors[doc_id] = self._embedding.embed([text])[0]
+        self._metadata[doc_id] = metadata
+
+    def search(self, query, *, top_k=5):
+        if not self._vectors:
+            return []
+        query_vec = self._embedding.embed([query])[0]
+        scored = []
+        for doc_id, vec in self._vectors.items():
+            dot = sum(a * b for a, b in zip(query_vec, vec))
+            scored.append(type("Result", (), {"doc_id": doc_id, "score": dot, "metadata": self._metadata[doc_id]})())
+        scored.sort(key=lambda x: x.score, reverse=True)
+        return scored[:top_k]
+
+
+# ---------------------------------------------------------------------------
+# Demand corpus — loaded from real intake store + projects
 # ---------------------------------------------------------------------------
 _demand_corpus: list[dict[str, Any]] = []
 _corpus_initialized = False
@@ -38,6 +185,8 @@ def _ensure_corpus() -> None:
         for item in items:
             if isinstance(item, dict):
                 _demand_corpus.append(item)
+            elif hasattr(item, "model_dump"):
+                _demand_corpus.append(item.model_dump())
     except Exception as exc:
         logger.debug("Intake store unavailable for corpus: %s", exc)
 
@@ -49,7 +198,7 @@ def _ensure_corpus() -> None:
             "title": getattr(p, "name", ""),
             "description": getattr(p, "description", "") if hasattr(p, "description") else "",
             "status": getattr(p, "status", "completed"),
-            "category": getattr(p, "methodology", "operational"),
+            "category": getattr(p, "methodology", {}).get("type", "operational") if isinstance(getattr(p, "methodology", None), dict) else "operational",
         })
 
 
@@ -79,6 +228,7 @@ class ClassificationResult(BaseModel):
     category: str
     confidence: float
     all_scores: dict[str, float]
+    method: str = "fallback"
 
 
 class BusinessCaseRequest(BaseModel):
@@ -97,7 +247,7 @@ class BusinessCaseSkeleton(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Similarity: Jaccard (baseline) + optional vector store (semantic)
+# Jaccard similarity (kept as supplementary signal)
 # ---------------------------------------------------------------------------
 
 def _jaccard_similarity(text_a: str, text_b: str) -> float:
@@ -110,55 +260,42 @@ def _jaccard_similarity(text_a: str, text_b: str) -> float:
     return len(intersection) / len(union) if union else 0.0
 
 
-def _compute_text_embedding(text: str) -> np.ndarray:
-    """Simple TF-IDF-like embedding for semantic similarity without external model."""
-    words = text.lower().split()
-    # Create a deterministic hash-based embedding vector (dimension 64)
-    vec = np.zeros(64, dtype=np.float32)
-    for word in words:
-        h = int(hashlib.md5(word.encode()).hexdigest(), 16)
-        for i in range(64):
-            vec[i] += ((h >> i) & 1) * 2 - 1
-    norm = np.linalg.norm(vec)
-    if norm > 0:
-        vec /= norm
-    return vec
-
-
-def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
-    dot = float(np.dot(a, b))
-    norm_a = float(np.linalg.norm(a))
-    norm_b = float(np.linalg.norm(b))
-    if norm_a == 0 or norm_b == 0:
-        return 0.0
-    return dot / (norm_a * norm_b)
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
 
 
 @router.post("/api/intake/check-duplicates")
 async def check_duplicates(request: DuplicateCheckRequest) -> list[DuplicateMatch]:
-    _ensure_corpus()
+    """Find duplicate/similar demands using vector similarity + Jaccard."""
     combined = f"{request.title} {request.description}"
-    query_embedding = _compute_text_embedding(combined)
+    index = _get_search_index()
+
     matches: list[DuplicateMatch] = []
+    seen_ids: set[str] = set()
 
-    for demand in _demand_corpus:
-        existing_text = f"{demand.get('title', '')} {demand.get('description', '')}"
-        if not existing_text.strip():
+    # Vector search for top candidates
+    vector_results = index.search(combined, top_k=10)
+    for result in vector_results:
+        demand = result.metadata
+        demand_id = demand.get("id", "unknown")
+        if demand_id in seen_ids:
             continue
+        seen_ids.add(demand_id)
 
-        # Use both Jaccard and embedding similarity, take max
+        existing_text = f"{demand.get('title', '')} {demand.get('description', '')}"
         jaccard = _jaccard_similarity(combined, existing_text)
-        existing_embedding = _compute_text_embedding(existing_text)
-        cosine = _cosine_similarity(query_embedding, existing_embedding)
-        score = max(jaccard, cosine * 0.8)  # Weight cosine slightly lower
 
-        if score > 0.15:
+        # Combine vector score and Jaccard (weighted average)
+        combined_score = result.score * 0.7 + jaccard * 0.3
+
+        if combined_score > 0.15:
             matches.append(DuplicateMatch(
-                demand_id=demand.get("id", "unknown"),
+                demand_id=demand_id,
                 title=demand.get("title", ""),
                 description=demand.get("description", "")[:200],
                 status=demand.get("status", "unknown"),
-                similarity_score=round(score, 3),
+                similarity_score=round(combined_score, 3),
             ))
 
     matches.sort(key=lambda m: m.similarity_score, reverse=True)
@@ -167,8 +304,9 @@ async def check_duplicates(request: DuplicateCheckRequest) -> list[DuplicateMatc
 
 @router.post("/api/intake/auto-classify")
 async def auto_classify(request: ClassifyRequest) -> ClassificationResult:
-    """Auto-classify using LLM when available, keyword matching as fallback."""
-    # Try LLM classification first
+    """Auto-classify using LLM → NaiveBayes → keyword matching fallback chain."""
+
+    # Tier 1: LLM classification
     llm_result = await llm_complete_json(
         "You are a demand classifier for a PPM system. "
         "Classify the description into exactly one category: "
@@ -184,9 +322,21 @@ async def auto_classify(request: ClassifyRequest) -> ClassificationResult:
             category=llm_result["category"],
             confidence=float(llm_result.get("confidence", 0.8)),
             all_scores=llm_result.get("all_scores", {llm_result["category"]: 0.8}),
+            method="llm",
         )
 
-    # Fallback: keyword-based classification
+    # Tier 2: NaiveBayes classifier
+    classifier = _get_classifier()
+    if classifier is not None:
+        best_label, probabilities = classifier.predict(request.description)
+        return ClassificationResult(
+            category=best_label,
+            confidence=round(probabilities.get(best_label, 0.5), 3),
+            all_scores={k: round(v, 3) for k, v in probabilities.items()},
+            method="naive_bayes",
+        )
+
+    # Tier 3: Keyword-based classification
     text = request.description.lower()
     keyword_map = {
         "strategic": ["transform", "innovate", "competitive", "market", "growth", "ai", "cloud", "digital", "strategy"],
@@ -211,6 +361,7 @@ async def auto_classify(request: ClassifyRequest) -> ClassificationResult:
         category=best_cat,
         confidence=round(min(confidence * 3, 0.95), 2),
         all_scores=scores,
+        method="keyword",
     )
 
 

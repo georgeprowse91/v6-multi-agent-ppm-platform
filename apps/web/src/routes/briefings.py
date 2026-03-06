@@ -135,6 +135,13 @@ async def generate_briefing(request: BriefingRequest) -> BriefingResponse:
 
     sections = _parse_sections(content)
 
+    # If LLM content had no parseable sections, regenerate with structured fallback
+    if not sections:
+        content = _generate_fallback_briefing(
+            audience_label, generated_at, request.sections, portfolio_data,
+        )
+        sections = _parse_sections(content)
+
     briefing = BriefingResponse(
         briefing_id=briefing_id,
         title=f"Portfolio Briefing — {audience_label}",
@@ -143,11 +150,13 @@ async def generate_briefing(request: BriefingRequest) -> BriefingResponse:
         content=content,
         sections=sections,
         metadata={
+            "generated_at": generated_at,
+            "audience": request.audience,
             "portfolio_id": request.portfolio_id,
             "tone": request.tone,
             "format": request.format,
             "project_count": portfolio_data["project_count"],
-            "llm_generated": bool(llm_content),
+            "llm_generated": bool(llm_content and sections),
         },
     )
 

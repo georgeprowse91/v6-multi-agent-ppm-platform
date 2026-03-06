@@ -24,7 +24,10 @@ os.environ.setdefault("IDENTITY_JWT_SECRET", "ci-test-default-secret-32chars!!")
 # their auth middleware when running under the test harness.
 os.environ.setdefault("AUTH_DEV_MODE", "true")
 
-import jwt
+try:
+    import jwt
+except Exception:  # cryptography pyo3 panic or missing package
+    jwt = None  # type: ignore[assignment]
 import pytest
 
 CI_OPTIONAL_TEST_DEPENDENCIES = {
@@ -420,6 +423,8 @@ def _reset_api_rate_limiter():
 
 @pytest.fixture
 def auth_headers(monkeypatch):
+    if jwt is None:
+        pytest.skip("PyJWT not available (cryptography broken)")
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
     token = jwt.encode(
         {

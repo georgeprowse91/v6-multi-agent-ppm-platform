@@ -1,4 +1,8 @@
-"""Tests for security posture endpoints (Enhancement 9)."""
+"""Tests for security posture endpoints (Enhancement 9).
+
+Tests cover posture scoring, policy evaluation with real condition engine,
+classification tracking, and policy CRUD.
+"""
 
 from __future__ import annotations
 
@@ -38,6 +42,7 @@ def test_security_posture(client):
     assert "posture_score" in data
     assert 0 <= data["posture_score"] <= 100
     assert "compliance_checks" in data
+    assert data["policy_count"] > 0
 
 
 def test_list_policies(client):
@@ -48,7 +53,7 @@ def test_list_policies(client):
     assert all("policy_id" in p for p in policies)
 
 
-def test_test_policy(client):
+def test_test_policy_deny(client):
     resp = client.post(
         "/api/security/policies/test",
         json={
@@ -70,9 +75,64 @@ def test_test_policy(client):
     assert resp.json()["decision"] == "deny"
 
 
+def test_test_policy_allow_when_no_match(client):
+    """Policy with conditions that don't match should allow."""
+    resp = client.post(
+        "/api/security/policies/test",
+        json={
+            "policy": {
+                "policy_id": "test-pol-2",
+                "name": "Test2",
+                "description": "test",
+                "effect": "deny",
+                "subjects": {},
+                "resources": {},
+                "actions": ["read"],
+                "conditions": [{"field": "subject.role", "operator": "equals", "value": "admin"}],
+                "enabled": True,
+            },
+            "context": {"subject": {"role": "viewer"}},
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["decision"] == "allow"
+
+
+def test_test_policy_not_between(client):
+    """Test the not_between operator for time-based policies."""
+    resp = client.post(
+        "/api/security/policies/test",
+        json={
+            "policy": {
+                "policy_id": "test-time",
+                "name": "Time Policy",
+                "description": "test",
+                "effect": "deny",
+                "conditions": [{"field": "request.hour", "operator": "not_between", "value": [8, 18]}],
+            },
+            "context": {"request": {"hour": 22}},
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.json()["decision"] == "deny"
+
+
 def test_classification_stats(client):
     resp = client.get("/api/security/classification-stats")
     assert resp.status_code == 200
     data = resp.json()
     assert "public" in data
     assert "restricted" in data
+
+
+def test_classify_entity(client):
+    resp = client.post(
+        "/api/security/classify-entity",
+        json={"entity_type": "project", "entity_id": "proj-001", "classification": "confidential"},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "applied"
+
+    # Verify it shows up in stats
+    stats = client.get("/api/security/classification-stats").json()
+    assert stats["confidential"] >= 1

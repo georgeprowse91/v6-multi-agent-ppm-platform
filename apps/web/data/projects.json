@@ -1,3 +1,172 @@
 {
-  "projects": []
+  "projects": [
+    {
+      "id": "proj-c25b51fd",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T11:22:14.860962+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-57671340",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T11:22:15.391623+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-9c7c3be3",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T11:23:39.410108+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-e7dbeb98",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T11:23:40.032582+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-385ba852",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T11:25:27.467468+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-ba286477",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T11:25:28.078177+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-03a86442",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T11:25:42.337612+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-e67931fd",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T11:25:42.968168+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    }
+  ]
 }
