@@ -24,9 +24,9 @@ updated: "2026-02-11"
 ---
 ## Related Templates
 
-**📝 For Tactical Execution**: Use this strategic framework in conjunction with the [UAT Plan Template](uat_plan_template.md) for detailed tactical execution planning.
+**📝 For Tactical Execution**: Use this strategic framework in conjunction with the UAT Plan Template for detailed tactical execution planning.
 
-**🔄 Template Usage Flow**: Strategy (this template) → [Plan](uat_plan_template.md) → Execution
+**🔄 Template Usage Flow**: Strategy (this template) → Plan → Execution
 
 ---
 ## 1. Executive Summary

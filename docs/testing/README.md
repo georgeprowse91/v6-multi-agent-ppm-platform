@@ -13,7 +13,7 @@
 
 **Owner:** QA Lead
 **Last reviewed:** 2026-02-20
-**Related docs:** [Implementation and Change Plan](../change-management/README.md#implementation-and-change-plan) · [Requirements Specification](../01-product-definition/requirements-specification.md) · [Agent System Design](../02-solution-design/agent-system-design.md)
+**Related docs:** [Readme](README.md#implementation-and-change-plan) · Requirements Specification · Agent System Design
 
 > **Migration note:** Lifted and shifted from `acceptance-criteria.md` on 2026-02-20. This is the canonical quality gate definition for the platform.
 

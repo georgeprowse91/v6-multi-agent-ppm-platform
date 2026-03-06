@@ -13,10 +13,10 @@ This folder contains a canonical, modular template system:
 4. **Check migration notes** if coming from legacy Markdown templates.
 
 Useful links:
-- Base templates: [`core/`](./core/)
-- Methodology extensions: [`extensions/`](./extensions/)
-- Migration table (legacy → canonical): [`standards/template-naming-rules.md#4-examples-legacy--canonical-mappings`](./standards/template-naming-rules.md#4-examples-legacy--canonical-mappings)
-- Deprecation policy: [`standards/index-governance.md#deprecate-or-retire-a-template`](./standards/index-governance.md#deprecate-or-retire-a-template)
+- Base templates: [](./core/)
+- Methodology extensions: [](./extensions/)
+- Migration table (legacy → canonical): [Template Naming Rules](./standards/template-naming-rules.md#4-examples-legacy--canonical-mappings#4-examples-legacy--canonical-mappings)
+- Deprecation policy: [Index Governance](./standards/index-governance.md#deprecate-or-retire-a-template#deprecate-or-retire-a-template)
 - Retirement changelog: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## Legacy transition policy (redirect stubs)
@@ -92,13 +92,13 @@ The following aliases are maintained as **one-to-one** mappings to canonical tem
 
 ### Adaptive extensions
 
-- [product-backlog.adaptive.v1](./extensions/adaptive/product-backlog.patch.yaml)
-- [project-charter.adaptive.v1](./extensions/adaptive/project-charter.patch.yaml)
-- [risk-register.adaptive.v1](./extensions/adaptive/risk-register.patch.yaml)
-- [sprint-planning.adaptive.v1](./extensions/adaptive/sprint-planning.patch.yaml)
-- [sprint-retrospective.adaptive.v1](./extensions/adaptive/sprint-retrospective.patch.yaml)
-- [sprint-review.adaptive.v1](./extensions/adaptive/sprint-review.patch.yaml)
-- [status-report.adaptive.v1](./extensions/adaptive/status-report.patch.yaml)
+- [Product Backlog.patch](extensions/agile/product-backlog.patch.yaml)
+- [Project Charter.patch](extensions/compliance/privacy/project-charter.patch.yaml)
+- [Risk Register.patch](extensions/agile/risk-register.patch.yaml)
+- [Sprint Planning.patch](extensions/agile/sprint-planning.patch.yaml)
+- [Sprint Retrospective.patch](extensions/agile/sprint-retrospective.patch.yaml)
+- [Sprint Review.patch](extensions/agile/sprint-review.patch.yaml)
+- [Status Report.patch](extensions/waterfall/status-report.patch.yaml)
 
 ### SAFe extensions
 
@@ -135,10 +135,10 @@ The following aliases are maintained as **one-to-one** mappings to canonical tem
 
 ### Predictive extensions
 
-- [project-charter.predictive.v1](./extensions/predictive/project-charter.patch.yaml)
-- [project-management-plan.predictive.v1](./extensions/predictive/project-management-plan.patch.yaml)
-- [requirements.predictive.v1](./extensions/predictive/requirements.patch.yaml)
-- [status-report.predictive.v1](./extensions/predictive/status-report.patch.yaml)
+- [Project Charter.patch](extensions/compliance/privacy/project-charter.patch.yaml)
+- [Project Management Plan.patch](extensions/waterfall/project-management-plan.patch.yaml)
+- [Requirements.patch](extensions/waterfall/requirements.patch.yaml)
+- [Status Report.patch](extensions/waterfall/status-report.patch.yaml)
 
 ## Related standards
 

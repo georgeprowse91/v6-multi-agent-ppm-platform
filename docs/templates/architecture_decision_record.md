@@ -268,7 +268,7 @@ While the NoSQL option offered some advantages in terms of scaling and flexibili
 ## References
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [AWS RDS for PostgreSQL Best Practices](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_BestPractices.html)
-- [Internal Performance Benchmarking Results](link-to-internal-doc)
+- Internal Performance Benchmarking Results
 ```
 
 ### Example 2: API Architecture Pattern
@@ -417,7 +417,7 @@ This approach aligns well with our team structure, where we have dedicated teams
 ## References
 - [Microsoft BFF Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/backends-for-frontends)
 - [Kong API Gateway Documentation](https://docs.konghq.com/)
-- [Internal API Design Guidelines](link-to-internal-doc)
+- Internal API Design Guidelines
 ```
 
 ---

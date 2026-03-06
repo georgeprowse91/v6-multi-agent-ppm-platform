@@ -190,10 +190,10 @@ This Decision Authority Matrix (DAM) defines who has the authority to make speci
 ## Templates and Tools
 
 ### Related Documents
-- [Decision Log Template](../essential-templates/decision-log.md)
+- [Decision Log](decision-log.md)
 - [Governance Charter](governance-charter.md)
 - [Escalation Matrix](escalation-matrix.md)
-- [RACI Decision Matrix](raci-decisions.md)
+- RACI Decision Matrix
 
 ### Decision Support Tools
 - Decision trees for complex scenarios

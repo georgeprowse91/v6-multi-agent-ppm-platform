@@ -275,10 +275,10 @@ Located in: `MPP-Jira-Integration/`
 ## 🔗 **Related Resources**
 
 ### **Within This Repository:**
-- [`/Adaptive/`](../Adaptive/) - Pure adaptive methodology templates and tools
-- [`/Traditional/`](../Traditional/) - Traditional-aligned project management
-- [`/role-based-toolkits/`](../role-based-toolkits/) - Role-specific hybrid tools
-- [`/methodology-frameworks/`](../methodology-frameworks/) - Comparative methodology guidance
+- `/Adaptive/` - Pure adaptive methodology templates and tools
+- `/Traditional/` - Traditional-aligned project management
+- `/role-based-toolkits/` - Role-specific hybrid tools
+- `/methodology-frameworks/` - Comparative methodology guidance
 
 ### **External Standards & Frameworks:**
 - [SAFe (Scaled Adaptive Framework)](https://scaledagileframework.com/) - Enterprise adaptive scaling

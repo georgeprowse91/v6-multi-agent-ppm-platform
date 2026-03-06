@@ -266,10 +266,10 @@ pm-generate --methodology=adaptive --project-type=software --team-size=8
 ## 🔗 **Related Resources**
 
 ### **Within This Repository:**
-- [`/templates/`](../templates/) - Templates that integrate with tools
-- [`/integration-toolkits/`](../integration-toolkits/) - Pre-built integration solutions
-- [`/automation/`](../automation/) - Advanced automation frameworks
-- [`/docs/api/`](../docs/api/) - API documentation for tool development
+- [Templates](README.md) - Templates that integrate with tools
+- [Integration Toolkits](integration-toolkits.md) - Pre-built integration solutions
+- `/automation/` - Advanced automation frameworks
+- `/docs/api/` - API documentation for tool development
 
 ### **External Tool Resources:**
 - **GitHub** - Open source PM tools and utilities

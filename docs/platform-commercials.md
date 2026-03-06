@@ -5,7 +5,7 @@ This document is the canonical reference for all commercial, market, and sales c
 **Owner:** Commercial Lead / Product Management
 **Last reviewed:** 2026-03-01
 
-> **Implementation alignment:** This document is commercial collateral. Validate feature claims against the current implementation in [solution-index.md](solution-index.md) and [architecture/README.md](architecture/README.md) before using them in customer commitments.
+> **Implementation alignment:** This document is commercial collateral. Validate feature claims against the current implementation in [Solution Index](solution-index.md) and [Readme](architecture/README.md) before using them in customer commitments.
 
 ---
 
@@ -381,18 +381,18 @@ For highly regulated sectors that cannot use cloud services. Perpetual licence w
 
 | Collateral | Location |
 |---|---|
-| Product narrative and value proposition | [platform-description.md](platform-description.md) |
-| Agent capabilities (25 agents) | [agents/README.md](agents/README.md) |
-| Connector ecosystem | [connectors/README.md](connectors/README.md) |
-| Architecture and security | [architecture/README.md](architecture/README.md) |
-| Compliance and regulatory | [compliance/README.md](compliance/README.md) |
+| Product narrative and value proposition | [Platform Description](platform-description.md) |
+| Agent capabilities (25 agents) | [Readme](README.md) |
+| Connector ecosystem | [Readme](connectors/README.md) |
+| Architecture and security | [Readme](architecture/README.md) |
+| Compliance and regulatory | [Readme](README.md) |
 
 ### Messaging Guardrails
 
-- Do not make hard numeric connector claims unless validated against the current [connectors/README.md](connectors/README.md).
+- Do not make hard numeric connector claims unless validated against the current [Readme](connectors/README.md).
 - Position deployment options as currently documented: managed SaaS and private-cloud options are primary; other models are roadmap/strategic.
-- Validate implementation-sensitive claims against [architecture/README.md](architecture/README.md) and [runbooks/README.md](runbooks/README.md) before external use.
-- All agent capability claims should reference [agents/README.md](agents/README.md) for accuracy.
+- Validate implementation-sensitive claims against [Readme](architecture/README.md) and [Readme](README.md) before external use.
+- All agent capability claims should reference [Readme](README.md) for accuracy.
 
 ---
 

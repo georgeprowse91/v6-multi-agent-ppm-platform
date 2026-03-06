@@ -844,11 +844,11 @@ Annual Assessment:
 ---
 
 ## Related Templates
-- [CI/CD Pipeline Planning](./cicd_pipeline_planning_template.md)
+- [Cicd Pipeline Planning Template](./cicd_pipeline_planning_template.md)
 - [Release Management Workflow](./release_management_template.md)
 - [DevSecOps Integration](./devsecops_template.md)
 - [Infrastructure as Code](./infrastructure_as_code_template.md)
-- [Site Reliability Engineer Toolkit](../../role-based-toolkits/sre/README.md)
+- [Readme](README.md)
 
 ---
 
@@ -859,5 +859,5 @@ Annual Assessment:
 
 ---
 
-*This template is part of the PM Tools Templates library. For more information and additional templates, visit [repository root](../../../README.md).*
+*This template is part of the PM Tools Templates library. For more information and additional templates, visit [Readme](README.md).*
 

@@ -9,11 +9,11 @@ The Adaptive-Scrum framework provides a structured yet flexible approach to proj
 <a id="what-youll-find-here"></a>
 ## 📋 What You'll Find Here
 
-- **[Core Framework](core-framework/)** - Essential Scrum components and practices
-- **[Scaling Frameworks](scaling-frameworks/)** - SAFe, LeSS, and enterprise approaches
-- **[Team Practices](team-practices/)** - Development and collaboration techniques
-- **[Metrics & Measurement](metrics-measurement/)** - Adaptive performance indicators
-- **[Transition Support](transition-support/)** - Moving from traditional to Adaptive
+- **Core Framework** - Essential Scrum components and practices
+- **Scaling Frameworks** - SAFe, LeSS, and enterprise approaches
+- **Team Practices** - Development and collaboration techniques
+- **Metrics & Measurement** - Adaptive performance indicators
+- **Transition Support** - Moving from traditional to Adaptive
 
 ---
 <a id="framework-overview"></a>
@@ -238,20 +238,20 @@ The Adaptive-Scrum framework provides a structured yet flexible approach to proj
 
 <a id="measurement-improvement"></a>
 ### Implementation Support
-1. **[Quick Start Kits](../../quick-start-kits/adaptive-transformation/)** - Transformation roadmap and tools
-2. **[Role-Based Toolkits](../../role-based-toolkits/)** - Specific guidance for Scrum roles
-3. **[Project Lifecycle](../../project-lifecycle/)** - Integration with traditional project phases
+1. **Quick Start Kits** - Transformation roadmap and tools
+2. **Role-Based Toolkits** - Specific guidance for Scrum roles
+3. **Project Lifecycle** - Integration with traditional project phases
 
 ### Advanced Topics
 <a id="success-factors"></a>
-1. **[Scaling Frameworks](scaling-frameworks/)** - Enterprise Adaptive approaches
-2. **[DevOps Integration](../emerging-methods/devops/)** - Technical excellence practices
-3. **[Hybrid Approaches](../hybrid-approaches/)** - Combining Adaptive with traditional methods
+1. **Scaling Frameworks** - Enterprise Adaptive approaches
+2. **DevOps Integration** - Technical excellence practices
+3. **Hybrid Approaches** - Combining Adaptive with traditional methods
 
 ### Measurement & Improvement
-1. **[Analytics Platform](../../analytics-platform/)** - Adaptive metrics and dashboards
-2. **[Progress Tracking](../../project-lifecycle/04-monitoring-control/progress-tracking/)** - Performance monitoring
-3. **[Quality Management](../../project-lifecycle/02-planning/quality-management/)** - Quality assurance integration
+1. **Analytics Platform** - Adaptive metrics and dashboards
+2. **Progress Tracking** - Performance monitoring
+3. **Quality Management** - Quality assurance integration
 
 ---
 

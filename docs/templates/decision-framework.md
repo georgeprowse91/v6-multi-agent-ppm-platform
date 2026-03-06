@@ -24,9 +24,9 @@ Step-by-step instructions for using this template.
 - Regular updates and maintenance
 
 ## Related Templates
-- [Project Charter](../project-charter/)
-- [Risk Management](../risk-management/)
-- [Communication Plan](../communication-plan/)
+- Project Charter
+- Risk Management
+- [Communication Plan](communication-plan.md)
 
 ## Version History
 - v1.0 - Initial template creation

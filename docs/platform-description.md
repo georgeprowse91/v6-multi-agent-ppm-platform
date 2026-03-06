@@ -54,7 +54,7 @@ At its heart, the platform is built around three ideas:
 
 2. **AI is the primary interface.** Users do not have to learn complex menus or know which agent to invoke. They simply describe what they need in plain English, and an orchestration layer routes that request to the right combination of specialist agents, assembles a coherent response, and presents it in the workspace.
 
-3. **Agents are the workforce.** Behind the natural language interface is a network of 25 specialised AI agents, each responsible for a specific domain of project and portfolio management. They collaborate automatically, take direction from users, and can act autonomously on routine tasks -- freeing delivery teams to focus on work that requires human judgement. For full agent specifications, see [agents/README.md](agents/README.md).
+3. **Agents are the workforce.** Behind the natural language interface is a network of 25 specialised AI agents, each responsible for a specific domain of project and portfolio management. They collaborate automatically, take direction from users, and can act autonomously on routine tasks -- freeing delivery teams to focus on work that requires human judgement. For full agent specifications, see [Readme](README.md).
 
 ### Product Scope
 
@@ -69,7 +69,7 @@ The platform covers the full project and portfolio lifecycle:
 - **Project delivery** -- charter generation, scope management, scheduling, resource management, financial tracking, vendor procurement, quality assurance, risk and issue management, compliance, change management, release management, and knowledge management.
 - **Platform operations** -- workflow automation, analytics and reporting, data synchronisation, system health monitoring.
 - **Governance** -- stage-gate enforcement, approval workflows, audit logging, RBAC.
-- **Connectors** -- bi-directional integration with enterprise systems across PPM, ERP, HRIS, collaboration, and GRC categories. For the full connector catalog, see [connectors/README.md](connectors/README.md).
+- **Connectors** -- bi-directional integration with enterprise systems across PPM, ERP, HRIS, collaboration, and GRC categories. For the full connector catalog, see [Readme](connectors/README.md).
 
 #### Out of Scope
 
@@ -81,7 +81,7 @@ The platform covers the full project and portfolio lifecycle:
 
 The repository contains a working implementation of the core execution stack: API gateway, orchestration service, workflow service, agent runtime, 14 FastAPI Python microservices, a React 18 web console with methodology navigation and assistant panel, and a React Native mobile application. The platform runs on PostgreSQL 15 and Redis 7, with Azure OpenAI providing LLM capabilities via LangChain.
 
-For architecture details, see [architecture/README.md](architecture/README.md). For the cross-cutting solution index, see [solution-index.md](solution-index.md). Validate any feature claims in commercial collateral against these references before using them in delivery commitments.
+For architecture details, see [Readme](architecture/README.md). For the cross-cutting solution index, see [Solution Index](solution-index.md). Validate any feature claims in commercial collateral against these references before using them in delivery commitments.
 
 ### Core Value Proposition
 
@@ -97,11 +97,11 @@ For architecture details, see [architecture/README.md](architecture/README.md). 
 
 **Methodology as Navigation:** Unlike generic PPM tools that rely on static menus, this platform turns the methodology itself into the navigation mechanism. Users always know what step they are on and what deliverables are required. See [User Journeys and Stage Gates](#user-journeys-and-stage-gates) for the operational detail.
 
-**AI-Native Architecture:** The AI assistant is not a bolt-on; it is the primary interface. Agents use large language models and machine-learning algorithms to interpret intent, generate content, optimise portfolios and predict outcomes. See [architecture/README.md](architecture/README.md) for technical depth.
+**AI-Native Architecture:** The AI assistant is not a bolt-on; it is the primary interface. Agents use large language models and machine-learning algorithms to interpret intent, generate content, optimise portfolios and predict outcomes. See [Readme](architecture/README.md) for technical depth.
 
-**Modular Agents and Connector Marketplace:** Organisations can enable only the agents they need and connect to their existing tools. New agents can be added to support emerging use cases without rewriting core code. See [agents/README.md](agents/README.md) and [connectors/README.md](connectors/README.md).
+**Modular Agents and Connector Marketplace:** Organisations can enable only the agents they need and connect to their existing tools. New agents can be added to support emerging use cases without rewriting core code. See [Readme](README.md) and [Readme](connectors/README.md).
 
-**Embedded Governance and Compliance:** The platform embeds stage-gates, approval workflows, RBAC, audit trails and compliance checks into every process. It is designed to satisfy regulatory requirements such as Privacy Act 1988 (APPs), Australian ISM/PSPF and APRA CPS 234. See [compliance/README.md](compliance/README.md) for controls mapping and evidence guides.
+**Embedded Governance and Compliance:** The platform embeds stage-gates, approval workflows, RBAC, audit trails and compliance checks into every process. It is designed to satisfy regulatory requirements such as Privacy Act 1988 (APPs), Australian ISM/PSPF and APRA CPS 234. See [Readme](README.md) for controls mapping and evidence guides.
 
 **Continuous Improvement:** Built-in process mining and lessons-learned capture enable organisations to refine their methodologies over time and increase project success rates.
 
@@ -111,7 +111,7 @@ AI is transforming every knowledge-intensive profession, and project and portfol
 
 The Multi-Agent PPM Platform represents a considered, production-ready answer to that question. It is not a single AI feature bolted onto an existing tool. It is an architecture built from the ground up around the idea that AI agents, working together and in concert with human judgement, can transform the quality and efficiency of project delivery.
 
-For market data and research supporting this positioning, see [platform-commercials.md](platform-commercials.md).
+For market data and research supporting this positioning, see [Platform Commercials](platform-commercials.md).
 
 ---
 
@@ -121,7 +121,7 @@ This section defines the functional and non-functional requirements for the Mult
 
 ### Background and Context
 
-The PPM software market is experiencing double-digit growth, and AI adoption in project management is accelerating but uneven. For full market data, research citations, and AI adoption statistics, see [platform-commercials.md](platform-commercials.md).
+The PPM software market is experiencing double-digit growth, and AI adoption in project management is accelerating but uneven. For full market data, research citations, and AI adoption statistics, see [Platform Commercials](platform-commercials.md).
 
 The Multi-Agent PPM Platform addresses these challenges by orchestrating 25 specialised agents via a conversational AI assistant, embedding governance into methodology maps and integrating seamlessly with existing systems of record. The platform aims to reduce manual effort, improve decision-making and increase project success rates.
 
@@ -599,29 +599,29 @@ This section provides a cross-methodology catalog of project management template
 
 | Artefact | Purpose | Agent | Template Path |
 |---|---|---|---|
-| Demand intake request | Capture intake data for triage | Demand Intake | [templates/README.md](templates/README.md) |
-| Business case | Document investment rationale | Business Case | [templates/README.md](templates/README.md) |
-| Business case update report | Compare actuals vs plan | Business Case | [templates/README.md](templates/README.md) |
-| Product strategy canvas | Vision, market context, roadmap | Portfolio Optimisation | [templates/README.md](templates/README.md) |
-| ROI/NPV worksheet | Calculate ROI and NPV assumptions | Business Case | [templates/README.md](templates/README.md) |
-| Assumption log | Track project assumptions | Business Case, Risk Management | [templates/README.md](templates/README.md) |
-| Variance report | Track schedule/cost variance | Schedule Planning | [templates/README.md](templates/README.md) |
-| Executive dashboard status report | Health, decisions, value summary | Stakeholder Communications | [templates/README.md](templates/README.md) |
-| Milestone review | Formal gate or go/no-go review | Lifecycle Governance | [templates/README.md](templates/README.md) |
-| Risk report | Top risks and exposure trends | Risk Management | [templates/README.md](templates/README.md) |
-| Schedule risk analysis | Quantify schedule risk | Schedule Planning, Risk Management | [templates/README.md](templates/README.md) |
-| Quality report | Quality performance and defects | Quality Management | [templates/README.md](templates/README.md) |
-| Change request | Submit changes for approval | Change Control | [templates/README.md](templates/README.md) |
-| Change impact assessment | Analyse change impacts | Change Control | [templates/README.md](templates/README.md) |
-| Lessons learned register | Outcomes, root causes, recommendations | Continuous Improvement | [templates/README.md](templates/README.md) |
-| Scope baseline | Scope statement, WBS, dictionary | Scope Definition | [templates/README.md](templates/README.md) |
-| Project management plan | Integrate subsidiary plans | Lifecycle Governance | [templates/README.md](templates/README.md) |
-| Resource management plan | Resource estimation and acquisition | Resource Management | [templates/README.md](templates/README.md) |
-| Risk management plan | Risk governance and analysis | Risk Management | [templates/README.md](templates/README.md) |
-| Procurement management plan | Sourcing strategy and contracts | Vendor Procurement | [templates/README.md](templates/README.md) |
-| RACI matrix | Responsibilities and decision rights | Resource Management | [templates/README.md](templates/README.md) |
-| Communications plan | Stakeholder communications | Stakeholder Communications | [templates/README.md](templates/README.md) |
-| Stakeholder analysis and mapping | Identify and analyse stakeholders | Stakeholder Communications | [templates/README.md](templates/README.md) |
+| Demand intake request | Capture intake data for triage | Demand Intake | [Readme](templates/README.md) |
+| Business case | Document investment rationale | Business Case | [Readme](templates/README.md) |
+| Business case update report | Compare actuals vs plan | Business Case | [Readme](templates/README.md) |
+| Product strategy canvas | Vision, market context, roadmap | Portfolio Optimisation | [Readme](templates/README.md) |
+| ROI/NPV worksheet | Calculate ROI and NPV assumptions | Business Case | [Readme](templates/README.md) |
+| Assumption log | Track project assumptions | Business Case, Risk Management | [Readme](templates/README.md) |
+| Variance report | Track schedule/cost variance | Schedule Planning | [Readme](templates/README.md) |
+| Executive dashboard status report | Health, decisions, value summary | Stakeholder Communications | [Readme](templates/README.md) |
+| Milestone review | Formal gate or go/no-go review | Lifecycle Governance | [Readme](templates/README.md) |
+| Risk report | Top risks and exposure trends | Risk Management | [Readme](templates/README.md) |
+| Schedule risk analysis | Quantify schedule risk | Schedule Planning, Risk Management | [Readme](templates/README.md) |
+| Quality report | Quality performance and defects | Quality Management | [Readme](templates/README.md) |
+| Change request | Submit changes for approval | Change Control | [Readme](templates/README.md) |
+| Change impact assessment | Analyse change impacts | Change Control | [Readme](templates/README.md) |
+| Lessons learned register | Outcomes, root causes, recommendations | Continuous Improvement | [Readme](templates/README.md) |
+| Scope baseline | Scope statement, WBS, dictionary | Scope Definition | [Readme](templates/README.md) |
+| Project management plan | Integrate subsidiary plans | Lifecycle Governance | [Readme](templates/README.md) |
+| Resource management plan | Resource estimation and acquisition | Resource Management | [Readme](templates/README.md) |
+| Risk management plan | Risk governance and analysis | Risk Management | [Readme](templates/README.md) |
+| Procurement management plan | Sourcing strategy and contracts | Vendor Procurement | [Readme](templates/README.md) |
+| RACI matrix | Responsibilities and decision rights | Resource Management | [Readme](templates/README.md) |
+| Communications plan | Stakeholder communications | Stakeholder Communications | [Readme](templates/README.md) |
+| Stakeholder analysis and mapping | Identify and analyse stakeholders | Stakeholder Communications | [Readme](templates/README.md) |
 
 ### Methodology Variants
 
@@ -642,7 +642,7 @@ This section provides a cross-methodology catalog of project management template
 | Decision log | | | Yes |
 | Closure report | | Yes | Yes |
 
-For the complete set of template files, see [templates/README.md](templates/README.md).
+For the complete set of template files, see [Readme](templates/README.md).
 
 ---
 

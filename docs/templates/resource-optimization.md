@@ -399,10 +399,10 @@ skill_gaps = optimizer.analyze_skill_gaps(
 ## Support and Documentation
 
 ### API Resources
-- [Integration Guide](./integration-guide.md)
-- [Best Practices](./best-practices.md)
-- [Sample Code](./examples/)
-- [Troubleshooting](./troubleshooting.md)
+- Integration Guide
+- Best Practices
+- Sample Code
+- Troubleshooting
 
 ### Support Channels
 - **Technical Support:** support@pm-insights.com

@@ -22,5 +22,5 @@ Template for planning disaster recovery for IT infrastructure and systems.
 
 ---
 Related Resources:
-- [Infrastructure Requirements Template](../../../essential-templates/infrastructure/infrastructure-requirements-template.md)
+- [Infrastructure Requirements Template](infrastructure-requirements-template.md)
 - [Infrastructure Assessment Template](./infrastructure_assessment_template.md)

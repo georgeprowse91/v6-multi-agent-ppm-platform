@@ -564,8 +564,8 @@ Weight factors for epic prioritization:
 - [PI Planning Template](./core/sprint-planning/manifest.yaml)
 - [ART Coordination Template](./art_coordination_template.md)
 - [SAFe Metrics Dashboard Template](./metrics_dashboard_template.md)
-- [Epic Business Case Template](./epic_business_case_template.md)
-- [Portfolio Management Role Guide](../../../role-based-toolkits/portfolio-manager/README.md)
+- Epic Business Case Template
+- [Readme](README.md)
 
 ---
 
@@ -592,5 +592,5 @@ Weight factors for epic prioritization:
 
 ---
 
-*This template is part of the PM Tools Templates library. For more information and additional templates, visit [repository root](../../../../README.md).*
+*This template is part of the PM Tools Templates library. For more information and additional templates, visit [Readme](README.md).*
 

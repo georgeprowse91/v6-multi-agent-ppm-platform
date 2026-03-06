@@ -10,10 +10,10 @@ The monitoring and control phase runs parallel to execution, providing the essen
 
 ## 📋 What You'll Find Here
 
-- **[Progress Tracking](progress-tracking/)** - Performance measurement and status reporting
-- **[Issue Management](issue-management/)** - Problem identification and resolution processes
-- **[Performance Measurement](performance-measurement/)** - KPIs, metrics, and analytical frameworks  
-- **[Change Control](change-control/)** - Formal change management procedures
+- **Progress Tracking** - Performance measurement and status reporting
+- **Issue Management** - Problem identification and resolution processes
+- **Performance Measurement** - KPIs, metrics, and analytical frameworks  
+- **Change Control** - Formal change management procedures
 
 <a id="core-monitoring-control-objectives"></a>
 ---
@@ -207,20 +207,20 @@ The monitoring and control phase runs parallel to execution, providing the essen
 ## 🔗 Integration Touchpoints
 
 ### Project Execution Phase
-1. **[Work Management](../03-execution/work-management/)** - Daily coordination and task oversight
-2. **[Team Coordination](../03-execution/team-coordination/)** - Resource allocation and collaboration
-3. **[Quality Assurance](../03-execution/quality-assurance/)** - Deliverable validation and standards
+1. **Work Management** - Daily coordination and task oversight
+2. **Team Coordination** - Resource allocation and collaboration
+3. **Quality Assurance** - Deliverable validation and standards
 
 <a id="best-practices"></a>
 ### Planning Phase Dependencies
-1. **[Scope Management](../02-planning/scope-management/)** - Baseline scope documentation
-2. **[Schedule Planning](../02-planning/schedule-planning/)** - Timeline and milestone definitions
-3. **[Risk Management](../02-planning/risk-management/)** - Risk identification and response plans
+1. **Scope Management** - Baseline scope documentation
+2. **Schedule Planning** - Timeline and milestone definitions
+3. **Risk Management** - Risk identification and response plans
 
 ### Organizational Frameworks
-1. **[Traditional Methodology](../../methodology-frameworks/traditional/)** - Standard monitoring procedures
-2. **[Adaptive-Scrum](../../methodology-frameworks/adaptive-scrum/)** - Sprint reviews and retrospectives
-3. **[Change Management](../../organizational-frameworks/change-management/)** - Organizational change integration
+1. **Traditional Methodology** - Standard monitoring procedures
+2. **Adaptive-Scrum** - Sprint reviews and retrospectives
+3. **[Change Management](../change-management.md)** - Organizational change integration
 
 ---
 

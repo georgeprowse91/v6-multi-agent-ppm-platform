@@ -535,15 +535,15 @@ This document defines the infrastructure requirements for [Project Name]. It spe
 ## Related Documents and Resources
 
 ### Reference Documents
-- [Project Charter](../../project-lifecycle/01-initiation/project-charter/)
-- [Technical Architecture Document](../../essential-templates/technical-architecture/)
-- [Security Requirements](../../essential-templates/security-requirements/)
-- [Budget and Cost Plan](../../project-lifecycle/02-planning/budget-planning/)
+- Project Charter
+- Technical Architecture Document
+- Security Requirements
+- Budget and Cost Plan
 
 ### Infrastructure Templates
 - [Deployment Checklist Template](./core/deployment-checklist/manifest.yaml)
-- [Hybrid Infrastructure Template](../../methodology-frameworks/hybrid/infrastructure/hybrid-infrastructure-template.md)
-- [DevOps Pipeline Template](../../methodology-frameworks/emerging-methods/devops/cicd_pipeline_planning_template.md)
+- [Hybrid Infrastructure Template](hybrid-infrastructure-template.md)
+- [Cicd Pipeline Planning Template](cicd_pipeline_planning_template.md)
 
 ### External Resources
 - [Cloud Architecture Best Practices](https://example.com/cloud-architecture)

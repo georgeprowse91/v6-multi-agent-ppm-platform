@@ -62,5 +62,5 @@ This template provides a comprehensive framework for assessing project governanc
 **Action Items:** [Specific recommendations]
 
 Related Resources:
-- [Governance Tools](../role-based-toolkits/project-manager/governance-tools/)
-- [Decision Authority Matrix](../role-based-toolkits/project-manager/governance-tools/decision-authority.md)
+- Governance Tools
+- [Decision Authority](decision-authority.md)

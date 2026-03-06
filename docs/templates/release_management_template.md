@@ -845,11 +845,11 @@ tool_stack:
 ---
 
 ## Related Templates
-- [CI/CD Pipeline Planning](./cicd_pipeline_planning_template.md)
-- [DevOps Metrics Dashboard](./devops_metrics_template.md)
+- [Cicd Pipeline Planning Template](./cicd_pipeline_planning_template.md)
+- DevOps Metrics Dashboard
 - [Infrastructure as Code](./infrastructure_as_code_template.md)
 - [DevSecOps Integration](./devsecops_template.md)
-- [DevOps Engineer Toolkit](../../role-based-toolkits/devops-engineer/README.md)
+- [Readme](README.md)
 
 ---
 
@@ -860,5 +860,5 @@ tool_stack:
 
 ---
 
-*This template is part of the PM Tools Templates library. For more information and additional templates, visit [repository root](../../../README.md).*
+*This template is part of the PM Tools Templates library. For more information and additional templates, visit [Readme](README.md).*
 

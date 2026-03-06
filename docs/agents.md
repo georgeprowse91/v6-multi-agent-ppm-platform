@@ -46,11 +46,11 @@
 
 | What you need | Where to find it |
 | --- | --- |
-| Detailed agent specs (inputs, outputs, behaviour) | [agent-specifications.md](./agent-specifications.md) |
-| Architecture — how agents orchestrate | [docs/architecture/agent-orchestration.md](../architecture/agent-orchestration.md) |
-| Architecture — runtime lifecycle and state | [docs/architecture/agent-runtime.md](../architecture/agent-runtime.md) |
-| Code-adjacent catalog with links to each agent's README | [agents/AGENT_CATALOG.md](../../agents/AGENT_CATALOG.md) |
-| All agent configuration files | [ops/config/agents/](../../ops/config/agents/) |
+| Detailed agent specs (inputs, outputs, behaviour) | agent-specifications.md |
+| Architecture — how agents orchestrate | docs/architecture/agent-orchestration.md |
+| Architecture — runtime lifecycle and state | [Agent Runtime](generated/services/agent-runtime.md) |
+| Code-adjacent catalog with links to each agent's README | [Agent Catalog](../agents/AGENT_CATALOG.md) |
+| All agent configuration files | [Agents](agents.md) |
 | Agent source code | `agents/{category}/agent-{NN}-{name}/src/` |
 
 ---

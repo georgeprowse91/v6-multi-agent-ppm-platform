@@ -17,7 +17,7 @@
 
 ## Checklist
 
-> Source: [checklist.md](./checklist.md)
+> Source: checklist.md
 
 ### Infrastructure
 
@@ -58,7 +58,7 @@
 
 ## Maturity Model
 
-> Source: [maturity-model.md](./maturity-model.md)
+> Source: maturity-model.md
 
 ### Purpose
 
@@ -66,7 +66,7 @@ Define an objective and enforceable maturity model that converts delivery, opera
 
 ### Dimensions and KPI definitions
 
-The model is encoded in [`ops/ops/config/maturity_model.yaml`](../../ops/ops/config/maturity_model.yaml) and scored by [`ops/tools/collect_maturity_score.py`](../../ops/tools/collect_maturity_score.py).
+The model is encoded in [Maturity Model](../../ops/config/maturity_model.yaml) and scored by [Collect Maturity Score](../../ops/tools/collect_maturity_score.py).
 
 | Dimension | Example KPIs (measurable) | Target intent |
 | --- | --- | --- |
@@ -129,7 +129,7 @@ Publish the JSON and markdown outputs as workflow artifacts so the release decis
 
 ## Assessment
 
-> Source: [production-readiness-assessment.md](./production-readiness-assessment.md)
+> Source: production-readiness-assessment.md
 
 **Date:** 2026-02-27
 **Platform:** Multi-Agent PPM Platform v1.0.0
@@ -318,7 +318,7 @@ Provisions: AKS, PostgreSQL Flexible Server, Redis, Key Vault, Storage (Data Lak
 
 #### Step 2: Initialize Secrets
 
-Follow [Secret Initialization runbook](../runbooks/secret-init.md) and [Credential Acquisition runbook](../runbooks/credential-acquisition.md) to populate Key Vault with all required secrets.
+Follow Secret Initialization runbook and Credential Acquisition runbook to populate Key Vault with all required secrets.
 
 #### Step 3: Deploy Observability Stack
 
@@ -397,19 +397,19 @@ kubectl apply -f ops/infra/kubernetes/secret-rotation-scripts.yaml
 
 ### Related Documents
 
-- [Deployment Runbook](../runbooks/deployment.md)
-- [Backup & Recovery Runbook](../runbooks/backup-recovery.md)
-- [Disaster Recovery Runbook](../runbooks/disaster-recovery.md)
-- [Incident Response Runbook](../runbooks/incident-response.md)
-- [Secret Rotation Runbook](../runbooks/secret-rotation.md)
-- [Monitoring Dashboards Runbook](../runbooks/monitoring-dashboards.md)
-- [SLO/SLI Reference](../runbooks/slo-sli.md)
+- Deployment Runbook
+- Backup & Recovery Runbook
+- Disaster Recovery Runbook
+- Incident Response Runbook
+- Secret Rotation Runbook
+- Monitoring Dashboards Runbook
+- SLO/SLI Reference
 
 ---
 
 ## Release Process
 
-> Source: [release-process.md](./release-process.md)
+> Source: release-process.md
 
 ### Purpose
 
@@ -448,7 +448,7 @@ Document the end-to-end release workflow for the Multi-Agent PPM Platform, inclu
    git push origin vX.Y.Z
    ```
 3. **CI/CD automation**: `release.yml` builds artifacts, generates SBOM, signs, and verifies signatures; artifacts published to the registry and attached to the release.
-4. **Deploy to staging**: Use the [Deployment runbook](../runbooks/deployment.md); run smoke tests and verify dashboards.
+4. **Deploy to staging**: Use the Deployment runbook; run smoke tests and verify dashboards.
 5. **Promote to production**: Obtain approval from release manager and security lead; deploy with Helm in the documented service order.
 
 ### Migration notes (workflow service distributed execution)
@@ -480,7 +480,7 @@ Document the end-to-end release workflow for the Multi-Agent PPM Platform, inclu
 
 ## Security Baseline
 
-> Source: [security-baseline.md](./security-baseline.md)
+> Source: security-baseline.md
 
 This baseline defines required controls for all platform services and maps each control to implementation anchors in the repository.
 
@@ -512,7 +512,7 @@ This baseline defines required controls for all platform services and maps each 
 
 ## Evidence Pack
 
-> Source: [evidence-pack.md](./evidence-pack.md)
+> Source: evidence-pack.md
 
 A single source of truth for how to build, test, scan, deploy, and operate the platform in a production-ready manner.
 
@@ -570,13 +570,13 @@ make tf-init && make tf-plan && make tf-apply
 ### Operate
 
 - **Runbooks**: `docs/runbooks/` (incident response, backup/recovery, on-call, troubleshooting).
-- **Monitoring**: [Monitoring Dashboards Runbook](../runbooks/monitoring-dashboards.md).
-- **SLO/SLI**: [SLO/SLI Reference](../runbooks/slo-sli.md).
+- **Monitoring**: Monitoring Dashboards Runbook.
+- **SLO/SLI**: SLO/SLI Reference.
 
 ### Acceptance Criteria Checklist
 
 - [x] CI gates: lint, typecheck, tests with coverage ≥ 80%.
-- [x] Deterministic quickstart scenario (see [Quickstart Runbook](../runbooks/quickstart.md)).
+- [x] Deterministic quickstart scenario (see Quickstart Runbook).
 - [x] Auth dev mode for local stack with RBAC enforcement.
 - [x] Orchestration resilience (bounded concurrency, retries, timeouts, caching).
 - [x] Release pipeline builds, generates SBOM, signs, and verifies artifacts.
@@ -586,7 +586,7 @@ make tf-init && make tf-plan && make tf-apply
 
 ## Security Review (February 2026)
 
-> Source: [security-review-2026-02.md](./security-review-2026-02.md)
+> Source: security-review-2026-02.md
 
 **Scope:** Full repository review of the Multi-Agent PPM Platform (v4).
 **Reviewer:** Senior Software Architect / AI Engineer.
@@ -675,7 +675,7 @@ All five architectural findings deferred in the original review were implemented
 
 ## Maturity Scorecards
 
-> Source: [maturity-scorecards/README.md](./maturity-scorecards/README.md) and [maturity-scorecards/latest.md](./maturity-scorecards/latest.md)
+> Source: [Readme](./maturity-scorecards/README.md) and [Latest](./maturity-scorecards/latest.md)
 
 This section stores published maturity score snapshots. `latest.md` is generated by `python ops/tools/collect_maturity_score.py`. CI uploads both `latest.md` and `artifacts/maturity/scorecard-latest.json` for each release-gate run. The monthly backlog in each snapshot should be copied into engineering planning as concrete improvement tickets.
 

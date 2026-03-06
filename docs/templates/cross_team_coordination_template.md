@@ -500,7 +500,7 @@ Dependencies          Integration          Knowledge
 - [LeSS Sprint Planning Template](./core/sprint-planning/manifest.yaml)
 - [Overall Product Backlog Management](./core/product-backlog/manifest.yaml)
 - [LeSS Retrospective Template](./less_retrospective_template.md)
-- [LeSS Adoption Roadmap](../../quick-start-kits/less-adoption/README.md)
+- [Readme](README.md)
 
 ---
 
@@ -511,5 +511,5 @@ Dependencies          Integration          Knowledge
 
 ---
 
-*This template is part of the PM Tools Templates library. For more information and additional templates, visit [repository root](../../../../README.md).*
+*This template is part of the PM Tools Templates library. For more information and additional templates, visit [Readme](README.md).*
 

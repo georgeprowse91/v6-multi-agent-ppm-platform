@@ -13,7 +13,7 @@
 
 ## Overview
 
-> Source: [overview.md](./overview.md)
+> Source: overview.md
 
 Methodologies are first-class, data-driven configurations stored under `docs/methodology/<id>/`. Each methodology directory contains:
 
@@ -58,7 +58,7 @@ python ops/scripts/check-links.py
 
 ## Predictive (Waterfall)
 
-> Source: [predictive/README.md](./predictive/README.md)
+> Source: [Readme](./predictive/README.md)
 
 Sequential, stage-gated methodology driven by WBS-based navigation and gate approvals.
 
@@ -77,13 +77,13 @@ The predictive methodology map (`docs/methodology/predictive/map.yaml`) covers e
 7. **Deployment & Operational Readiness** — Prepare handover and adoption readiness.
 8. **Closure & Benefits Transition** — Complete closure and transition to benefits tracking.
 
-For gate checkpoints, see [`docs/methodology/predictive/gates.yaml`](./predictive/gates.yaml).
+For gate checkpoints, see [Gates](./predictive/gates.yaml).
 
 ---
 
 ## Adaptive (Agile/Scrum)
 
-> Source: [adaptive/README.md](./adaptive/README.md)
+> Source: [Readme](./adaptive/README.md)
 
 Adaptive/iterative methodology with a repeatable iteration cycle at WBS 0.5.
 
@@ -105,13 +105,13 @@ The adaptive methodology map (`docs/methodology/adaptive/map.yaml`) covers nine 
 
 Phase 0.5 (Iterative Delivery Cycle) is typed as `cycle` with `repeatable: true`, enabling the platform to present it as a recurring loop in the navigation model.
 
-For gate checkpoints, see [`docs/methodology/adaptive/gates.yaml`](./adaptive/gates.yaml).
+For gate checkpoints, see [Gates](./adaptive/gates.yaml).
 
 ---
 
 ## Hybrid
 
-> Source: [hybrid/README.md](./hybrid/README.md)
+> Source: [Readme](./hybrid/README.md)
 
 Hybrid stage-gated and iterative methodology with parallel governance control at WBS 0.7.
 
@@ -119,4 +119,4 @@ The Hybrid methodology combines the structured, phase-gated progression of the P
 
 Gate metadata (Gate 0 through Gate 4) is distributed across phases 0.3, 0.4, and 0.8, providing formal decision checkpoints at key transitions while preserving the flexibility of iterative delivery within phases.
 
-For the full stage and gate configuration, see [`docs/methodology/hybrid/map.yaml`](./hybrid/map.yaml) and [`docs/methodology/hybrid/gates.yaml`](./hybrid/gates.yaml) (if present).
+For the full stage and gate configuration, see [Map](./hybrid/map.yaml) and [Gates](./hybrid/gates.yaml) (if present).

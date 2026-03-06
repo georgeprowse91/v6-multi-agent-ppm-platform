@@ -10,12 +10,12 @@ This toolkit provides Program Managers with specialized resources for coordinati
 
 <a id="project-assessment-and-health-monitoring"></a>
 ### 🔍 Project Assessment and Health Monitoring
-**[→ Project Assessment Suite](../../project-assessment-suite/README.md)**
-- **[Project Health Assessment](../../project-assessment-suite/project-health-assessment-template.md)** - Comprehensive 10-dimension project evaluation
-- **[Gap Analysis Matrix](../../project-assessment-suite/gap-analysis-matrix-template.md)** - Current vs. future state analysis with prioritization
-- **[Remediation Action Plan](../../project-assessment-suite/remediation-action-plan-template.md)** - Structured improvement planning and tracking
-- **[Assessment Planning Guide](../../project-assessment-suite/assessment-planning-guide.md)** - Step-by-step assessment methodology
-- **[Executive Summary](../../project-assessment-suite/executive-summary-template.md)** - Leadership reporting format
+**[Readme](README.md)**
+- **[Project Health Assessment Template](project-health-assessment-template.md)** - Comprehensive 10-dimension project evaluation
+- **[Gap Analysis Matrix Template](gap-analysis-matrix-template.md)** - Current vs. future state analysis with prioritization
+- **[Remediation Action Plan Template](remediation-action-plan-template.md)** - Structured improvement planning and tracking
+- **Assessment Planning Guide** - Step-by-step assessment methodology
+- **[Executive Summary Template](executive-summary-template.md)** - Leadership reporting format
 
 *Essential for program managers to systematically assess project health, identify issues early, and implement corrective actions using leading practices.*
 
@@ -34,15 +34,15 @@ This toolkit provides Program Managers with specialized resources for coordinati
 - Program-level decision frameworks
 
 Subfolders
-- [governance-framework](governance-framework/README.md) — decision rights, bodies, and quality oversight
-- [program-planning](program-planning/README.md) — Project Management Professional, roadmap, WBS, resource planning
-- [portfolio-management](portfolio-management/README.md) — investment prioritization, value delivery, and portfolio reporting
-- [benefits-realization](benefits-realization/README.md) — benefits plan, register, KPI tracking, governance
-- [risk-management](risk-management/README.md) — risk register, plan, dependency aggregation, escalation
-- [communications](communications/README.md) — communication plan, status reporting, calendar, notifications
-- [stakeholder-management](stakeholder-management/README.md) — analysis, mapping, engagement, change impact
-- [program-lifecycle](program-lifecycle/README.md) — lifecycle phases with cross-links to canonical templates
-- [methodology-variants](methodology-variants/README.md) — Traditional, Adaptive-at-Scale, and Hybrid program templates
+- [Readme](README.md) — decision rights, bodies, and quality oversight
+- [Readme](README.md) — Project Management Professional, roadmap, WBS, resource planning
+- [Readme](README.md) — investment prioritization, value delivery, and portfolio reporting
+- [Readme](README.md) — benefits plan, register, KPI tracking, governance
+- [Readme](README.md) — risk register, plan, dependency aggregation, escalation
+- [Readme](README.md) — communication plan, status reporting, calendar, notifications
+- [Readme](README.md) — analysis, mapping, engagement, change impact
+- [Readme](README.md) — lifecycle phases with cross-links to canonical templates
+- [Readme](README.md) — Traditional, Adaptive-at-Scale, and Hybrid program templates
 
 <a id="portfolio-alignment"></a>
 ### 🎯 Portfolio Alignment

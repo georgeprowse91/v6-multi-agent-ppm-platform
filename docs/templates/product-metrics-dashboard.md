@@ -285,9 +285,9 @@ Q{{ current_quarter }} Goals Progress:
 ## Related Resources
 
 - [OKR Template](./okr-template.md)
-- [User Research Planning](./user-research-planning.md)
+- User Research Planning
 - [Product Strategy Canvas](./product-strategy-canvas.md)
-- [Analytics Implementation Guide](../project-manager/reporting-dashboards/analytics-setup.md)
+- Analytics Implementation Guide
 
 ---
 

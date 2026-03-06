@@ -393,9 +393,9 @@ CEO/Executive Level:
 ## Related Resources
 
 - [Future State Blueprint Template](./future-state-blueprint-template.md)
-- [Gap Analysis Framework](./gap-analysis-framework.md)
+- Gap Analysis Framework
 - [Process Maturity Assessment](./process-maturity-assessment-template.md)
-- [Risk Assessment Template](../project-lifecycle/02-planning/risk-management/risk-assessment-template.md)
+- Risk Assessment Template
 
 
 **Assessment Date:** {{ assessment_date }}

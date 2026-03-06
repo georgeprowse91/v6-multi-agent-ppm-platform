@@ -382,8 +382,8 @@ Operational Level → Tactical Level → Strategic Level
 5. Use in conjunction with both Traditional and Adaptive planning documents
 
 **Related Templates:**
-- [Change Management Plan (Traditional)](../../Traditional/Templates/change_management_plan_template.md)
-- [Change Vision Canvas (Adaptive)](../../Adaptive/Tools/change_vision_canvas.md)
-- [Progressive Change Roadmap](progressive_change_roadmap_template.md)
-- [Change Governance Framework](change_governance_framework_template.md)
+- [Change Management Plan Template](change_management_plan_template.md)
+- Change Vision Canvas (Adaptive)
+- Progressive Change Roadmap
+- Change Governance Framework
 

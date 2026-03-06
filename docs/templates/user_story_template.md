@@ -282,7 +282,7 @@ Implement a new reporting microservice that queries data from the three source s
 
 **Related Stories:** CRM-124 (Email Report Scheduling)  
 **Blocked By:** CRM-120 (API Authentication Update)  
-**Related Documentation:** [Data Schema](link), [API Documentation](link)  
+**Related Documentation:** Data Schema, API Documentation  
 
 ---
 

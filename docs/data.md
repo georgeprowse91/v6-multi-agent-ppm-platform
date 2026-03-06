@@ -103,7 +103,7 @@ Canonical entities propagate updates between connectors, agents, and downstream 
 - Base schemas in `data/schemas/` and payload validation in the Audit Log Service are implemented.
 - Schema registry APIs with versioning and promotion workflows in the Data Service are implemented.
 
-**Related:** [Data Architecture](../architecture/data-architecture.md) · [Data Quality](#data-quality) · [Data Lineage](#data-lineage)
+**Related:** Data Architecture · [Data Quality](#data-quality) · [Data Lineage](#data-lineage)
 
 ---
 
@@ -220,4 +220,4 @@ ORDER BY timestamp DESC;
 
 - Automated lineage generation, storage in `lineage_events`, and the query API are implemented.
 
-**Related:** [Connector Overview](../connectors/overview.md) · [Data Quality](#data-quality)
+**Related:** Connector Overview · [Data Quality](#data-quality)

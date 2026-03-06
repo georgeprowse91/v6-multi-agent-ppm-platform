@@ -289,10 +289,10 @@ integration-toolkits/
 ## 🔗 **Related Resources**
 
 ### **Within This Repository:**
-- [`/templates/`](../templates/) - Integration-ready project templates
-- [`/methodology-frameworks/`](../methodology-frameworks/) - Tool integration considerations
-- [`/role-based-toolkits/`](../role-based-toolkits/) - Role-specific integration needs
-- [`/integration_guides/`](../integration_guides/) - Step-by-step integration instructions
+- [Templates](README.md) - Integration-ready project templates
+- `/methodology-frameworks/` - Tool integration considerations
+- `/role-based-toolkits/` - Role-specific integration needs
+- `/integration_guides/` - Step-by-step integration instructions
 
 ### **External Integration Platforms:**
 - **Zapier** - No-code integration platform for 3,000+ apps

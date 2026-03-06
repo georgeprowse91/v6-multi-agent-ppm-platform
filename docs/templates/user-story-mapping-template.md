@@ -168,6 +168,6 @@ This template provides a structured approach to user story mapping for software 
 
 ---
 Related Resources:
-- [Adaptive Planning](../../../methodology-frameworks/adaptive-scrum/planning/)
-- [Sprint Planning](../../../methodology-frameworks/adaptive-scrum/sprint-zero/)
-- [Product Backlog Management](../../../methodology-frameworks/adaptive-scrum/planning/)
+- Adaptive Planning
+- Sprint Planning
+- Product Backlog Management

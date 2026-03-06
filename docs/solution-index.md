@@ -47,5 +47,5 @@ Expected output: no lines printed and exit code 0.
 ## Related docs
 
 - [Docs Hub](README.md)
-- [Solution Overview](product/solution-overview/README.md)
+- [Readme](README.md)
 - [Architecture Docs](architecture/README.md)

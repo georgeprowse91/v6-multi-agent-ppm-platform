@@ -9,10 +9,10 @@ The closure phase marks the formal conclusion of the project lifecycle, focusing
 <a id="what-youll-find-here"></a>
 ## 📋 What You'll Find Here
 
-- **[Project Closure](project-closure/)** - Formal project completion and administrative closeout
-- **[Transition to Operations](transition-to-operations/)** - Handoff procedures and operational readiness
-- **[Lessons Learned](lessons-learned/)** - Knowledge capture and continuous improvement
-- **[Knowledge Transfer](knowledge-transfer/)** - Documentation and skill transfer processes
+- **Project Closure** - Formal project completion and administrative closeout
+- **Transition to Operations** - Handoff procedures and operational readiness
+- **[Lessons Learned](lessons-learned.md)** - Knowledge capture and continuous improvement
+- **Knowledge Transfer** - Documentation and skill transfer processes
 
 ---
 <a id="core-closure-objectives"></a>
@@ -220,20 +220,20 @@ The closure phase marks the formal conclusion of the project lifecycle, focusing
 ## 🔗 Integration Touchpoints
 
 ### Execution Phase Outputs
-1. **[Work Management](../03-execution/work-management/)** - Final deliverable completion verification
-2. **[Team Coordination](../03-execution/team-coordination/)** - Team performance assessment and transition
-3. **[Quality Assurance](../03-execution/quality-assurance/)** - Final quality validation and acceptance
+1. **Work Management** - Final deliverable completion verification
+2. **Team Coordination** - Team performance assessment and transition
+3. **Quality Assurance** - Final quality validation and acceptance
 
 <a id="best-practices"></a>
 ### Monitoring & Control Results
-1. **[Progress Tracking](../04-monitoring-control/progress-tracking/)** - Performance analysis and reporting
-2. **[Issue Management](../04-monitoring-control/issue-management/)** - Outstanding issue resolution
-3. **[Change Control](../04-monitoring-control/change-control/)** - Final scope and change documentation
+1. **Progress Tracking** - Performance analysis and reporting
+2. **Issue Management** - Outstanding issue resolution
+3. **Change Control** - Final scope and change documentation
 
 ### Organizational Integration
-1. **[Portfolio Management](../../business-stakeholder-suite/portfolio-oversight/)** - Project value realization reporting
-2. **[Change Management](../../organizational-frameworks/change-management/)** - Organizational change completion
-3. **[Continuous Improvement](../../methodology-frameworks/emerging-methods/lean-startup/)** - Learning integration and application
+1. **Portfolio Management** - Project value realization reporting
+2. **[Change Management](../change-management.md)** - Organizational change completion
+3. **Continuous Improvement** - Learning integration and application
 
 ---
 

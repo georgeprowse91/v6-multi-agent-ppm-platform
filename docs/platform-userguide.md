@@ -74,7 +74,7 @@ When you submit a message through the assistant panel:
 3. For prompts that require external research (such as vendor evaluation or compliance scans), the orchestrator calls the search service to gather relevant context.
 4. The orchestrated response is assembled and presented back to you in the assistant panel.
 
-For technical architecture details of the orchestration system, see [architecture/README.md](architecture/README.md).
+For technical architecture details of the orchestration system, see [Readme](architecture/README.md).
 
 ---
 

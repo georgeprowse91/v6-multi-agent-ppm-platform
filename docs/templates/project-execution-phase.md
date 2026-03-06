@@ -9,10 +9,10 @@ The execution phase is where project plans come to life through coordinated team
 <a id="what-youll-find-here"></a>
 ## 📋 What You'll Find Here
 
-- **[Work Management](work-management/)** - Task coordination and workflow optimization
-- **[Team Coordination](team-coordination/)** - Resource allocation and collaboration frameworks
-- **[Vendor Management](vendor-management/)** - Third-party relationship and contract management
-- **[Quality Assurance](quality-assurance/)** - Deliverable validation and standards compliance
+- **Work Management** - Task coordination and workflow optimization
+- **Team Coordination** - Resource allocation and collaboration frameworks
+- **Vendor Management** - Third-party relationship and contract management
+- **Quality Assurance** - Deliverable validation and standards compliance
 
 ---
 <a id="core-execution-objectives"></a>
@@ -206,20 +206,20 @@ The execution phase is where project plans come to life through coordinated team
 ## 🔗 Integration Touchpoints
 
 ### Planning Phase Outputs
-1. **[Scope Management](../02-planning/scope-management/)** - Work breakdown structure execution
-2. **[Schedule Planning](../02-planning/schedule-planning/)** - Timeline and milestone tracking
-3. **[Resource Planning](../02-planning/resource-planning/)** - Team deployment and management
+1. **Scope Management** - Work breakdown structure execution
+2. **Schedule Planning** - Timeline and milestone tracking
+3. **[Resource Planning](resource-planning.md)** - Team deployment and management
 
 ### Monitoring & Control Activities
 <a id="best-practices"></a>
-1. **[Progress Tracking](../04-monitoring-control/progress-tracking/)** - Performance measurement
-2. **[Issue Management](../04-monitoring-control/issue-management/)** - Problem resolution
-3. **[Change Control](../04-monitoring-control/change-control/)** - Scope and requirement management
+1. **Progress Tracking** - Performance measurement
+2. **Issue Management** - Problem resolution
+3. **Change Control** - Scope and requirement management
 
 ### Methodology Integration
-1. **[Adaptive-Scrum](../../methodology-frameworks/adaptive-scrum/)** - Sprint execution and reviews
-2. **[Traditional Processes](../../methodology-frameworks/traditional/)** - Standard execution procedures
-3. **[DevOps Practices](../../methodology-frameworks/emerging-methods/devops/)** - Continuous integration and delivery
+1. **Adaptive-Scrum** - Sprint execution and reviews
+2. **Traditional Processes** - Standard execution procedures
+3. **DevOps Practices** - Continuous integration and delivery
 
 ---
 

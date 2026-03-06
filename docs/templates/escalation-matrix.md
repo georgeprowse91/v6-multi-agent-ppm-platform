@@ -351,8 +351,8 @@ LESSONS LEARNED:
 ## Related Documents
 
 - [Decision Authority Matrix](decision-authority.md)
-- [Issue Resolution Process](issue-resolution.md)
-- [Risk Governance Framework](risk-governance.md)
+- Issue Resolution Process
+- Risk Governance Framework
 - [Governance Charter](governance-charter.md)
 - [Project Communication Plan](./core/communication-plan/manifest.yaml)
 

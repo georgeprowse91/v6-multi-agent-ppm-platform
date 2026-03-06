@@ -557,8 +557,8 @@ Based on maturity assessment, prioritize coaching in:
 - [PI Planning Template](./core/sprint-planning/manifest.yaml)
 - [Portfolio Kanban Template](./portfolio_kanban_template.md)
 - [SAFe Metrics Dashboard Template](./metrics_dashboard_template.md)
-- [Release Train Engineer Role Guide](../../../role-based-toolkits/release-train-engineer/README.md)
-- [Scrum Master Role Guide](../../../role-based-toolkits/scrum-master/README.md)
+- [Readme](README.md)
+- [Readme](README.md)
 
 ---
 
@@ -585,5 +585,5 @@ Based on maturity assessment, prioritize coaching in:
 
 ---
 
-*This template is part of the PM Tools Templates library. For more information and additional templates, visit [repository root](../../../../README.md).*
+*This template is part of the PM Tools Templates library. For more information and additional templates, visit [Readme](README.md).*
 

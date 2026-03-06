@@ -933,4 +933,4 @@ This checklist documents the validation points for MCP-enabled connectors, inclu
 
 ---
 
-> The auto-generated connector capability matrix is maintained separately at [generated/capability-matrix.md](generated/capability-matrix.md).
+> The auto-generated connector capability matrix is maintained separately at [Capability Matrix](generated/capability-matrix.md).

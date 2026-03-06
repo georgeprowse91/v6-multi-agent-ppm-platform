@@ -5,15 +5,15 @@ Do not edit by hand; run `python ops/tools/codegen/generate_docs.py`.
 
 | Service | Endpoint docs |
 | --- | --- |
-| `agent-config` | [docs/generated/services/agent-config.md](./agent-config.md) |
-| `agent-runtime` | [docs/generated/services/agent-runtime.md](./agent-runtime.md) |
-| `audit-log` | [docs/generated/services/audit-log.md](./audit-log.md) |
-| `auth-service` | [docs/generated/services/auth-service.md](./auth-service.md) |
-| `data-lineage-service` | [docs/generated/services/data-lineage-service.md](./data-lineage-service.md) |
-| `data-service` | [docs/generated/services/data-service.md](./data-service.md) |
-| `data-sync-service` | [docs/generated/services/data-sync-service.md](./data-sync-service.md) |
-| `identity-access` | [docs/generated/services/identity-access.md](./identity-access.md) |
-| `notification-service` | [docs/generated/services/notification-service.md](./notification-service.md) |
-| `policy-engine` | [docs/generated/services/policy-engine.md](./policy-engine.md) |
-| `realtime-coedit-service` | [docs/generated/services/realtime-coedit-service.md](./realtime-coedit-service.md) |
-| `telemetry-service` | [docs/generated/services/telemetry-service.md](./telemetry-service.md) |
+| `agent-config` | [Agent Config](./agent-config.md) |
+| `agent-runtime` | [Agent Runtime](./agent-runtime.md) |
+| `audit-log` | [Audit Log](./audit-log.md) |
+| `auth-service` | [Auth Service](./auth-service.md) |
+| `data-lineage-service` | [Data Lineage Service](./data-lineage-service.md) |
+| `data-service` | [Data Service](./data-service.md) |
+| `data-sync-service` | [Data Sync Service](./data-sync-service.md) |
+| `identity-access` | [Identity Access](./identity-access.md) |
+| `notification-service` | [Notification Service](./notification-service.md) |
+| `policy-engine` | [Policy Engine](./policy-engine.md) |
+| `realtime-coedit-service` | [Realtime Coedit Service](./realtime-coedit-service.md) |
+| `telemetry-service` | [Telemetry Service](./telemetry-service.md) |

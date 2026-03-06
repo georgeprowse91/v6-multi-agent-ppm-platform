@@ -73,5 +73,5 @@ This template provides assessment criteria specifically for traditional predicti
 - [ ] Next phase readiness confirmed
 
 Related Resources:
-- [Traditional Framework](../methodology-frameworks/traditional/)
-- [Project Lifecycle](../project-lifecycle/)
+- Traditional Framework
+- Project Lifecycle

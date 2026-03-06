@@ -371,10 +371,10 @@ Next Steps:
 
 ## Related Templates
 
-- [Business Case Template](../../../Predictive/Templates/business_case_template.md)
-- [Project Budget Template](./project_budget_template.md)
-- [Cost-Benefit Analysis Template](./cost_benefit_analysis_template.md)
-- [Financial Dashboard Template](../../business-stakeholder-suite/safe-executive-dashboards/financial-dashboard-template.md)
+- [Business Case Template](business_case_template.md)
+- Project Budget Template
+- Cost-Benefit Analysis Template
+- Financial Dashboard Template
 
 ---
 

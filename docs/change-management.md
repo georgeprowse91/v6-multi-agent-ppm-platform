@@ -13,7 +13,7 @@
 
 **Owner:** Delivery Lead / Change Management Lead
 **Last reviewed:** 2026-02-20
-**Related docs:** [Acceptance and Test Strategy](../testing/README.md#acceptance-and-test-strategy) · [User Journeys and Stage Gates](../01-product-definition/user-journeys-and-stage-gates.md)
+**Related docs:** [Readme](testing/README.md#acceptance-and-test-strategy) · User Journeys and Stage Gates
 
 > **Migration note:** Consolidated from `success-metrics.md` (delivery phases, milestones, resource plan) and `solution-overview/change-management-training.md` (organisational enablement) on 2026-02-20.
 

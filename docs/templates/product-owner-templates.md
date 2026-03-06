@@ -354,14 +354,14 @@ Key Results:
 ## 🔗 Related Resources
 
 ### Collaboration Tools
-1. **[Scrum Master Ceremonies](../scrum-master/adaptive-ceremonies/)** - Sprint planning and reviews
-2. **[Project Manager Templates](../project-manager/)** - Cross-functional coordination
-3. **[Business Stakeholder Suite](../../business-stakeholder-suite/)** - Executive communication
+1. **Scrum Master Ceremonies** - Sprint planning and reviews
+2. **Project Manager Templates** - Cross-functional coordination
+3. **Business Stakeholder Suite** - Executive communication
 
 ### Development Integration
-1. **[Project Lifecycle Templates](../../project-lifecycle/)** - Overall project management
-2. **[Adaptive Methodologies](../../methodology-frameworks/adaptive-scrum/)** - Process frameworks
-3. **[Quality Management](../../project-lifecycle/02-planning/quality-management/)** - Acceptance and testing
+1. **Project Lifecycle Templates** - Overall project management
+2. **Adaptive Methodologies** - Process frameworks
+3. **Quality Management** - Acceptance and testing
 
 ---
 

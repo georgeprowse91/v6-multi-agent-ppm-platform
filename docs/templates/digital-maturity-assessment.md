@@ -69,5 +69,5 @@ This template provides a comprehensive framework for assessing organizational di
 
 ---
 Related Resources:
-- [Technology Adoption Roadmap](./technology_adoption_roadmap.md)
-- [Process Digitization Workflow](./process_digitization_workflow.md)
+- Technology Adoption Roadmap
+- Process Digitization Workflow

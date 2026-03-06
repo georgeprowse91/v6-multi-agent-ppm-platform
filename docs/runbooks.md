@@ -152,12 +152,12 @@ This runbook defines pre-deployment, deployment, and post-deployment procedures 
 
 ### Related runbooks and artefacts
 
-- [Monitoring and Dashboards](monitoring-dashboards.md)
-- [Incident Response](incident-response.md)
-- [Backup and Recovery](backup-recovery.md)
-- [Disaster Recovery](disaster-recovery.md)
-- [Troubleshooting Guide](troubleshooting.md)
-- [Release Process](../production-readiness/release-process.md)
+- Monitoring and Dashboards
+- Incident Response
+- Backup and Recovery
+- Disaster Recovery
+- Troubleshooting Guide
+- Release Process
 
 ### Roles and responsibilities
 
@@ -247,7 +247,7 @@ Initiate rollback if any of the following occur: sustained error budget burn, fa
 2. Halt further rollout waves.
 3. Roll back Helm releases to the previous stable revision.
 4. Revert feature flags and config toggles changed during rollout.
-5. If required, execute DB recovery per the [Backup and Recovery runbook](backup-recovery.md).
+5. If required, execute DB recovery per the Backup and Recovery runbook.
 6. Re-run smoke tests and confirm service stabilisation.
 7. Capture the timeline, impact, and corrective actions in the incident report.
 
@@ -520,9 +520,9 @@ rg -n "RequestMetricsMiddleware" apps services | head -n 20
 
 ### Related docs
 
-- [Observability Architecture](../architecture/observability-architecture.md)
-- [Runbook: Incident Response](incident-response.md)
-- [Runbook: LLM Degradation](llm-degradation.md)
+- Observability Architecture
+- Runbook: Incident Response
+- Runbook: LLM Degradation
 
 ---
 
@@ -992,9 +992,9 @@ Escalate to the integration owner if:
 
 ### Related docs
 
-- [Connector Overview](../connectors/overview.md)
-- [Data Quality](../data/data-quality.md)
-- [Data Lineage](../data/lineage.md)
+- Connector Overview
+- Data Quality
+- Data Lineage
 
 ---
 

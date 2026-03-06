@@ -639,7 +639,7 @@ All metrics must include:
 - [PI Planning Template](./core/sprint-planning/manifest.yaml)
 - [Portfolio Kanban Template](./portfolio_kanban_template.md)
 - [ART Coordination Template](./art_coordination_template.md)
-- [SAFe Executive Dashboard Templates](../../../business-stakeholder-suite/safe-executive-dashboards/README.md)
+- [Readme](README.md)
 
 ---
 
@@ -699,5 +699,5 @@ All metrics must include:
 
 ---
 
-*This template is part of the PM Tools Templates library. For more information and additional templates, visit [repository root](../../../../README.md).*
+*This template is part of the PM Tools Templates library. For more information and additional templates, visit [Readme](README.md).*
 

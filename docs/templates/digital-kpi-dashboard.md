@@ -125,5 +125,5 @@ This template provides a framework for tracking and measuring digital transforma
 
 ---
 Related Resources:
-- [Digital Maturity Assessment](./digital_maturity_assessment.md)
-- [Technology Adoption Roadmap](./technology_adoption_roadmap.md)
+- Digital Maturity Assessment
+- Technology Adoption Roadmap

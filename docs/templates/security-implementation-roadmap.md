@@ -424,5 +424,5 @@ Q1: Advanced Threat   Q2: Zero Trust       Q3: Cloud Security   Q4: Maturity
 ---
 Related Resources:
 - [Risk Assessment Template](./risk_assessment_template.md)
-- [Vulnerability Management Plan](./vulnerability_management_plan.md)
-- [Security Controls Matrix](./security_controls_matrix.md)
+- Vulnerability Management Plan
+- Security Controls Matrix

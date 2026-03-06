@@ -332,10 +332,10 @@ Configure webhooks to receive real-time risk alerts:
 ## Support and Resources
 
 ### Documentation
-- [API Reference](./api-reference.md)
-- [Integration Guide](./integration-guide.md)
-- [Best Practices](./best-practices.md)
-- [FAQ](./faq.md)
+- API Reference
+- Integration Guide
+- Best Practices
+- FAQ
 
 ### Support Channels
 - **Technical Support:** support@pm-insights.com

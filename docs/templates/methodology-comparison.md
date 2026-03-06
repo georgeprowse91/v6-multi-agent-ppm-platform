@@ -87,7 +87,7 @@ Adaptive-Scrum is an iterative and incremental approach focused on flexibility, 
 - Creative and research projects
 
 **Templates Available:**
-- [Adaptive-Scrum Framework](../../methodology-frameworks/adaptive-scrum/README.md)
+- [Readme](README.md)
 - Sprint Planning, Daily Standup, Sprint Review, and Retrospective templates
 - Product Backlog and Sprint Backlog templates
 - User Story templates
@@ -106,10 +106,10 @@ Scaling frameworks extend Adaptive practices to handle larger, more complex proj
 - Enterprises with 50+ team members
 
 **Templates Available:**
-- [SAFe Program Increment Planning Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_program_increment_planning_template.md)
-- [SAFe Portfolio Kanban Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_portfolio_kanban_template.md)
-- [SAFe ART Coordination Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_art_coordination_template.md)
-- [SAFe Metrics Dashboard Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/safe/safe_metrics_dashboard_template.md)
+- [Safe Program Increment Planning Template](safe_program_increment_planning_template.md)
+- [Safe Portfolio Kanban Template](safe_portfolio_kanban_template.md)
+- [Safe Art Coordination Template](safe_art_coordination_template.md)
+- [Safe Metrics Dashboard Template](safe_metrics_dashboard_template.md)
 
 #### LeSS (Large-Scale Scrum)
 
@@ -121,8 +121,8 @@ Scaling frameworks extend Adaptive practices to handle larger, more complex proj
 
 **Templates Available:**
 - [LeSS Sprint Planning Template](./core/sprint-planning/manifest.yaml)
-- [LeSS Retrospective Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/less/less_retrospective_template.md)
-- [Cross Team Coordination Template](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/less/cross_team_coordination_template.md)
+- [Less Retrospective Template](less_retrospective_template.md)
+- [Cross Team Coordination Template](cross_team_coordination_template.md)
 - [Overall Product Backlog Template](./core/product-backlog/manifest.yaml)
 
 ### Hybrid Approaches
@@ -165,8 +165,8 @@ A human-centered approach focused on understanding user needs, challenging assum
 - Focus on user experience
 
 **Templates Available:**
-- [Design Thinking Workshop Template](../../methodology-frameworks/emerging-methods/design-thinking/design_thinking_workshop_template.md)
-- [User Empathy Mapping Template](../../methodology-frameworks/emerging-methods/design-thinking/user_empathy_mapping_template.md)
+- Design Thinking Workshop Template
+- User Empathy Mapping Template
 
 #### DevOps
 
@@ -179,11 +179,11 @@ Combines software development (Dev) and IT operations (Ops) to shorten developme
 - Monitoring and feedback loops
 
 **Templates Available:**
-- [CI/CD Pipeline Planning Template](../../methodology-frameworks/emerging-methods/devops/cicd_pipeline_planning_template.md)
-- [DevSecOps Template](../../methodology-frameworks/emerging-methods/devops/devsecops_template.md)
-- [Infrastructure as Code Template](../../methodology-frameworks/emerging-methods/devops/infrastructure_as_code_template.md)
-- [Monitoring and Alerting Template](../../methodology-frameworks/emerging-methods/devops/monitoring_alerting_template.md)
-- [Release Management Template](../../methodology-frameworks/emerging-methods/devops/release_management_template.md)
+- [Cicd Pipeline Planning Template](cicd_pipeline_planning_template.md)
+- [Devsecops Template](devsecops_template.md)
+- [Infrastructure As Code Template](infrastructure_as_code_template.md)
+- [Monitoring Alerting Template](monitoring_alerting_template.md)
+- [Release Management Template](release_management_template.md)
 
 ---
 
@@ -320,7 +320,7 @@ Start Here
                            └── NO → ADAPTIVE-SCRUM
 ```
 
-For more detailed guidance, refer to our [Methodology Selector Tool](../getting-started/methodology-selector.md).
+For more detailed guidance, refer to our [Methodology Selector](methodology-selector.md).
 
 ---
 
@@ -472,7 +472,7 @@ Transitioning between methodologies requires careful planning and change managem
 4. Gradually reduce documentation requirements
 5. Celebrate and publicize early wins
 
-**Reference:** [Transition Support](../../methodology-frameworks/adaptive-scrum/README.md#transition-support)
+**Reference:** [Readme](README.md#transition-support)
 
 ### Adaptive to Scaled Adaptive Transition
 
@@ -489,7 +489,7 @@ Transitioning between methodologies requires careful planning and change managem
 4. Develop cross-team communities of practice
 5. Adopt program-level metrics incrementally
 
-**Reference:** [Scaling Approaches](../../methodology-frameworks/adaptive-scrum/README.md#scaling-approaches)
+**Reference:** [Readme](README.md#scaling-approaches)
 
 ### Adding DevOps to Existing Methods
 
@@ -506,19 +506,19 @@ Transitioning between methodologies requires careful planning and change managem
 4. Gradually automate infrastructure
 5. Create cross-functional DevOps teams
 
-**Reference:** [DevOps Integration](../../methodology-frameworks/emerging-methods/devops/README.md)
+**Reference:** [Readme](README.md)
 
 ---
 
 ## References
 
-- [Methodology Selector Tool](../getting-started/methodology-selector.md)
-- [Template Selector](../getting-started/template-selector.md)
-- [Adaptive-Scrum Framework](../../methodology-frameworks/adaptive-scrum/README.md)
-- [Scaling Frameworks](../../methodology-frameworks/adaptive-scrum/scaling-frameworks/)
-- [Emerging Methods](../../methodology-frameworks/emerging-methods/)
-- [Project Lifecycle](../../project-lifecycle/)
-- [Role-Based Toolkits](../../role-based-toolkits/)
+- [Methodology Selector](methodology-selector.md)
+- [Template Selector](template-selector.md)
+- [Readme](README.md)
+- Scaling Frameworks
+- Emerging Methods
+- Project Lifecycle
+- Role-Based Toolkits
 
 ---
 

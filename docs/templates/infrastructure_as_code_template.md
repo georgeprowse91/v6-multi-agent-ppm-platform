@@ -1879,11 +1879,11 @@ groups:
 ---
 
 ## Related Templates
-- [CI/CD Pipeline Planning](./cicd_pipeline_planning_template.md)
+- [Cicd Pipeline Planning Template](./cicd_pipeline_planning_template.md)
 - [Release Management Workflow](./release_management_template.md)
 - [DevOps Monitoring and Alerting](./monitoring_alerting_template.md)
 - [DevSecOps Integration](./devsecops_template.md)
-- [DevOps Engineer Toolkit](../../role-based-toolkits/devops-engineer/README.md)
+- [Readme](README.md)
 
 ---
 
@@ -1894,5 +1894,5 @@ groups:
 
 ---
 
-*This template is part of the PM Tools Templates library. For more information and additional templates, visit [repository root](../../../README.md).*
+*This template is part of the PM Tools Templates library. For more information and additional templates, visit [Readme](README.md).*
 

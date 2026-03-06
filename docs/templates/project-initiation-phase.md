@@ -9,10 +9,10 @@ The initiation phase is where project ideas transform into formal, authorized en
 <a id="what-youll-find-here"></a>
 ## 📋 What You'll Find Here
 
-- **[Project Charter](project-charter/)** - Official project authorization and high-level scope
-- **[Stakeholder Analysis](stakeholder-analysis/)** - Stakeholder identification and engagement planning
-- **[Feasibility Study](feasibility-study/)** - Technical, financial, and operational viability assessment
-- **[Business Case](business-case/)** - Justification and value proposition documentation
+- **Project Charter** - Official project authorization and high-level scope
+- **Stakeholder Analysis** - Stakeholder identification and engagement planning
+- **Feasibility Study** - Technical, financial, and operational viability assessment
+- **[Business Case](business-case.md)** - Justification and value proposition documentation
 
 ---
 <a id="core-initiation-objectives"></a>
@@ -205,20 +205,20 @@ The initiation phase is where project ideas transform into formal, authorized en
 ## 🔗 Integration Touchpoints
 
 ### Strategic Alignment
-1. **[Organizational Strategy](../../business-stakeholder-suite/executive-dashboards/)** - Alignment with business objectives
-2. **[Portfolio Management](../../business-stakeholder-suite/portfolio-oversight/)** - Integration with organizational project portfolio
-3. **[Change Management](../../organizational-frameworks/change-management/)** - Organizational readiness assessment
+1. **Organizational Strategy** - Alignment with business objectives
+2. **Portfolio Management** - Integration with organizational project portfolio
+3. **[Change Management](../change-management.md)** - Organizational readiness assessment
 
 ### Methodology Integration
-1. **[Traditional Framework](../../methodology-frameworks/traditional/)** - Standard initiation processes
+1. **Traditional Framework** - Standard initiation processes
 <a id="best-practices"></a>
-2. **[Adaptive Approaches](../../methodology-frameworks/adaptive-scrum/)** - Iterative initiation and discovery
-3. **[Lean Startup](../../methodology-frameworks/emerging-methods/lean-startup/)** - Validated learning and experimentation
+2. **Adaptive Approaches** - Iterative initiation and discovery
+3. **Lean Startup** - Validated learning and experimentation
 
 ### Planning Phase Handoff
-1. **[Scope Management](../02-planning/scope-management/)** - Detailed scope definition and WBS
-2. **[Schedule Planning](../02-planning/schedule-planning/)** - Comprehensive timeline development
-3. **[Resource Planning](../02-planning/resource-planning/)** - Detailed resource allocation and staffing
+1. **Scope Management** - Detailed scope definition and WBS
+2. **Schedule Planning** - Comprehensive timeline development
+3. **[Resource Planning](resource-planning.md)** - Detailed resource allocation and staffing
 
 ---
 

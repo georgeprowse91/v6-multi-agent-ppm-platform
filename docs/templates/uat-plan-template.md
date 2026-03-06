@@ -20,11 +20,11 @@ updated: "2026-02-11"
 
 ## Template Usage Guide
 
-**For Large/Complex Programs**: First complete the [UAT Strategy Template](uat_strategy_template.md) to establish strategic framework and stakeholder management approach, then use this template for detailed execution planning.
+**For Large/Complex Programs**: First complete the UAT Strategy Template to establish strategic framework and stakeholder management approach, then use this template for detailed execution planning.
 
 **For Standard Projects**: This template provides comprehensive planning for straightforward UAT implementations.
 
-**Template Relationship**: [Strategy](uat_strategy_template.md) → Plan (this template) → Execution
+**Template Relationship**: Strategy → Plan (this template) → Execution
 
 ---
 ## Executive Summary
@@ -529,8 +529,8 @@ updated: "2026-02-11"
 6. Use in conjunction with other Traditional testing and quality documents
 
 **Related Templates:**
-- [UAT Test Case Template](uat_test_case_template.md)
-- [UAT Execution Report Template](uat_execution_report_template.md)
-- [UAT Sign-off Template](uat_signoff_template.md)
-- [Quality Management Plan](../Process_Groups/Planning/quality_management_plan_template.md)
+- UAT Test Case Template
+- UAT Execution Report Template
+- UAT Sign-off Template
+- Quality Management Plan
 

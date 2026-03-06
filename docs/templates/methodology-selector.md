@@ -160,10 +160,10 @@ If you prefer a simpler approach, answer these key questions:
 **Recommended methodology:** **Traditional/Predictive**
 
 **Your starting toolkit:**
-1. **[Project Charter Template](../../project-lifecycle/01-initiation/project-charter/)**
-2. **[Project Management Plan](../../project-lifecycle/02-planning/project-management-plan/)**
-3. **[Project Manager Essential Templates](../../role-based-toolkits/project-manager/essential-templates/)**
-4. **[Executive Reporting Suite](../../business-stakeholder-suite/executive-dashboards/)**
+1. **Project Charter Template**
+2. **Project Management Plan**
+3. **Project Manager Essential Templates**
+4. **Executive Reporting Suite**
 
 **Industry examples:**
 - Construction and engineering projects
@@ -185,10 +185,10 @@ If you prefer a simpler approach, answer these key questions:
 **Recommended methodology:** **Adaptive/Scrum**
 
 **Your starting toolkit:**
-1. **[Scrum Master Toolkit](../../role-based-toolkits/scrum-master/)**
-2. **[Product Owner Backlog Management](../../role-based-toolkits/product-owner/backlog-management/)**
-3. **[Adaptive Ceremonies Templates](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)**
-4. **[Adaptive Metrics Dashboard](../../role-based-toolkits/scrum-master/adaptive-metrics/)**
+1. **Scrum Master Toolkit**
+2. **Product Owner Backlog Management**
+3. **Adaptive Ceremonies Templates**
+4. **Adaptive Metrics Dashboard**
 
 **Industry examples:**
 - Software development
@@ -210,10 +210,10 @@ If you prefer a simpler approach, answer these key questions:
 **Recommended methodology:** **Hybrid**
 
 **Your starting toolkit:**
-1. **[Hybrid Frameworks](../../methodology-frameworks/hybrid-approaches/)**
-2. **[Project Lifecycle Templates](../../project-lifecycle/)** (adapted for hybrid use)
-3. **[Program Manager Toolkit](../../role-based-toolkits/program-manager/)**
-4. **[Business Stakeholder Suite](../../business-stakeholder-suite/)**
+1. **Hybrid Frameworks**
+2. **Project Lifecycle Templates** (adapted for hybrid use)
+3. **Program Manager Toolkit**
+4. **Business Stakeholder Suite**
 
 **Industry examples:**
 - Enterprise software implementations
@@ -271,11 +271,11 @@ Start Here
 - Predictable scope, schedule, and cost
 
 ### 🛠️ Core Templates You'll Use
-- [Project Charter](../../project-lifecycle/01-initiation/project-charter/)
-- [Work Breakdown Structure](../../project-lifecycle/02-planning/scope-management/)
-- [Project Schedule](../../project-lifecycle/02-planning/schedule-planning/)
-- [Risk Register](../../project-lifecycle/02-planning/risk-management/)
-- [Status Reports](../../role-based-toolkits/project-manager/reporting-dashboards/)
+- Project Charter
+- Work Breakdown Structure
+- Project Schedule
+- Risk Register
+- Status Reports
 
 ---
 
@@ -297,11 +297,11 @@ Start Here
 - Embracing change over following a rigid plan
 
 ### 🛠️ Core Templates You'll Use
-- [Product Backlog](../../role-based-toolkits/product-owner/backlog-management/)
-- [Sprint Planning](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)
-- [Daily Standup](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)
-- [Sprint Review](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)
-- [Retrospective](../../role-based-toolkits/scrum-master/adaptive-ceremonies/)
+- Product Backlog
+- Sprint Planning
+- Daily Standup
+- Sprint Review
+- Retrospective
 
 ---
 
@@ -323,11 +323,11 @@ Start Here
 - Progressive elaboration of requirements
 
 ### 🛠️ Core Templates You'll Use
-- [Hybrid Project Charter](../../methodology-frameworks/hybrid-approaches/)
-- [Program Management Plan](../../role-based-toolkits/program-manager/)
-- [Adaptive + Traditional Status Reports](../../business-stakeholder-suite/executive-dashboards/)
-- [Scaled Risk Management](../../project-lifecycle/02-planning/risk-management/)
-- [Multi-methodology Team Coordination](../../role-based-toolkits/program-manager/cross-project-coordination/)
+- Hybrid Project Charter
+- Program Management Plan
+- Adaptive + Traditional Status Reports
+- Scaled Risk Management
+- Multi-methodology Team Coordination
 
 ---
 
@@ -475,15 +475,15 @@ No methodology is one-size-fits-all. Consider these tailoring dimensions:
 ### Once You've Chosen Your Methodology
 
 1. **Get your templates:** Visit the [Template Selector](template-selector.md)
-2. **Set up your project:** Start with [Project Lifecycle](../../project-lifecycle/)
-3. **Choose your role toolkit:** Browse [Role-Based Toolkits](../../role-based-toolkits/)
-4. **Consider industry adaptations:** Check [Industry Specializations](../../industry-specializations/)
+2. **Set up your project:** Start with Project Lifecycle
+3. **Choose your role toolkit:** Browse Role-Based Toolkits
+4. **Consider industry adaptations:** Check Industry Specializations
 
 ### Still Unsure?
 
-- **Read detailed guides:** [Methodology Guides](../methodology-guides/)
-- **See examples:** [Case Studies](../../examples-case-studies/)
-- **Start small:** Try templates from [Quick Start Kits](../../quick-start-kits/)
+- **Read detailed guides:** Methodology Guides
+- **See examples:** Case Studies
+- **Start small:** Try templates from Quick Start Kits
 
 ---
 

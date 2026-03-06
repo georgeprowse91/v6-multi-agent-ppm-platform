@@ -4,7 +4,7 @@
 
 - Deprecated: use `./core/risk-register/manifest.yaml`
 - Migration timeline/date: `announce-now; transition-until-2026-03-31; retire-2026-06-30`
-- Canonical manifest/template: [./core/risk-register/manifest.yaml](./core/risk-register/manifest.yaml)
-- Extension patch: [./extensions/agile/risk-register.patch.yaml](./extensions/agile/risk-register.patch.yaml)
+- Canonical manifest/template: [Manifest](./core/risk-register/manifest.yaml)
+- Extension patch: [Risk Register.patch](./extensions/agile/risk-register.patch.yaml)
 
 This legacy file remains at the same path during the transition window and will be removed after the retirement date.

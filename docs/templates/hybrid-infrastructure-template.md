@@ -333,19 +333,19 @@ Traditional Planning ←→ Hybrid Integration ←→ Adaptive Planning
 ## Templates and Resources
 
 ### Configuration Templates
-- [Infrastructure Requirements Template](../../../essential-templates/infrastructure/infrastructure-requirements-template.md)
+- [Infrastructure Requirements Template](infrastructure-requirements-template.md)
 - [Deployment Checklist Template](./core/deployment-checklist/manifest.yaml)
-- [DevOps Pipeline Template](../../emerging-methods/devops/cicd_pipeline_planning_template.md)
+- [Cicd Pipeline Planning Template](cicd_pipeline_planning_template.md)
 
 ### Integration Resources
-- [Adaptive-Traditional Integration Guide](../integration-strategies.md)
-- [Tool Integration Playbook](../tool-integration-guide.md)
-- [Hybrid Team Formation](../team-formation-guide.md)
+- Adaptive-Traditional Integration Guide
+- Tool Integration Playbook
+- Hybrid Team Formation
 
 ### Industry-Specific Adaptations
-- [Healthcare Infrastructure](../../../industry-specializations/healthcare-pharmaceutical/infrastructure/)
-- [Financial Services Infrastructure](../../../industry-specializations/financial-services/infrastructure/)
-- [Technology Infrastructure](../../../industry-specializations/information-technology/infrastructure/)
+- Healthcare Infrastructure
+- Financial Services Infrastructure
+- Technology Infrastructure
 
 ---
 

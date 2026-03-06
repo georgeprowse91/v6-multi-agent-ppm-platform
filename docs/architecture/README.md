@@ -94,9 +94,9 @@ Expected output: the PlantUML file path.
 
 ### Related docs
 
-- [Logical Architecture](logical-architecture.md)
-- [Connector Overview](../connectors/overview.md)
-- [Agent Orchestration](agent-orchestration.md)
+- Logical Architecture
+- Connector Overview
+- Agent Orchestration
 
 ---
 
@@ -162,8 +162,8 @@ Expected output: a reference to `agents/AGENT_CATALOG.md`.
 ### Related docs
 
 - [Agent Catalog](../../agents/AGENT_CATALOG.md)
-- [Agent Orchestration](agent-orchestration.md)
-- [Data Architecture](data-architecture.md)
+- Agent Orchestration
+- Data Architecture
 
 ---
 
@@ -215,9 +215,9 @@ Expected output: the PlantUML file path.
 
 ### Related docs
 
-- [Deployment Architecture](deployment-architecture.md)
+- Deployment Architecture
 - [Infrastructure README](../../ops/infra/README.md)
-- [Security Architecture](security-architecture.md)
+- Security Architecture
 
 ---
 
@@ -281,9 +281,9 @@ Expected output: deployment spec with container image and environment variables.
 
 ### Related docs
 
-- [Container Runtime Identity Policy](container-runtime-identity-policy.md)
-- [Physical Architecture](physical-architecture.md)
-- [Runbooks](../runbooks/)
+- Container Runtime Identity Policy
+- Physical Architecture
+- [Runbooks](../runbooks.md)
 - [Infrastructure README](../../ops/infra/README.md)
 
 ---
@@ -345,9 +345,9 @@ rg -n "LLM_PROVIDER" packages/llm/src/llm/client.py
 
 ### Related docs
 
-- [Agent Orchestration](agent-orchestration.md)
+- Agent Orchestration
 - [LLM Package README](../../packages/llm/README.md)
-- [Security Architecture](security-architecture.md)
+- Security Architecture
 
 ---
 
@@ -410,8 +410,8 @@ Expected output: a link to `agents/AGENT_CATALOG.md`.
 ### Related docs
 
 - [Agent Catalog](../../agents/AGENT_CATALOG.md)
-- [Security Architecture](security-architecture.md)
-- [Connector Overview](../connectors/overview.md)
+- Security Architecture
+- Connector Overview
 
 ---
 
@@ -419,7 +419,7 @@ Expected output: a link to `agents/AGENT_CATALOG.md`.
 
 ### Purpose
 
-Define the AgentRun lifecycle, orchestrator state transitions, and transparency surfaces that expose progress and auditability to product interfaces and operators. This section complements [Agent Orchestration](#agent-orchestration) and the runtime package overview in [`agents/runtime/README.md`](../../agents/runtime/README.md).
+Define the AgentRun lifecycle, orchestrator state transitions, and transparency surfaces that expose progress and auditability to product interfaces and operators. This section complements [Agent Orchestration](#agent-orchestration) and the runtime package overview in [Readme](../../agents/runtime/README.md).
 
 ### AgentRun lifecycle
 
@@ -479,7 +479,7 @@ The orchestrator aggregates these values into run-level metrics under `Orchestra
 
 ### Related docs
 
-- [Agent Orchestration](agent-orchestration.md)
+- Agent Orchestration
 - [Runtime README](../../agents/runtime/README.md)
 
 ---
@@ -577,9 +577,9 @@ rg -n "tenant_id" apps/workflow-service/src/workflow_storage.py
 
 ### Related docs
 
-- [Agent Orchestration](agent-orchestration.md)
-- [Deployment Architecture](deployment-architecture.md)
-- [Quickstart Runbook](../runbooks/quickstart.md)
+- Agent Orchestration
+- Deployment Architecture
+- Quickstart Runbook
 
 ---
 
@@ -757,9 +757,9 @@ Expected output: `example-lineage.json` and `README.md`.
 
 ### Related docs
 
-- [Data Model](../data/data-model.md)
-- [Data Quality](../data/data-quality.md)
-- [Data Lineage](../data/lineage.md)
+- Data Model
+- Data Quality
+- Data Lineage
 
 ---
 
@@ -771,7 +771,7 @@ Define canonical propagation rules, conflict handling, and scenario guidance bey
 
 ### Canonical entities and ownership
 
-Canonical entities and primary owners are maintained in the [Canonical Data Model](../data/data-model.md). The Data Service (`services/data-service/`) stores and serves canonical entities and schema versions.
+Canonical entities and primary owners are maintained in the Canonical Data Model. The Data Service (`services/data-service/`) stores and serves canonical entities and schema versions.
 
 ### Propagation rules (WBS → Schedule → Risk/Budget)
 
@@ -930,18 +930,18 @@ Audit events are captured for:
 - Data synchronization activity
 - Authentication and authorization decisions
 
-The audit event schema is defined in [`data/schemas/audit-event.schema.json`](../../data/schemas/audit-event.schema.json).
+The audit event schema is defined in [Audit Event.schema](../../data/schemas/audit-event.schema.json).
 
 ### Data protection and retention
 
 - **Encryption**: TLS in transit; AES-256 at rest.
 - **Secrets**: Azure Key Vault references held in `ops/config/`.
-- **Retention**: see the [Retention Policy](../compliance/retention-policy.md) for standard schedules.
-- **Privacy**: a DPIA template is provided in the [Privacy DPIA Template](../compliance/privacy-dpia-template.md).
+- **Retention**: see the Retention Policy for standard schedules.
+- **Privacy**: a DPIA template is provided in the Privacy DPIA Template.
 
 ### Threat model summary
 
-The [Threat Model](../compliance/threat-model.md) identifies the top platform risks:
+The Threat Model identifies the top platform risks:
 
 - Connector credential leakage
 - Unauthorized cross-tenant access
@@ -973,10 +973,10 @@ sed -n '1,120p' data/schemas/audit-event.schema.json
 
 ### Related documentation
 
-- [Compliance Controls Mapping](../compliance/controls-mapping.md)
-- [Financial Services Compliance Management Template (Australia)](../compliance/financial-services-compliance-management-template.md)
-- [Retention Policy](../compliance/retention-policy.md)
-- [Threat Model](../compliance/threat-model.md)
+- Compliance Controls Mapping
+- Financial Services Compliance Management Template (Australia)
+- Retention Policy
+- Threat Model
 
 ---
 
@@ -1359,7 +1359,7 @@ For JSON-structured responses (`structured()` method), the gateway applies up to
 
 ## Performance
 
-Performance tuning spans the API gateway, agent orchestration, connector sync schedules, and data storage. Performance targets inform infrastructure sizing in `ops/infra/` and SLOs documented in the [SLO/SLI runbook](../runbooks/slo-sli.md).
+Performance tuning spans the API gateway, agent orchestration, connector sync schedules, and data storage. Performance targets inform infrastructure sizing in `ops/infra/` and SLOs documented in the SLO/SLI runbook.
 
 ### Performance targets
 
@@ -1410,7 +1410,7 @@ Use the Grafana dashboards exported under `ops/infra/observability/dashboards`:
 - `ppm-platform.json` — latency, throughput, and error rates across services.
 - `ppm-slo.json` — SLO compliance and error budget burn.
 
-Logs and traces are available via Loki and Jaeger as described in the [Observability Architecture](observability-architecture.md).
+Logs and traces are available via Loki and Jaeger as described in the Observability Architecture.
 
 ### Implementation status
 
@@ -1476,9 +1476,9 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
 
 ### Related docs
 
-- [Security Architecture](security-architecture.md)
-- [RBAC/ABAC ADR](adr/0005-rbac-abac-field-level-security.md)
-- [Data Classification](../compliance/data-classification.md)
+- Security Architecture
+- [0005 Rbac Abac Field Level Security](adr/0005-rbac-abac-field-level-security.md)
+- Data Classification
 
 ---
 

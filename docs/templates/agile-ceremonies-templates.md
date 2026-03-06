@@ -345,15 +345,15 @@ Well-facilitated ceremonies are the heartbeat of successful Adaptive teams. This
 ## 🔗 Related Resources
 
 ### Supporting Tools
-1. **[Sprint Planning Poker](../adaptive-metrics/)** - Estimation techniques
-2. **[Burndown Charts](../adaptive-metrics/)** - Progress visualization
-3. **[Impediment Tracking](../impediment-removal/)** - Blockers management
-4. **[Team Facilitation](../team-facilitation/)** - Advanced facilitation skills
+1. **Sprint Planning Poker** - Estimation techniques
+2. **Burndown Charts** - Progress visualization
+3. **Impediment Tracking** - Blockers management
+4. **Team Facilitation** - Advanced facilitation skills
 
 ### Integration Points
-1. **[Product Owner Toolkit](../../product-owner/)** - Collaboration on backlog management
-2. **[Project Manager Templates](../../project-manager/)** - Coordination with traditional PM practices
-3. **[Release Planning](../../../methodology-frameworks/adaptive-scrum/)** - Longer-term planning integration
+1. **Product Owner Toolkit** - Collaboration on backlog management
+2. **Project Manager Templates** - Coordination with traditional PM practices
+3. **Release Planning** - Longer-term planning integration
 
 ---
 

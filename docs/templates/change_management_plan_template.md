@@ -280,8 +280,8 @@ updated: "2026-02-11"
 6. Use this template in conjunction with other Traditional planning documents
 
 **Related Templates:**
-- [Stakeholder Register Template](../Process_Groups/Initiating/stakeholder_register_template.md)
+- Stakeholder Register Template
 - [Communication Plan Template](./core/communication-plan/manifest.yaml)
 - [Risk Register Template](./core/risk-register/manifest.yaml)
-- [Training Plan Template](training_plan_template.md)
+- Training Plan Template
 

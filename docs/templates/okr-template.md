@@ -301,7 +301,7 @@ Next Week Focus:
 
 - [Product Strategy Canvas](./product-strategy-canvas.md)
 - [Product Metrics Dashboard](./product-metrics-dashboard.md)
-- [User Research Planning](./user-research-planning.md)
+- User Research Planning
 - [Stakeholder Collaboration Framework](./stakeholder-collaboration-framework.md)
 
 ---

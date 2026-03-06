@@ -133,5 +133,5 @@ CI enforces major version bumps when breaking changes are recorded in the change
 ## Next steps
 
 - Review the [Architecture docs](../architecture/README.md) for system design.
-- Read the [Runbooks](../runbooks/quickstart.md) before touching production infrastructure.
-- Use the [Release process](../production-readiness/release-process.md) before cutting tags.
+- Read the Runbooks before touching production infrastructure.
+- Use the Release process before cutting tags.

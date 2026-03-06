@@ -351,10 +351,10 @@ Low Power, Low Interest: MONITOR
 
 ## Related Resources
 
-- [User Research Planning Guide](./user-research-planning.md)
-- [Product Requirements Template](./product-requirements-document.md)
-- [Stakeholder Communication Plan](./communication-plan-template.md)
-- [Conflict Resolution Playbook](../project-manager/essential-templates/conflict-resolution.md)
+- User Research Planning Guide
+- Product Requirements Template
+- Stakeholder Communication Plan
+- Conflict Resolution Playbook
 
 ---
 

@@ -9,9 +9,9 @@ The planning phase bridges the gap between project authorization and execution b
 <a id="what-youll-find-here"></a>
 ## 📋 What You'll Find Here
 
-- **[Scope Management](scope-management/)** - Work breakdown structure and deliverable definition
-- **[Schedule Planning](schedule-planning/)** - Timeline development and milestone mapping
-- **[Communication Planning](communication-planning/)** - Stakeholder engagement and information flow strategies
+- **Scope Management** - Work breakdown structure and deliverable definition
+- **Schedule Planning** - Timeline development and milestone mapping
+- **Communication Planning** - Stakeholder engagement and information flow strategies
 
 ---
 <a id="core-planning-objectives"></a>
@@ -206,20 +206,20 @@ The planning phase bridges the gap between project authorization and execution b
 ## 🔗 Integration Touchpoints
 
 ### Initiation Phase Inputs
-1. **[Project Charter](../01-initiation/project-charter/)** - High-level scope and objectives
-2. **[Stakeholder Analysis](../01-initiation/stakeholder-analysis/)** - Stakeholder requirements and expectations
-3. **[Business Case](../01-initiation/business-case/)** - Financial constraints and success criteria
+1. **Project Charter** - High-level scope and objectives
+2. **Stakeholder Analysis** - Stakeholder requirements and expectations
+3. **[Business Case](business-case.md)** - Financial constraints and success criteria
 <a id="best-practices"></a>
 
 ### Execution Phase Preparation
-1. **[Work Management](../03-execution/work-management/)** - Detailed work coordination plans
-2. **[Team Coordination](../03-execution/team-coordination/)** - Resource deployment strategies
-3. **[Quality Assurance](../03-execution/quality-assurance/)** - Quality standards and procedures
+1. **Work Management** - Detailed work coordination plans
+2. **Team Coordination** - Resource deployment strategies
+3. **Quality Assurance** - Quality standards and procedures
 
 ### Methodology Integration
-1. **[Traditional Processes](../../methodology-frameworks/traditional/)** - Standard planning procedures
-2. **[Adaptive Planning](../../methodology-frameworks/adaptive-scrum/)** - Iterative planning and backlog management
-3. **[Lean Planning](../../methodology-frameworks/emerging-methods/lean-startup/)** - Validated learning and experimentation
+1. **Traditional Processes** - Standard planning procedures
+2. **Adaptive Planning** - Iterative planning and backlog management
+3. **Lean Planning** - Validated learning and experimentation
 
 ---
 

@@ -70,5 +70,5 @@ This template evaluates the effectiveness of stakeholder engagement processes an
 3. [Low priority improvement]
 
 Related Resources:
-- [Stakeholder Engagement](../role-based-toolkits/project-manager/stakeholder-engagement/)
-- [Communication Planning](../project-lifecycle/02-planning/communication-planning/)
+- Stakeholder Engagement
+- Communication Planning

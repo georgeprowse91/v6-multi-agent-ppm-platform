@@ -363,6 +363,6 @@ Forms     Data Entry   Validation  Routing    Approval  Notification
 
 ---
 Related Resources:
-- [Digital Transformation Strategy](./digital_transformation_strategy.md)
-- [Technology Adoption Roadmap](./technology_adoption_roadmap.md)
-- [Change Management Plan](../../../essential-templates/change-management/)
+- Digital Transformation Strategy
+- Technology Adoption Roadmap
+- [Change Management](../change-management.md)

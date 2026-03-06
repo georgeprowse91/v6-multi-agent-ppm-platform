@@ -1114,9 +1114,9 @@ Time to Recovery:
 
 ## Related Templates
 - [Release Management Workflow](./release_management_template.md)
-- [DevOps Metrics Dashboard](./devops_metrics_template.md)
+- DevOps Metrics Dashboard
 - [Infrastructure as Code Template](./infrastructure_as_code_template.md)
-- [DevOps Engineer Role Guide](../../role-based-toolkits/devops-engineer/README.md)
+- [Readme](README.md)
 - [Security Integration Template](./devsecops_template.md)
 
 ---
@@ -1128,5 +1128,5 @@ Time to Recovery:
 
 ---
 
-*This template is part of the PM Tools Templates library. For more information and additional templates, visit [repository root](../../../README.md).*
+*This template is part of the PM Tools Templates library. For more information and additional templates, visit [Readme](README.md).*
 

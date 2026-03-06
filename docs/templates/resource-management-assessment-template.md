@@ -74,5 +74,5 @@ This template evaluates resource management effectiveness including human resour
 - [Specific improvement actions]
 
 Related Resources:
-- [Resource Planning](../project-lifecycle/02-planning/resource-planning/)
-- [Budget Planning](../project-lifecycle/02-planning/budget-planning/)
+- [Resource Planning](resource-planning.md)
+- Budget Planning

@@ -14,5 +14,5 @@ This worksheet helps plan infrastructure capacity for IT projects and ongoing op
 
 ---
 For comprehensive infrastructure planning, see:
-- [Infrastructure Requirements Template](../../../essential-templates/infrastructure/infrastructure-requirements-template.md)
+- [Infrastructure Requirements Template](infrastructure-requirements-template.md)
 - [Infrastructure Assessment Template](./infrastructure_assessment_template.md)

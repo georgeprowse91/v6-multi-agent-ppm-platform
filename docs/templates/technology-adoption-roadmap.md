@@ -333,6 +333,6 @@ This template provides a structured approach to planning and implementing techno
 
 ---
 Related Resources:
-- [Process Digitization Workflow](./process_digitization_workflow.md)
-- [Digital Maturity Assessment](./digital_maturity_assessment.md)
-- [Change Management Plan](../../../essential-templates/change-management/)
+- Process Digitization Workflow
+- Digital Maturity Assessment
+- [Change Management](../change-management.md)

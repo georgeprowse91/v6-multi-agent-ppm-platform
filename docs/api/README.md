@@ -151,8 +151,8 @@ rg -n "scim/v2" services/identity-access/src/main.py
 
 ### Related documentation
 
-- [Security Architecture](../architecture/security-architecture.md)
-- [Tenancy Architecture](../architecture/tenancy-architecture.md)
+- Security Architecture
+- Tenancy Architecture
 
 ---
 
@@ -452,5 +452,5 @@ rg -n "/v1/sync/run" services/data-sync-service/src/main.py
 
 ### Related documentation
 
-- [Connector Overview](../connectors/overview.md)
-- [Data Sync Failures Runbook](../runbooks/data-sync-failures.md)
+- Connector Overview
+- Data Sync Failures Runbook
