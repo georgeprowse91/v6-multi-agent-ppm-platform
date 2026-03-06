@@ -7,7 +7,15 @@ from pathlib import Path
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from data.migrations.models import Base
+import sys
+from pathlib import Path
+
+# Ensure the data/migrations directory is importable
+_migrations_dir = Path(__file__).resolve().parent
+if str(_migrations_dir) not in sys.path:
+    sys.path.insert(0, str(_migrations_dir))
+
+from models import Base
 
 config = context.config
 
@@ -30,6 +38,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
+        render_as_batch=True,
     )
 
     with context.begin_transaction():
@@ -50,6 +59,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
+            render_as_batch=True,
         )
 
         with context.begin_transaction():

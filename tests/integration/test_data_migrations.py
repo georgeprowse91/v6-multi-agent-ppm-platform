@@ -1,13 +1,37 @@
 from __future__ import annotations
 
+import importlib
+import importlib.util
+import os
+import sys
 from pathlib import Path
 
 import pytest
 
-import sqlalchemy as sa
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
-if not hasattr(sa, "create_engine"):
-    pytest.skip("SQLAlchemy package is not available", allow_module_level=True)
+
+def _load_real_sqlalchemy():
+    """Import the real sqlalchemy, bypassing the vendor stub."""
+    vendor_dir = str(_REPO_ROOT / "vendor")
+    saved_modules = {}
+    for key in list(sys.modules):
+        if key == "sqlalchemy" or key.startswith("sqlalchemy."):
+            saved_modules[key] = sys.modules.pop(key)
+
+    removed = vendor_dir in sys.path
+    if removed:
+        sys.path.remove(vendor_dir)
+    try:
+        import sqlalchemy
+        return sqlalchemy
+    except ImportError:
+        # Restore stub modules
+        sys.modules.update(saved_modules)
+        return None
+    finally:
+        if removed:
+            sys.path.append(vendor_dir)
 
 
 def _database_url(tmp_path: Path) -> str:
@@ -20,12 +44,23 @@ def _run_migrations(database_url: str) -> None:
     from alembic import command
     from alembic.config import Config
 
-    config = Config("alembic.ini")
-    config.set_main_option("sqlalchemy.url", database_url)
-    command.upgrade(config, "head")
+    old_db_url = os.environ.get("DATABASE_URL")
+    os.environ["DATABASE_URL"] = database_url
+    try:
+        config = Config(str(_REPO_ROOT / "ops" / "config" / "alembic.ini"))
+        config.set_main_option("sqlalchemy.url", database_url)
+        config.set_main_option("script_location", str(_REPO_ROOT / "data" / "migrations"))
+        command.upgrade(config, "head")
+    finally:
+        if old_db_url is not None:
+            os.environ["DATABASE_URL"] = old_db_url
 
 
 def test_missing_tables_created(tmp_path) -> None:
+    sa = _load_real_sqlalchemy()
+    if sa is None:
+        pytest.skip("real sqlalchemy is not installed")
+
     database_url = _database_url(tmp_path)
     _run_migrations(database_url)
 

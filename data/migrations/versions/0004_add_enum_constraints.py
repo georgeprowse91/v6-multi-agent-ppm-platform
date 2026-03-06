@@ -47,18 +47,18 @@ def upgrade() -> None:
         "documents",
         "audit_events",
     ):
-        op.create_check_constraint(
-            f"ck_{table}_classification_enum",
-            table,
-            _enum_constraint("classification", CLASSIFICATION_ENUM),
-        )
+        with op.batch_alter_table(table) as batch_op:
+            batch_op.create_check_constraint(
+                f"ck_{table}_classification_enum",
+                _enum_constraint("classification", CLASSIFICATION_ENUM),
+            )
 
     for table, values in STATUS_ENUMS.items():
-        op.create_check_constraint(
-            f"ck_{table}_status_enum",
-            table,
-            _enum_constraint("status", values),
-        )
+        with op.batch_alter_table(table) as batch_op:
+            batch_op.create_check_constraint(
+                f"ck_{table}_status_enum",
+                _enum_constraint("status", values),
+            )
 
 
 def downgrade() -> None:
@@ -74,15 +74,15 @@ def downgrade() -> None:
         "programs",
         "portfolios",
     ):
-        op.drop_constraint(
-            f"ck_{table}_classification_enum",
-            table,
-            type_="check",
-        )
+        with op.batch_alter_table(table) as batch_op:
+            batch_op.drop_constraint(
+                f"ck_{table}_classification_enum",
+                type_="check",
+            )
 
     for table in reversed(list(STATUS_ENUMS.keys())):
-        op.drop_constraint(
-            f"ck_{table}_status_enum",
-            table,
-            type_="check",
-        )
+        with op.batch_alter_table(table) as batch_op:
+            batch_op.drop_constraint(
+                f"ck_{table}_status_enum",
+                type_="check",
+            )

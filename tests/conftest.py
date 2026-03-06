@@ -58,8 +58,11 @@ _PYTEST_CONFIG = None
 
 def _bootstrap_paths() -> None:
     root = Path(__file__).resolve().parents[1]
-    # vendor/stubs must be first so shims shadow any installed packages
-    ordered_paths = [root / "vendor" / "stubs", root / "vendor", root]
+    # vendor/stubs provide lightweight shims for optional dependencies.
+    # They are appended AFTER system packages so real installations take
+    # priority (e.g. a real sqlalchemy won't be shadowed by the stub).
+    vendor_paths = [root / "vendor" / "stubs", root / "vendor"]
+    ordered_paths: list[Path] = [root]
     src_paths = []
 
     for base in (
@@ -96,6 +99,7 @@ def _bootstrap_paths() -> None:
     ordered_paths.extend(prioritized_src)
 
     unique_new_paths = []
+    unique_vendor_paths = []
     seen = set(sys.path)
     for path in ordered_paths:
         resolved = str(path.resolve())
@@ -103,8 +107,17 @@ def _bootstrap_paths() -> None:
             continue
         seen.add(resolved)
         unique_new_paths.append(resolved)
+    for path in vendor_paths:
+        resolved = str(path.resolve())
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        unique_vendor_paths.append(resolved)
 
+    # Prepend monorepo src paths so they take priority over system packages,
+    # but append vendor paths so real installations are preferred over stubs.
     sys.path[:0] = unique_new_paths
+    sys.path.extend(unique_vendor_paths)
 
 
 def _assert_api_import_bootstrapped() -> None:
