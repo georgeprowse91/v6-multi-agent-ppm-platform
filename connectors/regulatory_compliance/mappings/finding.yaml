@@ -1,0 +1,22 @@
+source: finding
+target: finding
+schema: issue
+fields:
+- source: id
+  target: id
+- source: title
+  target: title
+- source: regulation
+  target: regulation
+- source: severity
+  target: severity
+- source: status
+  target: status
+- source: description
+  target: description
+- source: remediation
+  target: remediation
+- source: due_date
+  target: due_date
+- source: assigned_to
+  target: assigned_to

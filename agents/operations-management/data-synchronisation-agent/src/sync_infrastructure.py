@@ -65,6 +65,20 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 
+def _normalise_entity_type(name: str) -> str:
+    """Normalise entity type to singular form for consistent lookups."""
+    plurals = {
+        "projects": "project",
+        "tasks": "task",
+        "resources": "resource",
+        "vendors": "vendor",
+        "risks": "risk",
+        "test_cases": "test_case",
+        "compliance_records": "compliance_record",
+    }
+    return plurals.get(name, name)
+
+
 def load_validation_rules(agent: DataSyncAgent) -> dict[str, list[dict[str, Any]]]:
     rules_path = (
         Path(agent.config.get("validation_rules_path", "ops/config/agents/data-synchronisation-agent/validation_rules.yaml"))
@@ -78,7 +92,11 @@ def load_validation_rules(agent: DataSyncAgent) -> dict[str, list[dict[str, Any]
     except (OSError, yaml.YAMLError) as exc:
         agent.logger.warning("validation_rules_load_failed", extra={"error": str(exc)})
         return {}
-    return {key: value if isinstance(value, list) else [] for key, value in payload.items()}
+    rules: dict[str, list[dict[str, Any]]] = {}
+    for key, value in payload.items():
+        normalised = _normalise_entity_type(key)
+        rules[normalised] = value if isinstance(value, list) else []
+    return rules
 
 
 def load_quality_thresholds(agent: DataSyncAgent) -> dict[str, float | dict[str, float]]:
@@ -125,8 +143,10 @@ def load_schema_registry(agent: DataSyncAgent) -> tuple[dict[str, dict[str, Any]
         schema = entry.get("schema")
         version = entry.get("version", "1.0")
         if entity_type and isinstance(schema, dict):
-            registry[entity_type] = schema
-            versions.setdefault(entity_type, []).append({"version": version, "schema": schema})
+            normalised = _normalise_entity_type(entity_type)
+            if normalised not in registry:
+                registry[normalised] = schema
+                versions.setdefault(normalised, []).append({"version": version, "schema": schema})
     return registry, versions
 
 

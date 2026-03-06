@@ -97,13 +97,24 @@ class JiraRESTClient(JiraClient):
 
 
 def get_jira_client() -> JiraClient:
-    use_mock = os.getenv("JIRA_USE_MOCK", "true").lower() != "false"
-    if use_mock:
-        return MockJiraClient()
-
     base_url = os.getenv("JIRA_BASE_URL")
     username = os.getenv("JIRA_USERNAME")
     api_token = os.getenv("JIRA_API_TOKEN")
     if base_url and username and api_token:
         return JiraRESTClient(base_url, username, api_token)
-    return MockJiraClient()
+
+    use_mock = os.getenv("JIRA_USE_MOCK", "").lower() == "true"
+    if use_mock:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "JIRA_USE_MOCK is enabled — using MockJiraClient. "
+            "Set JIRA_BASE_URL, JIRA_USERNAME, and JIRA_API_TOKEN for production."
+        )
+        return MockJiraClient()
+
+    raise RuntimeError(
+        "Jira client is not configured. Set JIRA_BASE_URL, JIRA_USERNAME, "
+        "and JIRA_API_TOKEN environment variables, or set JIRA_USE_MOCK=true "
+        "for development."
+    )

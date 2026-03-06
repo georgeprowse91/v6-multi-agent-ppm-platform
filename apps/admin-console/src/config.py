@@ -1,0 +1,52 @@
+from __future__ import annotations
+
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+
+from pydantic import ValidationError
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths(REPO_ROOT)
+
+from common.env_validation import build_validation_diagnostics, format_validation_report  # noqa: E402
+
+
+class Settings(BaseSettings):
+    environment: Literal["development", "dev", "staging", "production"] = "development"
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    demo_mode: bool = False
+    auth_dev_mode: bool = False
+    database_url: str = "sqlite:///admin-console.db"
+    admin_db_path: str = "apps/admin-console/storage/admin.db"
+
+    model_config = SettingsConfigDict(
+        env_file=(str(REPO_ROOT / ".env"), str(REPO_ROOT / ".env.example")),
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    return Settings()
+
+
+def validate_startup_config() -> Settings:
+    try:
+        settings = get_settings()
+    except ValidationError as exc:
+        diagnostics = build_validation_diagnostics(exc)
+        raise RuntimeError(
+            format_validation_report("admin-console", diagnostics)
+        ) from exc
+    if settings.auth_dev_mode and settings.environment in ("production", "staging"):
+        raise RuntimeError(
+            "AUTH_DEV_MODE must not be enabled in production or staging. "
+            "Set AUTH_DEV_MODE=false in the environment configuration."
+        )
+    return settings
