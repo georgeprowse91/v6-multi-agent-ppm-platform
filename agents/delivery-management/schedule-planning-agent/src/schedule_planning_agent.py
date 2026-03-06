@@ -425,6 +425,20 @@ class SchedulePlanningAgent(BaseAgent):
     async def _get_schedule(self, schedule_id, *, tenant_id):
         return await _act_get_schedule(self, schedule_id, tenant_id=tenant_id)
 
+    # CPM pass wrappers used by tests
+    async def _forward_pass(self, tasks, dependencies):
+        from schedule_actions.critical_path import forward_pass
+        return await forward_pass(tasks, dependencies)
+
+    async def _backward_pass(self, tasks, dependencies):
+        from schedule_actions.critical_path import backward_pass
+        return await backward_pass(tasks, dependencies)
+
+    # Risk adjustment wrapper used by tests
+    def _apply_risk_adjustments_to_tasks(self, tasks, risk_data):
+        from schedule_utils import apply_risk_adjustments_to_tasks
+        return apply_risk_adjustments_to_tasks(self, tasks, risk_data)
+
     # Utility wrappers used by tests
     async def _get_schedule_state(self, tenant_id, schedule_id):
         return await _get_schedule_state(self, tenant_id, schedule_id)

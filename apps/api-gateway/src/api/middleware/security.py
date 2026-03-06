@@ -376,14 +376,19 @@ class AuthTenantMiddleware(BaseHTTPMiddleware):
 
         request.state.auth = auth_context
 
-        body = await request.body()
-        request._body = body
+        content_type = request.headers.get("content-type", "")
+        is_multipart = "multipart/form-data" in content_type
+
+        if is_multipart:
+            body = b""
+        else:
+            body = await request.body()
+            request._body = body
         classification = _classification_from_body(body)
         permission = _required_permission(request)
 
         try:
             await _evaluate_rbac(auth_context, permission, classification)
-            content_type = request.headers.get("content-type", "")
             is_json = "application/json" in content_type
             resource = json.loads(body.decode("utf-8")) if body and is_json else None
             await _evaluate_abac(auth_context, permission, resource, request)

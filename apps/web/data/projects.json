@@ -167,6 +167,1518 @@
       },
       "initial_tabs": [],
       "dashboards": []
+    },
+    {
+      "id": "proj-92f9a041",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:46:41.019764+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-2785840d",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:46:41.260875+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-5c93c121",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:46:41.538798+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-8b2eb723",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:46:41.760872+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-01053b2a",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:46:42.037672+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-ab045e45",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:46:42.252118+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-b6261f1d",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:46:42.472103+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-0f2bea67",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:46:42.718584+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-4d493c14",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:48:58.343510+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-d43574e8",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:48:58.578573+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-6ae01a43",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:48:58.882214+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-601fb86d",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:48:59.124147+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-fbfe6a39",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:48:59.367037+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-0c059b72",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:48:59.620197+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-e0d732e1",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:48:59.867484+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-89234a6f",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T21:49:00.112650+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-4f8ffc7c",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:03:22.296312+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-eaf0ba19",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:03:22.912655+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-7e19c74b",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:03:23.262922+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-f032071f",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:03:23.527858+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-77f267a1",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:03:23.793495+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-a176e031",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:03:24.054954+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-2de14217",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:03:24.309499+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-ca401580",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:03:24.583070+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-8a0f48b6",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:11:05.189764+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-265049a4",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:11:05.448353+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-316fc6e2",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:11:05.754985+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-e582fde4",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:11:05.996998+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-ff9adc9d",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:11:06.244593+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-1f31b65c",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:11:06.477011+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-af88f3f9",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:11:06.729010+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-426010bf",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:11:06.991550+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-dd449e46",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:14:29.511906+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-4dc44194",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:14:29.765036+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-cfd5ecf2",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:14:30.076570+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-cc8ed004",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:14:30.328083+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-0c1976ab",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:14:30.571178+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-fef30726",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:14:30.825017+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-efdab2d6",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:14:31.102513+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-f73d0560",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:14:31.368910+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-5a98853c",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:17:50.546798+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-ec53079f",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:17:50.807797+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-a3e4bbd4",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:17:51.110431+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-53e91c72",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:17:51.342265+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-04a3472e",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:17:51.582110+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-eb022b22",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:17:51.827474+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-f56c1af7",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:17:52.071206+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-0b3e2e46",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:17:52.312721+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-f4ebd240",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:20:48.848319+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-cb49abde",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:20:49.087314+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-3cd00c23",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:20:49.391496+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-232189f5",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:20:49.624744+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-80b3d58d",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:20:49.865226+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-da90f295",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:20:50.095594+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-c3b6c3af",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:20:50.346469+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-ec37029b",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:20:50.588820+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-56d287b9",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:35:13.172312+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-f7ae5b27",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:35:13.433483+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-1a8f4768",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:35:13.753145+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-505933d0",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:35:13.996834+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-d4269bbf",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:35:14.239499+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-5617e6fb",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:35:14.493944+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-b99cc442",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:35:14.742201+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-a301ff03",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:35:14.995723+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-5442fe76",
+      "name": "My New Project",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:55:12.683056+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-819510d3",
+      "name": "Persisted Project",
+      "template_id": "tmpl-waterfall-construct",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:55:12.982048+00:00",
+      "methodology": {
+        "type": "predictive",
+        "name": "Predictive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-6b940d3f",
+      "name": "Project 0",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:55:13.392930+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-76cbe1ec",
+      "name": "Project 1",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:55:13.694007+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-b04d55f8",
+      "name": "Project 2",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:55:14.033829+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-83f4c34e",
+      "name": "Project 3",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:55:14.357614+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-095fdfa4",
+      "name": "Project 4",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:55:14.661925+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
+    },
+    {
+      "id": "proj-abde9412",
+      "name": "StageTest",
+      "template_id": "tmpl-agile-tech",
+      "template_version": "1.0",
+      "created_at": "2026-03-06T22:55:14.973945+00:00",
+      "methodology": {
+        "type": "adaptive",
+        "name": "Adaptive"
+      },
+      "agent_config": {
+        "enabled_agents": [],
+        "agent_overrides": {}
+      },
+      "connector_config": {
+        "enabled_connectors": [],
+        "connector_overrides": {}
+      },
+      "initial_tabs": [],
+      "dashboards": []
     }
   ]
 }

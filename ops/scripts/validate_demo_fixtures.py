@@ -15,6 +15,7 @@ ALLOWED_ARTIFACT_TYPES = {
     "approval",
     "policy",
     "notification",
+    "workspace",
 }
 
 
@@ -24,7 +25,7 @@ class DemoFixtureValidationError(Exception):
 
 def discover_agent_directories(repo_root: Path) -> list[Path]:
     agents_root = repo_root / "agents"
-    return sorted(path for path in agents_root.glob("**/agent-*") if path.is_dir())
+    return sorted(path for path in agents_root.glob("**/*-agent") if path.is_dir() and "runtime" not in str(path))
 
 
 def _expect(condition: bool, message: str) -> None:
@@ -86,7 +87,7 @@ def validate_demo_fixtures(repo_root: Path) -> tuple[int, int]:
 
 
 def main() -> int:
-    repo_root = Path(__file__).resolve().parents[1]
+    repo_root = Path(__file__).resolve().parents[2]
     present, expected = validate_demo_fixtures(repo_root)
     print(f"fixtures present: {present}/{expected}")
     return 0

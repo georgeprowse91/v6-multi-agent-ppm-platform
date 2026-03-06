@@ -6,13 +6,11 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from ..stakeholder_utils import (
-    create_graph_event,
     generate_event_id,
     generate_meeting_agenda,
     propose_optimal_time,
     publish_event,
     record_communication_history,
-    suggest_meeting_times,
     trigger_workflow,
 )
 
@@ -29,8 +27,7 @@ async def schedule_event(
 
     event_id = await generate_event_id()
 
-    meeting_suggestions = await suggest_meeting_times(
-        agent,
+    meeting_suggestions = await agent._suggest_meeting_times(
         event_data.get("stakeholder_ids", []),
         event_data.get("duration", 60),
         event_data.get("time_window"),
@@ -65,7 +62,7 @@ async def schedule_event(
 
     graph_event = None
     if event_data.get("use_graph", True):
-        graph_event = await create_graph_event(agent, event, event_data.get("attachments", []))
+        graph_event = await agent._create_graph_event(event, event_data.get("attachments", []))
         if graph_event.get("online_meeting_url"):
             event["meeting_link"] = graph_event.get("online_meeting_url")
         if graph_event.get("scheduled_time"):

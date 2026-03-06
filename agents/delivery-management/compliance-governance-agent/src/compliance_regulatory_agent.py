@@ -21,6 +21,8 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
+from agents.common.web_search import search_web, summarize_snippets  # noqa: E402, F401
+
 from compliance_actions import (  # noqa: E402
     handle_add_regulation,
     handle_assess_compliance,
@@ -459,6 +461,24 @@ class ComplianceRegulatoryAgent(BaseAgent):
     ) -> dict[str, Any]:
         """Delegate to compliance_seed module."""
         return await extract_regulation_metadata(self, regulation_data)
+
+    async def _extract_regulatory_updates(
+        self,
+        summary: str,
+        snippets: list[str],
+        *,
+        llm_client: Any = None,
+    ) -> list[dict[str, Any]]:
+        """Extract regulatory updates from search snippets via LLM.
+
+        Delegates to the module-level helper in ``compliance_actions.monitor_regulatory``
+        so that callers can monkeypatch this method for testing.
+        """
+        from compliance_actions.monitor_regulatory import (
+            _extract_regulatory_updates as _impl,
+        )
+
+        return await _impl(self, summary, snippets, llm_client=llm_client)
 
     # ------------------------------------------------------------------
     # Event handling

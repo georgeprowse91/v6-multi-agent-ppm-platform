@@ -6,13 +6,11 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from ..stakeholder_utils import (
-    analyze_text_sentiment,
     calculate_overall_sentiment,
     calculate_sentiment_trend,
     generate_feedback_id,
     publish_event,
     record_communication_history,
-    trigger_sentiment_alert,
 )
 
 if TYPE_CHECKING:
@@ -28,7 +26,7 @@ async def collect_feedback(
 
     feedback_id = await generate_feedback_id()
 
-    sentiment = await analyze_text_sentiment(agent, feedback_data.get("comments", ""))
+    sentiment = await agent._analyze_text_sentiment(feedback_data.get("comments", ""))
 
     feedback_record = {
         "feedback_id": feedback_id,
@@ -83,8 +81,8 @@ async def collect_feedback(
     )
 
     if sentiment.get("score", 0) < agent.sentiment_threshold:
-        await trigger_sentiment_alert(
-            agent, feedback_data.get("stakeholder_id"), sentiment, feedback_record
+        await agent._trigger_sentiment_alert(
+            feedback_data.get("stakeholder_id"), sentiment, feedback_record
         )
 
     return {

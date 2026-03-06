@@ -3,14 +3,13 @@
     "LINEAGE-2": {
       "lineage_id": "LINEAGE-2",
       "entity_type": "project",
-      "master_id": "MASTER-PROJECT-20260301103514",
+      "master_id": "MASTER-PROJECT-20260306225340",
       "source_system": "jira",
       "payload": {
-        "id": "proj-dup",
-        "name": "Duplicated",
-        "status": "active"
+        "id": "proj-9",
+        "name": "Retry Project"
       },
-      "timestamp": "2026-03-01T10:35:14.733456+00:00"
+      "timestamp": "2026-03-06T22:53:40.271429+00:00"
     }
   }
 }

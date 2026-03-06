@@ -29,27 +29,56 @@ def stub_routes_package() -> None:
     """
 
     # --- routes package stub ---
-    if "routes" not in sys.modules or not hasattr(sys.modules["routes"], "__path__"):
+    existing = sys.modules.get("routes")
+    web_routes_str = str(_WEB_ROUTES)
+    if existing is None or not hasattr(existing, "__path__") or web_routes_str not in list(existing.__path__):
         pkg = types.ModuleType("routes")
-        pkg.__path__ = [str(_WEB_ROUTES)]
+        pkg.__path__ = [web_routes_str]
         pkg.__package__ = "routes"
         sys.modules["routes"] = pkg
+        # Clear stale sub-modules from a different routes package
+        for key in list(sys.modules):
+            if key.startswith("routes."):
+                del sys.modules[key]
 
     # --- routes._deps stub ---
     if "routes._deps" not in sys.modules:
-        # Load the real _deps module by file path (avoids triggering __init__)
+        # Loading _deps.py requires web/src modules.  Integration tests may
+        # have cached incompatible modules (e.g. orchestration-service's
+        # orchestrator.py as sys.modules["orchestrator"]).  Temporarily
+        # remove conflicting entries, load _deps, then restore them.
         deps_path = _WEB_ROUTES / "_deps.py"
+        _web_src = deps_path.parent.parent
+        _conflicting = {}
+        for mod_name in ("orchestrator", "persistence", "config"):
+            cached = sys.modules.get(mod_name)
+            if cached is not None:
+                origin = getattr(cached, "__file__", "") or ""
+                if str(_web_src) not in origin:
+                    _conflicting[mod_name] = sys.modules.pop(mod_name)
+
         spec = importlib.util.spec_from_file_location("routes._deps", deps_path)
         mod = importlib.util.module_from_spec(spec)
         sys.modules["routes._deps"] = mod
         try:
             spec.loader.exec_module(mod)
         except Exception:
-            # If loading real _deps fails (missing transitive deps), use minimal stub
+            # Fallback: minimal stub with common names
             stub = types.ModuleType("routes._deps")
+            stub.__file__ = str(deps_path)
             stub.logger = logging.getLogger("routes._deps.stub")
             stub._load_projects = lambda: []
+            # Add commonly imported constants
+            stub.REPO_ROOT = _web_src.parent.parent.parent
+            stub.WEB_ROOT = _web_src.parent
+            stub.DATA_DIR = _web_src.parent / "data"
+            stub.STORAGE_DIR = _web_src.parent / "storage"
+            stub.PROJECTS_PATH = stub.DATA_DIR / "projects.json"
             sys.modules["routes._deps"] = stub
+
+        # Restore conflicting modules
+        for mod_name, cached_mod in _conflicting.items():
+            sys.modules[mod_name] = cached_mod
 
     # --- routes._llm_helpers stub ---
     if "routes._llm_helpers" not in sys.modules:

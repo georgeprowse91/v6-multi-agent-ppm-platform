@@ -12647,6 +12647,2424 @@
           "external_sync": {}
         }
       }
+    },
+    "PRJ-20260306214530-9e4c1a": {
+      "project_id": "PRJ-20260306214530-9e4c1a",
+      "baseline_id": "PRJ-20260306214530-9e4c1a-BASELINE-20260306214530",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T21:45:30.662986+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T21:45:30.662989+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306214530-9e4c1a-d22e0a",
+          "project_id": "PRJ-20260306214530-9e4c1a",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T21:45:30.486863+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306214530-9e4c1a-WBS-001",
+          "project_id": "PRJ-20260306214530-9e4c1a",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T21:45:30.575728+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306214530-9e4c1a",
+          "requirements": [
+            {
+              "id": "REQ-92321e",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T21:45:30.661925+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306214747-a3925c": {
+      "project_id": "PRJ-20260306214747-a3925c",
+      "baseline_id": "PRJ-20260306214747-a3925c-BASELINE-20260306214747",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T21:47:47.914297+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T21:47:47.914300+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306214747-a3925c-129656",
+          "project_id": "PRJ-20260306214747-a3925c",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T21:47:47.661965+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306214747-a3925c-WBS-001",
+          "project_id": "PRJ-20260306214747-a3925c",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T21:47:47.803215+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306214747-a3925c",
+          "requirements": [
+            {
+              "id": "REQ-654ef6",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T21:47:47.913481+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306220946-31f5dd": {
+      "project_id": "PRJ-20260306220946-31f5dd",
+      "baseline_id": "PRJ-20260306220946-31f5dd-BASELINE-20260306220946",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:09:46.919166+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:09:46.919174+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306220946-31f5dd-d85094",
+          "project_id": "PRJ-20260306220946-31f5dd",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:09:46.661095+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306220946-31f5dd-WBS-001",
+          "project_id": "PRJ-20260306220946-31f5dd",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:09:46.795333+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306220946-31f5dd",
+          "requirements": [
+            {
+              "id": "REQ-181bcf",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:09:46.916495+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306221312-69ef0c": {
+      "project_id": "PRJ-20260306221312-69ef0c",
+      "baseline_id": "PRJ-20260306221312-69ef0c-BASELINE-20260306221312",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:13:12.779488+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:13:12.779492+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306221312-69ef0c-6cb2bc",
+          "project_id": "PRJ-20260306221312-69ef0c",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:13:12.480385+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306221312-69ef0c-WBS-001",
+          "project_id": "PRJ-20260306221312-69ef0c",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:13:12.627905+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306221312-69ef0c",
+          "requirements": [
+            {
+              "id": "REQ-d7b144",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:13:12.777055+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306221639-bee557": {
+      "project_id": "PRJ-20260306221639-bee557",
+      "baseline_id": "PRJ-20260306221639-bee557-BASELINE-20260306221639",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:16:39.820450+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:16:39.820453+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306221639-bee557-560a94",
+          "project_id": "PRJ-20260306221639-bee557",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:16:39.634778+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306221639-bee557-WBS-001",
+          "project_id": "PRJ-20260306221639-bee557",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:16:39.729797+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306221639-bee557",
+          "requirements": [
+            {
+              "id": "REQ-b63ac8",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:16:39.819503+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306221937-eec17c": {
+      "project_id": "PRJ-20260306221937-eec17c",
+      "baseline_id": "PRJ-20260306221937-eec17c-BASELINE-20260306221937",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:19:37.535131+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:19:37.535135+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306221937-eec17c-ecd7db",
+          "project_id": "PRJ-20260306221937-eec17c",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:19:37.325224+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306221937-eec17c-WBS-001",
+          "project_id": "PRJ-20260306221937-eec17c",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:19:37.432859+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306221937-eec17c",
+          "requirements": [
+            {
+              "id": "REQ-fcb6a9",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:19:37.533962+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306223351-cf7206": {
+      "project_id": "PRJ-20260306223351-cf7206",
+      "baseline_id": "PRJ-20260306223351-cf7206-BASELINE-20260306223351",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:33:51.797800+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:33:51.797805+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306223351-cf7206-da6682",
+          "project_id": "PRJ-20260306223351-cf7206",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:33:51.627446+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306223351-cf7206-WBS-001",
+          "project_id": "PRJ-20260306223351-cf7206",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:33:51.713926+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306223351-cf7206",
+          "requirements": [
+            {
+              "id": "REQ-f09ea8",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:33:51.796707+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306223627-2211f2": {
+      "project_id": "PRJ-20260306223627-2211f2",
+      "baseline_id": "PRJ-20260306223627-2211f2-BASELINE-20260306223627",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:36:27.707736+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:36:27.707740+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306223627-2211f2-dbb690",
+          "project_id": "PRJ-20260306223627-2211f2",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:36:27.498778+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306223627-2211f2-WBS-001",
+          "project_id": "PRJ-20260306223627-2211f2",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:36:27.607162+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306223627-2211f2",
+          "requirements": [
+            {
+              "id": "REQ-7f2908",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:36:27.706332+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306223903-06d502": {
+      "project_id": "PRJ-20260306223903-06d502",
+      "baseline_id": "PRJ-20260306223903-06d502-BASELINE-20260306223904",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:39:04.166478+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:39:04.166488+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306223903-06d502-b21d17",
+          "project_id": "PRJ-20260306223903-06d502",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:39:03.941463+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306223903-06d502-WBS-001",
+          "project_id": "PRJ-20260306223903-06d502",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:39:04.056544+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306223903-06d502",
+          "requirements": [
+            {
+              "id": "REQ-8d6af6",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:39:04.164559+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306224137-0ef0e9": {
+      "project_id": "PRJ-20260306224137-0ef0e9",
+      "baseline_id": "PRJ-20260306224137-0ef0e9-BASELINE-20260306224137",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:41:37.992067+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:41:37.992070+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306224137-0ef0e9-7b9b89",
+          "project_id": "PRJ-20260306224137-0ef0e9",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:41:37.785363+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306224137-0ef0e9-WBS-001",
+          "project_id": "PRJ-20260306224137-0ef0e9",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:41:37.888665+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306224137-0ef0e9",
+          "requirements": [
+            {
+              "id": "REQ-6b05e5",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:41:37.991016+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306224406-93a7fe": {
+      "project_id": "PRJ-20260306224406-93a7fe",
+      "baseline_id": "PRJ-20260306224406-93a7fe-BASELINE-20260306224407",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:44:07.006124+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:44:07.006128+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306224406-93a7fe-79e79a",
+          "project_id": "PRJ-20260306224406-93a7fe",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:44:06.810184+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306224406-93a7fe-WBS-001",
+          "project_id": "PRJ-20260306224406-93a7fe",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:44:06.907398+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306224406-93a7fe",
+          "requirements": [
+            {
+              "id": "REQ-0ef0cd",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:44:07.005308+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306224926-aa0a61": {
+      "project_id": "PRJ-20260306224926-aa0a61",
+      "baseline_id": "PRJ-20260306224926-aa0a61-BASELINE-20260306224926",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:49:26.987175+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:49:26.987178+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306224926-aa0a61-009e6f",
+          "project_id": "PRJ-20260306224926-aa0a61",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:49:26.775397+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306224926-aa0a61-WBS-001",
+          "project_id": "PRJ-20260306224926-aa0a61",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:49:26.882537+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306224926-aa0a61",
+          "requirements": [
+            {
+              "id": "REQ-18222b",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:49:26.985852+00:00",
+          "external_sync": {}
+        }
+      }
+    },
+    "PRJ-20260306225343-fc95a2": {
+      "project_id": "PRJ-20260306225343-fc95a2",
+      "baseline_id": "PRJ-20260306225343-fc95a2-BASELINE-20260306225344",
+      "charter_version": "1.0",
+      "wbs_version": "1.0",
+      "requirements_count": 1,
+      "scope_statement": {
+        "in_scope": [],
+        "out_of_scope": [],
+        "deliverables": []
+      },
+      "locked_at": "2026-03-06T22:53:44.143417+00:00",
+      "locked_by": "system",
+      "status": "Locked",
+      "traceability_matrix": null,
+      "version": "1.0",
+      "created_by": "system",
+      "timestamp": "2026-03-06T22:53:44.143420+00:00",
+      "data": {
+        "charter": {
+          "charter_id": "CHAR-PRJ-20260306225343-fc95a2-b75982",
+          "project_id": "PRJ-20260306225343-fc95a2",
+          "title": "Project Nova",
+          "project_type": "delivery",
+          "methodology": "adaptive",
+          "created_at": "2026-03-06T22:53:43.904046+00:00",
+          "created_by": "unknown",
+          "status": "Draft",
+          "template": "template_delivery_adaptive",
+          "document": {
+            "executive_summary": "This project charter establishes Project Nova. Improve onboarding",
+            "objectives": [
+              "Deliver project on time and within budget",
+              "Meet stakeholder expectations",
+              "Achieve defined success criteria"
+            ],
+            "scope_overview": {
+              "in_scope": [],
+              "out_of_scope": [],
+              "deliverables": []
+            },
+            "high_level_requirements": [],
+            "stakeholders": [],
+            "governance_structure": {
+              "sponsor": "Unassigned",
+              "project_manager": "Unassigned",
+              "steering_committee": [],
+              "reporting_frequency": "weekly"
+            },
+            "success_criteria": [
+              "Project completed within approved budget",
+              "All deliverables meet quality standards",
+              "Stakeholder satisfaction > 80%"
+            ],
+            "assumptions": [],
+            "constraints": []
+          },
+          "version": "1.0"
+        },
+        "wbs": {
+          "wbs_id": "PRJ-20260306225343-fc95a2-WBS-001",
+          "project_id": "PRJ-20260306225343-fc95a2",
+          "structure": {
+            "1.0": {
+              "name": "Project Management",
+              "children": {
+                "1.1": {
+                  "name": "Initiation & Planning",
+                  "children": {}
+                },
+                "1.2": {
+                  "name": "Monitoring & Control",
+                  "children": {}
+                },
+                "1.3": {
+                  "name": "Closure",
+                  "children": {}
+                }
+              }
+            },
+            "2.0": {
+              "name": "Deliver project on time and within budget",
+              "children": {
+                "2.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "2.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "2.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "2.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "2.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "3.0": {
+              "name": "Meet stakeholder expectations",
+              "children": {
+                "3.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "3.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "3.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "3.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "3.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            },
+            "4.0": {
+              "name": "Achieve defined success criteria",
+              "children": {
+                "4.1": {
+                  "name": "Discovery & Analysis",
+                  "children": {}
+                },
+                "4.2": {
+                  "name": "Design & Build",
+                  "children": {}
+                },
+                "4.3": {
+                  "name": "Validation & Acceptance",
+                  "children": {}
+                },
+                "4.4": {
+                  "name": "Deployment & Handover",
+                  "children": {}
+                },
+                "4.5": {
+                  "name": "Leverage Similar Project Assets",
+                  "children": {}
+                }
+              }
+            }
+          },
+          "created_at": "2026-03-06T22:53:44.027562+00:00",
+          "status": "Draft",
+          "version": "1.0"
+        },
+        "requirements": {
+          "project_id": "PRJ-20260306225343-fc95a2",
+          "requirements": [
+            {
+              "id": "REQ-6d440b",
+              "text": "System shall support SSO.",
+              "source": "manual",
+              "category": null,
+              "priority": "medium"
+            }
+          ],
+          "categories": {
+            "null": 1
+          },
+          "conflicts": [],
+          "validation": {
+            "complete": true,
+            "missing_fields": [],
+            "validation_score": 0.95
+          },
+          "total_count": 1,
+          "updated_at": "2026-03-06T22:53:44.142197+00:00",
+          "external_sync": {}
+        }
+      }
     }
   }
 }

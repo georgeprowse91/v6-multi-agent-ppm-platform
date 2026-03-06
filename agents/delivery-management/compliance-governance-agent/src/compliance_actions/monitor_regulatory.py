@@ -18,7 +18,9 @@ from compliance_utils import (
 )
 from llm.client import LLMGateway, LLMProviderError
 
-from agents.common.web_search import build_search_query, search_web, summarize_snippets
+import importlib
+
+from agents.common.web_search import build_search_query
 
 if TYPE_CHECKING:
     from compliance_regulatory_agent import ComplianceRegulatoryAgent
@@ -148,7 +150,9 @@ async def handle_monitor_regulations(
     )
 
     # NOTE: Only high-level context should be sent to external search providers.
-    snippets = await search_web(
+    import compliance_regulatory_agent as _agent_module
+
+    snippets = await _agent_module.search_web(
         query, result_limit=result_limit or agent.regulatory_search_result_limit
     )
     if not snippets:
@@ -160,8 +164,8 @@ async def handle_monitor_regulations(
             "used_external_research": False,
         }
 
-    summary = await summarize_snippets(snippets, llm_client=llm_client, purpose="compliance")
-    updates = await _extract_regulatory_updates(agent, summary, snippets, llm_client=llm_client)
+    summary = await _agent_module.summarize_snippets(snippets, llm_client=llm_client, purpose="compliance")
+    updates = await agent._extract_regulatory_updates(summary, snippets, llm_client=llm_client)
     gaps = identify_control_gaps(updates, agent.regulation_library)
     sources = extract_sources(snippets)
 

@@ -11,7 +11,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 
 logger = logging.getLogger(__name__)
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 DEMO_DATA_ROOT = REPO_ROOT / "data" / "demo"
 
 app = FastAPI(title="Mock Connectors API")

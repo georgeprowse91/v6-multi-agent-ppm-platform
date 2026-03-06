@@ -9,7 +9,7 @@ import re
 import subprocess
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 CSV_PATH = ROOT / "docs/templates/migration/legacy-to-canonical.csv"
 OUT_PATH = ROOT / "docs/templates/migration/dependency-map.json"
 

@@ -606,8 +606,8 @@ async def generate_message_content(
 ) -> tuple[str, dict[str, Any]]:
     """Generate message content using NLG."""
     if agent.openai_endpoint and agent.openai_api_key and agent.openai_deployment:
-        draft = await generate_openai_text(
-            agent, template=template, data=data, prompt_type=prompt_type, prompt=prompt
+        draft = await agent._generate_openai_text(
+            template=template, data=data, prompt_type=prompt_type, prompt=prompt
         )
         if not draft.get("content") and template:
             return safe_format_template(template, data), {"provider": "template_fallback"}
@@ -675,8 +675,7 @@ async def summarize_report(
             f"Summarize the following report for the {role} role. "
             f"Use locale {locale or agent.default_locale} and keep it concise.\n\n{report}"
         )
-        draft = await generate_openai_text(
-            agent,
+        draft = await agent._generate_openai_text(
             template=report,
             data={"report": report, "role": role, "locale": locale},
             prompt_type="summary",
@@ -692,8 +691,7 @@ async def generate_meeting_agenda(
 ) -> list[str]:
     if not (agent.openai_endpoint and agent.openai_api_key and agent.openai_deployment):
         return []
-    draft = await generate_openai_text(
-        agent,
+    draft = await agent._generate_openai_text(
         template=event_data.get("description", ""),
         data=event_data,
         prompt_type="meeting_agenda",
@@ -707,8 +705,7 @@ async def generate_action_items(
 ) -> list[str]:
     if not (agent.openai_endpoint and agent.openai_api_key and agent.openai_deployment):
         return []
-    draft = await generate_openai_text(
-        agent,
+    draft = await agent._generate_openai_text(
         template=context.get("summary", ""),
         data=context,
         prompt_type="action_items",

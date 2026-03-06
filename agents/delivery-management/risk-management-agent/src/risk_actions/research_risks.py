@@ -14,7 +14,7 @@ from risk_utils import (
     risk_signature,
 )
 
-from agents.common.web_search import build_search_query, search_web, summarize_snippets
+from agents.common.web_search import build_search_query
 
 if TYPE_CHECKING:
     from risk_management_agent import RiskManagementAgent
@@ -42,15 +42,16 @@ async def research_risks_public(
     )
 
     # NOTE: Only high-level, non-sensitive context should be sent to the search API.
-    snippets = await search_web(
+    import risk_management_agent as _agent_module
+
+    snippets = await _agent_module.search_web(
         query, result_limit=result_limit or agent.risk_search_result_limit
     )
     if not snippets:
         return []
 
-    summary = await summarize_snippets(snippets, llm_client=llm_client, purpose="risk")
-    return await _classify_external_risks(
-        agent,
+    summary = await _agent_module.summarize_snippets(snippets, llm_client=llm_client, purpose="risk")
+    return await agent._classify_external_risks(
         summary,
         snippets,
         categories,

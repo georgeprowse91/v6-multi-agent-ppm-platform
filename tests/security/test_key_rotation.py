@@ -100,15 +100,16 @@ def test_signal_handler_clears_caches(monkeypatch: pytest.MonkeyPatch) -> None:
     def mock_clear():
         cleared.append(True)
 
-    import importlib
     import sys
 
     # Remove cached module if it failed to import previously
     sys.modules.pop("api.main", None)
 
-    monkeypatch.setattr("api.main.clear_auth_caches", mock_clear, raising=False)
-
     import api.main as main_mod
+
+    # Patch after import so the closure inside _install_key_rotation_handler
+    # captures our mock when we re-install the handler below.
+    monkeypatch.setattr(main_mod, "clear_auth_caches", mock_clear)
 
     main_mod._install_key_rotation_handler()
 

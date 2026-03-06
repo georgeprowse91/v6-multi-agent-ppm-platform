@@ -168,6 +168,14 @@ class DataSyncAgent(BaseAgent):
         self.connectors: dict[str, Any] = {}
         self._sync_business_metrics = build_business_workflow_metrics("data-sync-agent", "connector_sync")
 
+    def _record_sync_business_start(self, tenant_id: str, trace_id: str) -> None:
+        """Record connector sync execution start via standard business metrics."""
+        self._sync_business_metrics.executions_total.add(1, {"tenant.id": tenant_id, "trace.id": trace_id})
+
+    def _record_sync_business_duration(self, tenant_id: str, trace_id: str, duration: float) -> None:
+        """Record connector sync duration via standard business metrics."""
+        self._sync_business_metrics.execution_duration_seconds.record(duration, {"tenant.id": tenant_id, "trace.id": trace_id})
+
     def _get_setting(self, key: str, default: str | None = None) -> str | None:
         secret_value = self.secret_context.get(key)
         if secret_value is not None:

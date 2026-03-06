@@ -62,3 +62,4 @@ data/*.sqlite3
 data/agent_storage/
 apps/web/storage/workspaces.json
 ops/config/plans/
+test.db

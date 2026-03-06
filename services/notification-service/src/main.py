@@ -98,10 +98,10 @@ reject_placeholder_secrets(
     secret_vars={
         k: v
         for k, v in {
-            "NOTIFICATION_TEAMS_CLIENT_SECRET": os.getenv("NOTIFICATION_TEAMS_CLIENT_SECRET", ""),
-            "NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN": os.getenv("NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN", ""),
-            "NOTIFICATION_SLACK_BOT_TOKEN": os.getenv("NOTIFICATION_SLACK_BOT_TOKEN", ""),
-            "NOTIFICATION_ACS_ACCESS_TOKEN": os.getenv("NOTIFICATION_ACS_ACCESS_TOKEN", ""),
+            "NOTIFICATION_TEAMS_CLIENT_SECRET": resolve_secret(os.getenv("NOTIFICATION_TEAMS_CLIENT_SECRET", "")),
+            "NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN": resolve_secret(os.getenv("NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN", "")),
+            "NOTIFICATION_SLACK_BOT_TOKEN": resolve_secret(os.getenv("NOTIFICATION_SLACK_BOT_TOKEN", "")),
+            "NOTIFICATION_ACS_ACCESS_TOKEN": resolve_secret(os.getenv("NOTIFICATION_ACS_ACCESS_TOKEN", "")),
         }.items()
         if v
     },

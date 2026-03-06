@@ -1,9 +1,14 @@
 """Scope research endpoints."""
 
+import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, ValidationError
+
+from api.dependencies import get_orchestrator
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -31,15 +36,15 @@ class ScopeResearchResponse(BaseModel):
 
 @router.post("/projects/{project_id}/scope/research", response_model=ScopeResearchResponse)
 async def generate_scope_research(
-    project_id: str, request: ScopeResearchRequest
+    project_id: str,
+    payload: ScopeResearchRequest,
+    orchestrator: Any = Depends(get_orchestrator),
 ) -> ScopeResearchResponse:
     """Trigger scope research using the Project Definition & Scope agent."""
-    orchestrator = request.app.state.orchestrator
-
     if not orchestrator or not orchestrator.initialized:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
 
-    agent = orchestrator.get_agent("scope-definition-agent") if orchestrator else None
+    agent = orchestrator.get_agent("scope-definition-agent")
     if not agent:
         raise HTTPException(status_code=404, detail="Project Definition agent not available")
 
@@ -48,13 +53,27 @@ async def generate_scope_research(
             {
                 "action": "generate_scope_research",
                 "project_id": project_id,
-                "objective": request.objective,
-                "enable_external_research": request.enable_external_research,
-                "search_result_limit": request.search_result_limit,
+                "objective": payload.objective,
+                "enable_external_research": payload.enable_external_research,
+                "search_result_limit": payload.search_result_limit,
             }
         )
         return ScopeResearchResponse.model_validate(result)
     except ValidationError as exc:
-        raise HTTPException(status_code=500, detail="Invalid scope research response") from exc
-    except (RuntimeError, ValueError) as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        logger.error(
+            "Scope agent returned invalid response for project %s: %s",
+            project_id,
+            exc,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Scope agent returned an invalid response",
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "Scope research failed for project %s: %s", project_id, exc
+        )
+        raise HTTPException(
+            status_code=502,
+            detail=f"Scope research failed: {exc}",
+        ) from exc

@@ -1,13 +1,41 @@
 from __future__ import annotations
 
+import importlib.util
+import os
+import sys
 from pathlib import Path
 
 import pytest
 
-pytest.importorskip("alembic")
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
-from alembic import command
-from alembic.config import Config
+
+def _ensure_real_sqlalchemy():
+    """Ensure real sqlalchemy (not vendor stub) is loaded. Returns True or False."""
+    vendor_dir = str(_REPO_ROOT / "vendor")
+    # Clear cached modules that may hold references to the vendor stub
+    for key in list(sys.modules):
+        if key == "sqlalchemy" or key.startswith("sqlalchemy."):
+            del sys.modules[key]
+        if key == "alembic" or key.startswith("alembic."):
+            del sys.modules[key]
+    # Also clear persistence so it re-imports with real sqlalchemy
+    for key in list(sys.modules):
+        if key == "persistence" or key.startswith("persistence."):
+            del sys.modules[key]
+
+    removed = vendor_dir in sys.path
+    if removed:
+        sys.path.remove(vendor_dir)
+    try:
+        import sqlalchemy  # noqa: F401
+        import alembic  # noqa: F401
+        return True
+    except ImportError:
+        return False
+    finally:
+        if removed:
+            sys.path.append(vendor_dir)
 
 
 def _database_urls(tmp_path: Path) -> tuple[str, str]:
@@ -16,19 +44,36 @@ def _database_urls(tmp_path: Path) -> tuple[str, str]:
 
 
 def _run_migrations(database_url: str) -> None:
-    config = Config("alembic.ini")
-    config.set_main_option("sqlalchemy.url", database_url)
-    command.upgrade(config, "head")
+    from alembic import command
+    from alembic.config import Config
+
+    old_db_url = os.environ.get("DATABASE_URL")
+    os.environ["DATABASE_URL"] = database_url
+    try:
+        config = Config(str(_REPO_ROOT / "ops" / "config" / "alembic.ini"))
+        config.set_main_option("sqlalchemy.url", database_url)
+        config.set_main_option("script_location", str(_REPO_ROOT / "data" / "migrations"))
+        command.upgrade(config, "head")
+    finally:
+        if old_db_url is not None:
+            os.environ["DATABASE_URL"] = old_db_url
 
 
 @pytest.mark.asyncio
 async def test_orchestrator_state_persists_across_restart(monkeypatch, tmp_path) -> None:
+    if not _ensure_real_sqlalchemy():
+        pytest.skip("real sqlalchemy/alembic not installed")
+
     sync_url, async_url = _database_urls(tmp_path)
     _run_migrations(sync_url)
     monkeypatch.setenv("ORCHESTRATION_STATE_BACKEND", "db")
     monkeypatch.setenv("ORCHESTRATION_DATABASE_URL", async_url)
 
-    from orchestrator import AgentOrchestrator
+    _orch_path = _REPO_ROOT / "apps" / "orchestration-service" / "src" / "orchestrator.py"
+    _spec = importlib.util.spec_from_file_location("_orch_persistence_mod", _orch_path)
+    _orch_mod = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_orch_mod)
+    AgentOrchestrator = _orch_mod.AgentOrchestrator
 
     orchestrator = AgentOrchestrator()
     await orchestrator.initialize()
@@ -44,6 +89,9 @@ async def test_orchestrator_state_persists_across_restart(monkeypatch, tmp_path)
 
 @pytest.mark.asyncio
 async def test_orchestrator_state_optimistic_lock(monkeypatch, tmp_path) -> None:
+    if not _ensure_real_sqlalchemy():
+        pytest.skip("real sqlalchemy/alembic not installed")
+
     sync_url, async_url = _database_urls(tmp_path)
     _run_migrations(sync_url)
     monkeypatch.setenv("ORCHESTRATION_DATABASE_URL", async_url)

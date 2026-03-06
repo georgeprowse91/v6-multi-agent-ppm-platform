@@ -169,7 +169,7 @@ reject_placeholder_secrets(
     secret_vars={
         k: v
         for k, v in {
-            "SERVICE_BUS_CONNECTION_STRING": os.getenv("SERVICE_BUS_CONNECTION_STRING", ""),
+            "SERVICE_BUS_CONNECTION_STRING": resolve_secret(os.getenv("SERVICE_BUS_CONNECTION_STRING", "")),
         }.items()
         if v
     },

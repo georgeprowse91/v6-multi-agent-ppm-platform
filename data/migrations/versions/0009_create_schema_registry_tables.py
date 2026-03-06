@@ -56,6 +56,12 @@ def upgrade() -> None:
             sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
             sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         )
+        # Create the index that migration 0008 would have added
+        op.create_index(
+            "idx_entities_schema_version",
+            "canonical_entities",
+            ["schema_name", "schema_version"],
+        )
 
 
 def downgrade() -> None:
