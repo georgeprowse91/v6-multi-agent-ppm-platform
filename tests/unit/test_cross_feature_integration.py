@@ -7,20 +7,17 @@ and error propagation between components.
 from __future__ import annotations
 
 import asyncio
-import sys
-from pathlib import Path
 
 import pytest
+from annotations import Annotation, AnnotationStore, generate_suggestions
 
 # --- Execution events + annotations integration ---
-
 from agents.runtime.src.execution_events import (
     ExecutionEvent,
     ExecutionEventEmitter,
     ExecutionEventRegistry,
     ExecutionEventType,
 )
-from annotations import Annotation, AnnotationStore, generate_suggestions
 
 
 @pytest.mark.asyncio
@@ -91,7 +88,7 @@ from nl_workflow import NLWorkflowParser
 def test_workflow_steps_map_to_event_types():
     """Workflow step types should have corresponding execution event types."""
     parser = NLWorkflowParser()
-    definition = asyncio.get_event_loop().run_until_complete(
+    definition = asyncio.run(
         parser.parse("Evaluate risks, get approval, and notify stakeholders")
     )
 
@@ -141,12 +138,9 @@ def test_execution_registry_singleton():
 
 def test_intake_classification_informs_workflow():
     """Classification categories should map to workflow step types."""
-    # Valid classification categories
-    categories = ["strategic", "operational", "regulatory", "maintenance", "innovation"]
-
     # Regulatory should produce compliance steps
     parser = NLWorkflowParser()
-    definition = asyncio.get_event_loop().run_until_complete(
+    definition = asyncio.run(
         parser.parse("New GDPR regulatory compliance requirement")
     )
     step_names = [s["name"].lower() for s in definition["steps"]]

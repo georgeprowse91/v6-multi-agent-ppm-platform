@@ -171,11 +171,14 @@ class PowerBIEmbedManager:
         template = self.report_templates.get(report_type)
         if not template:
             raise ValueError(f"Unknown report template: {report_type}")
-        embed_token = "mock-embed-token"
-        if self.power_bi_client and hasattr(self.power_bi_client, "generate_embed_token"):
-            embed_token = self.power_bi_client.generate_embed_token(
-                template["report_id"], user_context
+        if not self.power_bi_client or not hasattr(self.power_bi_client, "generate_embed_token"):
+            raise RuntimeError(
+                "Power BI client is not configured. Set POWER_BI_* environment "
+                "variables to enable report embedding."
             )
+        embed_token = self.power_bi_client.generate_embed_token(
+            template["report_id"], user_context
+        )
         return {
             "report_type": report_type,
             "template": template,

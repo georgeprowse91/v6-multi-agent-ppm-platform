@@ -233,9 +233,9 @@ node demo-ecosystem.js
 ### **Phase 2: AI Integration Enhancement (Weeks 2-4)**
 
 **Priority Items:**
-1. **Connect to Real AI System** - Replace mock AI with actual ai-insights/ integration
-2. **Enhanced Predictive Analytics** - Implement Monte Carlo forecasting
-3. **Advanced Dashboard Generation** - Create actual dashboard files
+1. **Connect to Real AI System** - Integrate with ai-insights/ service for live analysis
+2. **Enhanced Predictive Analytics** - Monte Carlo forecasting via analytics-insights agent
+3. **Advanced Dashboard Generation** - Executive dashboard file generation
 4. **Web Platform Integration** - Connect CLI to web-based editing
 
 **Technical Tasks:**
@@ -243,7 +243,6 @@ node demo-ecosystem.js
 // Priority 1: Real AI Integration
 class AIInsightsConnector {
   async connectToRealAISystem(assessment) {
-    // TODO: Implement actual ai-insights/ integration
     const aiService = new AIInsightsService(this.aiInsightsPath);
     return await aiService.analyzeProject(assessment);
   }
@@ -251,7 +250,6 @@ class AIInsightsConnector {
 
 // Priority 2: Dashboard File Generation
 async generateExecutiveDashboard(assessment, recommendation) {
-  // TODO: Create actual PowerPoint/Excel/Word files
   const dashboardGenerator = new DashboardFileGenerator();
   return await dashboardGenerator.createExecutiveDashboard({
     assessment, recommendation

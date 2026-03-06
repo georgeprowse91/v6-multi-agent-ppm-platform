@@ -19,6 +19,24 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths()
 
 from data_quality.helpers import apply_rule_set, validate_against_schema  # noqa: E402
+from demand_intake_actions import (  # noqa: E402
+    check_duplicates as _act_check_duplicates,
+)
+from demand_intake_actions import (  # noqa: E402
+    get_pipeline as _act_get_pipeline,
+)
+from demand_intake_actions import (  # noqa: E402
+    submit_request as _act_submit_request,
+)
+from demand_intake_utils import (  # noqa: E402
+    build_duplicate_rationale,
+    combine_demand_text,
+    cosine_similarity,
+    generate_demand_id,
+    semantic_similarity,
+    strip_duplicate_rationale,
+    tokenize,
+)
 from events import DemandCreatedEvent  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
 from observability.tracing import get_trace_id  # noqa: E402
@@ -31,21 +49,6 @@ from agents.common.integration_services import (  # noqa: E402
 )
 from agents.runtime import BaseAgent, get_event_bus  # noqa: E402
 from agents.runtime.src.state_store import TenantStateStore  # noqa: E402
-
-from demand_intake_utils import (  # noqa: E402
-    combine_demand_text,
-    cosine_similarity,
-    semantic_similarity,
-    build_duplicate_rationale,
-    strip_duplicate_rationale,
-    generate_demand_id,
-    tokenize,
-)
-from demand_intake_actions import (  # noqa: E402
-    submit_request as _act_submit_request,
-    check_duplicates as _act_check_duplicates,
-    get_pipeline as _act_get_pipeline,
-)
 
 
 class DemandIntakeAgent(BaseAgent):

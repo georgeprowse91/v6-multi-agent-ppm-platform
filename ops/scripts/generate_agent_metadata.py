@@ -26,7 +26,7 @@ class Section:
 
 @dataclass(frozen=True)
 class AgentMetadata:
-    agent_id: int
+    agent_id: str
     title: str
     component_name: str
     source_file: str
@@ -100,13 +100,10 @@ def parse_agent_readme(path: Path) -> AgentMetadata:
             title = line[2:].strip()
             break
     component_name = path.parent.name
-    match = re.match(r"agent-(\d+)-", component_name)
-    if not match:
-        raise ValueError(f"Could not determine agent ID from {component_name}")
-    agent_id = int(match.group(1))
+    agent_id = component_name
     domain = path.parent.parent.name
     sections = parse_sections(lines)
-    canonical_title = f"Agent {agent_id:02d}: {title.split(':', 1)[1].strip()}" if ":" in title else title
+    canonical_title = title
     return AgentMetadata(
         agent_id=agent_id,
         title=canonical_title,

@@ -5,7 +5,6 @@ and contextual recommendation generation.
 """
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -223,7 +222,7 @@ async def get_recommendations(request: RecommendationRequest) -> list[Recommenda
     lessons = [n for n in _graph_nodes if n.node_type == "lesson"]
     risks = [n for n in _graph_nodes if n.node_type == "risk"]
 
-    lesson_texts = [f"- [{l.id}] {l.label}" for l in lessons[:10]]
+    lesson_texts = [f"- [{les.id}] {les.label}" for les in lessons[:10]]
     risk_texts = [f"- [{r.id}] {r.label}" for r in risks[:10]]
 
     result = await llm_complete_json(

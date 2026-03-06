@@ -77,7 +77,7 @@ def discover_services() -> list[Component]:
 def discover_agents() -> list[Component]:
     """Discover agent components under agents/**/*-agent/."""
 
-    agent_paths = sorted(_path_fn("agents_dir")().glob("**/agent-*"))
+    agent_paths = sorted(_path_fn("agents_dir")().glob("**/*-agent"))
     return [Component(path.name, "agent", path) for path in agent_paths if path.is_dir()]
 
 

@@ -1,0 +1,18 @@
+source: compliance_event
+target: compliance_event
+schema: audit-event
+fields:
+- source: id
+  target: id
+- source: event_type
+  target: event_type
+- source: regulation
+  target: regulation
+- source: severity
+  target: severity
+- source: description
+  target: description
+- source: timestamp
+  target: timestamp
+- source: status
+  target: status

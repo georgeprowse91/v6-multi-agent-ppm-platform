@@ -20,10 +20,20 @@ from connectors.sdk.src.data_service_client import (
 SERVICE_ROOT = Path(__file__).resolve().parents[2] / "services" / "data-service"
 MODULE_PATH = SERVICE_ROOT / "src" / "main.py"
 
+_data_svc_src = str(SERVICE_ROOT / "src")
+# Ensure data-service/src is first so its ``storage`` module wins over
+# data-lineage-service/src/storage.py which conftest may have added earlier.
+if _data_svc_src in sys.path:
+    sys.path.remove(_data_svc_src)
+sys.path.insert(0, _data_svc_src)
+# Evict previously-cached modules so the correct ones are found.
+sys.modules.pop("storage", None)
+# Ensure the real sqlalchemy is used, not the vendor shim.
+sys.modules.pop("sqlalchemy", None)
+
 spec = spec_from_file_location("data_service_main", MODULE_PATH)
 assert spec and spec.loader
 module = module_from_spec(spec)
-sys.path.insert(0, str(SERVICE_ROOT / "src"))
 sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 

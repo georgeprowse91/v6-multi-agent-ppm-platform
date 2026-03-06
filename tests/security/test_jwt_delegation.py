@@ -12,13 +12,7 @@ Ensures:
 from __future__ import annotations
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-
 from fastapi import HTTPException, Request
-from starlette.datastructures import Headers
-from starlette.testclient import TestClient
-from starlette.types import ASGIApp
-
 
 # ---------------------------------------------------------------------------
 # Test that _validate_jwt no longer exists in the middleware module
@@ -164,8 +158,6 @@ async def test_dispatch_returns_401_on_auth_failure(monkeypatch: pytest.MonkeyPa
         "headers": [],
     }
 
-    responses = []
-
     async def call_next(request: Request):
         from starlette.responses import Response
 
@@ -211,6 +203,6 @@ def test_exempt_paths_bypass_auth(monkeypatch: pytest.MonkeyPatch) -> None:
             return Response("ok")
 
         request = Request(scope)
-        asyncio.get_event_loop().run_until_complete(middleware.dispatch(request, call_next))
+        asyncio.run(middleware.dispatch(request, call_next))
 
     assert call_count == 0, f"authenticate_request called {call_count} times for exempt paths"

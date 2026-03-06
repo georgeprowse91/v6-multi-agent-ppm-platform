@@ -643,6 +643,10 @@ class AgentRuntime:
             demo_response = self._demo_fixtures.get(agent_id)
             if demo_response is not None:
                 return demo_response
+            raise KeyError(
+                f"Agent {agent_id} has no demo fixture. Add a fixture file under "
+                f"the agent's fixtures/ directory to enable demo mode for this agent."
+            )
 
         agent = self._agent_registry.get(agent_id)
         if not agent:

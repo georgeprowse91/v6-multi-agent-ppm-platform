@@ -330,7 +330,7 @@ class ConnectorHealthAggregator:
         """Resolve a conflict by applying the chosen strategy."""
         if strategy not in self._VALID_STRATEGIES:
             raise ValueError(
-                "strategy must be one of: %s" % ", ".join(sorted(self._VALID_STRATEGIES))
+                f"strategy must be one of: {', '.join(sorted(self._VALID_STRATEGIES))}"
             )
         if strategy == "manual" and not manual_value:
             raise ValueError("manual_value must be provided when strategy is 'manual'")

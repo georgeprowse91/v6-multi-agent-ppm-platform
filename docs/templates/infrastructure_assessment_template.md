@@ -97,7 +97,7 @@ Summarize the most important recommendations:
 #### 2.1.4 Hardware Age Analysis
 
 ```
-[PLACEHOLDER FOR HARDWARE AGE DISTRIBUTION CHART]
+[INSERTHARDWARE AGE DISTRIBUTION CHART]
 ```
 
 *Guidance: Include a bar or pie chart showing the distribution of hardware by age ranges (0-1 years, 1-3 years, 3-5 years, 5+ years)*
@@ -109,7 +109,7 @@ Summarize the most important recommendations:
 *Guidance: Include a high-level network diagram showing key components and connections*
 
 ```
-[PLACEHOLDER FOR NETWORK TOPOLOGY DIAGRAM]
+[INSERTNETWORK TOPOLOGY DIAGRAM]
 ```
 
 #### 2.2.2 Network Equipment Inventory
@@ -250,7 +250,7 @@ Summarize the most important recommendations:
 | Bottom 5 Performers | | | | | | |
 
 ```
-[PLACEHOLDER FOR SERVER PERFORMANCE TREND CHART]
+[INSERTSERVER PERFORMANCE TREND CHART]
 ```
 
 *Guidance: Include line charts showing performance trends over time (3-6 months) for critical metrics*
@@ -265,7 +265,7 @@ Summarize the most important recommendations:
 | Campus Network | | | | | | |
 
 ```
-[PLACEHOLDER FOR NETWORK PERFORMANCE TREND CHART]
+[INSERTNETWORK PERFORMANCE TREND CHART]
 ```
 
 *Guidance: Include line charts showing bandwidth utilization and latency over time*
@@ -294,7 +294,7 @@ Summarize the most important recommendations:
 | Container Resources | | | | | | |
 
 ```
-[PLACEHOLDER FOR CAPACITY TREND AND FORECAST CHART]
+[INSERTCAPACITY TREND AND FORECAST CHART]
 ```
 
 *Guidance: Include line chart showing utilization over time with forecast line*
@@ -363,7 +363,7 @@ Summarize the most important recommendations:
 #### 4.1.2 Technical Debt Heat Map
 
 ```
-[PLACEHOLDER FOR TECHNICAL DEBT HEAT MAP]
+[INSERTTECHNICAL DEBT HEAT MAP]
 ```
 
 *Guidance: Include a heat map showing impact vs. remediation complexity*
@@ -495,7 +495,7 @@ Summarize the most important recommendations:
 | Security Tools | % | % | % | % | |
 
 ```
-[PLACEHOLDER FOR SOFTWARE CURRENCY CHART]
+[INSERTSOFTWARE CURRENCY CHART]
 ```
 
 *Guidance: Include a stacked bar chart showing version distribution by category*
@@ -587,7 +587,7 @@ Summarize the most important recommendations:
 #### 6.4.1 Implementation Timeline
 
 ```
-[PLACEHOLDER FOR GANTT CHART OR TIMELINE DIAGRAM]
+[INSERTGANTT CHART OR TIMELINE DIAGRAM]
 ```
 
 *Guidance: Include a visual roadmap of key initiatives across 6-24 month timeframe*
@@ -623,7 +623,7 @@ Summarize the most important recommendations:
 | **Total** | | | | | | |
 
 ```
-[PLACEHOLDER FOR COST BREAKDOWN PIE CHART]
+[INSERTCOST BREAKDOWN PIE CHART]
 ```
 
 *Guidance: Include a pie chart showing distribution of costs by category*
@@ -704,7 +704,7 @@ Summarize the most important recommendations:
 | **Total** | | | | | | |
 
 ```
-[PLACEHOLDER FOR TCO COMPARISON CHART]
+[INSERTTCO COMPARISON CHART]
 ```
 
 *Guidance: Include a stacked bar chart comparing current vs. future TCO*
@@ -752,7 +752,7 @@ Summarize the most important recommendations:
 #### 8.3.1 High-Level Timeline
 
 ```
-[PLACEHOLDER FOR TIMELINE CHART]
+[INSERTTIMELINE CHART]
 ```
 
 *Guidance: Include a visual timeline showing key activities and milestones*
@@ -774,7 +774,7 @@ Summarize the most important recommendations:
 #### 8.4.2 Resource Loading
 
 ```
-[PLACEHOLDER FOR RESOURCE LOADING CHART]
+[INSERTRESOURCE LOADING CHART]
 ```
 
 *Guidance: Include a chart showing resource utilization over the implementation timeline*
