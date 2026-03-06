@@ -261,21 +261,6 @@ multi-agent-ppm-platform-v4/
 │   │   │   │   └── test_data_sync_agent.py
 │   │   │   ├── Dockerfile
 │   │   │   └── README.md
-│   │   ├── workflow-engine-lib
-│   │   │   ├── demo-fixtures
-│   │   │   │   └── sample-response.json
-│   │   │   ├── src
-│   │   │   │   ├── workflow_engine_agent.py
-│   │   │   │   ├── workflow_spec.py
-│   │   │   │   ├── workflow_state_store.py
-│   │   │   │   └── workflow_task_queue.py
-│   │   │   ├── tests
-│   │   │   │   ├── README.md
-│   │   │   │   └── test_workflow_engine_agent.py
-│   │   │   ├── workflows
-│   │   │   │   └── schema
-│   │   │   │       └── workflow_spec.schema.json
-│   │   │   └── Dockerfile
 │   │   ├── system-health-agent
 │   │   │   ├── demo-fixtures
 │   │   │   │   └── sample-response.json

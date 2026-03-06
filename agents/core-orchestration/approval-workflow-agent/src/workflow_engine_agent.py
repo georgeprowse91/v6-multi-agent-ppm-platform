@@ -5,7 +5,7 @@ Purpose:
 Orchestrates complex workflows and processes across the PPM platform, providing dynamic
 workflow execution, state management, and human task coordination.
 
-Specification: agents/operations-management/workflow-engine-lib/README.md
+Specification: agents/core-orchestration/approval-workflow-agent/README.md
 """
 
 import os
