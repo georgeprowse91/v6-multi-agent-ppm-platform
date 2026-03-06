@@ -33,6 +33,9 @@ from definition_models import Requirement, TraceabilityEntry, WBSItem
 from definition_utils import extract_wbs_item_ids
 from definition_utils import generate_traceability_matrix as _generate_traceability_matrix
 
+from agents.common.web_search import search_web  # noqa: F401
+from scope_research import generate_scope_from_search  # noqa: F401
+
 from agents.common.connector_integration import (
     DatabaseStorageService,
     DocumentManagementService,

@@ -8,9 +8,7 @@ from typing import TYPE_CHECKING, Any
 from ..stakeholder_utils import (
     enrich_stakeholder_profile,
     generate_stakeholder_id,
-    publish_event,
     suggest_classification,
-    trigger_workflow,
     upsert_crm_profile,
 )
 
@@ -82,13 +80,11 @@ async def register_stakeholder(
         agent.stakeholder_register[stakeholder_id] = stakeholder
         agent.stakeholder_store.upsert(tenant_id, stakeholder_id, stakeholder.copy())
 
-    publish_event(
-        agent,
+    agent._publish_event(
         "stakeholder.profile.registered",
         {"stakeholder_id": stakeholder_id, "crm_sync": crm_sync},
     )
-    trigger_workflow(
-        agent,
+    agent._trigger_workflow(
         "stakeholder.profile.registered",
         {"stakeholder_id": stakeholder_id, "crm_sync": crm_sync},
     )

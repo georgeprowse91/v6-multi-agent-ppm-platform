@@ -17,6 +17,7 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
+from agents.common.web_search import search_web, summarize_snippets  # noqa: E402, F401
 from analytics_insights_agent import DataLakeManager, SynapseManager  # noqa: E402
 from llm.client import LLMGateway  # noqa: E402
 

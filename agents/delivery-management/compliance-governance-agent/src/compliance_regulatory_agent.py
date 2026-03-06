@@ -21,6 +21,8 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
+from agents.common.web_search import search_web, summarize_snippets  # noqa: E402, F401
+
 from compliance_actions import (  # noqa: E402
     handle_add_regulation,
     handle_assess_compliance,

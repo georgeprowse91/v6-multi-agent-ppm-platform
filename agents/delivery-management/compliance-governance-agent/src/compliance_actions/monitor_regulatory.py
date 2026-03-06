@@ -18,7 +18,9 @@ from compliance_utils import (
 )
 from llm.client import LLMGateway, LLMProviderError
 
-from agents.common.web_search import build_search_query, search_web, summarize_snippets
+import importlib
+
+from agents.common.web_search import build_search_query
 
 if TYPE_CHECKING:
     from compliance_regulatory_agent import ComplianceRegulatoryAgent

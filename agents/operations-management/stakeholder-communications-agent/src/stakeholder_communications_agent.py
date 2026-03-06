@@ -16,6 +16,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import requests  # noqa: F401 — re-exported so tests can monkeypatch via module path
+
 from connector_secrets import resolve_secret
 
 from agents.common.connector_integration import CalendarIntegrationService, NotificationService
@@ -414,6 +416,18 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
         else:
             raise ValueError(f"Unknown action: {action}")
+
+    # ------------------------------------------------------------------
+    # Event / workflow helpers (thin wrappers for testability)
+    # ------------------------------------------------------------------
+
+    def _publish_event(self, event_type: str, payload: dict[str, Any]) -> None:
+        from .stakeholder_utils import publish_event
+        publish_event(self, event_type, payload)
+
+    def _trigger_workflow(self, event_type: str, payload: dict[str, Any]) -> None:
+        from .stakeholder_utils import trigger_workflow
+        trigger_workflow(self, event_type, payload)
 
     # ------------------------------------------------------------------
     # Thin delegation wrappers (preserve internal API for tests/callers)

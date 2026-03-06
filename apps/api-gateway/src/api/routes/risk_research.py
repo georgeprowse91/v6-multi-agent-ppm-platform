@@ -1,9 +1,14 @@
 """Risk research endpoints."""
 
+import logging
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, ValidationError
+
+from api.dependencies import get_orchestrator
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -25,15 +30,15 @@ class RiskResearchResponse(BaseModel):
 
 @router.post("/projects/{project_id}/risks/research", response_model=RiskResearchResponse)
 async def research_project_risks(
-    project_id: str, request: RiskResearchRequest
+    project_id: str,
+    payload: RiskResearchRequest,
+    orchestrator: Any = Depends(get_orchestrator),
 ) -> RiskResearchResponse:
     """Trigger external risk research using the Risk & Issue Management agent."""
-    orchestrator = request.app.state.orchestrator
-
     if not orchestrator or not orchestrator.initialized:
         raise HTTPException(status_code=503, detail="Orchestrator not initialized")
 
-    agent = orchestrator.get_agent("risk-management-agent") if orchestrator else None
+    agent = orchestrator.get_agent("risk-management-agent")
     if not agent:
         raise HTTPException(status_code=404, detail="Risk Management agent not available")
 
@@ -42,13 +47,27 @@ async def research_project_risks(
             {
                 "action": "research_risks",
                 "project_id": project_id,
-                "domain": request.context,
-                "region": request.region,
-                "categories": request.categories or [],
+                "domain": payload.context,
+                "region": payload.region,
+                "categories": payload.categories or [],
             }
         )
         return RiskResearchResponse.model_validate(result)
     except ValidationError as exc:
-        raise HTTPException(status_code=500, detail="Invalid risk research response") from exc
-    except (RuntimeError, ValueError) as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        logger.error(
+            "Risk agent returned invalid response for project %s: %s",
+            project_id,
+            exc,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Risk agent returned an invalid response",
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "Risk research failed for project %s: %s", project_id, exc
+        )
+        raise HTTPException(
+            status_code=502,
+            detail=f"Risk research failed: {exc}",
+        ) from exc
