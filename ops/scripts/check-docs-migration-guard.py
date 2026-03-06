@@ -10,7 +10,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 MAPPING_CSV = ROOT / "docs/templates/migration/legacy-to-canonical.csv"
 
 GUIDANCE_REQUIREMENTS: dict[str, tuple[str, ...]] = {

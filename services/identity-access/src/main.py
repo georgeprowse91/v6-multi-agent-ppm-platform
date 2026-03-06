@@ -108,8 +108,8 @@ reject_placeholder_secrets(
     secret_vars={
         k: v
         for k, v in {
-            "IDENTITY_JWT_SECRET": os.getenv("IDENTITY_JWT_SECRET", ""),
-            "SCIM_SERVICE_TOKEN": os.getenv("SCIM_SERVICE_TOKEN", ""),
+            "IDENTITY_JWT_SECRET": resolve_secret(os.getenv("IDENTITY_JWT_SECRET", "")),
+            "SCIM_SERVICE_TOKEN": resolve_secret(os.getenv("SCIM_SERVICE_TOKEN", "")),
         }.items()
         if v
     },

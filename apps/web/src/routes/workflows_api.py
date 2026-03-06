@@ -1,11 +1,14 @@
 """Workflow definition CRUD + start routes (from legacy_main.py)."""
 from __future__ import annotations
 
+import logging
 import os
 from typing import Any
 
 import httpx
 from fastapi import APIRouter, HTTPException, Request
+
+logger = logging.getLogger(__name__)
 
 from routes._deps import (
     WorkflowDefinitionPayload,
@@ -36,8 +39,8 @@ async def _sync_workflow_definition(request: Request, workflow_id: str, definiti
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             await client.put(f"{workflow_url}/v1/workflows/{workflow_id}", headers=headers, json=definition)
-    except httpx.RequestError:
-        pass
+    except httpx.RequestError as exc:
+        logger.warning("Failed to sync workflow %s to workflow service: %s", workflow_id, exc)
 
 
 async def _delete_workflow_definition(request: Request, workflow_id: str) -> None:
@@ -49,8 +52,8 @@ async def _delete_workflow_definition(request: Request, workflow_id: str) -> Non
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             await client.delete(f"{workflow_url}/v1/workflows/{workflow_id}", headers=headers)
-    except httpx.RequestError:
-        pass
+    except httpx.RequestError as exc:
+        logger.warning("Failed to delete workflow %s from workflow service: %s", workflow_id, exc)
 
 
 @router.get("/api/workflows", response_model=list[WorkflowDefinitionSummary])

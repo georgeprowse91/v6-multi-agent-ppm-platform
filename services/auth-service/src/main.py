@@ -38,7 +38,7 @@ reject_placeholder_secrets(
     secret_vars={
         k: v
         for k, v in {
-            "AUTH_CLIENT_SECRET": os.getenv("AUTH_CLIENT_SECRET", ""),
+            "AUTH_CLIENT_SECRET": resolve_secret(os.getenv("AUTH_CLIENT_SECRET", "")),
         }.items()
         if v
     },
