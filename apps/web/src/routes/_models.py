@@ -409,13 +409,13 @@ class AgentPreviewRunResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 class TemplateAgentConfig(BaseModel):
-    enabled: list[str]
-    disabled: list[str]
+    enabled: list[str] = Field(default_factory=list)
+    disabled: list[str] = Field(default_factory=list)
 
 
 class TemplateConnectorConfig(BaseModel):
-    enabled: list[str]
-    disabled: list[str]
+    enabled: list[str] = Field(default_factory=list)
+    disabled: list[str] = Field(default_factory=list)
 
 
 class ConnectorInstanceCreate(BaseModel):

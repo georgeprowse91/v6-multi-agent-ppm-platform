@@ -91,6 +91,8 @@ OIDC_HTTP_TRANSPORT: httpx.BaseTransport | None = None
 # ---------------------------------------------------------------------------
 # Store instances  (created once, shared by all route modules)
 # ---------------------------------------------------------------------------
+from agent_registry import load_agent_registry  # noqa: E402
+from agent_settings_models import AgentConfigUpdate, AgentProjectEntry  # noqa: E402
 from agent_settings_store import AgentSettingsStore  # noqa: E402
 from analytics_proxy import AnalyticsServiceClient  # noqa: E402
 from connector_hub_proxy import ConnectorHubClient  # noqa: E402
@@ -105,6 +107,9 @@ from demo_integrations import (  # noqa: E402
 from demo_seed import DEMO_TENANT_ID  # noqa: E402
 from document_proxy import DocumentServiceClient  # noqa: E402
 from feature_flags import is_feature_enabled  # noqa: E402
+from methodology_node_runtime import load_methodology_node_runtime_registry  # noqa: E402
+from template_mappings import TemplateMapping, load_template_mappings  # noqa: E402
+from workspace_state import CanvasTab  # noqa: E402
 from intake_store import IntakeStore  # noqa: E402
 from knowledge_store import KnowledgeStore  # noqa: E402
 from lineage_proxy import LineageServiceClient  # noqa: E402

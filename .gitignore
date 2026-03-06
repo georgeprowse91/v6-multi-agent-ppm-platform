@@ -60,3 +60,4 @@ apps/web/frontend/dist/
 # Local runtime artifacts
 data/*.sqlite3
 data/agent_storage/
+apps/web/storage/workspaces.json

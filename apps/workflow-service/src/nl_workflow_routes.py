@@ -30,7 +30,7 @@ class NLWorkflowDeployRequest(BaseModel):
 
 @router.post("")
 async def generate_workflow(request: NLWorkflowRequest) -> dict[str, Any]:
-    definition = _parser.parse(request.description)
+    definition = await _parser.parse(request.description)
     validation = _parser.validate_generated(definition)
     return {
         "definition": definition,
@@ -41,7 +41,7 @@ async def generate_workflow(request: NLWorkflowRequest) -> dict[str, Any]:
 
 @router.post("/refine")
 async def refine_workflow(request: NLWorkflowRefineRequest) -> dict[str, Any]:
-    refined = _parser.refine(request.definition, request.feedback)
+    refined = await _parser.refine(request.definition, request.feedback)
     validation = _parser.validate_generated(refined)
     return {
         "definition": refined,
