@@ -50,11 +50,11 @@ class ExecutionEvent(BaseModel):
         if self.event_type in _AGENT_EVENT_TYPES:
             if not self.task_id:
                 raise ValueError(
-                    "task_id must be non-empty for %s events" % self.event_type
+                    f"task_id must be non-empty for {self.event_type} events"
                 )
             if not self.agent_id:
                 raise ValueError(
-                    "agent_id must be non-empty for %s events" % self.event_type
+                    f"agent_id must be non-empty for {self.event_type} events"
                 )
         return self
 
@@ -94,7 +94,7 @@ class ExecutionEventEmitter:
             if timeout is not None:
                 return await asyncio.wait_for(self._queue.get(), timeout=timeout)
             return await self._queue.get()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return None
 
 

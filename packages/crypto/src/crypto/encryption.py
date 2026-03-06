@@ -7,12 +7,14 @@ raising a clear error at call time rather than at import time.
 from __future__ import annotations
 
 import os
+from typing import Any
+
 
 class EncryptionError(RuntimeError):
     """Raised when an encryption or decryption operation fails."""
 
 
-def _get_fernet(key: str | bytes) -> "cryptography.fernet.Fernet":  # type: ignore[name-defined]
+def _get_fernet(key: str | bytes) -> Any:
     """Build a Fernet instance from a key (base64-url-safe 32-byte key)."""
     try:
         from cryptography.fernet import Fernet

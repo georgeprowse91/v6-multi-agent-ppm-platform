@@ -7,10 +7,8 @@ in-memory fallback, and rule-based suggestion generation.
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 
 import pytest
-
 from annotations import Annotation, AnnotationStore, generate_suggestions
 
 
@@ -93,7 +91,7 @@ def test_persistence_across_instances(tmp_path):
 
 def test_generate_suggestions_risk():
     """Test rule-based suggestion generation for risk content."""
-    suggestions = asyncio.get_event_loop().run_until_complete(
+    suggestions = asyncio.run(
         generate_suggestions("s1", "b1", "There is a significant risk of schedule delay")
     )
     assert len(suggestions) >= 1
@@ -103,7 +101,7 @@ def test_generate_suggestions_risk():
 
 def test_generate_suggestions_budget():
     """Test rule-based suggestion generation for financial content."""
-    suggestions = asyncio.get_event_loop().run_until_complete(
+    suggestions = asyncio.run(
         generate_suggestions("s1", "b1", "The project budget has exceeded cost estimates")
     )
     assert len(suggestions) >= 1
@@ -114,7 +112,7 @@ def test_generate_suggestions_budget():
 def test_generate_suggestions_long_content():
     """Test that long content triggers knowledge agent."""
     long_content = "This is a detailed analysis. " * 50
-    suggestions = asyncio.get_event_loop().run_until_complete(
+    suggestions = asyncio.run(
         generate_suggestions("s1", "b1", long_content)
     )
     agent_ids = {s.agent_id for s in suggestions}
@@ -179,7 +177,7 @@ def test_annotation_session_isolation(store):
 
 def test_dismissed_not_in_active_list(store):
     """Dismissed annotations should not appear in active_only=True listing."""
-    ann1 = store.create_annotation("s1", Annotation(content="keep"))
+    store.create_annotation("s1", Annotation(content="keep"))
     ann2 = store.create_annotation("s1", Annotation(content="dismiss"))
     store.dismiss_annotation(ann2.annotation_id)
     active = store.list_annotations("s1", active_only=True)
@@ -197,7 +195,7 @@ def test_memory_fallback_apply(memory_store):
 
 def test_generate_suggestions_compliance():
     """Compliance keywords should trigger compliance agent."""
-    suggestions = asyncio.get_event_loop().run_until_complete(
+    suggestions = asyncio.run(
         generate_suggestions("s1", "b1", "We need GDPR compliance for the data migration")
     )
     agent_ids = {s.agent_id for s in suggestions}
@@ -206,7 +204,7 @@ def test_generate_suggestions_compliance():
 
 def test_generate_suggestions_schedule():
     """Deadline keywords should trigger schedule agent."""
-    suggestions = asyncio.get_event_loop().run_until_complete(
+    suggestions = asyncio.run(
         generate_suggestions("s1", "b1", "The milestone deadline is overdue by two weeks")
     )
     agent_ids = {s.agent_id for s in suggestions}
@@ -215,7 +213,7 @@ def test_generate_suggestions_schedule():
 
 def test_generate_suggestions_no_match():
     """Content with no keyword matches should return empty suggestions."""
-    suggestions = asyncio.get_event_loop().run_until_complete(
+    suggestions = asyncio.run(
         generate_suggestions("s1", "b1", "Hello world")
     )
     assert isinstance(suggestions, list)

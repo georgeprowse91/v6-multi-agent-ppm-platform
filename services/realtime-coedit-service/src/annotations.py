@@ -15,9 +15,10 @@ import os
 import sqlite3
 import time
 import uuid
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -50,7 +51,7 @@ class Annotation(BaseModel):
     def _validate_annotation_type(cls, v: str) -> str:
         if v not in _VALID_ANNOTATION_TYPES:
             raise ValueError(
-                "annotation_type must be one of: %s" % ", ".join(sorted(_VALID_ANNOTATION_TYPES))
+                f"annotation_type must be one of: {', '.join(sorted(_VALID_ANNOTATION_TYPES))}"
             )
         return v
 

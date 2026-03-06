@@ -15,7 +15,6 @@ without requiring a running server.
 from __future__ import annotations
 
 import ast
-import inspect
 from pathlib import Path
 
 import pytest
@@ -48,10 +47,10 @@ def test_no_local_oidc_ttl_cache_in_gateway_middleware() -> None:
 
 
 def test_gateway_middleware_auth_context_same_as_package() -> None:
-    from api.middleware.security import AuthContext as GW
+    from api.middleware.security import AuthContext as GwAuthContext
     from security.auth import AuthContext as Pkg
 
-    assert GW is Pkg, "AuthContext must be imported from security.auth, not redefined locally"
+    assert GwAuthContext is Pkg, "AuthContext must be imported from security.auth, not redefined locally"
 
 
 # ---------------------------------------------------------------------------

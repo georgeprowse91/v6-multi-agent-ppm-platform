@@ -14,19 +14,10 @@ import math
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from events import PortfolioPrioritizedEvent
 from observability.tracing import get_trace_id
-
-from agents.common.connector_integration import DatabaseStorageService
-from agents.common.integration_services import LocalEmbeddingService, VectorSearchIndex
-from agents.common.scenario import ScenarioEngine
-from agents.runtime import BaseAgent, get_event_bus
-from agents.runtime.src.audit import build_audit_event, emit_audit_event
-from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
-from agents.runtime.src.state_store import TenantStateStore
-
 from portfolio_actions import (
     calculate_alignment_score,
     compare_scenarios,
@@ -51,6 +42,14 @@ from portfolio_utils import (
     select_mean_variance,
     select_multi_objective,
 )
+
+from agents.common.connector_integration import DatabaseStorageService
+from agents.common.integration_services import LocalEmbeddingService, VectorSearchIndex
+from agents.common.scenario import ScenarioEngine
+from agents.runtime import BaseAgent, get_event_bus
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
+from agents.runtime.src.policy import evaluate_policy_bundle, load_default_policy_bundle
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class PortfolioStrategyAgent(BaseAgent):
@@ -329,19 +328,6 @@ class PortfolioStrategyAgent(BaseAgent):
     ) -> dict[str, Any]:
         """Delegate to the prioritization action handler."""
         return await calculate_alignment_score(self, project, objectives)
-
-        # Calculate overall alignment score
-        total_weight = sum(obj.get("weight", 1.0) for obj in objectives)
-        overall_score = sum(detail["contribution"] for detail in alignment_details)
-        if total_weight > 0:
-            overall_score /= total_weight
-
-        return {
-            "project_id": project.get("project_id"),
-            "overall_alignment_score": overall_score,
-            "objective_alignments": alignment_details,
-            "calculated_at": datetime.now(timezone.utc).isoformat(),
-        }
 
     async def _optimize_portfolio(
         self,
