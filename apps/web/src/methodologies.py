@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import yaml
 
@@ -532,3 +534,293 @@ def get_methodology_map(methodology_id: str | None) -> dict[str, Any]:
     if override_map:
         return override_map
     return get_default_methodology_map(selected_id)
+
+
+# ---------------------------------------------------------------------------
+# Tenant-scoped methodology storage
+# ---------------------------------------------------------------------------
+
+def _tenant_storage_path(tenant_id: str) -> Path:
+    return METHODOLOGY_STORAGE_PATH.parent / f"methodology_definitions_{tenant_id}.json"
+
+
+def _load_tenant_storage(tenant_id: str) -> dict[str, Any]:
+    path = _tenant_storage_path(tenant_id)
+    if not path.exists():
+        return {"methodologies": {}, "policy": {}}
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _write_tenant_storage(tenant_id: str, data: dict[str, Any]) -> None:
+    path = _tenant_storage_path(tenant_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2)
+
+
+def get_tenant_methodologies(tenant_id: str) -> list[dict[str, Any]]:
+    """Return all methodology definitions for a tenant, including built-in ones."""
+    storage = _load_tenant_storage(tenant_id)
+    custom_methodologies = storage.get("methodologies", {})
+
+    result: list[dict[str, Any]] = []
+    for methodology_id, methodology_map in METHODOLOGY_MAPS.items():
+        custom = custom_methodologies.get(methodology_id, {})
+        entry = {
+            "methodology_id": methodology_id,
+            "name": methodology_map.get("name", methodology_id.title()),
+            "type": methodology_map.get("type", methodology_id),
+            "description": methodology_map.get("description", ""),
+            "version": int(custom.get("version", 1)),
+            "status": custom.get("status", "published"),
+            "is_default": custom.get("is_default", False),
+            "is_builtin": True,
+            "source": "custom" if custom.get("map") else "builtin",
+        }
+        result.append(entry)
+
+    for methodology_id, custom in custom_methodologies.items():
+        if methodology_id not in METHODOLOGY_MAPS:
+            result.append({
+                "methodology_id": methodology_id,
+                "name": custom.get("map", {}).get("name", methodology_id.title()),
+                "type": custom.get("map", {}).get("type", "custom"),
+                "description": custom.get("map", {}).get("description", ""),
+                "version": int(custom.get("version", 1)),
+                "status": custom.get("status", "draft"),
+                "is_default": custom.get("is_default", False),
+                "is_builtin": False,
+                "source": "custom",
+            })
+
+    return result
+
+
+def get_tenant_methodology(tenant_id: str, methodology_id: str) -> dict[str, Any] | None:
+    """Return a specific methodology definition for a tenant."""
+    storage = _load_tenant_storage(tenant_id)
+    custom = storage.get("methodologies", {}).get(methodology_id, {})
+    if custom and custom.get("map"):
+        return {
+            "methodology_id": methodology_id,
+            "version": int(custom.get("version", 1)),
+            "status": custom.get("status", "draft"),
+            "is_default": custom.get("is_default", False),
+            "map": custom["map"],
+            "gates": custom.get("gates", []),
+        }
+    if methodology_id in METHODOLOGY_MAPS:
+        return {
+            "methodology_id": methodology_id,
+            "version": 1,
+            "status": "published",
+            "is_default": False,
+            "map": METHODOLOGY_MAPS[methodology_id],
+            "gates": [],
+        }
+    return None
+
+
+def save_tenant_methodology(
+    tenant_id: str,
+    methodology_id: str,
+    map_payload: dict[str, Any],
+    gates: list[dict[str, Any]] | None = None,
+    created_by: str = "ui-user",
+) -> dict[str, Any]:
+    """Save a methodology definition with automatic versioning."""
+    storage = _load_tenant_storage(tenant_id)
+    methodologies = storage.setdefault("methodologies", {})
+    existing = methodologies.get(methodology_id, {})
+    current_version = int(existing.get("version", 0))
+    new_version = current_version + 1
+    now = datetime.now(timezone.utc).isoformat()
+
+    entry = {
+        "map": map_payload,
+        "gates": gates or existing.get("gates", []),
+        "version": new_version,
+        "status": existing.get("status", "draft"),
+        "is_default": existing.get("is_default", False),
+        "created_by": created_by,
+        "created_at": existing.get("created_at", now),
+        "updated_at": now,
+        "version_history": existing.get("version_history", []),
+    }
+    entry["version_history"].append({
+        "version": new_version,
+        "created_by": created_by,
+        "created_at": now,
+    })
+
+    methodologies[methodology_id] = entry
+    _write_tenant_storage(tenant_id, storage)
+
+    return {
+        "methodology_id": methodology_id,
+        "version": new_version,
+        "status": entry["status"],
+        "updated_at": now,
+    }
+
+
+def publish_tenant_methodology(
+    tenant_id: str, methodology_id: str, published_by: str = "ui-user"
+) -> dict[str, Any]:
+    """Publish a methodology definition, making it available for new workspaces."""
+    storage = _load_tenant_storage(tenant_id)
+    methodologies = storage.get("methodologies", {})
+    entry = methodologies.get(methodology_id)
+    if not entry:
+        raise ValueError(f"Methodology '{methodology_id}' not found for tenant '{tenant_id}'")
+    now = datetime.now(timezone.utc).isoformat()
+    entry["status"] = "published"
+    entry["published_by"] = published_by
+    entry["published_at"] = now
+    _write_tenant_storage(tenant_id, storage)
+    return {
+        "methodology_id": methodology_id,
+        "version": entry.get("version", 1),
+        "status": "published",
+        "published_at": now,
+    }
+
+
+def deprecate_tenant_methodology(tenant_id: str, methodology_id: str) -> dict[str, Any]:
+    """Mark a methodology as deprecated."""
+    storage = _load_tenant_storage(tenant_id)
+    methodologies = storage.get("methodologies", {})
+    entry = methodologies.get(methodology_id)
+    if not entry:
+        raise ValueError(f"Methodology '{methodology_id}' not found for tenant '{tenant_id}'")
+    entry["status"] = "deprecated"
+    _write_tenant_storage(tenant_id, storage)
+    return {"methodology_id": methodology_id, "status": "deprecated"}
+
+
+# ---------------------------------------------------------------------------
+# Tenant methodology policy
+# ---------------------------------------------------------------------------
+
+def get_tenant_methodology_policy(tenant_id: str) -> dict[str, Any]:
+    """Return the methodology policy for a tenant."""
+    storage = _load_tenant_storage(tenant_id)
+    return storage.get("policy", {
+        "allowed_methodology_ids": None,
+        "default_methodology_id": None,
+        "department_overrides": {},
+        "enforce_published_only": True,
+    })
+
+
+def set_tenant_methodology_policy(tenant_id: str, policy: dict[str, Any]) -> dict[str, Any]:
+    """Set or update the methodology policy for a tenant."""
+    storage = _load_tenant_storage(tenant_id)
+    now = datetime.now(timezone.utc).isoformat()
+    storage["policy"] = {
+        "allowed_methodology_ids": policy.get("allowed_methodology_ids"),
+        "default_methodology_id": policy.get("default_methodology_id"),
+        "department_overrides": policy.get("department_overrides", {}),
+        "enforce_published_only": policy.get("enforce_published_only", True),
+        "updated_at": now,
+    }
+    _write_tenant_storage(tenant_id, storage)
+    return storage["policy"]
+
+
+def validate_methodology_selection(
+    tenant_id: str, methodology_id: str, department: str | None = None
+) -> dict[str, Any]:
+    """Validate whether a methodology is allowed for this tenant and department."""
+    policy = get_tenant_methodology_policy(tenant_id)
+    allowed_ids = policy.get("allowed_methodology_ids")
+
+    if allowed_ids is not None and methodology_id not in allowed_ids:
+        return {
+            "allowed": False,
+            "reason": f"Methodology '{methodology_id}' is not in the allowed list for this organisation. "
+                      f"Allowed: {', '.join(allowed_ids)}",
+        }
+
+    if department and policy.get("department_overrides"):
+        dept_policy = policy["department_overrides"].get(department, {})
+        dept_allowed = dept_policy.get("allowed_methodology_ids")
+        if dept_allowed is not None and methodology_id not in dept_allowed:
+            return {
+                "allowed": False,
+                "reason": f"Methodology '{methodology_id}' is not allowed for department '{department}'. "
+                          f"Allowed: {', '.join(dept_allowed)}",
+            }
+
+    if policy.get("enforce_published_only", True):
+        methodology = get_tenant_methodology(tenant_id, methodology_id)
+        if methodology and methodology.get("status") not in ("published", None):
+            return {
+                "allowed": False,
+                "reason": f"Methodology '{methodology_id}' is not published. "
+                          f"Current status: {methodology.get('status')}",
+            }
+
+    return {"allowed": True, "reason": None}
+
+
+# ---------------------------------------------------------------------------
+# Change impact analysis
+# ---------------------------------------------------------------------------
+
+def analyse_methodology_change_impact(
+    tenant_id: str, methodology_id: str
+) -> dict[str, Any]:
+    """Detect which active workspaces use the methodology being edited."""
+    # Scan workspace state files for references to this methodology
+    workspace_storage_dir = METHODOLOGY_STORAGE_PATH.parent
+    affected_workspaces: list[dict[str, Any]] = []
+
+    for path in workspace_storage_dir.glob("workspace_state_*.json"):
+        try:
+            with path.open("r", encoding="utf-8") as handle:
+                workspace_data = json.load(handle)
+            if isinstance(workspace_data, dict):
+                workspaces = workspace_data.get("workspaces", {})
+                if isinstance(workspaces, dict):
+                    for ws_id, ws in workspaces.items():
+                        if ws.get("methodology_id") == methodology_id:
+                            affected_workspaces.append({
+                                "workspace_id": ws_id,
+                                "project_id": ws.get("project_id", ws_id),
+                                "tenant_id": ws.get("tenant_id", tenant_id),
+                                "status": ws.get("status", "active"),
+                            })
+        except (json.JSONDecodeError, OSError):
+            continue
+
+    # Also check the global methodology storage for workspace references
+    global_storage_path = METHODOLOGY_STORAGE_PATH
+    if global_storage_path.exists():
+        try:
+            with global_storage_path.open("r", encoding="utf-8") as handle:
+                global_data = json.load(handle)
+            for key, entry in global_data.get("methodologies", {}).items():
+                if key == methodology_id and isinstance(entry, dict):
+                    for ws_ref in entry.get("workspace_refs", []):
+                        if ws_ref not in [w["workspace_id"] for w in affected_workspaces]:
+                            affected_workspaces.append({
+                                "workspace_id": ws_ref,
+                                "project_id": ws_ref,
+                                "tenant_id": tenant_id,
+                                "status": "unknown",
+                            })
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return {
+        "methodology_id": methodology_id,
+        "tenant_id": tenant_id,
+        "affected_workspace_count": len(affected_workspaces),
+        "affected_workspaces": affected_workspaces,
+        "warning": (
+            f"{len(affected_workspaces)} active workspace(s) use this methodology. "
+            "Changes will not affect existing workspaces until they re-sync."
+        ) if affected_workspaces else "No active workspaces are using this methodology.",
+    }

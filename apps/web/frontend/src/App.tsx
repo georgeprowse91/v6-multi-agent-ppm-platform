@@ -48,6 +48,7 @@ const KnowledgeGraphPage = React.lazy(() => import('./pages/KnowledgeGraphPage')
 const ScenarioAnalysisPage = React.lazy(() => import('./pages/ScenarioAnalysisPage'));
 const AgentMarketplacePage = React.lazy(() => import('./pages/AgentMarketplacePage'));
 const CapacityPlanningPage = React.lazy(() => import('./pages/CapacityPlanningPage'));
+const OrganisationMethodologySettings = React.lazy(() => import('./pages/OrganisationMethodologySettings'));
 
 function isDemoModeEnabled(): boolean {
   const env = import.meta.env as Record<string, unknown>;
@@ -146,6 +147,7 @@ function AppRoutes() {
             <Route element={<RequireAdminRole />}>
               <Route path="/admin/agent-runs" element={<AgentRunsPage />} />
               <Route path="/admin/methodology" element={<MethodologyEditor />} />
+              <Route path="/admin/methodology/settings" element={<OrganisationMethodologySettings />} />
             </Route>
             <Route element={<RequirePermission permission="roles.manage" />}>
               <Route path="/admin/roles" element={<RoleManager view="roles" />} />

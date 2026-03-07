@@ -30,6 +30,17 @@ from routes._deps import (
     runtime_lifecycle_store,
     workspace_state_store,
 )
+from methodologies import (
+    analyse_methodology_change_impact,
+    deprecate_tenant_methodology,
+    get_tenant_methodologies,
+    get_tenant_methodology,
+    get_tenant_methodology_policy,
+    publish_tenant_methodology,
+    save_tenant_methodology,
+    set_tenant_methodology_policy,
+    validate_methodology_selection,
+)
 from routes._models import (
     MethodologyActivityEditor,
     MethodologyEditorPayload,
@@ -210,10 +221,25 @@ async def update_methodology_editor(payload: MethodologyEditorPayload, request: 
         stage_activities = [{"id": a.id, "name": a.name, "description": a.description, "assistant_prompts": activity_lookup.get(a.id, {}).get("assistant_prompts", []), "prerequisites": a.prerequisites, "category": a.category or "methodology", "recommended_canvas_tab": a.recommended_canvas_tab or "document"} for a in stage.activities]
         stages_payload.append({"id": stage.id, "name": stage.name, "activities": stage_activities, "exit_criteria": stage.exit_criteria})
     map_payload = {"id": existing_map.get("id", payload.methodology_id), "name": existing_map.get("name", payload.methodology_id), "description": existing_map.get("description", ""), "stages": stages_payload, "monitoring": existing_map.get("monitoring", [])}
+
+    # Persist to global storage (backward compatibility)
     storage = _load_methodology_storage()
     storage.setdefault("methodologies", {})
     storage["methodologies"][payload.methodology_id] = {"map": map_payload, "gates": [g.model_dump() for g in payload.gates]}
     _write_json(METHODOLOGY_STORAGE_PATH, storage)
+
+    # Also persist to tenant-scoped storage with versioning
+    session = _require_session(request)
+    tenant_id = session.get("tenant_id", "default")
+    actor_id = session.get("subject", "ui-user")
+    save_tenant_methodology(
+        tenant_id=tenant_id,
+        methodology_id=payload.methodology_id,
+        map_payload=map_payload,
+        gates=[g.model_dump() for g in payload.gates],
+        created_by=actor_id,
+    )
+
     return _build_methodology_editor_payload(payload.methodology_id)
 
 
@@ -289,3 +315,111 @@ async def run_methodology_runtime_action(payload: MethodologyNodeActionRequest) 
 async def run_workspace_methodology_node_action(workspace_id: str, payload: MethodologyNodeActionRequest) -> MethodologyNodeActionResponse:
     result = await run_methodology_node_action(workspace_id, payload.methodology_id, payload.stage_id, payload.activity_id, payload.task_id, payload.lifecycle_event, payload.user_input)
     return MethodologyNodeActionResponse.model_validate(result)
+
+
+# ---------------------------------------------------------------------------
+# Tenant-scoped methodology management routes
+# ---------------------------------------------------------------------------
+
+@router.get("/api/methodology/tenant/list")
+async def list_tenant_methodologies(request: Request) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    methodologies = get_tenant_methodologies(tenant_id)
+    return {"tenant_id": tenant_id, "methodologies": methodologies}
+
+
+@router.get("/api/methodology/tenant/{methodology_id}")
+async def get_tenant_methodology_detail(methodology_id: str, request: Request) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    methodology = get_tenant_methodology(tenant_id, methodology_id)
+    if not methodology:
+        raise HTTPException(status_code=404, detail="Methodology not found for this tenant")
+    return {"tenant_id": tenant_id, **methodology}
+
+
+@router.post("/api/methodology/tenant/{methodology_id}/publish")
+@permission_required("methodology.edit")
+async def publish_methodology_for_tenant(methodology_id: str, request: Request) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    actor_id = session.get("subject", "ui-user")
+    try:
+        result = publish_tenant_methodology(tenant_id, methodology_id, published_by=actor_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    get_audit_log_store().record_event(build_event(
+        tenant_id=tenant_id, actor_id=actor_id, actor_type="user",
+        roles=["admin"], action="methodology.published",
+        resource_type="methodology", resource_id=methodology_id,
+        outcome="success", metadata={"version": result.get("version")},
+    ))
+    return result
+
+
+@router.post("/api/methodology/tenant/{methodology_id}/deprecate")
+@permission_required("methodology.edit")
+async def deprecate_methodology_for_tenant(methodology_id: str, request: Request) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    try:
+        return deprecate_tenant_methodology(tenant_id, methodology_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+# ---------------------------------------------------------------------------
+# Change impact analysis
+# ---------------------------------------------------------------------------
+
+@router.get("/api/methodology/tenant/{methodology_id}/impact")
+@permission_required("methodology.edit")
+async def get_methodology_change_impact(methodology_id: str, request: Request) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    return analyse_methodology_change_impact(tenant_id, methodology_id)
+
+
+# ---------------------------------------------------------------------------
+# Methodology validation (used by workspace setup)
+# ---------------------------------------------------------------------------
+
+@router.get("/api/methodology/validate")
+async def validate_methodology_for_workspace(
+    methodology_id: str,
+    request: Request,
+    department: str | None = None,
+) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    return validate_methodology_selection(tenant_id, methodology_id, department)
+
+
+# ---------------------------------------------------------------------------
+# Organisation methodology policy routes
+# ---------------------------------------------------------------------------
+
+@router.get("/api/methodology/policy")
+async def get_methodology_org_policy(request: Request) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    policy = get_tenant_methodology_policy(tenant_id)
+    return {"tenant_id": tenant_id, **policy}
+
+
+@router.post("/api/methodology/policy")
+@permission_required("methodology.edit")
+async def set_methodology_org_policy(request: Request) -> dict[str, Any]:
+    session = _require_session(request)
+    tenant_id = session["tenant_id"]
+    actor_id = session.get("subject", "ui-user")
+    body = await request.json()
+    policy = set_tenant_methodology_policy(tenant_id, body)
+    get_audit_log_store().record_event(build_event(
+        tenant_id=tenant_id, actor_id=actor_id, actor_type="user",
+        roles=["admin"], action="methodology.policy.updated",
+        resource_type="methodology_policy", resource_id=tenant_id,
+        outcome="success", metadata={"policy": policy},
+    ))
+    return {"tenant_id": tenant_id, **policy}

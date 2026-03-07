@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Methodology Definition",
+  "description": "Canonical schema for organisational methodology definitions with tenant scoping and versioning.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique methodology definition identifier"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant that owns this methodology definition"
+    },
+    "methodology_id": {
+      "type": "string",
+      "description": "Logical methodology identifier (e.g. adaptive, predictive, hybrid, or custom slug)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable methodology name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief explanation of the methodology purpose and approach"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["predictive", "adaptive", "hybrid", "custom"],
+      "description": "Base methodology type"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Immutable version number; incremented on each save"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "published", "deprecated", "archived"],
+      "description": "Lifecycle status of this methodology version"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this methodology is the tenant default for new workspaces"
+    },
+    "allowed_departments": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of departments allowed to use this methodology; empty means all departments"
+    },
+    "stages": {
+      "type": "array",
+      "description": "Ordered list of methodology stages",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "activities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "prerequisites": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "category": { "type": "string" },
+                "recommended_canvas_tab": { "type": "string" }
+              },
+              "required": ["id", "name"]
+            }
+          },
+          "exit_criteria": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "prerequisites": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "order": { "type": "integer" }
+        },
+        "required": ["id", "name"]
+      }
+    },
+    "gates": {
+      "type": "array",
+      "description": "Gate definitions with criteria for stage transitions",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "stage": { "type": "string" },
+          "criteria": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "id": { "type": "string" },
+                "description": { "type": "string" },
+                "evidence": { "type": ["string", "null"] },
+                "check": { "type": ["string", "null"] }
+              },
+              "required": ["id", "description"]
+            }
+          }
+        },
+        "required": ["id", "name"]
+      }
+    },
+    "monitoring": {
+      "type": "array",
+      "description": "Cross-cutting monitoring activities",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "navigation_nodes": {
+      "type": "array",
+      "description": "Raw navigation tree nodes for the methodology map UI",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "created_by": {
+      "type": "string",
+      "description": "User or system that created this version"
+    },
+    "published_by": {
+      "type": ["string", "null"],
+      "description": "User who published this version"
+    },
+    "published_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Timestamp when this version was published"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Arbitrary metadata for extensions"
+    }
+  },
+  "required": [
+    "id",
+    "tenant_id",
+    "methodology_id",
+    "name",
+    "type",
+    "version",
+    "status",
+    "stages",
+    "created_at"
+  ],
+  "x-schema-metadata": {
+    "name": "methodology",
+    "version": "1.0.0",
+    "compatibility_mode": "full",
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-03-07",
+        "changes": [
+          "Initial canonical methodology definition schema",
+          "Tenant-scoped with versioning and lifecycle status",
+          "Supports stages, activities, gates, monitoring, and navigation nodes",
+          "Includes allowed_departments for org-level policy enforcement",
+          "Immutable version numbering for audit trail"
+        ]
+      }
+    ]
+  }
+}

@@ -121,6 +121,7 @@ class EntityResponse(BaseModel):
 
 AGENT_RUN_SCHEMA = "agent-run"
 SCENARIO_SCHEMA = "scenario"
+METHODOLOGY_SCHEMA = "methodology"
 
 
 class ScenarioIngestRequest(BaseModel):
@@ -1103,6 +1104,166 @@ def _compute_facets(
             facets.append(FacetResponse(field=field, buckets=buckets))
 
     return facets
+
+
+class MethodologyIngestRequest(BaseModel):
+    tenant_id: str
+    data: dict[str, Any]
+    schema_version: int | None = None
+    methodology_id: str | None = None
+
+
+class MethodologyPolicyRequest(BaseModel):
+    tenant_id: str
+    allowed_methodology_ids: list[str] | None = None
+    default_methodology_id: str | None = None
+    department_overrides: dict[str, Any] = Field(default_factory=dict)
+    enforce_published_only: bool = True
+
+
+class MethodologyPolicyResponse(BaseModel):
+    tenant_id: str
+    allowed_methodology_ids: list[str] | None
+    default_methodology_id: str | None
+    department_overrides: dict[str, Any]
+    enforce_published_only: bool
+    updated_at: datetime
+
+
+@api_router.post("/methodologies", response_model=EntityResponse)
+async def ingest_methodology(
+    request: MethodologyIngestRequest,
+    store: DataServiceStore = Depends(get_store),
+) -> EntityResponse:
+    record = await _resolve_schema(METHODOLOGY_SCHEMA, request.schema_version, store)
+    await _require_schema_promotion_for_environment(record, store)
+    _validate_payload(record, request.data)
+    entity_id = request.methodology_id or request.data.get("id") or str(uuid4())
+    stored = await store.store_entity(
+        entity_id=entity_id,
+        tenant_id=request.tenant_id,
+        schema_name=METHODOLOGY_SCHEMA,
+        schema_version=record.version,
+        payload=request.data,
+    )
+    return _entity_response(stored)
+
+
+@api_router.get("/methodologies", response_model=list[EntityResponse])
+async def list_methodologies(
+    response: Response,
+    tenant_id: str | None = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    store: DataServiceStore = Depends(get_store),
+) -> list[EntityResponse]:
+    records = await store.list_entities(METHODOLOGY_SCHEMA, tenant_id, skip, limit)
+    response.headers["X-Total-Count"] = str(
+        await store.count_entities(METHODOLOGY_SCHEMA, tenant_id)
+    )
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(skip)
+    return [_entity_response(record) for record in records]
+
+
+@api_router.get("/methodologies/{methodology_id}", response_model=EntityResponse)
+async def get_methodology(
+    methodology_id: str, store: DataServiceStore = Depends(get_store)
+) -> EntityResponse:
+    record = await store.get_entity(METHODOLOGY_SCHEMA, methodology_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Methodology not found")
+    return _entity_response(record)
+
+
+@api_router.post(
+    "/methodologies/{methodology_id}/publish",
+    response_model=EntityResponse,
+)
+async def publish_methodology(
+    methodology_id: str, store: DataServiceStore = Depends(get_store)
+) -> EntityResponse:
+    record = await store.get_entity(METHODOLOGY_SCHEMA, methodology_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="Methodology not found")
+    payload = dict(record.payload)
+    payload["status"] = "published"
+    payload["published_at"] = datetime.now(timezone.utc).isoformat()
+    stored = await store.store_entity(
+        entity_id=methodology_id,
+        tenant_id=record.tenant_id,
+        schema_name=METHODOLOGY_SCHEMA,
+        schema_version=record.schema_version,
+        payload=payload,
+    )
+    return _entity_response(stored)
+
+
+@api_router.post(
+    "/methodologies/policy",
+    response_model=MethodologyPolicyResponse,
+)
+async def set_methodology_policy(
+    request: MethodologyPolicyRequest,
+    store: DataServiceStore = Depends(get_store),
+) -> MethodologyPolicyResponse:
+    policy_id = f"policy-{request.tenant_id}"
+    now = datetime.now(timezone.utc)
+    payload = {
+        "tenant_id": request.tenant_id,
+        "allowed_methodology_ids": request.allowed_methodology_ids,
+        "default_methodology_id": request.default_methodology_id,
+        "department_overrides": request.department_overrides,
+        "enforce_published_only": request.enforce_published_only,
+        "updated_at": now.isoformat(),
+    }
+    await store.store_entity(
+        entity_id=policy_id,
+        tenant_id=request.tenant_id,
+        schema_name="methodology-policy",
+        schema_version=1,
+        payload=payload,
+    )
+    return MethodologyPolicyResponse(
+        tenant_id=request.tenant_id,
+        allowed_methodology_ids=request.allowed_methodology_ids,
+        default_methodology_id=request.default_methodology_id,
+        department_overrides=request.department_overrides,
+        enforce_published_only=request.enforce_published_only,
+        updated_at=now,
+    )
+
+
+@api_router.get(
+    "/methodologies/policy/{tenant_id}",
+    response_model=MethodologyPolicyResponse,
+)
+async def get_methodology_policy(
+    tenant_id: str, store: DataServiceStore = Depends(get_store)
+) -> MethodologyPolicyResponse:
+    policy_id = f"policy-{tenant_id}"
+    record = await store.get_entity("methodology-policy", policy_id)
+    if not record:
+        return MethodologyPolicyResponse(
+            tenant_id=tenant_id,
+            allowed_methodology_ids=None,
+            default_methodology_id=None,
+            department_overrides={},
+            enforce_published_only=True,
+            updated_at=datetime.now(timezone.utc),
+        )
+    payload = record.payload
+    return MethodologyPolicyResponse(
+        tenant_id=tenant_id,
+        allowed_methodology_ids=payload.get("allowed_methodology_ids"),
+        default_methodology_id=payload.get("default_methodology_id"),
+        department_overrides=payload.get("department_overrides", {}),
+        enforce_published_only=payload.get("enforce_published_only", True),
+        updated_at=record.updated_at,
+    )
+
+
+_SCHEMA_FACET_FIELDS["methodology"] = ["status", "type", "methodology_id"]
 
 
 app.include_router(api_router)

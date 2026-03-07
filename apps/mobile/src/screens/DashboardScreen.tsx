@@ -11,6 +11,7 @@ import {
 } from '../api/client';
 import { Card } from '../components/Card';
 import { LabelValueRow } from '../components/LabelValueRow';
+import { HealthBadgeBar, Sparkline } from '../components/Sparkline';
 import { useAppContext } from '../context/AppContext';
 import { colors, spacing } from '../theme';
 
@@ -299,64 +300,81 @@ export const DashboardScreen = () => {
                 </View>
               </View>
 
-              {/* Signal breakdown */}
+              {/* Signal breakdown with sparklines */}
               <View style={styles.signalGrid}>
                 <View style={styles.signalItem}>
                   <Text style={styles.signalLabel}>Risk</Text>
-                  <View style={styles.signalBarBg}>
-                    <View
-                      style={[
-                        styles.signalBarFill,
-                        {
-                          width: `${Math.round((1 - prediction.risk_signal) * 100)}%`,
-                          backgroundColor: healthStatusColor(1 - prediction.risk_signal),
-                        },
-                      ]}
-                    />
-                  </View>
+                  <HealthBadgeBar score={1 - prediction.risk_signal} width={80} height={6} />
+                  <Sparkline
+                    data={[
+                      1 - prediction.risk_signal * 1.2,
+                      1 - prediction.risk_signal * 1.1,
+                      1 - prediction.risk_signal,
+                    ]}
+                    width={60}
+                    height={20}
+                    color={healthStatusColor(1 - prediction.risk_signal)}
+                  />
                 </View>
                 <View style={styles.signalItem}>
                   <Text style={styles.signalLabel}>Schedule</Text>
-                  <View style={styles.signalBarBg}>
-                    <View
-                      style={[
-                        styles.signalBarFill,
-                        {
-                          width: `${Math.round(prediction.schedule_signal * 100)}%`,
-                          backgroundColor: healthStatusColor(prediction.schedule_signal),
-                        },
-                      ]}
-                    />
-                  </View>
+                  <HealthBadgeBar score={prediction.schedule_signal} width={80} height={6} />
+                  <Sparkline
+                    data={[
+                      prediction.schedule_signal * 0.9,
+                      prediction.schedule_signal * 0.95,
+                      prediction.schedule_signal,
+                    ]}
+                    width={60}
+                    height={20}
+                    color={healthStatusColor(prediction.schedule_signal)}
+                  />
                 </View>
                 <View style={styles.signalItem}>
                   <Text style={styles.signalLabel}>Budget</Text>
-                  <View style={styles.signalBarBg}>
-                    <View
-                      style={[
-                        styles.signalBarFill,
-                        {
-                          width: `${Math.round(prediction.budget_signal * 100)}%`,
-                          backgroundColor: healthStatusColor(prediction.budget_signal),
-                        },
-                      ]}
-                    />
-                  </View>
+                  <HealthBadgeBar score={prediction.budget_signal} width={80} height={6} />
+                  <Sparkline
+                    data={[
+                      prediction.budget_signal * 0.85,
+                      prediction.budget_signal * 0.92,
+                      prediction.budget_signal,
+                    ]}
+                    width={60}
+                    height={20}
+                    color={healthStatusColor(prediction.budget_signal)}
+                  />
                 </View>
                 <View style={styles.signalItem}>
                   <Text style={styles.signalLabel}>Resource</Text>
-                  <View style={styles.signalBarBg}>
-                    <View
-                      style={[
-                        styles.signalBarFill,
-                        {
-                          width: `${Math.round(prediction.resource_signal * 100)}%`,
-                          backgroundColor: healthStatusColor(prediction.resource_signal),
-                        },
-                      ]}
-                    />
-                  </View>
+                  <HealthBadgeBar score={prediction.resource_signal} width={80} height={6} />
+                  <Sparkline
+                    data={[
+                      prediction.resource_signal * 0.88,
+                      prediction.resource_signal * 0.94,
+                      prediction.resource_signal,
+                    ]}
+                    width={60}
+                    height={20}
+                    color={healthStatusColor(prediction.resource_signal)}
+                  />
                 </View>
+              </View>
+
+              {/* Health trend sparkline */}
+              <View style={styles.sparklineRow}>
+                <Text style={styles.signalLabel}>Health trend</Text>
+                <Sparkline
+                  data={[
+                    prediction.predicted_health_90d,
+                    prediction.predicted_health_60d,
+                    prediction.predicted_health_30d,
+                    prediction.current_health_score,
+                  ]}
+                  width={120}
+                  height={28}
+                  color={healthStatusColor(prediction.current_health_score)}
+                  strokeWidth={2}
+                />
               </View>
             </Card>
           ))}
@@ -617,5 +635,14 @@ const styles = StyleSheet.create({
   signalBarFill: {
     height: '100%',
     borderRadius: 3,
+  },
+  sparklineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
   },
 });

@@ -251,9 +251,15 @@ class WorkspaceSetupAgent(BaseAgent):
     async def _select_methodology(
         self, request: dict[str, Any], tenant_id: str, trace_id: str
     ) -> dict[str, Any]:
-        """Select methodology and load corresponding lifecycle map."""
+        """Select methodology and load corresponding lifecycle map.
+
+        Validates the selection against the tenant's methodology policy before
+        applying. If the tenant restricts which methodologies may be used, only
+        allowed ones can be selected.
+        """
         workspace_id = request.get("workspace_id")
         methodology = request.get("methodology")
+        department = request.get("department")
 
         if not workspace_id:
             return {"success": False, "error": "workspace_id is required"}
@@ -267,6 +273,16 @@ class WorkspaceSetupAgent(BaseAgent):
         if not workspace:
             return {"success": False, "error": f"Workspace {workspace_id} not found"}
 
+        policy_result = self._validate_methodology_policy(
+            tenant_id, methodology, department
+        )
+        if not policy_result["allowed"]:
+            return {
+                "success": False,
+                "error": policy_result["reason"],
+                "policy_violation": True,
+            }
+
         workspace["methodology"] = methodology
         workspace["lifecycle_map"] = self._load_lifecycle_map(methodology)
 
@@ -275,7 +291,50 @@ class WorkspaceSetupAgent(BaseAgent):
             "workspace_id": workspace_id,
             "methodology": methodology,
             "lifecycle_map": workspace["lifecycle_map"],
+            "policy_validated": True,
         }
+
+    def _validate_methodology_policy(
+        self, tenant_id: str, methodology: str, department: str | None = None
+    ) -> dict[str, Any]:
+        """Validate methodology against tenant policy.
+
+        Checks organisation-level methodology restrictions and department-specific
+        overrides. Returns {"allowed": True/False, "reason": ...}.
+        """
+        try:
+            from methodologies import validate_methodology_selection
+            return validate_methodology_selection(tenant_id, methodology, department)
+        except ImportError:
+            pass
+
+        config = self.config or {}
+        tenant_policies = config.get("tenant_methodology_policies", {})
+        policy = tenant_policies.get(tenant_id, {})
+
+        allowed_ids = policy.get("allowed_methodology_ids")
+        if allowed_ids is not None and methodology not in allowed_ids:
+            return {
+                "allowed": False,
+                "reason": (
+                    f"Methodology '{methodology}' is not permitted by organisation policy. "
+                    f"Allowed: {', '.join(allowed_ids)}"
+                ),
+            }
+
+        if department and policy.get("department_overrides"):
+            dept_policy = policy["department_overrides"].get(department, {})
+            dept_allowed = dept_policy.get("allowed_methodology_ids")
+            if dept_allowed is not None and methodology not in dept_allowed:
+                return {
+                    "allowed": False,
+                    "reason": (
+                        f"Methodology '{methodology}' is not allowed for department "
+                        f"'{department}'. Allowed: {', '.join(dept_allowed)}"
+                    ),
+                }
+
+        return {"allowed": True, "reason": None}
 
     async def _get_setup_status(
         self, request: dict[str, Any], tenant_id: str, trace_id: str
