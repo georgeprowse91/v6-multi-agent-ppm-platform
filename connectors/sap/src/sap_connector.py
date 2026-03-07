@@ -20,7 +20,7 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
 ensure_monorepo_paths(_REPO_ROOT)
 
-from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from base_connector import ConnectorCategory, ConnectorConfig, ConnectorSearchResult  # noqa: E402
 from http_client import HttpClient, RetryConfig  # noqa: E402
 from rest_connector import BasicAuthRestConnector  # noqa: E402
 from connector_secrets import resolve_secret  # noqa: E402
@@ -157,6 +157,62 @@ class SapConnector(BasicAuthRestConnector):
                 exc,
             )
             return rest_call()
+
+    def search(
+        self,
+        query: str,
+        *,
+        resource_types: list[str] | None = None,
+        limit: int = 20,
+        filters: dict[str, Any] | None = None,
+    ) -> list[ConnectorSearchResult]:
+        """Search SAP projects and costs using OData $filter."""
+        if not query or not query.strip():
+            return []
+        if not self._authenticated and not self.authenticate():
+            return []
+
+        results: list[ConnectorSearchResult] = []
+        types_to_search = resource_types or ["projects"]
+
+        if "projects" in types_to_search:
+            try:
+                escaped = query.replace("'", "''")
+                response = self._request(
+                    "GET",
+                    "/sap/opu/odata/sap/PROJECT_SRV/Projects",
+                    params={
+                        "$filter": f"substringof('{escaped}', Description) or substringof('{escaped}', ProjectID)",
+                        "$top": limit,
+                    },
+                )
+                data = response.json()
+                items = data
+                for key in "d.results".split("."):
+                    if isinstance(items, dict):
+                        items = items.get(key, {})
+                if isinstance(items, list):
+                    for record in items:
+                        results.append(
+                            ConnectorSearchResult(
+                                id=str(record.get("ProjectID", "")),
+                                title=record.get("Description") or str(record.get("ProjectID", "")),
+                                snippet=f"SAP Project · {record.get('ProjectID', '')}",
+                                source_system="sap",
+                                resource_type="projects",
+                                url=None,
+                                score=0.9,
+                                updated_at=record.get("LastChangedAt"),
+                                metadata=record,
+                            )
+                        )
+            except Exception:
+                logger.warning("SAP search failed for query: %s; falling back to read-scan", query)
+                return super().search(
+                    query, resource_types=resource_types, limit=limit, filters=filters
+                )
+
+        return results[:limit]
 
     def read(
         self,

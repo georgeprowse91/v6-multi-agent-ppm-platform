@@ -1,0 +1,154 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: default;
+  position: relative;
+}
+
+.scoreValue {
+  min-width: 24px;
+  text-align: center;
+}
+
+.trendArrow {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Status tones */
+.healthy {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.atRisk {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.critical {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.unknown {
+  background: var(--color-surface-secondary, #f0f0f0);
+  color: var(--color-text-secondary, #666);
+}
+
+/* Trend indicators */
+.improving {
+  color: #166534;
+}
+
+.declining {
+  color: #991b1b;
+}
+
+.rapidlyDeclining {
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.stable {
+  color: #6b7280;
+}
+
+/* Size variants */
+.sm {
+  padding: 2px 8px;
+  font-size: 11px;
+  gap: 4px;
+}
+
+.lg {
+  padding: 5px 14px;
+  font-size: 14px;
+  gap: 8px;
+  border-radius: 16px;
+}
+
+/* Tooltip container */
+.tooltipWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface, #1a1a1a);
+  color: var(--color-text-primary, #fff);
+  border: 1px solid var(--color-border, #333);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+}
+
+.tooltipWrapper:hover .tooltip {
+  display: block;
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 0;
+}
+
+.tooltipLabel {
+  color: var(--color-text-secondary, #999);
+}
+
+.tooltipValue {
+  font-weight: 600;
+}
+
+/* Signal bar mini visualization */
+.signalBars {
+  display: flex;
+  gap: 3px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border-light, #333);
+}
+
+.signalBar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border-light, #333);
+  position: relative;
+  overflow: hidden;
+}
+
+.signalBarFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.signalBarLabel {
+  font-size: 10px;
+  text-align: center;
+  margin-top: 2px;
+  color: var(--color-text-tertiary, #666);
+}

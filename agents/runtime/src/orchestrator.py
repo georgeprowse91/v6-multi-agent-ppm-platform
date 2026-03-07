@@ -141,10 +141,184 @@ class Orchestrator:
         self._human_review_decisions: dict[str, dict[str, Any]] = {}
         self._human_review_waiters: dict[str, asyncio.Future[dict[str, Any]]] = {}
         self._event_bus.subscribe("human_review_decision", self._handle_human_review_decision_event)
+        self._health_monitoring_enabled = is_feature_enabled(
+            "predictive_health_monitoring",
+            environment=os.getenv("ENVIRONMENT", "dev"),
+            default=False,
+        )
+        self._health_thresholds = {
+            "critical": float(os.getenv("HEALTH_CRITICAL_THRESHOLD", "0.40")),
+            "warning": float(os.getenv("HEALTH_WARNING_THRESHOLD", "0.60")),
+        }
 
     @property
     def event_bus(self) -> EventBus:
         return self._event_bus
+
+    async def evaluate_project_health(
+        self,
+        project_id: str,
+        tenant_id: str,
+        signals: dict[str, float],
+        *,
+        project_name: str | None = None,
+    ) -> dict[str, Any]:
+        """Evaluate project health from signal inputs and emit health events.
+
+        This method computes a composite health score from individual signal
+        dimensions (risk, schedule, budget, resource), determines the health
+        status, and publishes health events to the event bus. If the score
+        crosses a threshold, a health alert event is also published.
+
+        Args:
+            project_id: The project identifier.
+            tenant_id: The tenant context.
+            signals: Signal values keyed by dimension name (risk, schedule,
+                budget, resource). Each value should be in [0, 1].
+            project_name: Optional human-readable project name for events.
+
+        Returns:
+            A dictionary containing the composite score, status, breakdown,
+            and any alerts generated.
+        """
+        weights = {"risk": 0.3, "schedule": 0.25, "budget": 0.25, "resource": 0.2}
+        risk = signals.get("risk", 0.5)
+        schedule = signals.get("schedule", 0.5)
+        budget = signals.get("budget", 0.5)
+        resource = signals.get("resource", 0.5)
+
+        composite = (
+            weights["risk"] * (1 - risk)
+            + weights["schedule"] * schedule
+            + weights["budget"] * budget
+            + weights["resource"] * resource
+        )
+        composite = round(max(0.0, min(1.0, composite)), 4)
+
+        critical = self._health_thresholds["critical"]
+        warning = self._health_thresholds["warning"]
+        if composite < critical:
+            status = "critical"
+        elif composite < warning:
+            status = "at_risk"
+        else:
+            status = "healthy"
+
+        breakdown = {
+            "risk_score": round(risk, 3),
+            "schedule_score": round(schedule, 3),
+            "budget_score": round(budget, 3),
+            "resource_score": round(resource, 3),
+            "composite_score": composite,
+        }
+
+        health_event = {
+            "project_id": project_id,
+            "project_name": project_name or project_id,
+            "tenant_id": tenant_id,
+            "composite_score": composite,
+            "status": status,
+            "breakdown": breakdown,
+        }
+
+        await self._event_bus.publish("project.health.evaluated", health_event)
+
+        alerts: list[dict[str, Any]] = []
+        if status == "critical":
+            alert = {
+                "project_id": project_id,
+                "project_name": project_name or project_id,
+                "severity": "critical",
+                "composite_score": composite,
+                "threshold": critical,
+                "message": f"Project health is critical at {composite:.0%}",
+            }
+            alerts.append(alert)
+            await self._event_bus.publish("project.health.alert", {
+                "tenant_id": tenant_id,
+                **alert,
+            })
+            logger.warning(
+                "Project %s health critical: %.3f (threshold %.3f)",
+                project_id, composite, critical,
+            )
+        elif status == "at_risk":
+            alert = {
+                "project_id": project_id,
+                "project_name": project_name or project_id,
+                "severity": "warning",
+                "composite_score": composite,
+                "threshold": warning,
+                "message": f"Project health at risk at {composite:.0%}",
+            }
+            alerts.append(alert)
+            await self._event_bus.publish("project.health.alert", {
+                "tenant_id": tenant_id,
+                **alert,
+            })
+
+        return {
+            "project_id": project_id,
+            "composite_score": composite,
+            "status": status,
+            "breakdown": breakdown,
+            "alerts": alerts,
+        }
+
+    async def _post_orchestration_health_check(
+        self,
+        results: dict[str, dict[str, Any]],
+        context: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        """Run health evaluation after an orchestration completes, if enabled."""
+        if not self._health_monitoring_enabled:
+            return None
+
+        project_id = context.get("project_id")
+        tenant_id = context.get("tenant_id", "default")
+        if not project_id:
+            return None
+
+        # Aggregate health signals from task results
+        signals = self._extract_health_signals(results, context)
+        if not signals:
+            return None
+
+        return await self.evaluate_project_health(
+            project_id=project_id,
+            tenant_id=tenant_id,
+            signals=signals,
+            project_name=context.get("project_name"),
+        )
+
+    @staticmethod
+    def _extract_health_signals(
+        results: dict[str, dict[str, Any]],
+        context: dict[str, Any],
+    ) -> dict[str, float]:
+        """Extract health signal values from orchestration results and context."""
+        signals: dict[str, float] = {}
+
+        # Check context first (may be pre-set by callers)
+        ctx_signals = context.get("health_signals")
+        if isinstance(ctx_signals, dict):
+            for key in ("risk", "schedule", "budget", "resource"):
+                if key in ctx_signals:
+                    signals[key] = float(ctx_signals[key])
+
+        # Scan task results for health-related outputs
+        for result in results.values():
+            if not isinstance(result, dict):
+                continue
+            metadata = result.get("metadata", {})
+            if isinstance(metadata, dict):
+                for key in ("risk_score", "schedule_variance", "cost_variance", "resource_utilization"):
+                    if key in metadata:
+                        dimension = key.replace("_score", "").replace("_variance", "").replace("cost", "budget").replace("_utilization", "")
+                        if dimension not in signals:
+                            signals[dimension] = float(metadata[key])
+
+        return signals
 
     async def run(
         self,
@@ -223,6 +397,13 @@ class Orchestrator:
             "total_tasks": len(tasks),
             "cost_summary": cost_summary,
         }
+
+        # Post-orchestration health check
+        health_result = await self._post_orchestration_health_check(results, shared_context)
+        if health_result is not None:
+            metrics["health_evaluation"] = health_result
+            shared_context["last_health_evaluation"] = health_result
+
         if event_emitter is not None:
             await event_emitter.emit(
                 ExecutionEvent(

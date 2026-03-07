@@ -392,6 +392,22 @@ def create_app() -> FastAPI:
                         )
                     continue
 
+                # --- Gantt-specific collaborative events ---
+                if message_type in (
+                    "gantt_task_move",
+                    "gantt_task_update",
+                    "gantt_task_add",
+                    "gantt_task_delete",
+                    "gantt_optimization_action",
+                    "gantt_dependency_update",
+                ):
+                    await hub.broadcast(
+                        session_id,
+                        {**payload, "sender": user_id},
+                        exclude=websocket,
+                    )
+                    continue
+
                 await websocket.send_json({"type": "error", "message": "Unknown message"})
         except WebSocketDisconnect:
             await hub.unregister(session_id, websocket)

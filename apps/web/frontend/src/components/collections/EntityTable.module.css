@@ -1,0 +1,153 @@
+.wrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
+  font-weight: 600;
+  color: var(--color-text-secondary, #6b7280);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.table th:hover {
+  color: var(--color-text-primary, #1a1a1a);
+}
+
+.sortIndicator {
+  margin-left: 4px;
+  font-size: 10px;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-light, #f3f4f6);
+  color: var(--color-text-primary, #374151);
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  transition: background-color 0.1s ease;
+}
+
+.table tbody tr:hover {
+  background: var(--color-surface-secondary, #f9fafb);
+}
+
+.rowSelected {
+  background: var(--color-primary-50, #eff6ff) !important;
+}
+
+.checkboxCell {
+  width: 40px;
+  text-align: center;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--color-primary-500, #3b82f6);
+}
+
+.idCell {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusOpen { background: #dbeafe; color: #1d4ed8; }
+.statusPlanning { background: #e0e7ff; color: #4338ca; }
+.statusExecution { background: #fef3c7; color: #92400e; }
+.statusMonitoring { background: #fef9c3; color: #854d0e; }
+.statusClosed { background: #f3f4f6; color: #6b7280; }
+.statusTodo { background: #f3f4f6; color: #6b7280; }
+.statusInProgress { background: #dbeafe; color: #1d4ed8; }
+.statusDone { background: #dcfce7; color: #166534; }
+.statusBlocked { background: #fee2e2; color: #991b1b; }
+.statusMitigated { background: #dcfce7; color: #166534; }
+.statusMitigating { background: #fef3c7; color: #92400e; }
+.statusInitiated { background: #e0e7ff; color: #4338ca; }
+.statusDefault { background: #f3f4f6; color: #6b7280; }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  font-size: 13px;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.pageInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageBtn {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  background: var(--color-surface, #fff);
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--color-text-primary, #374151);
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: var(--color-surface-secondary, #f9fafb);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-tertiary, #9ca3af);
+  font-size: 14px;
+}
+
+.actionCell {
+  width: 80px;
+  text-align: center;
+}
+
+.openBtn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-primary-600, #2563eb);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.openBtn:hover {
+  background: var(--color-primary-700, #1d4ed8);
+}

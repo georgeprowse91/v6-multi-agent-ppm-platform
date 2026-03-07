@@ -607,6 +607,34 @@ async def get_agent_run(
     return _entity_response(record)
 
 
+class EntitySearchRequest(BaseModel):
+    query: str = Field("", description="Full-text search query across entity payload fields")
+    filters: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Faceted filters: field name -> list of accepted values",
+    )
+    sort_by: str = Field("updated_at", description="Field to sort by")
+    sort_order: str = Field("desc", description="Sort order: asc or desc")
+
+
+class FacetBucket(BaseModel):
+    value: str
+    count: int
+
+
+class FacetResponse(BaseModel):
+    field: str
+    buckets: list[FacetBucket]
+
+
+class EntitySearchResponse(BaseModel):
+    items: list[EntityResponse]
+    total: int
+    offset: int
+    limit: int
+    facets: list[FacetResponse]
+
+
 @api_router.get("/entities/{schema_name}", response_model=list[EntityResponse])
 async def list_entities(
     schema_name: str,
@@ -621,6 +649,75 @@ async def list_entities(
     response.headers["X-Limit"] = str(limit)
     response.headers["X-Offset"] = str(skip)
     return [_entity_response(record) for record in records]
+
+
+@api_router.post(
+    "/entities/{schema_name}/search",
+    response_model=EntitySearchResponse,
+)
+async def search_entities(
+    schema_name: str,
+    request: EntitySearchRequest,
+    response: Response,
+    tenant_id: str | None = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    store: DataServiceStore = Depends(get_store),
+) -> EntitySearchResponse:
+    """Search and filter entities with faceted results.
+
+    Supports full-text search across payload fields, faceted filtering
+    by specific field values, and configurable sort order.
+    """
+    all_records = await store.list_entities(schema_name, tenant_id, 0, 10000)
+
+    query = request.query.strip().lower()
+    filters = request.filters
+
+    filtered: list[EntityRecord] = []
+    for record in all_records:
+        if query and not _entity_matches_query(record, query):
+            continue
+        if filters and not _entity_matches_filters(record, filters):
+            continue
+        filtered.append(record)
+
+    sort_field = request.sort_by
+    reverse = request.sort_order == "desc"
+    filtered.sort(key=lambda r: _sort_key(r, sort_field), reverse=reverse)
+
+    facet_fields = _discover_facet_fields(schema_name)
+    facets = _compute_facets(filtered, facet_fields)
+
+    total = len(filtered)
+    page = filtered[skip: skip + limit]
+
+    response.headers["X-Total-Count"] = str(total)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(skip)
+
+    return EntitySearchResponse(
+        items=[_entity_response(r) for r in page],
+        total=total,
+        offset=skip,
+        limit=limit,
+        facets=facets,
+    )
+
+
+@api_router.get(
+    "/entities/{schema_name}/facets",
+    response_model=list[FacetResponse],
+)
+async def get_entity_facets(
+    schema_name: str,
+    tenant_id: str | None = Query(None),
+    store: DataServiceStore = Depends(get_store),
+) -> list[FacetResponse]:
+    """Return facet value counts for a given entity collection."""
+    all_records = await store.list_entities(schema_name, tenant_id, 0, 10000)
+    facet_fields = _discover_facet_fields(schema_name)
+    return _compute_facets(all_records, facet_fields)
 
 
 @api_router.get("/scenarios", response_model=list[EntityResponse])
@@ -898,6 +995,114 @@ async def _require_schema_promotion_for_environment(
                 f"{schema_record.name}@{schema_record.version} -> {environment}"
             ),
         )
+
+
+def _entity_matches_query(record: EntityRecord, query: str) -> bool:
+    """Check if any payload field contains the search query."""
+    payload = record.payload or {}
+    for value in payload.values():
+        if isinstance(value, str) and query in value.lower():
+            return True
+        if isinstance(value, (int, float)) and query in str(value):
+            return True
+    if query in record.id.lower():
+        return True
+    return False
+
+
+def _entity_matches_filters(record: EntityRecord, filters: dict[str, list[str]]) -> bool:
+    """Check if entity payload matches all facet filters."""
+    payload = record.payload or {}
+    for field_name, accepted_values in filters.items():
+        if not accepted_values:
+            continue
+        entity_value = str(payload.get(field_name, "")).lower()
+        accepted_lower = [v.lower() for v in accepted_values]
+        if entity_value not in accepted_lower:
+            return False
+    return True
+
+
+def _sort_key(record: EntityRecord, field: str) -> Any:
+    """Extract sort key from entity record."""
+    if field == "updated_at":
+        return record.updated_at
+    if field == "created_at":
+        return record.created_at
+    if field == "id":
+        return record.id
+    payload = record.payload or {}
+    value = payload.get(field, "")
+    if isinstance(value, str):
+        return value.lower()
+    return str(value)
+
+
+_FACET_FIELD_CACHE: dict[str, list[str]] = {}
+
+_SCHEMA_FACET_FIELDS: dict[str, list[str]] = {
+    "project": ["status", "owner", "regulatory_category", "classification"],
+    "portfolio": ["status", "owner", "classification"],
+    "program": ["status", "owner", "classification"],
+    "risk": ["status", "impact", "likelihood", "owner", "classification"],
+    "issue": ["status", "priority", "owner", "classification"],
+    "work-item": ["status", "type", "assigned_to", "classification"],
+    "document": ["status", "type", "classification"],
+    "budget": ["status", "classification"],
+    "resource": ["status", "role", "classification"],
+    "vendor": ["status", "classification"],
+    "demand": ["status", "priority", "classification"],
+}
+
+
+def _discover_facet_fields(schema_name: str) -> list[str]:
+    """Discover which fields are suitable for faceting."""
+    if schema_name in _FACET_FIELD_CACHE:
+        return _FACET_FIELD_CACHE[schema_name]
+
+    fields = list(_SCHEMA_FACET_FIELDS.get(schema_name, ["status", "owner", "classification"]))
+
+    schema_path = SCHEMA_DIR / f"{schema_name}.schema.json"
+    if schema_path.exists():
+        import json
+
+        try:
+            schema = json.loads(schema_path.read_text(encoding="utf-8"))
+            properties = schema.get("properties", {})
+            for prop_name, prop_def in properties.items():
+                if "enum" in prop_def and prop_name not in fields:
+                    fields.append(prop_name)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    _FACET_FIELD_CACHE[schema_name] = fields
+    return fields
+
+
+def _compute_facets(
+    records: list[EntityRecord], facet_fields: list[str]
+) -> list[FacetResponse]:
+    """Compute facet value counts from a list of entity records."""
+    counters: dict[str, dict[str, int]] = {field: {} for field in facet_fields}
+
+    for record in records:
+        payload = record.payload or {}
+        for field in facet_fields:
+            value = payload.get(field)
+            if value is not None:
+                str_value = str(value)
+                counters[field][str_value] = counters[field].get(str_value, 0) + 1
+
+    facets: list[FacetResponse] = []
+    for field in facet_fields:
+        buckets = sorted(
+            [FacetBucket(value=v, count=c) for v, c in counters[field].items()],
+            key=lambda b: (-b.count, b.value),
+        )
+        if buckets:
+            facets.append(FacetResponse(field=field, buckets=buckets))
+
+    return facets
 
 
 app.include_router(api_router)

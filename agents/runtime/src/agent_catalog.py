@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import logging
+import threading
+from dataclasses import dataclass, field
+from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -9,6 +14,16 @@ class AgentCatalogEntry:
     agent_id: str
     component_name: str
     display_name: str
+    source: str = "builtin"
+    version: str | None = None
+    description: str | None = None
+    category: str | None = None
+    author: dict[str, str] | None = None
+    capabilities: list[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    icon: str | None = None
+    permissions_required: list[str] = field(default_factory=list)
+    manifest_data: dict[str, Any] | None = None
 
 
 AGENT_CATALOG: tuple[AgentCatalogEntry, ...] = (
@@ -167,11 +182,90 @@ AGENT_CATALOG: tuple[AgentCatalogEntry, ...] = (
 AGENT_CATALOG_BY_AGENT_ID = {entry.agent_id: entry for entry in AGENT_CATALOG}
 AGENT_CATALOG_BY_COMPONENT = {entry.component_name: entry for entry in AGENT_CATALOG}
 
+# --- Dynamic agent registry (thread-safe) ---
+
+_dynamic_registry: dict[str, AgentCatalogEntry] = {}
+_registry_lock = threading.Lock()
+
 
 def get_catalog_entry(agent_id: str) -> AgentCatalogEntry | None:
+    with _registry_lock:
+        dynamic = _dynamic_registry.get(agent_id)
+    if dynamic is not None:
+        return dynamic
     return AGENT_CATALOG_BY_AGENT_ID.get(agent_id)
 
 
 def get_catalog_id(agent_id: str) -> str | None:
     entry = get_catalog_entry(agent_id)
     return entry.catalog_id if entry else None
+
+
+def register_agent(entry: AgentCatalogEntry) -> None:
+    """Register a dynamic (marketplace) agent in the catalog.
+
+    Raises ValueError if the agent_id conflicts with a built-in agent.
+    """
+    if entry.agent_id in AGENT_CATALOG_BY_AGENT_ID:
+        raise ValueError(
+            f"Cannot register '{entry.agent_id}': conflicts with a built-in agent"
+        )
+    with _registry_lock:
+        _dynamic_registry[entry.agent_id] = entry
+    logger.info("Registered dynamic agent %s (source=%s)", entry.agent_id, entry.source)
+
+
+def unregister_agent(agent_id: str) -> bool:
+    """Remove a dynamically registered agent. Returns True if removed."""
+    if agent_id in AGENT_CATALOG_BY_AGENT_ID:
+        raise ValueError(f"Cannot unregister built-in agent '{agent_id}'")
+    with _registry_lock:
+        removed = _dynamic_registry.pop(agent_id, None)
+    if removed:
+        logger.info("Unregistered dynamic agent %s", agent_id)
+    return removed is not None
+
+
+def list_all_entries() -> list[AgentCatalogEntry]:
+    """Return all catalog entries (built-in + dynamic)."""
+    with _registry_lock:
+        dynamic = list(_dynamic_registry.values())
+    return list(AGENT_CATALOG) + dynamic
+
+
+def list_dynamic_entries() -> list[AgentCatalogEntry]:
+    """Return only dynamically registered (marketplace) entries."""
+    with _registry_lock:
+        return list(_dynamic_registry.values())
+
+
+def get_dynamic_entry(agent_id: str) -> AgentCatalogEntry | None:
+    """Look up a dynamically registered agent by ID."""
+    with _registry_lock:
+        return _dynamic_registry.get(agent_id)
+
+
+def register_from_manifest(manifest_data: dict[str, Any]) -> AgentCatalogEntry:
+    """Register an agent from a manifest dict. Returns the new entry."""
+    agent_id = manifest_data["agent_id"]
+    author_raw = manifest_data.get("author")
+    author = author_raw if isinstance(author_raw, dict) else {"name": str(author_raw or "")}
+
+    entry = AgentCatalogEntry(
+        catalog_id=agent_id,
+        agent_id=agent_id,
+        component_name=agent_id,
+        display_name=manifest_data.get("display_name", agent_id),
+        source="marketplace",
+        version=manifest_data.get("version"),
+        description=manifest_data.get("description"),
+        category=manifest_data.get("category"),
+        author=author,
+        capabilities=manifest_data.get("capabilities", []),
+        tags=manifest_data.get("tags", []),
+        icon=manifest_data.get("icon"),
+        permissions_required=manifest_data.get("permissions_required", []),
+        manifest_data=manifest_data,
+    )
+    register_agent(entry)
+    return entry

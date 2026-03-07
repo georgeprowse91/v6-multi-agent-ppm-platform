@@ -46,6 +46,7 @@ const ProjectSetupWizardPage = React.lazy(() => import('./pages/ProjectSetupWiza
 const SecurityPostureDashboardPage = React.lazy(() => import('./pages/SecurityPostureDashboardPage'));
 const KnowledgeGraphPage = React.lazy(() => import('./pages/KnowledgeGraphPage'));
 const ScenarioAnalysisPage = React.lazy(() => import('./pages/ScenarioAnalysisPage'));
+const AgentMarketplacePage = React.lazy(() => import('./pages/AgentMarketplacePage'));
 
 function isDemoModeEnabled(): boolean {
   const env = import.meta.env as Record<string, unknown>;
@@ -128,6 +129,7 @@ function AppRoutes() {
             <Route path="/workflows/monitoring" element={<WorkflowMonitoringPage />} />
             <Route path="/workflows/designer" element={<WorkflowDesigner />} />
             <Route path="/marketplace/connectors" element={<ConnectorMarketplacePage />} />
+            <Route path="/marketplace/agents" element={<AgentMarketplacePage />} />
             <Route path="/intake/new" element={<IntakeFormPage />} />
             <Route path="/intake/status/:requestId" element={<IntakeStatusPage />} />
             <Route path="/intake/approvals" element={<IntakeApprovalsPage />} />

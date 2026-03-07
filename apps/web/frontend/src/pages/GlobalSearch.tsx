@@ -4,17 +4,40 @@ import {
   fetchGlobalSearch,
   type SearchResult,
   type SearchResultType,
+  type SourceSystem,
 } from '@/services/searchApi';
 import type { DocumentSummary, LessonRecord } from '@/services/knowledgeApi';
 import { tokenizeHighlight } from '@ppm/canvas-engine/security';
 import styles from './GlobalSearch.module.css';
 
-const TYPE_LABELS: Record<SearchResultType, string> = {
+const TYPE_LABELS: Record<string, string> = {
   document: 'Documents',
   project: 'Projects',
   knowledge: 'Knowledge Base',
   approval: 'Approvals',
   workflow: 'Workflows',
+  issues: 'Jira Issues',
+  pages: 'Confluence Pages',
+  documents: 'SharePoint Documents',
+  projects: 'SAP Projects',
+  costs: 'SAP Costs',
+  lists: 'SharePoint Lists',
+};
+
+const SOURCE_LABELS: Record<SourceSystem, string> = {
+  local: 'Local',
+  jira: 'Jira',
+  confluence: 'Confluence',
+  sharepoint: 'SharePoint',
+  sap: 'SAP',
+};
+
+const SOURCE_COLORS: Record<SourceSystem, string> = {
+  local: '#6b7280',
+  jira: '#0052CC',
+  confluence: '#1868DB',
+  sharepoint: '#038387',
+  sap: '#0070F2',
 };
 
 const DEFAULT_TYPES: SearchResultType[] = [
@@ -43,6 +66,8 @@ export function GlobalSearchPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange>('all');
+  const [includeConnectors, setIncludeConnectors] = useState(true);
+  const [connectorSources, setConnectorSources] = useState<string[]>([]);
 
   const projectIds = useMemo(
     () =>
@@ -70,15 +95,32 @@ export function GlobalSearchPage() {
     });
   }, [dateRange, results]);
 
-  const groupedResults = useMemo(() => {
-    const groups: Record<SearchResultType, SearchResult[]> = {
-      document: [],
-      project: [],
-      knowledge: [],
-      approval: [],
-      workflow: [],
-    };
+  // Group results by source system
+  const groupedBySource = useMemo(() => {
+    const groups: Record<string, SearchResult[]> = {};
     filteredResults.forEach((result) => {
+      const source = result.sourceSystem || 'local';
+      if (!groups[source]) {
+        groups[source] = [];
+      }
+      groups[source].push(result);
+    });
+    return groups;
+  }, [filteredResults]);
+
+  // Also group by type for the existing view
+  const allTypes = useMemo(() => {
+    const types = new Set<string>();
+    filteredResults.forEach((r) => types.add(r.type));
+    return Array.from(types);
+  }, [filteredResults]);
+
+  const groupedByType = useMemo(() => {
+    const groups: Record<string, SearchResult[]> = {};
+    filteredResults.forEach((result) => {
+      if (!groups[result.type]) {
+        groups[result.type] = [];
+      }
       groups[result.type].push(result);
     });
     return groups;
@@ -99,8 +141,10 @@ export function GlobalSearchPage() {
           projectIds,
           offset,
           limit: PAGE_SIZE,
+          includeConnectors,
         });
         setTotal(response.total);
+        setConnectorSources(response.connectors || []);
         setResults((prev) =>
           append ? prev.concat(response.results) : response.results
         );
@@ -110,7 +154,7 @@ export function GlobalSearchPage() {
         setLoading(false);
       }
     },
-    [projectIds, query, selectedTypes]
+    [projectIds, query, selectedTypes, includeConnectors]
   );
 
   useEffect(() => {
@@ -163,16 +207,31 @@ export function GlobalSearchPage() {
 
   const hasMore = results.length < total;
 
+  const renderSourceBadge = (source: SourceSystem) => {
+    const color = SOURCE_COLORS[source] || '#6b7280';
+    return (
+      <span
+        className={styles.sourceBadge}
+        style={{ background: `${color}15`, color, borderColor: `${color}40` }}
+      >
+        {SOURCE_LABELS[source] || source}
+      </span>
+    );
+  };
+
   const renderDocumentCard = (result: SearchResult) => {
     const payload = result.payload as unknown as DocumentSummary;
     return (
-      <li key={result.id} className={styles.resultCard}>
+      <li key={`${result.id}-${result.sourceSystem}`} className={styles.resultCard}>
         <div className={styles.cardHeader}>
           <div>
             <h3>{payload.name}</h3>
             <p>{payload.docType} · {payload.classification}</p>
           </div>
-          <span className={styles.badge}>{payload.latestStatus}</span>
+          <div className={styles.badgeRow}>
+            {renderSourceBadge(result.sourceSystem)}
+            <span className={styles.badge}>{payload.latestStatus}</span>
+          </div>
         </div>
         <div className={styles.metaRow}>
           <span>Project {payload.projectId}</span>
@@ -193,7 +252,7 @@ export function GlobalSearchPage() {
   const renderKnowledgeCard = (result: SearchResult) => {
     const payload = result.payload as unknown as LessonRecord;
     return (
-      <li key={result.id} className={styles.resultCard}>
+      <li key={`${result.id}-${result.sourceSystem}`} className={styles.resultCard}>
         <div className={styles.cardHeader}>
           <div>
             <h3>{payload.title}</h3>
@@ -201,6 +260,7 @@ export function GlobalSearchPage() {
               {payload.stageName ?? 'General'} · Project {payload.projectId}
             </p>
           </div>
+          {renderSourceBadge(result.sourceSystem)}
         </div>
         {result.highlights?.excerpt ? (
           <p className={styles.lessonDescription}>
@@ -210,12 +270,12 @@ export function GlobalSearchPage() {
           <p className={styles.lessonDescription}>{payload.description}</p>
         )}
         <div className={styles.chipRow}>
-          {payload.tags.map((tag) => (
+          {payload.tags?.map((tag) => (
             <span key={`tag-${payload.lessonId}-${tag}`} className={styles.chip}>
               #{tag}
             </span>
           ))}
-          {payload.topics.map((topic) => (
+          {payload.topics?.map((topic) => (
             <span
               key={`topic-${payload.lessonId}-${topic}`}
               className={styles.chipAlt}
@@ -224,6 +284,46 @@ export function GlobalSearchPage() {
             </span>
           ))}
         </div>
+      </li>
+    );
+  };
+
+  const renderConnectorCard = (result: SearchResult) => {
+    return (
+      <li key={`${result.id}-${result.sourceSystem}`} className={styles.resultCard}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h3>
+              {result.sourceUrl ? (
+                <a
+                  href={result.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.resultLink}
+                >
+                  {result.title}
+                </a>
+              ) : (
+                result.title
+              )}
+            </h3>
+            <p>{result.summary}</p>
+          </div>
+          <div className={styles.badgeRow}>
+            {renderSourceBadge(result.sourceSystem)}
+            <span className={styles.typeBadge}>
+              {TYPE_LABELS[result.type] || result.type}
+            </span>
+          </div>
+        </div>
+        {result.projectId && (
+          <div className={styles.metaRow}>
+            <span>Project {result.projectId}</span>
+            {result.updatedAt && (
+              <span>Updated {new Date(result.updatedAt).toLocaleString()}</span>
+            )}
+          </div>
+        )}
       </li>
     );
   };
@@ -246,12 +346,13 @@ export function GlobalSearchPage() {
 
   const renderGenericCard = (result: SearchResult) => {
     return (
-      <li key={result.id} className={styles.resultCard}>
+      <li key={`${result.id}-${result.sourceSystem}`} className={styles.resultCard}>
         <div className={styles.cardHeader}>
           <div>
             <h3>{renderHighlightedText(result.title, result.highlights?.title)}</h3>
             <p>Project {result.projectId ?? 'N/A'}</p>
           </div>
+          {renderSourceBadge(result.sourceSystem)}
         </div>
         <p className={styles.lessonDescription}>
           {renderHighlightedText(result.summary, result.highlights?.summary)}
@@ -260,14 +361,29 @@ export function GlobalSearchPage() {
     );
   };
 
+  const renderResultCard = (result: SearchResult) => {
+    if (result.sourceSystem && result.sourceSystem !== 'local') {
+      return renderConnectorCard(result);
+    }
+    if (result.type === 'document') {
+      return renderDocumentCard(result);
+    }
+    if (result.type === 'knowledge') {
+      return renderKnowledgeCard(result);
+    }
+    return renderGenericCard(result);
+  };
+
+  const sourceEntries = Object.entries(groupedBySource);
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
-          <h1>Global Search</h1>
+          <h1>Cross-System Search</h1>
           <p>
-            Search documents, projects, knowledge, approvals, and workflows across
-            portfolios.
+            Search documents, projects, knowledge, and connected external systems
+            across your portfolio.
           </p>
         </div>
         <form className={styles.searchControls} onSubmit={(event) => {
@@ -282,7 +398,7 @@ export function GlobalSearchPage() {
             className={styles.searchInput}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search across the portfolio"
+            placeholder="Search across all systems..."
           />
           <button className={styles.primaryButton} type="submit">
             Search
@@ -313,6 +429,14 @@ export function GlobalSearchPage() {
               </button>
             ))}
           </div>
+          <label className={styles.filterChip}>
+            <input
+              type="checkbox"
+              checked={includeConnectors}
+              onChange={() => setIncludeConnectors((prev) => !prev)}
+            />
+            Include external systems
+          </label>
           <input
             className={styles.filterInput}
             value={projectFilter}
@@ -320,44 +444,62 @@ export function GlobalSearchPage() {
             placeholder="Project IDs (comma separated)"
           />
         </div>
+        {connectorSources.length > 0 && (
+          <div className={styles.connectorBar}>
+            <span className={styles.connectorLabel}>Connected sources:</span>
+            {connectorSources.map((src) => (
+              <span key={src} className={styles.connectorChip}>
+                {SOURCE_LABELS[src as SourceSystem] || src}
+              </span>
+            ))}
+          </div>
+        )}
       </header>
 
       <div className={styles.resultsWrapper}>
         {loading && results.length === 0 && (
-          <div className={styles.emptyState}>Searching...</div>
+          <div className={styles.emptyState}>Searching across all systems...</div>
         )}
         {!loading && results.length === 0 && (
           <div className={styles.emptyState}>
             {query.trim()
-              ? 'No results found. Try refining your filters.'
-              : 'Enter a query to search across the portfolio.'}
+              ? 'No results found. Try refining your filters or enabling external systems.'
+              : 'Enter a query to search across the portfolio and connected systems.'}
           </div>
         )}
 
-        {DEFAULT_TYPES.map((type) => (
-          <section key={type} className={styles.section}>
+        {/* Group by source system */}
+        {sourceEntries.map(([source, items]) => (
+          <section key={source} className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2>{TYPE_LABELS[type]}</h2>
-              <span className={styles.countBadge}>{groupedResults[type].length}</span>
+              <h2>{SOURCE_LABELS[source as SourceSystem] || source}</h2>
+              <span className={styles.countBadge}>{items.length}</span>
+              {source !== 'local' && (
+                <span className={styles.externalTag}>External</span>
+              )}
             </div>
-            {groupedResults[type].length === 0 && (
-              <div className={styles.emptyState}>No results yet.</div>
-            )}
-            {groupedResults[type].length > 0 && (
-              <ul className={styles.resultList}>
-                {groupedResults[type].map((result) => {
-                  if (result.type === 'document') {
-                    return renderDocumentCard(result);
-                  }
-                  if (result.type === 'knowledge') {
-                    return renderKnowledgeCard(result);
-                  }
-                  return renderGenericCard(result);
-                })}
-              </ul>
-            )}
+            <ul className={styles.resultList}>
+              {items.map((result) => renderResultCard(result))}
+            </ul>
           </section>
         ))}
+
+        {/* Grouped by type fallback when no source groups */}
+        {sourceEntries.length === 0 && allTypes.map((type) => {
+          const items = groupedByType[type] || [];
+          if (items.length === 0) return null;
+          return (
+            <section key={type} className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h2>{TYPE_LABELS[type] || type}</h2>
+                <span className={styles.countBadge}>{items.length}</span>
+              </div>
+              <ul className={styles.resultList}>
+                {items.map((result) => renderResultCard(result))}
+              </ul>
+            </section>
+          );
+        })}
 
         {hasMore && (
           <div className={styles.loadMore}>
@@ -366,7 +508,7 @@ export function GlobalSearchPage() {
               onClick={handleLoadMore}
               disabled={loading}
             >
-              {loading ? 'Loading…' : 'Load more results'}
+              {loading ? 'Loading...' : 'Load more results'}
             </button>
             <span className={styles.resultsMeta}>
               Showing {results.length} of {total}

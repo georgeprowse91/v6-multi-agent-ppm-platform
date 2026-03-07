@@ -532,6 +532,46 @@ class BaseAgent(ABC):
         """
         return []
 
+    def get_manifest(self) -> dict[str, Any] | None:
+        """Return the agent manifest metadata, if available.
+
+        Built-in agents return None by default. Custom marketplace agents
+        override this to return their full manifest.
+        """
+        from agents.runtime.src.agent_catalog import get_catalog_entry
+
+        entry = get_catalog_entry(self.agent_id)
+        if entry and getattr(entry, "manifest_data", None):
+            return entry.manifest_data
+        return None
+
+    def get_metadata(self) -> dict[str, Any]:
+        """Return agent metadata for marketplace and catalog display.
+
+        Returns:
+            Dictionary containing agent_id, catalog_id, display_name,
+            capabilities, source, and version information.
+        """
+        from agents.runtime.src.agent_catalog import get_catalog_entry
+
+        entry = get_catalog_entry(self.agent_id)
+        metadata: dict[str, Any] = {
+            "agent_id": self.agent_id,
+            "catalog_id": self.catalog_id,
+            "capabilities": self.get_capabilities(),
+            "initialized": self.initialized,
+            "source": "builtin",
+        }
+        if entry:
+            metadata["display_name"] = entry.display_name
+            metadata["source"] = getattr(entry, "source", "builtin")
+            metadata["version"] = getattr(entry, "version", None)
+            metadata["description"] = getattr(entry, "description", None)
+            metadata["category"] = getattr(entry, "category", None)
+            metadata["tags"] = getattr(entry, "tags", [])
+            metadata["icon"] = getattr(entry, "icon", None)
+        return metadata
+
     def get_config(self, key: str, default: Any = None) -> Any:
         """
         Get a configuration value.

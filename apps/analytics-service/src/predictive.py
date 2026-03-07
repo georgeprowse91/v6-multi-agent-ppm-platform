@@ -10,6 +10,7 @@ from predictive_models import (
     BottleneckPrediction,
     ForecastResult,
     HealthPrediction,
+    HealthTrendAnalysis,
     RiskHeatmapCell,
     SimulationResult,
 )
@@ -140,6 +141,101 @@ class HealthPredictor:
             budget_signal=budget,
             resource_signal=resource,
             trend=trend,
+        )
+
+    def analyze_trend(
+        self,
+        project_id: str,
+        project_name: str,
+        history: list[dict[str, Any]],
+        signals: dict[str, float] | None = None,
+    ) -> HealthTrendAnalysis:
+        """Analyze health trend from historical snapshots.
+
+        Uses linear regression on historical scores to determine trend slope,
+        volatility, and predicted future scores with confidence levels.
+        """
+        scores = [entry.get("composite_score", 0.5) for entry in history]
+        n = len(scores)
+        current_score = scores[-1] if scores else 0.5
+
+        # Compute trend slope via least squares
+        if n >= 2:
+            x_mean = (n - 1) / 2.0
+            y_mean = sum(scores) / n
+            numerator = sum((i - x_mean) * (y - y_mean) for i, y in enumerate(scores))
+            denominator = sum((i - x_mean) ** 2 for i in range(n))
+            slope = numerator / denominator if denominator else 0.0
+        else:
+            slope = 0.0
+
+        # Compute volatility
+        if n >= 3:
+            deltas = [scores[i] - scores[i - 1] for i in range(1, n)]
+            mean_delta = sum(deltas) / len(deltas)
+            variance = sum((d - mean_delta) ** 2 for d in deltas) / len(deltas)
+            volatility = math.sqrt(variance)
+        else:
+            volatility = 0.0
+
+        # Determine trend direction
+        if slope > 0.02:
+            trend_direction = "improving"
+        elif slope < -0.05:
+            trend_direction = "rapidly_declining"
+        elif slope < -0.01:
+            trend_direction = "declining"
+        else:
+            trend_direction = "stable"
+
+        # Predict future scores
+        decay = slope * -1
+        pred_30 = max(0.0, min(1.0, current_score - decay))
+        pred_60 = max(0.0, min(1.0, current_score - decay * 1.8))
+        pred_90 = max(0.0, min(1.0, current_score - decay * 2.5))
+
+        # Confidence based on history length and volatility
+        confidence = min(0.95, max(0.3, 0.5 + n * 0.05 - volatility * 2))
+
+        # Historical lookback
+        score_7d = scores[-7] if n >= 7 else None
+        score_30d = scores[-30] if n >= 30 else None
+
+        # Risk factors
+        risk_factors: list[str] = []
+        if current_score < 0.4:
+            risk_factors.append("Health score in critical range")
+        elif current_score < 0.6:
+            risk_factors.append("Health score below warning threshold")
+        if trend_direction in ("declining", "rapidly_declining"):
+            risk_factors.append(f"Trend is {trend_direction.replace('_', ' ')}")
+        if volatility > 0.05:
+            risk_factors.append("High score volatility detected")
+        if signals:
+            if signals.get("risk", 0) > 0.7:
+                risk_factors.append("Elevated risk signal")
+            if signals.get("schedule", 1) < 0.4:
+                risk_factors.append("Schedule health critically low")
+            if signals.get("budget", 1) < 0.4:
+                risk_factors.append("Budget health critically low")
+
+        at_risk = current_score < 0.6 or trend_direction in ("declining", "rapidly_declining")
+
+        return HealthTrendAnalysis(
+            project_id=project_id,
+            project_name=project_name,
+            current_score=round(current_score, 4),
+            score_7d_ago=round(score_7d, 4) if score_7d is not None else None,
+            score_30d_ago=round(score_30d, 4) if score_30d is not None else None,
+            trend_direction=trend_direction,
+            trend_slope=round(slope, 4),
+            volatility=round(volatility, 4),
+            predicted_score_30d=round(pred_30, 4),
+            predicted_score_60d=round(pred_60, 4),
+            predicted_score_90d=round(pred_90, 4),
+            confidence=round(confidence, 3),
+            at_risk=at_risk,
+            risk_factors=risk_factors,
         )
 
 

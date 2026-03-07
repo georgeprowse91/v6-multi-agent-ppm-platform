@@ -110,3 +110,6 @@ export const fetchProjectHealth = async (projectId: string, tenantId?: string | 
 
 export const fetchProjectKpis = async (projectId: string, tenantId?: string | null) =>
   apiFetch(`/api/dashboard/${projectId}/kpis`, { tenantId });
+
+export const fetchHealthForecast = async (portfolioId: string = 'default', tenantId?: string | null) =>
+  apiFetch(`/v1/predictive/health-forecast?portfolio_id=${encodeURIComponent(portfolioId)}`, { tenantId });

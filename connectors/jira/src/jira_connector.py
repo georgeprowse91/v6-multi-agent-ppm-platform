@@ -34,6 +34,7 @@ from base_connector import (  # noqa: E402
     ConnectionTestResult,
     ConnectorCategory,
     ConnectorConfig,
+    ConnectorSearchResult,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig  # noqa: E402
 from mcp_client import (  # noqa: E402
@@ -570,6 +571,97 @@ class JiraConnector(BaseConnector):
             return [self._normalize_project_record(record) for record in records]
         else:
             raise ValueError(f"Unsupported resource type: {resource_type}")
+
+    def search(
+        self,
+        query: str,
+        *,
+        resource_types: list[str] | None = None,
+        limit: int = 20,
+        filters: dict[str, Any] | None = None,
+    ) -> list[ConnectorSearchResult]:
+        """Search Jira using JQL text search for better relevance."""
+        if not query or not query.strip():
+            return []
+        if not self._authenticated:
+            if not self.authenticate():
+                return []
+
+        client = self._client or self._build_client()
+        results: list[ConnectorSearchResult] = []
+        types_to_search = resource_types or ["issues"]
+
+        if "issues" in types_to_search:
+            escaped = query.replace('"', '\\"')
+            project_key = (filters or {}).get("project_key") or self.config.project_key
+            jql = f'text ~ "{escaped}"'
+            if project_key:
+                jql = f"project = {project_key} AND {jql}"
+            jql += " ORDER BY updated DESC"
+
+            try:
+                response = client.get(
+                    "/rest/api/3/search",
+                    params={
+                        "jql": jql,
+                        "maxResults": limit,
+                        "fields": "summary,status,assignee,updated,project,issuetype,description",
+                    },
+                )
+                data = response.json()
+                for issue in data.get("issues", []):
+                    normalized = self._normalize_issue_record(issue)
+                    instance = self._instance_url or self.config.instance_url
+                    key = normalized.get("key") or normalized.get("id")
+                    url = f"{instance}/browse/{key}" if instance and key else None
+                    results.append(
+                        ConnectorSearchResult(
+                            id=str(normalized.get("id") or key or ""),
+                            title=normalized.get("summary") or str(key),
+                            snippet=(
+                                f"{normalized.get('issue_type', '')} · "
+                                f"{normalized.get('status', '')} · "
+                                f"{normalized.get('project_name', '')}"
+                            ),
+                            source_system="jira",
+                            resource_type="issues",
+                            url=url,
+                            score=1.0,
+                            updated_at=normalized.get("updated"),
+                            metadata=normalized,
+                        )
+                    )
+            except Exception:
+                logger.warning("Jira search failed for query: %s", query)
+
+        if "projects" in types_to_search:
+            try:
+                projects = self._read_projects(client, limit=limit, offset=0)
+                query_lower = query.lower()
+                for proj in projects:
+                    text = f"{proj.get('name', '')} {proj.get('key', '')} {proj.get('description', '')}"
+                    if query_lower not in text.lower():
+                        continue
+                    instance = self._instance_url or self.config.instance_url
+                    pkey = proj.get("key")
+                    url = f"{instance}/projects/{pkey}" if instance and pkey else None
+                    results.append(
+                        ConnectorSearchResult(
+                            id=str(proj.get("id", "")),
+                            title=proj.get("name") or str(pkey),
+                            snippet=f"Project · {pkey}",
+                            source_system="jira",
+                            resource_type="projects",
+                            url=url,
+                            score=0.8,
+                            updated_at=None,
+                            metadata=proj,
+                        )
+                    )
+            except Exception:
+                logger.warning("Jira project search failed for query: %s", query)
+
+        return results[:limit]
 
     def _read_issues(
         self,

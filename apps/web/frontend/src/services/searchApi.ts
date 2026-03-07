@@ -3,7 +3,20 @@ export type SearchResultType =
   | 'project'
   | 'knowledge'
   | 'approval'
-  | 'workflow';
+  | 'workflow'
+  | 'issues'
+  | 'pages'
+  | 'documents'
+  | 'projects'
+  | 'costs'
+  | 'lists';
+
+export type SourceSystem =
+  | 'local'
+  | 'jira'
+  | 'confluence'
+  | 'sharepoint'
+  | 'sap';
 
 export interface SearchResult {
   id: string;
@@ -14,6 +27,8 @@ export interface SearchResult {
   updatedAt?: string | null;
   highlights?: Record<string, string> | null;
   payload: Record<string, unknown>;
+  sourceSystem: SourceSystem;
+  sourceUrl?: string | null;
 }
 
 export interface SearchResponse {
@@ -22,6 +37,7 @@ export interface SearchResponse {
   limit: number;
   total: number;
   results: SearchResult[];
+  connectors: string[];
 }
 
 export interface SearchFilters {
@@ -30,6 +46,7 @@ export interface SearchFilters {
   projectIds?: string[];
   offset?: number;
   limit?: number;
+  includeConnectors?: boolean;
 }
 
 const API_BASE = '/api/search';
@@ -57,6 +74,9 @@ export async function fetchGlobalSearch(
   }
   if (filters.limit !== undefined) {
     params.set('limit', String(filters.limit));
+  }
+  if (filters.includeConnectors !== undefined) {
+    params.set('include_connectors', String(filters.includeConnectors));
   }
   const response = await fetch(`${API_BASE}?${params.toString()}`);
   return handleResponse<SearchResponse>(response);

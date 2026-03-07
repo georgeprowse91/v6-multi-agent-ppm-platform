@@ -1,9 +1,11 @@
-"""WBS, schedule, dependency-map, and program-roadmap routes."""
+"""WBS, schedule, dependency-map, program-roadmap, and schedule-optimisation routes."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from routes._deps import (
     _demo_mode_enabled,
@@ -146,3 +148,142 @@ async def get_program_roadmap(program_id: str, request: Request) -> ProgramRoadm
         if payload:
             return ProgramRoadmapResponse(**payload)
     return _mock_program_roadmap(program_id)
+
+
+# ---------------------------------------------------------------------------
+# Schedule Optimisation
+# ---------------------------------------------------------------------------
+
+class OptimizationSuggestion(BaseModel):
+    id: str
+    type: str
+    description: str
+    affected_task_ids: list[str] = Field(default_factory=list)
+    projected_saving_days: int = 0
+    status: str = "pending"
+
+
+class OptimizeScheduleResponse(BaseModel):
+    project_id: str
+    original_duration_days: int
+    optimized_duration_days: int
+    suggestions: list[OptimizationSuggestion]
+
+
+class ApplyOptimizationRequest(BaseModel):
+    suggestion_id: str
+    action: str  # "accept" or "reject"
+
+
+class ApplyOptimizationResponse(BaseModel):
+    project_id: str
+    suggestion_id: str
+    action: str
+    updated_tasks: list[ScheduleTask]
+
+
+def _duration_days(start: str, end: str) -> int:
+    from datetime import date as _date
+
+    try:
+        return max((_date.fromisoformat(end[:10]) - _date.fromisoformat(start[:10])).days, 0)
+    except (ValueError, TypeError):
+        return 0
+
+
+@router.post("/api/schedule/{project_id}/optimize", response_model=OptimizeScheduleResponse)
+async def optimize_schedule(project_id: str, request: Request) -> OptimizeScheduleResponse:
+    """Analyse the schedule and return AI optimisation suggestions."""
+    _require_session(request)
+    tasks = _get_demo_schedule(project_id)
+
+    total_dur = 0
+    if tasks:
+        starts = [t.start for t in tasks if t.start]
+        ends = [t.end for t in tasks if t.end]
+        if starts and ends:
+            total_dur = _duration_days(min(starts), max(ends))
+
+    suggestions: list[OptimizationSuggestion] = []
+
+    # Detect parallelisable tasks
+    dep_targets: set[str] = set()
+    for t in tasks:
+        dep_targets.update(t.dependencies)
+    independent = [t for t in tasks if t.id not in dep_targets and not t.dependencies]
+    if len(independent) > 1:
+        suggestions.append(OptimizationSuggestion(
+            id="opt-parallel",
+            type="parallel_tasks",
+            description=f"Parallelise {len(independent)} independent tasks to reduce duration",
+            affected_task_ids=[t.id for t in independent],
+            projected_saving_days=max(total_dur // 5, 1),
+        ))
+
+    # Fast-track sequential
+    sequential = [t for t in tasks if t.dependencies]
+    if sequential:
+        suggestions.append(OptimizationSuggestion(
+            id="opt-fasttrack",
+            type="fast_track",
+            description=f"Fast-track {len(sequential)} sequential tasks with 30% overlap",
+            affected_task_ids=[t.id for t in sequential],
+            projected_saving_days=max(total_dur // 4, 1),
+        ))
+
+    # Crash
+    if total_dur > 10:
+        suggestions.append(OptimizationSuggestion(
+            id="opt-crash",
+            type="crash",
+            description="Crash critical-path tasks by adding resources (20% duration reduction)",
+            affected_task_ids=[t.id for t in tasks],
+            projected_saving_days=max(int(total_dur * 0.2), 1),
+        ))
+
+    return OptimizeScheduleResponse(
+        project_id=project_id,
+        original_duration_days=total_dur,
+        optimized_duration_days=max(total_dur - sum(s.projected_saving_days for s in suggestions), 0),
+        suggestions=suggestions,
+    )
+
+
+@router.post("/api/schedule/{project_id}/apply-optimization", response_model=ApplyOptimizationResponse)
+async def apply_optimization(
+    project_id: str, payload: ApplyOptimizationRequest, request: Request
+) -> ApplyOptimizationResponse:
+    """Accept or reject a schedule optimisation suggestion."""
+    _require_session(request)
+    tasks = _get_demo_schedule(project_id)
+
+    if payload.action == "accept":
+        from datetime import date as _date, timedelta
+
+        if payload.suggestion_id == "opt-crash":
+            for t in tasks:
+                if t.start and t.end:
+                    dur = _duration_days(t.start, t.end)
+                    crashed = max(int(dur * 0.8), 1)
+                    new_end = (_date.fromisoformat(t.start[:10]) + timedelta(days=crashed)).isoformat()
+                    t.end = new_end
+
+        elif payload.suggestion_id == "opt-fasttrack":
+            task_map = {t.id: t for t in tasks}
+            for t in tasks:
+                if t.dependencies:
+                    pred = task_map.get(t.dependencies[0])
+                    if pred and pred.end:
+                        pred_dur = _duration_days(pred.start, pred.end)
+                        overlap = max(int(pred_dur * 0.3), 1)
+                        new_start = (_date.fromisoformat(pred.end[:10]) - timedelta(days=overlap)).isoformat()
+                        dur = _duration_days(t.start, t.end) if t.start and t.end else 5
+                        t.start = new_start
+                        t.end = (_date.fromisoformat(new_start) + timedelta(days=dur)).isoformat()
+
+    return ApplyOptimizationResponse(
+        project_id=project_id,
+        suggestion_id=payload.suggestion_id,
+        action=payload.action,
+        updated_tasks=tasks,
+    )

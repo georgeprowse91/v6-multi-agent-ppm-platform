@@ -140,9 +140,39 @@ export interface GanttTask {
   baselineStart?: string;
   baselineEnd?: string;
   dependencies: string[];
+  progress?: number;
+  color?: string;
+  isMilestone?: boolean;
+  resourceId?: string;
+  isCritical?: boolean;
+  slack?: number;
 }
 
-export interface GanttContent { tasks: GanttTask[] }
+export interface OptimizationSuggestion {
+  id: string;
+  type: 'parallel_tasks' | 'fast_track' | 'crash' | 'resource_level';
+  description: string;
+  affectedTaskIds: string[];
+  projectedSavingDays: number;
+  status: 'pending' | 'accepted' | 'rejected';
+}
+
+export interface ResourceUtilization {
+  resourceId: string;
+  resourceName: string;
+  dailyUtilization: { date: string; percent: number }[];
+}
+
+export interface GanttContent {
+  tasks: GanttTask[];
+  viewStart?: string;
+  viewEnd?: string;
+  optimizationSuggestions?: OptimizationSuggestion[];
+  resourceUtilization?: ResourceUtilization[];
+  showBaseline?: boolean;
+  showCriticalPath?: boolean;
+  showResourceChart?: boolean;
+}
 
 export interface GridColumn {
   key: string;
@@ -346,7 +376,7 @@ export function createEmptyContent(type: CanvasType): ArtifactContent {
     case 'backlog':
       return { items: [] } as BacklogContent;
     case 'gantt':
-      return { tasks: [] } as GanttContent;
+      return { tasks: [], showBaseline: false, showCriticalPath: true, showResourceChart: false } as GanttContent;
     case 'grid':
       return {
         columns: [

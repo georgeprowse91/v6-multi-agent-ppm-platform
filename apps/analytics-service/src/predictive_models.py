@@ -71,6 +71,57 @@ class RiskHeatmapCell(BaseModel):
     trend: str  # up, stable, down
 
 
+class HealthScoreBreakdown(BaseModel):
+    """Detailed breakdown of a health score by signal dimension."""
+
+    risk_score: float = Field(ge=0.0, le=1.0)
+    risk_weight: float = 0.3
+    schedule_score: float = Field(ge=0.0, le=1.0)
+    schedule_weight: float = 0.25
+    budget_score: float = Field(ge=0.0, le=1.0)
+    budget_weight: float = 0.25
+    resource_score: float = Field(ge=0.0, le=1.0)
+    resource_weight: float = 0.2
+    composite_score: float = Field(ge=0.0, le=1.0)
+    contributing_factors: list[str] = Field(default_factory=list)
+
+
+class HealthAlert(BaseModel):
+    """Threshold-based health alert raised when a score crosses a boundary."""
+
+    alert_id: str
+    project_id: str
+    project_name: str
+    previous_score: float
+    current_score: float
+    threshold: float
+    severity: str  # critical, warning, info
+    trigger: str  # crossed_below, rapid_decline, sustained_decline
+    signals: HealthScoreBreakdown
+    message: str
+    recommended_actions: list[str] = Field(default_factory=list)
+    detected_at: str
+
+
+class HealthTrendAnalysis(BaseModel):
+    """Trend analysis over a series of health snapshots."""
+
+    project_id: str
+    project_name: str
+    current_score: float
+    score_7d_ago: float | None = None
+    score_30d_ago: float | None = None
+    trend_direction: str  # improving, stable, declining, rapidly_declining
+    trend_slope: float
+    volatility: float
+    predicted_score_30d: float
+    predicted_score_60d: float
+    predicted_score_90d: float
+    confidence: float
+    at_risk: bool
+    risk_factors: list[str] = Field(default_factory=list)
+
+
 class ScenarioComparison(BaseModel):
     """Side-by-side scenario comparison."""
 

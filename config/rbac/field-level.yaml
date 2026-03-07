@@ -27,6 +27,73 @@ fields:
         - "tenant_owner"
         - "portfolio_admin"
         - "analyst"
+# ---------------------------------------------------------------------------
+# Cross-system search field-level policies
+# Controls which fields from external connectors are visible to each role
+# in search results. Fields not listed here are unrestricted.
+# ---------------------------------------------------------------------------
+connector_search:
+  jira:
+    assignee_email:
+      - "PMO_ADMIN"
+      - "PM"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+    description:
+      - "PMO_ADMIN"
+      - "PM"
+      - "TEAM_MEMBER"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+      - "analyst"
+      - "COLLABORATOR"
+  confluence:
+    space_key:
+      - "PMO_ADMIN"
+      - "PM"
+      - "TEAM_MEMBER"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+      - "analyst"
+      - "COLLABORATOR"
+  sharepoint:
+    Path:
+      - "PMO_ADMIN"
+      - "PM"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+    OriginalPath:
+      - "PMO_ADMIN"
+      - "PM"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+  sap:
+    Amount:
+      - "PMO_ADMIN"
+      - "PM"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+    Currency:
+      - "PMO_ADMIN"
+      - "PM"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+    LastChangedAt:
+      - "PMO_ADMIN"
+      - "PM"
+      - "AUDITOR"
+      - "tenant_owner"
+      - "portfolio_admin"
+      - "project_manager"
+      - "auditor"
+
 classification_access:
   # Public data remains accessible to all standard roles and service integrations.
   public:

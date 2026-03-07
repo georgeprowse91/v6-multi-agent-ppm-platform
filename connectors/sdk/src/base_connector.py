@@ -137,6 +137,34 @@ def normalize_mcp_operation(operation: str) -> str:
 
 
 
+@dataclass
+class ConnectorSearchResult:
+    """Standardised search result returned by connector search() methods."""
+
+    id: str
+    title: str
+    snippet: str
+    source_system: str
+    resource_type: str
+    url: str | None = None
+    score: float = 0.0
+    updated_at: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "title": self.title,
+            "snippet": self.snippet,
+            "source_system": self.source_system,
+            "resource_type": self.resource_type,
+            "url": self.url,
+            "score": self.score,
+            "updated_at": self.updated_at,
+            "metadata": self.metadata,
+        }
+
+
 class ConnectorError(Exception):
     """Base connector resilience error."""
 
@@ -676,6 +704,77 @@ class BaseConnector(ABC):
                 f"{self.CONNECTOR_NAME} does not support write operations"
             )
         return []
+
+    def search(
+        self,
+        query: str,
+        *,
+        resource_types: list[str] | None = None,
+        limit: int = 20,
+        filters: dict[str, Any] | None = None,
+    ) -> list[ConnectorSearchResult]:
+        """Search across the external system.
+
+        The default implementation fans out ``read()`` calls over the
+        connector's known resource types and applies text matching.
+        Subclasses may override this with a native search API for
+        better performance and relevance.
+
+        Args:
+            query: The search string.
+            resource_types: Optional list of resource types to search
+                (defaults to all known types).
+            limit: Maximum number of results to return.
+            filters: Optional extra filters forwarded to ``read()``.
+
+        Returns:
+            List of :class:`ConnectorSearchResult` objects.
+        """
+        if not query or not query.strip():
+            return []
+        query_lower = query.lower()
+        results: list[ConnectorSearchResult] = []
+        types_to_search = resource_types or list(getattr(self, "RESOURCE_PATHS", {}).keys())
+        for resource_type in types_to_search:
+            try:
+                records = self.read(resource_type, filters=filters, limit=limit)
+            except Exception:
+                continue
+            for record in records:
+                text = " ".join(str(v) for v in record.values() if v)
+                if query_lower not in text.lower():
+                    continue
+                title = (
+                    record.get("summary")
+                    or record.get("title")
+                    or record.get("name")
+                    or record.get("Title")
+                    or record.get("Description")
+                    or str(record.get("id", ""))
+                )
+                snippet_parts = [
+                    str(v) for k, v in record.items()
+                    if v and k not in ("id", "key", "Id")
+                ]
+                snippet = " · ".join(snippet_parts[:3])[:200]
+                results.append(
+                    ConnectorSearchResult(
+                        id=str(record.get("id") or record.get("key") or record.get("Id", "")),
+                        title=str(title),
+                        snippet=snippet,
+                        source_system=self.CONNECTOR_ID,
+                        resource_type=resource_type,
+                        url=None,
+                        score=1.0 if query_lower in str(title).lower() else 0.7,
+                        updated_at=record.get("updated") or record.get("updated_at"),
+                        metadata=record,
+                    )
+                )
+                if len(results) >= limit:
+                    break
+            if len(results) >= limit:
+                break
+        return results[:limit]
 
     def get_metadata(self) -> dict[str, Any]:
         """Get connector metadata."""
