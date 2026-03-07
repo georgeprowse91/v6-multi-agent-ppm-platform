@@ -1,4 +1,4 @@
-# Proposed Enhancements — 10 High-Impact Improvements
+# Proposed Enhancements — 11 High-Impact Improvements
 
 **Author:** AI Analysis
 **Date:** 2026-03-07
@@ -186,7 +186,7 @@ The project instance exists immediately so nothing falls through the cracks afte
 
 The user lands on the `ProjectSetupWizardPage` and completes configuration:
 
-1. **Select methodology** — choose from the three organisationally tailored methodologies (predictive, adaptive, or hybrid). These are customised once during platform deployment by the customer's PMO admin using the `MethodologyEditor`, so every project uses an approved organisational standard rather than a generic default.
+1. **Select methodology** — choose from the three organisationally tailored methodologies (predictive, adaptive, or hybrid) defined during platform deployment (see Enhancement #11).
 2. **Toggle connectors** — browse the connector registry by category (PM, ERP, GRC, HR, Collaboration, etc.) and enable the specific connectors relevant to this project (e.g. Jira from PM, SAP from ERP, Slack from Collaboration).
 3. **Assign team members and roles** — specify the PM, team members, and stakeholders with their project-level RBAC roles.
 
@@ -200,23 +200,13 @@ Once the user confirms their choices, the Workspace Setup agent executes:
 
 Artefacts such as the project charter, risk register, and stakeholder map remain user-initiated — the PM creates them when ready, optionally using the AI assistant for drafting help.
 
-### Methodology tailoring (platform deployment, not per-project)
-
-During initial platform deployment, the customer's PMO admin customises the three default methodology templates to match organisational standards:
-- Rename, add, or remove phases and stages.
-- Adjust stage gate criteria and prerequisite dependencies.
-- Reorder activities and modify approval requirements.
-
-These tailored methodologies become the tenant-level definitions stored in the Data Service. The existing `MethodologyEditor` page serves this purpose as an admin tool. All projects then select from these three organisationally approved options — ensuring governance consistency without per-project methodology sprawl.
-
 **Key files to extend:**
 - `agents/core-orchestration/approval-workflow-agent/` — add post-approval project creation hook
 - `agents/core-orchestration/workspace-setup-agent/` — add user-configuration-driven setup
 - `apps/web/frontend/src/pages/IntakeFormPage.tsx` — add redirect on approval event
 - `apps/web/frontend/src/pages/ProjectSetupWizardPage.tsx` — embed methodology selection and connector toggle UI
-- `services/data-service/src/` — persist tenant-level methodology definitions
 
-**Customer appeal:** Reduces project setup time from days to minutes while keeping the PM in control of configuration decisions. The separation of methodology tailoring (deployment-time) from project setup (user-time) ensures governance consistency across the organisation. Demonstrates the platform's end-to-end orchestration capability in a way that is immediately visible and impressive during sales demos.
+**Customer appeal:** Reduces project setup time from days to minutes while keeping the PM in control of configuration decisions. Demonstrates the platform's end-to-end orchestration capability in a way that is immediately visible and impressive during sales demos.
 
 ---
 
@@ -242,6 +232,43 @@ These tailored methodologies become the tenant-level definitions stored in the D
 
 ---
 
+## 11. Organisational Methodology Tailoring
+
+**Problem:** The platform ships with three default methodology templates (predictive, adaptive, hybrid) defined in `docs/methodology/`. However, every enterprise has its own phase names, stage gates, approval requirements, and activity structures. A financial services firm's predictive methodology will have different phases and gate criteria than a defence contractor's. Without the ability to tailor these templates to organisational standards, customers must either work with generic defaults or request custom development.
+
+**Enhancement:** Provide a methodology tailoring capability as part of platform deployment:
+
+### What the PMO admin can customise
+
+Using the existing `MethodologyEditor` page (already in the SPA at `/ops/config/methodologies`), the customer's PMO admin tailors each of the three methodology templates to match organisational standards:
+- **Phases and stages** — rename, add, remove, or reorder phases and stages within each methodology.
+- **Stage gate criteria** — define the gate conditions that must be met before progressing (e.g. required approvals, artefact completions, quality thresholds).
+- **Prerequisite dependencies** — specify which activities must complete before others can begin.
+- **Approval requirements** — configure which roles must approve at each gate and the escalation rules.
+- **Templates and artefacts** — associate organisational document templates with each phase (e.g. the company's standard project charter template at initiation, their risk register format at planning).
+
+### How it works
+
+- Tailored methodologies are stored as tenant-level definitions in the Data Service, separate from the platform defaults.
+- Each tenant gets its own set of three methodology templates that all projects within that organisation select from.
+- The platform defaults serve as a starting point — customers can modify them incrementally rather than building from scratch.
+- Validation rules prevent broken configurations (e.g. circular dependencies, gates referencing non-existent phases).
+- Changes to methodology templates do not retroactively alter in-flight projects — only new projects pick up the latest version.
+
+### When it happens
+
+This is a **deployment-time activity**, not a per-project decision. It typically occurs during the implementation engagement (documented in `docs/platform-commercials.md` as the "Discovery and blueprinting" service) and is maintained by PMO admins thereafter.
+
+**Key files to extend:**
+- `apps/web/frontend/src/pages/MethodologyEditor.tsx` — enhance with full CRUD for phases, gates, dependencies, and template associations
+- `services/data-service/src/` — persist tenant-level methodology definitions with versioning
+- `packages/methodology-engine/` — add validation rules for methodology structure integrity
+- `docs/methodology/` — document the tailoring workflow and provide examples
+
+**Customer appeal:** Methodology alignment is a make-or-break requirement for enterprise PMO adoption. Customers will not use a platform whose methodology does not match their governance framework. This capability turns a potential objection ("it doesn't match how we work") into a selling point ("it adapts to exactly how you work"). It also creates implementation services revenue during deployment.
+
+---
+
 ## Summary Matrix
 
 | # | Enhancement | Primary Persona | Effort | Impact | Revenue Lever |
@@ -256,16 +283,18 @@ These tailored methodologies become the tenant-level definitions stored in the D
 | 8 | AI Capacity Planning | CIO, Resource Manager | Medium | High | Enterprise upsell |
 | 9 | Intake-to-Project Automation | PM, PMO Director | Low-Medium | High | Demo showpiece |
 | 10 | Mobile-First Experience | Executives, PM | Medium | High | Competitive differentiator |
+| 11 | Organisational Methodology Tailoring | PMO Admin, CIO | Medium | Critical | Deployment prerequisite + services revenue |
 
 ### Recommended Priority Order
 
-1. **#3 Collection Search Pages** — Low effort, blocks basic usability at scale
-2. **#9 Intake-to-Project Automation** — Closes a documented gap, high demo impact
-3. **#2 Predictive Health Scoring** — Core AI value proposition
-4. **#7 Executive Briefing Generator** — Immediate ROI for buyer personas
-5. **#1 What-If Scenario Engine** — Strategic decision support
-6. **#5 Cross-System Search** — Fulfils the "single pane of glass" promise
-7. **#10 Mobile-First Experience** — Competitive differentiator
-8. **#8 AI Capacity Planning** — Enterprise upsell
-9. **#6 Interactive Gantt + AI** — Wins predictive-methodology deals
-10. **#4 Agent Marketplace** — Highest long-term value, highest effort
+1. **#11 Organisational Methodology Tailoring** — Deployment prerequisite; customers won't adopt without methodology alignment
+2. **#3 Collection Search Pages** — Low effort, blocks basic usability at scale
+3. **#9 Intake-to-Project Automation** — Closes a documented gap, high demo impact (depends on #11)
+4. **#2 Predictive Health Scoring** — Core AI value proposition
+5. **#7 Executive Briefing Generator** — Immediate ROI for buyer personas
+6. **#1 What-If Scenario Engine** — Strategic decision support
+7. **#5 Cross-System Search** — Fulfils the "single pane of glass" promise
+8. **#10 Mobile-First Experience** — Competitive differentiator
+9. **#8 AI Capacity Planning** — Enterprise upsell
+10. **#6 Interactive Gantt + AI** — Wins predictive-methodology deals
+11. **#4 Agent Marketplace** — Highest long-term value, highest effort
