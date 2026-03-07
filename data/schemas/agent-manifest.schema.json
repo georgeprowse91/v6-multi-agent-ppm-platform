@@ -1,0 +1,354 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ppm.example.com/schemas/agent-manifest.json",
+  "title": "Agent Manifest Schema",
+  "description": "Packaging manifest for custom third-party agents in the PPM Agent Marketplace. Defines metadata, capabilities, runtime requirements, and permission declarations.",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "agent_id",
+    "display_name",
+    "version",
+    "description",
+    "author",
+    "category",
+    "entry_point",
+    "capabilities"
+  ],
+  "properties": {
+    "manifest_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Version of the manifest schema format"
+    },
+    "agent_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,63}$",
+      "description": "Unique identifier for the agent (lowercase, hyphens allowed, 3-64 chars)"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Human-readable agent name"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the agent (e.g. 1.0.0)"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "Short description of the agent's purpose"
+    },
+    "long_description": {
+      "type": "string",
+      "maxLength": 5000,
+      "description": "Detailed description of the agent, supports Markdown"
+    },
+    "author": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Author or organisation name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact email"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Author website"
+        }
+      }
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier (e.g. MIT, Apache-2.0)"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "core",
+        "portfolio",
+        "delivery",
+        "operations",
+        "platform",
+        "governance",
+        "analytics",
+        "integration",
+        "custom"
+      ],
+      "description": "Functional category for marketplace grouping"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "maxItems": 10,
+      "description": "Searchable tags for marketplace discovery"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Icon identifier or URL for marketplace display"
+    },
+    "entry_point": {
+      "type": "object",
+      "required": ["module", "class_name"],
+      "properties": {
+        "module": {
+          "type": "string",
+          "description": "Python module path relative to the agent package (e.g. my_agent.agent)"
+        },
+        "class_name": {
+          "type": "string",
+          "description": "Agent class name that extends BaseAgent (e.g. MyCustomAgent)"
+        }
+      },
+      "description": "Python entry point for the agent implementation"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "List of capabilities this agent provides"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Input field name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "object", "array"],
+            "description": "Input field type"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this input is required"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the input"
+          }
+        }
+      },
+      "description": "Declared input fields for the agent"
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Output field name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "object", "array"],
+            "description": "Output field type"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the output"
+          }
+        }
+      },
+      "description": "Declared output fields from the agent"
+    },
+    "parameters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "display_name", "param_type", "default_value"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Internal parameter name (snake_case)"
+          },
+          "display_name": {
+            "type": "string",
+            "description": "User-facing parameter label"
+          },
+          "description": {
+            "type": "string",
+            "description": "Parameter description"
+          },
+          "param_type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "select", "multiselect"],
+            "description": "Parameter type"
+          },
+          "default_value": {
+            "description": "Default parameter value"
+          },
+          "options": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Available options for select/multiselect types"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "Configurable parameters exposed in the marketplace UI"
+    },
+    "permissions_required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Platform permissions this agent requires (e.g. project.read, workflow.execute)"
+    },
+    "connectors_used": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Connector types this agent integrates with"
+    },
+    "schemas_used": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Canonical entity schemas this agent reads or writes"
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "python_version": {
+          "type": "string",
+          "default": ">=3.11",
+          "description": "Required Python version"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "PEP 508 dependency strings"
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 64,
+          "default": 256,
+          "description": "Memory requirement in MB"
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 5,
+          "default": 60,
+          "description": "Maximum execution time per invocation"
+        },
+        "sandbox": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to run in a sandboxed environment"
+        }
+      },
+      "description": "Runtime requirements and constraints"
+    },
+    "health_check": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "description": "Health check endpoint path"
+        },
+        "interval_seconds": {
+          "type": "integer",
+          "minimum": 10,
+          "default": 30
+        }
+      },
+      "description": "Optional health check configuration"
+    },
+    "documentation_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Link to external documentation"
+    },
+    "repository_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Source code repository URL"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Publication timestamp"
+    }
+  },
+  "examples": [
+    {
+      "manifest_version": "1.0",
+      "agent_id": "sentiment-analysis-agent",
+      "display_name": "Stakeholder Sentiment Analysis",
+      "version": "1.2.0",
+      "description": "Analyses stakeholder communications to detect sentiment trends and flag engagement risks.",
+      "author": {
+        "name": "PPM Extensions Inc.",
+        "email": "extensions@example.com"
+      },
+      "license": "Apache-2.0",
+      "category": "analytics",
+      "tags": ["sentiment", "stakeholder", "nlp", "communications"],
+      "entry_point": {
+        "module": "sentiment_agent.agent",
+        "class_name": "SentimentAnalysisAgent"
+      },
+      "capabilities": ["sentiment_analysis", "trend_detection", "engagement_scoring"],
+      "inputs": [
+        { "name": "project_id", "type": "string", "required": true, "description": "Target project" },
+        { "name": "time_range_days", "type": "number", "required": false, "description": "Analysis window" }
+      ],
+      "outputs": [
+        { "name": "sentiment_score", "type": "number", "description": "Overall sentiment 0-1" },
+        { "name": "trends", "type": "array", "description": "Trend data points" }
+      ],
+      "parameters": [
+        {
+          "name": "model_provider",
+          "display_name": "NLP Model",
+          "param_type": "select",
+          "default_value": "azure_openai",
+          "options": ["azure_openai", "local_bert"],
+          "description": "Which NLP model to use"
+        }
+      ],
+      "permissions_required": ["project.read"],
+      "schemas_used": ["project"],
+      "runtime": {
+        "python_version": ">=3.11",
+        "dependencies": ["transformers>=4.30"],
+        "memory_mb": 512,
+        "timeout_seconds": 120,
+        "sandbox": true
+      }
+    }
+  ],
+  "x-schema-metadata": {
+    "name": "agent-manifest",
+    "version": "1.0.0",
+    "compatibility_mode": "full"
+  }
+}

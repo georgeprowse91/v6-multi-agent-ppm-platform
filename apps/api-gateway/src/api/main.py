@@ -41,6 +41,7 @@ from api.routes import (
     documents,
     health,
     lineage,
+    marketplace,
     prompts,
     risk_research,
     scope_research,
@@ -247,6 +248,7 @@ api_v1.include_router(risk_research.router, tags=["risk-research"])
 api_v1.include_router(vendor_research.router, tags=["vendor-research"])
 api_v1.include_router(vendor_management.router, tags=["vendor-management"])
 api_v1.include_router(compliance_research.router, tags=["compliance-research"])
+api_v1.include_router(marketplace.router, tags=["marketplace"])
 api_v1.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(api_v1)
 

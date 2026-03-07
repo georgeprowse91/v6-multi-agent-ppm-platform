@@ -732,19 +732,54 @@ class AgentOrchestrator:
         return self.catalog_agents.get(agent_id)
 
     def get_agent_count(self) -> int:
-        """Get total number of loaded agents."""
-        return len(self.agents)
+        """Get total number of loaded agents (built-in + dynamic)."""
+        from agents.runtime.src.agent_catalog import list_dynamic_entries
+
+        return len(self.agents) + len(list_dynamic_entries())
 
     def list_agents(self) -> list[dict[str, Any]]:
-        """List all loaded agents."""
-        return [
-            {
+        """List all loaded agents (built-in + marketplace)."""
+        from agents.runtime.src.agent_catalog import list_dynamic_entries
+
+        result = []
+        for agent_id, agent in self.agents.items():
+            entry: dict[str, Any] = {
                 "agent_id": agent_id,
                 "catalog_id": getattr(agent, "catalog_id", agent_id),
                 "capabilities": agent.get_capabilities(),
+                "source": "builtin",
             }
-            for agent_id, agent in self.agents.items()
-        ]
+            if hasattr(agent, "get_metadata"):
+                metadata = agent.get_metadata()
+                entry["source"] = metadata.get("source", "builtin")
+                entry["version"] = metadata.get("version")
+                entry["description"] = metadata.get("description")
+                entry["category"] = metadata.get("category")
+            result.append(entry)
+
+        # Include dynamically registered marketplace agents not yet loaded
+        for dynamic_entry in list_dynamic_entries():
+            if dynamic_entry.agent_id not in self.agents:
+                result.append({
+                    "agent_id": dynamic_entry.agent_id,
+                    "catalog_id": dynamic_entry.catalog_id,
+                    "capabilities": dynamic_entry.capabilities,
+                    "source": dynamic_entry.source,
+                    "version": dynamic_entry.version,
+                    "description": dynamic_entry.description,
+                    "category": dynamic_entry.category,
+                    "display_name": dynamic_entry.display_name,
+                    "tags": dynamic_entry.tags,
+                    "icon": dynamic_entry.icon,
+                    "installed": False,
+                })
+
+        return result
+
+    async def register_dynamic_agent(self, agent: BaseAgent) -> None:
+        """Register and initialize a dynamically loaded marketplace agent."""
+        await self._initialize_and_register_agent(agent)
+        logger.info("Dynamic agent %s registered in orchestrator", agent.agent_id)
 
     def _register_agent(self, agent: BaseAgent) -> None:
         catalog_id = getattr(agent, "catalog_id", None)
