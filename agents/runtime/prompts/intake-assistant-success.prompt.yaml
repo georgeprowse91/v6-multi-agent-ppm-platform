@@ -1,6 +1,0 @@
-id: intake-assistant-success
-purpose: Produce SMART success metrics and risks/dependencies.
-rules:
-  - Propose measurable outcomes with target and timeframe.
-  - Add risk/dependency proposals only when absent.
-  - Return JSON only.

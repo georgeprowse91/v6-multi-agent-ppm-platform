@@ -8,7 +8,7 @@ This directory contains configuration assets consumed by services, agents, and t
 
 | Folder | Description |
 | --- | --- |
-| [abac/](./abac/) | Attribute-based access control policies |
+| [abac/](../../config/abac/) | Attribute-based access control policies (canonical location: `config/abac/`) |
 | [agents/](./agents/) | Agent runtime and routing configuration (has schema/ subdir) |
 | [connectors/](../../connectors/) | Connector integration configuration |
 | [data-classification/](./data-classification/) | Data classification levels |
@@ -23,7 +23,7 @@ This directory contains configuration assets consumed by services, agents, and t
 
 ## What's inside
 
-- `abac/policies.yaml`: Attribute-based access control policies.
+- `../../config/abac/policies.yaml`: Attribute-based access control policies (canonical location: `config/abac/`).
 - `agents/*.yaml`: Agent runtime, intent routing, and domain agent configuration.
 - `connectors/integrations.yaml`: Connector credentials, sync cadence, and field mapping overrides.
 - `data-classification/levels.yaml`: Data classification tiers and retention bindings.

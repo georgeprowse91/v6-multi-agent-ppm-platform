@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from packages.feedback.feedback_models import Feedback
-from packages.llm.src.llm.prompts import PromptRegistry
 
 
 class FeedbackService:
@@ -17,7 +16,6 @@ class FeedbackService:
     def __init__(self, db_path: str = "data/feedback.sqlite3") -> None:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.prompt_registry = PromptRegistry()
         self._initialize_schema()
 
     def _connect(self) -> sqlite3.Connection:
@@ -75,18 +73,6 @@ class FeedbackService:
                 ),
             )
             connection.commit()
-
-        if (
-            payload["user_rating"] <= 2
-            and payload["prompt_name"]
-            and payload["prompt_version"] is not None
-        ):
-            reason = f"Auto-flagged from feedback correlation={payload['correlation_id']} rating={payload['user_rating']}"
-            self.prompt_registry.flag_prompt_version(
-                payload["prompt_name"],
-                int(payload["prompt_version"]),
-                reason,
-            )
 
     def fetch_by_correlation_id(self, correlation_id: str) -> list[dict[str, object]]:
         with self._connect() as connection:

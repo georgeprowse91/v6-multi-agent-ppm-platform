@@ -34,7 +34,6 @@ This directory contains repository maintenance scripts used by CI pipelines and 
 | [validate-intent-routing.py](./validate-intent-routing.py) | Validates intent routing configuration |
 | [validate-manifests.py](./validate-manifests.py) | Validates deployment manifests |
 | [validate-policies.py](./validate-policies.py) | Validates policy definitions |
-| [validate-prompts.py](./validate-prompts.py) | Validates agent prompt templates |
 | [validate-schemas.py](./validate-schemas.py) | Validates JSON/YAML schemas |
 | [validate-workflows.py](./validate-workflows.py) | Validates workflow definitions |
 | [validate_config.py](./validate_config.py) | Validates configuration files |

@@ -1,6 +1,0 @@
-id: intake-assistant-attachments
-purpose: Guide attachment summary completion.
-rules:
-  - Ask for missing supporting evidence.
-  - Draft concise attachment summary when empty.
-  - Return JSON only.
