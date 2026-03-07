@@ -224,35 +224,38 @@ The API Gateway, Orchestration Service, and Workflow Service are located under [
 
 The platform includes 40 integration connectors for external systems, each with a manifest, field mappings, and authentication configuration. Connectors are built on a shared SDK that provides base classes, HTTP client utilities, authentication handlers, telemetry hooks, and sync controls.
 
-### Project and Work Management
+### Connector Categories
 
-Jira, Azure DevOps, Clarity, Planview, Asana, Monday.com, SmartSheet, Microsoft Project Server
+| Category | Systems |
+|----------|---------|
+| Project and Work Management | Jira, Azure DevOps, Clarity, Planview, Asana, Monday.com, SmartSheet, Microsoft Project Server |
+| Enterprise Resource Planning | SAP, Oracle, NetSuite, Workday, SAP SuccessFactors, ADP |
+| Communication and Collaboration | Slack, Microsoft Teams, Zoom, Twilio, Outlook, Microsoft 365, SharePoint, Confluence, Google Calendar, Google Drive |
+| CRM and Service Management | Salesforce, ServiceNow |
+| Governance, Risk, and Compliance | Archer, LogicGate, Regulatory Compliance |
+| Specialized | Azure Communication Services, Azure DevOps, IoT, Notification Hubs |
 
-### Enterprise Resource Planning
+### Bidirectional Data Flow
 
-SAP, Oracle, NetSuite, Workday, SAP SuccessFactors, ADP
+Connectors enable a full bidirectional data lifecycle between external systems of record and the platform's canvas workspace:
 
-### Communication and Collaboration
+1. **Inbound sync.** The Data Sync Service runs scheduled or on-demand sync jobs that fetch records from external systems via each connector's REST API or MCP tool interface. Sync strategies include `source_of_truth`, `last_write_wins`, and `manual_required`.
 
-Slack, Microsoft Teams, Zoom, Twilio, Outlook, Microsoft 365, SharePoint, Confluence, Google Calendar, Google Drive
+2. **Canonical mapping.** The Data Synchronisation Agent transforms inbound payloads using configurable field mappings (e.g. Jira `summary` to canonical `task.title`, SAP `ProjectID` to `project.id`). Validation rules enforce data-quality thresholds before records enter the canonical store. Every transformation is recorded as a lineage event for full provenance tracking.
 
-### CRM and Service Management
+3. **Canvas surfacing.** Canonical records materialise as typed canvas artifacts within project workspaces. The canvas engine supports 13 artifact types (Document, Structured Tree, Timeline, Gantt, Board, Backlog, Grid, Spreadsheet, Financial, Dashboard, Dependency Map, Roadmap, and Approval). Users and agents edit artifacts directly, with all changes tracked by version, author, and timestamp.
 
-Salesforce, ServiceNow
+4. **Governed write-back.** All writes to external systems pass through a write gate that enforces connector readiness, approval policies, optional dry-run validation, and idempotent audit logging. The connector applies reverse field mappings to convert canonical fields back to the target system's native structure before pushing records outbound.
 
-### Governance, Risk, and Compliance
-
-Archer, LogicGate, Regulatory Compliance
-
-### Specialized
-
-Azure Communication Services, Azure DevOps, IoT, Notification Hubs
+5. **Conflict resolution.** When bidirectional sync detects concurrent changes in both the canonical store and the external system, conflicts are resolved according to the configured strategy. For `manual_required` conflicts, records appear in the Conflict Resolution Queue where administrators compare values side by side and choose which to keep.
 
 ### Model Context Protocol Variants
 
-MCP-enabled connectors are available for Jira, Asana, Clarity, Planview, SAP, Slack, Teams, and Workday, providing structured tool-use interfaces for LLM-driven agent interactions.
+MCP-enabled connectors are available for Jira, Asana, Clarity, Planview, SAP, Slack, Teams, and Workday, providing structured tool-use interfaces that agents call directly instead of REST polling. Each MCP connector maps platform operations to named MCP tools published by a managed MCP server.
 
-The connector registry, manifests, and JSON schemas are maintained in [connectors/registry](connectors/registry).
+### Connector SDK
+
+The SDK ([connectors/sdk](connectors/sdk)) provides the `BaseConnector` abstract class with lifecycle hooks for authentication, connection testing, and data operations, plus resilience middleware (circuit breakers, retry policies, timeouts), telemetry, and JSON schema validation. The connector registry, manifests, and JSON schemas are maintained in [connectors/registry](connectors/registry).
 
 ---
 
@@ -522,6 +525,7 @@ Comprehensive documentation is maintained in the [docs](docs) directory.
 | Solution Overview | [docs/platform-description.md](docs/platform-description.md) |
 | Versioning Strategy | [docs/versioning.md](docs/versioning.md) |
 | Change Management | [docs/change-management.md](docs/change-management.md) |
+| UI and UX Reference | [docs/UI.md](docs/UI.md) |
 | Design System | [docs/design-system.md](docs/design-system.md) |
 | Disaster Recovery Runbook | [docs/dr-runbook.md](docs/dr-runbook.md) |
 
