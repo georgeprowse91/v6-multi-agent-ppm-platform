@@ -244,21 +244,163 @@
 
 ---
 
+## Summary Matrix — Remaining Work by Enhancement
+
+### #1 — What-If Scenario Engine (~60% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Wire what-if controls to backend scenario APIs | UI (React) | `apps/web/frontend/src/pages/AnalyticsDashboard.tsx` |
+| Build scenario builder UI (parameter sliders, side-by-side comparison) | UI (React, new) | `apps/web/frontend/src/components/analytics/ScenarioBuilder.tsx` (new) |
+| Add natural-language scenario parsing via Intent Router | Agent action | `agents/core-orchestration/intent-router-agent/src/intent_router_agent.py` — add "what_if" intent classification |
+| Add cross-project cascade impact calculation | Agent action | `agents/delivery-management/financial-management-agent/src/financial_actions/forecast_actions.py` — add `cascade_impact` handler |
+| Add scenario template presets (cost reduction, aggressive growth, etc.) | Agent action | `agents/portfolio-management/portfolio-optimisation-agent/src/portfolio_actions/scenario_actions.py` — add template factory |
+| Create API endpoint for UI-initiated scenario runs | API route | `apps/web/src/routes/analytics.py` or new `routes/scenarios.py` |
+
+### #2 — Predictive Health Scoring (~55% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Build composite Project Health Index aggregating schedule, budget, risk, resource signals | Agent action | `agents/operations-management/analytics-insights-agent/src/analytics_actions/run_prediction.py` — add `compute_health_index` action |
+| Collect signals from delivery agents | Agent orchestration | `agents/runtime/src/orchestrator.py` — add cross-agent data collection task for PHI |
+| Replace linear trend prediction with ML-based anomaly detection | Service (Python) | `apps/analytics-service/src/predictive_models.py` — upgrade prediction algorithm |
+| Add root cause analysis to alerts | Service (Python) | `apps/analytics-service/src/predictive_models.py` — add `root_cause` field with contributing factors |
+| Add alert threshold rules engine | Service endpoint | `services/notification-service/src/main.py` — add configurable threshold-based alert triggers |
+| Add health badge component to project cards | UI (React) | `apps/web/frontend/src/components/project/HealthBadge.tsx` (new) |
+| Add health badge to mobile dashboard | UI (React Native) | `apps/mobile/src/screens/DashboardScreen.tsx` — replace plain-text health with badge component |
+| Add portfolio-level health aggregation | Agent action | `agents/operations-management/analytics-insights-agent/src/analytics_actions/` — add `aggregate_portfolio_health` action |
+
+### #3 — Collection Search Pages (~25% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Add search/filter query endpoints to Data Service | Service endpoint | `services/data-service/src/main.py` — add `GET /v1/entities/{schema}/search` with full-text, faceted filtering |
+| Build faceted filter component (status, methodology, owner, date, tags) | UI (React, new) | `apps/web/frontend/src/components/collections/FacetedFilter.tsx` (new) |
+| Add sortable table view alongside existing card view | UI (React, new) | `apps/web/frontend/src/components/collections/EntityTable.tsx` (new) |
+| Upgrade WorkspaceDirectoryPage with server-side search, facets, view toggle | UI (React) | `apps/web/frontend/src/pages/WorkspaceDirectoryPage.tsx` |
+| Add saved filter presets (per user) | UI (React) + API | `apps/web/frontend/src/pages/WorkspaceDirectoryPage.tsx` + `apps/web/src/routes/` (new preferences endpoint) |
+| Add bulk actions (export, reassign, archive) | UI (React) | `apps/web/frontend/src/components/collections/BulkActions.tsx` (new) |
+| Add deep-link support for bookmarkable filtered views | UI (React) | `apps/web/frontend/src/pages/WorkspaceDirectoryPage.tsx` — sync filter state with URL query params |
+
+### #4 — Agent Marketplace (~15% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Extract public SDK interface from BaseAgent | Package (Python, new) | `agents/runtime/src/base_agent.py` — extract interface; new `packages/agent-sdk/` package |
+| Define agent packaging format (manifest schema, Docker, prompts, schemas) | Schema + docs | `data/schemas/agent-manifest.schema.json` (new); `docs/connectors/` or new `docs/agent-sdk/` |
+| Add dynamic agent registration to catalog | Agent runtime | `agents/runtime/src/agent_catalog.py` — add `register_agent()`, `unregister_agent()`, persistent store |
+| Allow dynamically registered agents in task graphs | Agent runtime | `agents/runtime/src/orchestrator.py` — resolve agent references from dynamic catalog |
+| Build agent registration API | API route (new) | `apps/api-gateway/src/api/routes/marketplace.py` (new) — `POST/DELETE /v1/agents/register` |
+| Build marketplace UI (browse, install, configure, monitor) | UI (React, new) | `apps/web/frontend/src/pages/AgentMarketplacePage.tsx` (new) |
+| Build agent sandbox execution environment | Service (new) | New sandboxed runner service or extend `services/agent-runtime/` |
+| Add third-party agent RBAC permissions | Config | `config/rbac/roles.yaml`, `config/rbac/permissions.yaml` — add marketplace permissions |
+
+### #5 — Cross-System Search (~40% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Add standard `search()` method to BaseConnector | Connector SDK | `connectors/sdk/src/base_connector.py` — add abstract `search(query, limit)` method |
+| Implement `search()` in key connectors | Connector implementations | `connectors/jira/src/jira_connector.py`, `connectors/confluence/src/`, `connectors/sharepoint/src/`, `connectors/sap/src/` (and others) |
+| Build federated search orchestrator (parallel fan-out, aggregation) | Service (Python, new) | `apps/web/src/search_service.py` — add `federated_search()` alongside existing local search |
+| Integrate vector store for semantic deduplication | Package integration | `apps/web/src/search_service.py` — wire `packages/vector_store/faiss_store.py` into search pipeline |
+| Add LLM-powered ranking and summarisation | Service (Python) | `apps/web/src/search_service.py` — call `packages/llm/src/llm/client.py` for result ranking/summarisation |
+| Add source system attribution badges to results | UI (React) | `apps/web/frontend/src/pages/GlobalSearch.tsx` — add source system icons and labels per result |
+| Enforce RBAC/ABAC on cross-system results | Service (Python) | `apps/web/src/search_service.py` — integrate `config/rbac/field-level.yaml` and `config/abac/policies.yaml` filtering |
+
+### #6 — Interactive Gantt + AI (~45% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Merge GanttCanvas (tabular) with TimelineCanvas (visual bars + drag) into unified component | UI (React) | `packages/canvas-engine/src/components/GanttCanvas/GanttCanvas.tsx` — integrate TimelineCanvas drag logic and visual bar rendering |
+| Add dependency cascade recalculation on task drag | UI (React) + Algorithm | `packages/canvas-engine/src/components/GanttCanvas/GanttCanvas.tsx` — call CPM recalculation on drag end |
+| Add visual dependency connector lines between tasks | UI (React) | `packages/canvas-engine/src/components/GanttCanvas/GanttCanvas.tsx` — render SVG connector lines |
+| Build "Suggest optimal schedule" button invoking Schedule Planning agent | UI (React) + API | `packages/canvas-engine/src/components/GanttCanvas/GanttCanvas.tsx` + `apps/web/src/routes/methodology.py` — add optimisation endpoint |
+| Make schedule optimisation recommendations actionable (accept/reject/modify) | Agent action | `agents/delivery-management/schedule-planning-agent/src/schedule_actions/optimize.py` — add `apply_optimization` handler |
+| Add resource levelling visualisation | UI (React, new) | `packages/canvas-engine/src/components/GanttCanvas/ResourceLevelChart.tsx` (new) |
+| Add Gantt-specific realtime collaboration event types | Service (Python) | `services/realtime-coedit-service/src/main.py` — add task-level event protocol (task_moved, dependency_changed) |
+| Add baseline comparison overlay | UI (React) | `packages/canvas-engine/src/components/GanttCanvas/GanttCanvas.tsx` — render planned vs actual vs baseline bars |
+
+### #7 — Executive Briefing Generator (~65% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Connect briefing generation to cross-agent data (Financial, Risk, Resource, Analytics) | API route | `apps/web/src/routes/briefings.py` — aggregate data from multiple agent endpoints before LLM generation |
+| Integrate scheduled delivery via Stakeholder Communications agent | Agent action | `agents/operations-management/stakeholder-communications-agent/src/` — add `schedule_briefing` action connecting to briefing API |
+| Add scheduling configuration UI (frequency, recipients, channels) | UI (React) | `apps/web/frontend/src/pages/ExecutiveBriefingPage.tsx` — add schedule configuration panel |
+| Add PDF rendering capability | Service (Python, new) | `apps/document-service/src/` — add PDF generation (e.g. WeasyPrint or ReportLab) from briefing content |
+| Add PPTX rendering capability | Service (Python, new) | `apps/document-service/src/` — add PowerPoint generation (e.g. python-pptx) from briefing sections |
+| Add rich-format attachment delivery to notification service | Service endpoint | `services/notification-service/src/main.py` — add attachment support for email/Teams/Slack delivery |
+
+### #8 — AI Capacity Planning (~75% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Define structured skills taxonomy (categories, levels, framework) | Data schema | `data/schemas/resource.schema.json` — extend `skills` from free-text array to structured objects with category/level/framework |
+| Add Alembic migration for skills schema change | Migration | `data/migrations/versions/0010_skills_taxonomy.py` (new) |
+| Implement skill data sync from Workday | Connector | `connectors/workday/src/workday_connector.py` — add skill profile extraction to `read()` |
+| Implement skill data sync from SAP SuccessFactors | Connector | `connectors/sap_successfactors/src/sap_successfactors_connector.py` — add skill/competency extraction |
+| Add portfolio-level demand aggregation by skill/role | Agent action | `agents/delivery-management/resource-management-agent/src/resource_capacity_agent.py` — add `aggregate_portfolio_demand` action |
+| Build capacity planning dashboard (supply vs demand curves, drill-down) | UI (React, new) | `apps/web/frontend/src/pages/CapacityPlanningPage.tsx` (new) |
+| Add route for capacity planning page | UI (React) | `apps/web/frontend/src/App.tsx` — add route |
+| Integrate recommendations with HR workflow (optional) | Agent action | `agents/delivery-management/resource-management-agent/src/resource_capacity_agent.py` — add `route_recommendation` action connecting to HR connectors |
+
+### #9 — Intake-to-Project Automation (~45% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Add post-approval hook to create project entity in Data Service | Agent action | `agents/core-orchestration/approval-workflow-agent/src/decision_actions.py` — add project creation logic on `approval.approved` event for intake type |
+| Add `create_project` step to intake workflow definition | Workflow config | `ops/config/demo-workflows/project-intake.workflow.yaml` — add step after `notify_requester` |
+| Add approval-to-setup-wizard routing on intake status page | UI (React) | `apps/web/frontend/src/pages/IntakeStatusPage.tsx` — add "Configure Project" button/redirect on approval |
+| Add connector category browser with per-project toggle to setup wizard | UI (React) | `apps/web/frontend/src/pages/ProjectSetupWizardPage.tsx` — add connector selection step pulling from `connectors/registry/connectors.json` |
+| Add team member and role assignment step to setup wizard | UI (React) | `apps/web/frontend/src/pages/ProjectSetupWizardPage.tsx` — add team assignment step with RBAC role picker |
+| Wire setup wizard confirmation to Workspace Setup agent | API route | `apps/web/src/routes/` — ensure `/api/project-setup/configure-workspace` passes connector and team selections to workspace agent |
+| Emit real-time notification on project creation | Service (Python) | `agents/core-orchestration/approval-workflow-agent/src/decision_actions.py` — emit WebSocket event for `useRealtimeConsole` |
+
+### #10 — Mobile-First Experience (~35% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Add swipe-to-approve/reject gestures | UI (React Native) | `apps/mobile/src/screens/ApprovalsScreen.tsx` — add `react-native-gesture-handler` swipe actions |
+| Add offline approval queue | Service (React Native) | `apps/mobile/src/services/approvalQueue.ts` (new) — mirror `statusQueue.ts` pattern for approval actions |
+| Implement native push notification registration (FCM/APNs) | Service (React Native) | `apps/mobile/src/services/notifications.ts` — replace stub `registerForApprovalNotifications()` with Expo Notifications setup |
+| Add deep-link routing from push notifications to specific screens | Service (React Native) | `apps/mobile/src/services/notifications.ts` — add notification response handler with screen navigation |
+| Add biometric authentication for sensitive approvals | Service (React Native) | `apps/mobile/src/services/secureSession.ts` — integrate `expo-local-authentication` for fingerprint/Face ID |
+| Add health badge and sparkline components to dashboard | UI (React Native) | `apps/mobile/src/screens/DashboardScreen.tsx` — add charting library (e.g. `react-native-svg` + `victory-native`) |
+| Add voice-to-status via speech recognition | UI (React Native) | `apps/mobile/src/screens/AssistantScreen.tsx` — integrate `expo-speech` or `@react-native-voice/voice` for dictation |
+| Add package dependencies | Config | `apps/mobile/package.json` — add `react-native-gesture-handler`, `expo-local-authentication`, charting/voice libraries |
+
+### #11 — Methodology Tailoring (~60% complete)
+
+| Work Item | Type | Files to Update/Create |
+|-----------|------|----------------------|
+| Add tenant-scoped methodology storage | Service (Python) | `apps/web/src/methodologies.py` — scope `_load_methodology_storage()` and `_write_json()` by `tenant_id` |
+| Migrate methodology persistence to Data Service | Service endpoint | `services/data-service/src/main.py` — add methodology CRUD endpoints with tenant isolation |
+| Create canonical methodology JSON Schema | Data schema (new) | `data/schemas/methodology.schema.json` (new) |
+| Add Alembic migration for methodology definitions | Migration (new) | `data/migrations/versions/0010_methodology_definitions.py` (new) |
+| Add methodology versioning (immutable versions, new projects use latest) | Service (Python) | `services/data-service/src/main.py` — add version tracking; `apps/web/src/methodologies.py` — version on save |
+| Build organisation settings admin page | UI (React, new) | `apps/web/frontend/src/pages/OrganisationMethodologySettings.tsx` (new) — configure allowed methodologies, defaults per department |
+| Add route for organisation settings page | UI (React) | `apps/web/frontend/src/App.tsx` — add admin route |
+| Add tenant-level policy enforcement on workspace creation | Agent action | `agents/core-orchestration/workspace-setup-agent/src/workspace_setup_agent.py` — validate methodology selection against tenant policy |
+| Add change impact analysis before methodology edits | API route | `apps/web/src/routes/methodology.py` — add endpoint returning active workspaces using the methodology being edited |
+| Document methodology tailoring workflow | Documentation | `docs/methodology/customisation-guide.md` (new) |
+
+---
+
 ## Summary Matrix
 
-| # | Enhancement | Current Status | Primary Persona | Remaining Effort | Impact | Revenue Lever |
-|---|------------|---------------|----------------|-----------------|--------|---------------|
-| 1 | What-If Scenario Engine | ~60% — backend engines done, UI and NLP missing | CFO, PMO Director | Medium | High | Upsell to Enterprise tier |
-| 2 | Predictive Health Scoring | ~55% — dashboard and alerts done, composite index and ML missing | PMO Director, PM | Medium | High | Core value prop |
-| 3 | Collection Search Pages | ~25% — basic card list done, backend search and filtering missing | All users | Low-Medium | Critical | Table stakes |
-| 4 | Agent Marketplace | ~15% — BaseAgent abstraction done, everything else missing | CIO, Partners | High | Very High | New revenue stream |
-| 5 | Cross-System Search | ~40% — local search UI done, federated connector search missing | PM, PMO Analyst | Medium | High | Orchestration differentiator |
-| 6 | Interactive Gantt + AI | ~45% — components and algorithms exist separately, unification missing | PM, Scheduler | Medium-High | High | Win predictive-methodology deals |
-| 7 | Executive Briefing Generator | ~65% — generation UI and API done, scheduled delivery and PDF export missing | C-suite, PMO Director | Low-Medium | Very High | Premium feature |
-| 8 | AI Capacity Planning | ~75% — planning and matching engines done, taxonomy and HR sync missing | CIO, Resource Manager | Low-Medium | High | Enterprise upsell |
-| 9 | Intake-to-Project Automation | ~45% — individual pieces exist, end-to-end linking missing | PM, PMO Director | Low-Medium | High | Demo showpiece |
-| 10 | Mobile-First Experience | ~35% — basic screens done, advanced UX features missing | Executives, PM | Medium | High | Competitive differentiator |
-| 11 | Methodology Tailoring | ~60% — editor and engine done, tenant isolation and Data Service integration missing | PMO Admin, CIO | Medium | Critical | Deployment prerequisite + services revenue |
+| # | Enhancement | Done | Remaining | Primary Persona | Remaining Effort | Impact |
+|---|------------|------|-----------|----------------|-----------------|--------|
+| 1 | What-If Scenario Engine | ~60% | 3 agent actions, 2 UI components, 1 API route | CFO, PMO Director | Medium | High |
+| 2 | Predictive Health Scoring | ~55% | 3 agent actions, 2 UI components, 2 service updates | PMO Director, PM | Medium | High |
+| 3 | Collection Search Pages | ~25% | 1 service endpoint, 4 UI components, 1 page upgrade | All users | Low-Medium | Critical |
+| 4 | Agent Marketplace | ~15% | 1 new package, 2 runtime updates, 1 API route, 1 UI page, 1 service, 1 schema | CIO, Partners | High | Very High |
+| 5 | Cross-System Search | ~40% | 1 SDK method, 4+ connector updates, 3 service updates, 1 UI update | PM, PMO Analyst | Medium | High |
+| 6 | Interactive Gantt + AI | ~45% | 4 UI components, 1 agent action, 1 service update, 1 API route | PM, Scheduler | Medium-High | High |
+| 7 | Executive Briefing Generator | ~65% | 1 agent action, 1 API update, 1 UI update, 2 new service capabilities | C-suite, PMO Director | Low-Medium | Very High |
+| 8 | AI Capacity Planning | ~75% | 1 schema update, 1 migration, 2 connector updates, 1 agent action, 1 UI page | CIO, Resource Manager | Low-Medium | High |
+| 9 | Intake-to-Project Automation | ~45% | 1 agent action, 3 UI updates, 1 workflow config, 1 API route | PM, PMO Director | Low-Medium | High |
+| 10 | Mobile-First Experience | ~35% | 5 UI updates, 2 new services, 1 package config | Executives, PM | Medium | High |
+| 11 | Methodology Tailoring | ~60% | 2 service updates, 1 schema, 1 migration, 2 UI pages, 1 agent update, 1 API route, 1 doc | PMO Admin, CIO | Medium | Critical |
 
 ### Recommended Priority Order
 
