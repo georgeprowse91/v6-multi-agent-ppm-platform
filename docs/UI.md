@@ -5,6 +5,7 @@
 ## Contents
 
 - [Component Reference](#component-reference)
+- [Connectors and System-of-Record Data Flow](#connectors-and-system-of-record-data-flow)
 - [Coverage Matrix](#coverage-matrix)
 - [Known Gaps](#known-gaps)
 
@@ -562,6 +563,75 @@ Agent capability metadata is parsed from `agents/AGENT_CATALOG.md`. Connector me
 | `demo_run_events` | _(run payload)_ | Demo Run play-step |
 | `audit_events` | `demo.agent.executed` | Demo Run play-step |
 | `audit_events` | `agent.run` | Run agent button |
+
+---
+
+## Connectors and System-of-Record Data Flow
+
+> Last reviewed: 2026-03-07
+
+The platform includes 40 integration connectors for external systems of record. Connectors enable a bidirectional data lifecycle: data is pulled from a system of record into the platform's canonical data model, surfaced in the canvas workspace where users and agents can view and modify it, and -- when ready -- written back to the system of record in the correct structure that mirrors that system's data configuration.
+
+### How Data Flows Between Systems of Record and the Canvas
+
+#### Inbound: System of Record --> Canonical Model --> Canvas
+
+1. **Sync from source.** The Data Sync Service (`services/data-sync-service/`) runs scheduled or on-demand sync jobs for each configured connector. Each job (e.g. Jira tasks, Clarity projects, SAP financials) fetches records from the external system using the connector's REST API or MCP tool interface. Sync strategies include `source_of_truth` (external system always wins), `last_write_wins` (most recent timestamp wins), and `manual_required` (conflict queued for human resolution).
+
+2. **Map to canonical schema.** The Data Synchronisation Agent (`agents/operations-management/data-synchronisation-agent/`) transforms inbound payloads using configurable field mappings defined in `mapping_rules.yaml` -- for example, Jira's `summary` maps to the canonical `task.title`, SAP's `ProjectID` maps to `project.id`. Validation rules (`validation_rules.yaml`) enforce data-quality thresholds before records enter the canonical store. Every transformation is recorded as a lineage event (source system, object type, record ID, field-level mappings), enabling full provenance tracking via `data/lineage/`.
+
+3. **Surface in the canvas.** Canonical records materialise as canvas artifacts within project workspaces. The canvas engine (`packages/canvas-engine/`) supports 13 artifact types -- Document, Structured Tree (WBS), Timeline, Gantt, Board, Backlog, Grid, Spreadsheet, Financial, Dashboard, Dependency Map, Roadmap, and Approval -- each rendered in a purpose-built editor component. For example, Jira issues appear as cards on a Board canvas; Clarity WBS elements populate a Structured Tree canvas; SAP budget line items fill a Financial canvas. Artifacts carry provenance metadata (`sourceAgent`, `generatedAt`, `correlationId`) so users always know where the data originated.
+
+#### Editing: Users and Agents Modify Canvas Artifacts
+
+4. **Human edits.** Users edit artifacts directly in the canvas -- dragging cards between columns on a Board, adding nodes to a WBS tree, updating budget forecasts in a Financial canvas, or authoring documents in the rich-text Document canvas. Changes are tracked with version numbers, dirty-tab indicators, and edit history entries recording who changed what and when.
+
+5. **Agent edits.** The platform's 25 specialised agents can also create and modify canvas artifacts. The Scope Definition Agent generates project charters as Document artifacts; the Schedule Planning Agent builds Gantt artifacts; the Risk Management Agent populates Grid artifacts with identified risks. Each agent-authored change is tagged with provenance metadata so that agent contributions are distinguishable from human edits. Artifacts move through a `draft` --> `published` lifecycle, with the Approval canvas type supporting formal approval workflows with evidence and decision history.
+
+6. **Create from scratch.** Users and agents can also create new artifacts from scratch in any canvas type, using the `createArtifact` / `createEmptyContent` helpers in `packages/canvas-engine/src/types/artifact.ts`. For example, a user can create a new Financial canvas, enter budget line items manually, and later push those records to SAP -- the outbound sync pipeline handles the reverse field mapping to produce the SAP-native payload structure (e.g. `project.id` --> `ProjectID`, `project.name` --> `Description`, `project.status` --> `LifecycleStatus`).
+
+#### Outbound: Canvas --> Canonical Model --> System of Record
+
+7. **Save and publish.** When a user saves or publishes an artifact, the canvas store (`apps/web/frontend/src/store/useCanvasStore.ts`) persists the content to the platform's document repository (via the Knowledge Management API) with version tracking, edit history, and provenance metadata.
+
+8. **Governed write-back.** All writes to external systems pass through the `ConnectorWriteGate` (`agents/common/connector_integration.py`), which enforces four controls before any data leaves the platform:
+   - **Connector readiness** -- the connector must be configured and connected (status `connected` or `permissions_validated`)
+   - **Approval** -- if organisational policy requires approval for the write, a valid approval must be present
+   - **Dry-run** -- when configured, a dry run must succeed before the live write executes
+   - **Idempotency and audit** -- every write attempt (pass or fail) generates an idempotency key and an audit log entry
+
+   The Data Synchronisation Agent calls `governed_connector_write()` to push canonical records through the appropriate connector. The connector applies reverse field mappings to convert canonical schema fields to the target system's native field names and structure. Each connector exposes an outbound sync endpoint (e.g. `POST /connectors/sap/sync/outbound`, `POST /connectors/clarity/sync/outbound`) that accepts the mapped payload and writes to the external API.
+
+9. **Conflict resolution.** When bidirectional sync detects that both the canonical store and the external system have changed the same record, the platform handles conflicts according to the configured strategy. For `manual_required` conflicts, the record appears in the Conflict Resolution Queue on the Connector Health Dashboard, where administrators compare source and canonical values side by side and choose which to keep. The sync registry also tracks write-back candidates -- records where the internal version is newer -- and offers them for outbound push.
+
+### Connector Categories
+
+| Category | Example Systems |
+|----------|-----------------|
+| PPM Tools | Clarity, Planview |
+| PM Tools | Jira, Azure DevOps, Asana, Monday.com, SmartSheet |
+| Document Management | SharePoint, Confluence, Google Drive |
+| ERP | SAP, Oracle, NetSuite |
+| HRIS | Workday, SAP SuccessFactors, ADP |
+| Collaboration | Slack, Microsoft Teams, Zoom, Outlook, Google Calendar |
+| CRM / Service Management | Salesforce, ServiceNow |
+| GRC | Archer, LogicGate |
+
+### MCP (Model Context Protocol) Connectors
+
+MCP-enabled connectors are available for Jira, Asana, Clarity, Planview, SAP, Slack, Teams, and Workday. These provide structured tool-use interfaces that agents call directly, replacing REST polling with on-demand, scoped operations. Each MCP connector maps platform operations (e.g. `projects.read`, `resources.write`) to named MCP tools published by a managed MCP server. In the Project MCP Sidebar, administrators browse the available tool catalog, bind operations to tools, and save per-project MCP mappings.
+
+### Configuration and Monitoring
+
+The **Connector Gallery** (web and mobile) lets administrators browse connectors by category, search and filter by status or certification, enable/disable with one click, and open a configuration modal to set connection details, choose REST or MCP transport, map MCP tools, set sync direction and frequency, and test the connection. Each connector also has a **Certification Evidence** modal for tracking compliance status, audit references, and uploaded evidence documents.
+
+The **Connector Health Dashboard** provides real-time operational visibility with three panels: connector status (health, error rates, circuit breaker state), data freshness (last sync time and staleness per entity), and the conflict resolution queue.
+
+The **Sync Status Panel** embedded in both hub and project galleries shows per-connector sync run history -- total runs, success rate, errors, and last sync timestamp.
+
+### Connector SDK
+
+The connector SDK (`connectors/sdk/`) provides the `BaseConnector` abstract class with lifecycle hooks for authentication, connection testing, and data operations, plus resilience middleware (circuit breakers, retry policies, timeouts), telemetry, and JSON schema validation. The registry (`connectors/registry/connectors.json`) is the canonical manifest for all connector definitions and field mappings.
 
 ---
 
