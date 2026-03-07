@@ -92,6 +92,42 @@ class PredictiveAlertNotificationRequest(BaseModel):
     title: str | None = None
 
 
+class HealthThresholdAlertRequest(BaseModel):
+    alert_id: str | None = None
+    project_id: str
+    project_name: str = ""
+    previous_score: float = Field(ge=0.0, le=1.0)
+    current_score: float = Field(ge=0.0, le=1.0)
+    threshold: float = Field(ge=0.0, le=1.0)
+    severity: str = "warning"
+    trigger: str = "crossed_below"
+    message: str
+    recommended_actions: list[str] = Field(default_factory=list)
+    breakdown: dict[str, Any] = Field(default_factory=dict)
+    channel: str = "stdout"
+    recipient: str | None = None
+
+
+class HealthDigestItem(BaseModel):
+    project_id: str
+    project_name: str = ""
+    current_score: float = Field(ge=0.0, le=1.0)
+    predicted_30d: float = Field(ge=0.0, le=1.0)
+    trend: str = "stable"
+    status: str = "healthy"
+    risk_factors: list[str] = Field(default_factory=list)
+
+
+class HealthDigestNotificationRequest(BaseModel):
+    digest_id: str | None = None
+    portfolio_id: str = "default"
+    portfolio_name: str = "Portfolio"
+    items: list[HealthDigestItem] = Field(default_factory=list)
+    summary: str = ""
+    channel: str = "stdout"
+    recipient: str | None = None
+
+
 reject_placeholder_secrets(
     service_name="notification-service",
     environment=os.getenv("ENVIRONMENT"),
@@ -428,6 +464,133 @@ async def send_notification(request: NotificationRequest) -> NotificationRespons
             logger.warning("notification_dlq_write_failed", extra={"error": str(err)})
         raise HTTPException(status_code=502, detail=detail) from exc
 
+    timestamp = datetime.now(timezone.utc)
+    return NotificationResponse(
+        delivery_id=delivery_id,
+        status="delivered",
+        rendered=rendered,
+        delivered_to=destination,
+        timestamp=timestamp,
+    )
+
+
+def _render_health_threshold_alert(request: HealthThresholdAlertRequest) -> str:
+    severity_label = request.severity.upper()
+    lines = [
+        f"[{severity_label}] Health Alert: {request.project_name or request.project_id}",
+        f"Score: {request.previous_score:.0%} -> {request.current_score:.0%}",
+        f"Threshold: {request.threshold:.0%}",
+        f"Trigger: {request.trigger.replace('_', ' ').title()}",
+        f"Message: {request.message}",
+    ]
+    if request.breakdown:
+        lines.append("Signal Breakdown:")
+        for signal, value in request.breakdown.items():
+            if isinstance(value, (int, float)):
+                lines.append(f"  {signal}: {value:.0%}")
+    if request.recommended_actions:
+        lines.append("Recommended Actions:")
+        lines.extend([f"  - {action}" for action in request.recommended_actions])
+    return "\n".join(lines)
+
+
+def _render_health_digest(request: HealthDigestNotificationRequest) -> str:
+    lines = [
+        f"Health Digest: {request.portfolio_name}",
+        f"Portfolio: {request.portfolio_id}",
+    ]
+    if request.summary:
+        lines.append(f"Summary: {request.summary}")
+    lines.append("")
+
+    critical_count = sum(1 for item in request.items if item.status == "critical")
+    at_risk_count = sum(1 for item in request.items if item.status == "at_risk")
+    healthy_count = sum(1 for item in request.items if item.status == "healthy")
+    lines.append(f"Overview: {critical_count} critical, {at_risk_count} at risk, {healthy_count} healthy")
+    lines.append("")
+
+    for item in request.items:
+        trend_arrow = {"improving": "+", "declining": "-", "rapidly_declining": "--", "stable": "="}
+        arrow = trend_arrow.get(item.trend, "=")
+        status_tag = f"[{item.status.upper()}]" if item.status != "healthy" else ""
+        lines.append(
+            f"  {item.project_name or item.project_id}: "
+            f"{item.current_score:.0%} ({arrow}) 30d: {item.predicted_30d:.0%} {status_tag}"
+        )
+        if item.risk_factors:
+            for factor in item.risk_factors[:2]:
+                lines.append(f"    ! {factor}")
+    return "\n".join(lines)
+
+
+@api_router.post("/notifications/health-alerts", response_model=NotificationResponse)
+@limiter.limit(RATE_LIMIT)
+async def send_health_threshold_alert(
+    request: HealthThresholdAlertRequest,
+) -> NotificationResponse:
+    if not _predictive_alerts_enabled():
+        raise HTTPException(status_code=404, detail="Predictive alerts are not enabled")
+    rendered = _render_health_threshold_alert(request)
+    delivery_id = request.alert_id or str(uuid4())
+    try:
+        destination = await _deliver_with_channels(
+            rendered, request.channel, request.recipient, delivery_id
+        )
+    except NotificationDeliveryError as exc:
+        detail = str(exc)
+        try:
+            _write_dead_letter(
+                {
+                    "delivery_id": delivery_id,
+                    "template": "health-threshold-alert",
+                    "channel": request.channel,
+                    "recipient": request.recipient,
+                    "variables": request.model_dump(),
+                },
+                error=detail,
+            )
+        except (OSError, TypeError, ValueError) as err:
+            logger.warning("notification_dlq_write_failed", extra={"error": str(err)})
+        raise HTTPException(status_code=502, detail=detail) from exc
+    timestamp = datetime.now(timezone.utc)
+    return NotificationResponse(
+        delivery_id=delivery_id,
+        status="delivered",
+        rendered=rendered,
+        delivered_to=destination,
+        timestamp=timestamp,
+    )
+
+
+@api_router.post("/notifications/health-digest", response_model=NotificationResponse)
+@limiter.limit(RATE_LIMIT)
+async def send_health_digest(
+    request: HealthDigestNotificationRequest,
+) -> NotificationResponse:
+    if not _predictive_alerts_enabled():
+        raise HTTPException(status_code=404, detail="Predictive alerts are not enabled")
+    rendered = _render_health_digest(request)
+    delivery_id = request.digest_id or str(uuid4())
+    try:
+        destination = await _deliver_with_channels(
+            rendered, request.channel, request.recipient, delivery_id
+        )
+    except NotificationDeliveryError as exc:
+        detail = str(exc)
+        try:
+            _write_dead_letter(
+                {
+                    "delivery_id": delivery_id,
+                    "template": "health-digest",
+                    "channel": request.channel,
+                    "recipient": request.recipient,
+                    "variables": request.model_dump(),
+                },
+                error=detail,
+            )
+        except (OSError, TypeError, ValueError) as err:
+            logger.warning("notification_dlq_write_failed", extra={"error": str(err)})
+        raise HTTPException(status_code=502, detail=detail) from exc
     timestamp = datetime.now(timezone.utc)
     return NotificationResponse(
         delivery_id=delivery_id,

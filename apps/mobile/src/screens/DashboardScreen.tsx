@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import {
+  fetchHealthForecast,
   fetchPortfolioSummary,
   fetchPortfolios,
   fetchProjectHealth,
@@ -51,6 +52,20 @@ type ProjectSnapshot = {
   risk_level?: string;
 };
 
+type HealthPrediction = {
+  project_id: string;
+  project_name: string;
+  current_health_score: number;
+  predicted_health_30d: number;
+  predicted_health_60d: number;
+  predicted_health_90d: number;
+  risk_signal: number;
+  schedule_signal: number;
+  budget_signal: number;
+  resource_signal: number;
+  trend: string;
+};
+
 const normalizeKpis = (payload: any): Kpi[] => {
   if (Array.isArray(payload)) {
     return payload;
@@ -81,6 +96,47 @@ const normalizeProjects = (payload: any): ProjectSnapshot[] => {
   return [];
 };
 
+const normalizeHealthForecast = (payload: any): HealthPrediction[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+  if (payload && Array.isArray(payload.predictions)) {
+    return payload.predictions;
+  }
+  return [];
+};
+
+function healthStatusColor(score: number): string {
+  if (score >= 0.7) return colors.success;
+  if (score >= 0.4) return colors.warning;
+  return colors.danger;
+}
+
+function trendLabel(trend: string): string {
+  switch (trend) {
+    case 'improving':
+      return '\u2191 Improving';
+    case 'declining':
+      return '\u2193 Declining';
+    case 'rapidly_declining':
+      return '\u21CA Rapidly declining';
+    default:
+      return '\u2192 Stable';
+  }
+}
+
+function trendColor(trend: string): string {
+  switch (trend) {
+    case 'improving':
+      return colors.success;
+    case 'declining':
+    case 'rapidly_declining':
+      return colors.danger;
+    default:
+      return colors.muted;
+  }
+}
+
 export const DashboardScreen = () => {
   const { tenantId, projectId } = useAppContext();
   const [portfolioSummary, setPortfolioSummary] = useState<PortfolioSummary | null>(null);
@@ -88,6 +144,7 @@ export const DashboardScreen = () => {
   const [projects, setProjects] = useState<ProjectSnapshot[]>([]);
   const [health, setHealth] = useState<HealthSummary | null>(null);
   const [kpis, setKpis] = useState<Kpi[]>([]);
+  const [healthForecast, setHealthForecast] = useState<HealthPrediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,19 +152,21 @@ export const DashboardScreen = () => {
     setLoading(true);
     setError(null);
     try {
-      const [summaryPayload, portfoliosPayload, projectsPayload, healthPayload, kpiPayload] =
+      const [summaryPayload, portfoliosPayload, projectsPayload, healthPayload, kpiPayload, forecastPayload] =
         await Promise.all([
           fetchPortfolioSummary(tenantId),
           fetchPortfolios(tenantId),
           fetchProjects(tenantId),
           fetchProjectHealth(projectId, tenantId),
           fetchProjectKpis(projectId, tenantId),
+          fetchHealthForecast('default', tenantId).catch(() => []),
         ]);
       setPortfolioSummary(summaryPayload as PortfolioSummary);
       setPortfolios(normalizePortfolios(portfoliosPayload));
       setProjects(normalizeProjects(projectsPayload));
       setHealth(healthPayload as HealthSummary);
       setKpis(normalizeKpis(kpiPayload));
+      setHealthForecast(normalizeHealthForecast(forecastPayload));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load dashboard.');
     } finally {
@@ -118,6 +177,9 @@ export const DashboardScreen = () => {
   useEffect(() => {
     void loadDashboard();
   }, [tenantId, projectId]);
+
+  const criticalProjects = healthForecast.filter(p => p.current_health_score < 0.4);
+  const atRiskProjects = healthForecast.filter(p => p.current_health_score >= 0.4 && p.current_health_score < 0.7);
 
   return (
     <ScrollView
@@ -146,6 +208,161 @@ export const DashboardScreen = () => {
         />
         <LabelValueRow label="Health" value={portfolioSummary?.health || 'Steady'} accent />
       </Card>
+
+      {/* Predictive Health Scoring Section */}
+      {healthForecast.length > 0 && (
+        <>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.cardTitle}>Predictive Health Scores</Text>
+          </View>
+
+          {/* Summary badges */}
+          <View style={styles.healthSummaryRow}>
+            <View style={styles.healthSummaryBadge}>
+              <Text style={styles.healthSummaryCount}>{healthForecast.length}</Text>
+              <Text style={styles.healthSummaryLabel}>Tracked</Text>
+            </View>
+            {criticalProjects.length > 0 && (
+              <View style={[styles.healthSummaryBadge, styles.healthCriticalBg]}>
+                <Text style={[styles.healthSummaryCount, styles.healthCriticalText]}>
+                  {criticalProjects.length}
+                </Text>
+                <Text style={styles.healthSummaryLabel}>Critical</Text>
+              </View>
+            )}
+            {atRiskProjects.length > 0 && (
+              <View style={[styles.healthSummaryBadge, styles.healthWarningBg]}>
+                <Text style={[styles.healthSummaryCount, styles.healthWarningText]}>
+                  {atRiskProjects.length}
+                </Text>
+                <Text style={styles.healthSummaryLabel}>At Risk</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Per-project health predictions */}
+          {healthForecast.map((prediction) => (
+            <Card key={prediction.project_id}>
+              <View style={styles.healthProjectHeader}>
+                <Text style={styles.healthProjectName}>
+                  {prediction.project_name || prediction.project_id}
+                </Text>
+                <View
+                  style={[
+                    styles.healthBadge,
+                    { backgroundColor: healthStatusColor(prediction.current_health_score) },
+                  ]}
+                >
+                  <Text style={styles.healthBadgeText}>
+                    {Math.round(prediction.current_health_score * 100)}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={[styles.trendText, { color: trendColor(prediction.trend) }]}>
+                {trendLabel(prediction.trend)}
+              </Text>
+
+              <View style={styles.forecastRow}>
+                <View style={styles.forecastItem}>
+                  <Text style={styles.forecastLabel}>30d</Text>
+                  <Text
+                    style={[
+                      styles.forecastValue,
+                      { color: healthStatusColor(prediction.predicted_health_30d) },
+                    ]}
+                  >
+                    {Math.round(prediction.predicted_health_30d * 100)}%
+                  </Text>
+                </View>
+                <View style={styles.forecastItem}>
+                  <Text style={styles.forecastLabel}>60d</Text>
+                  <Text
+                    style={[
+                      styles.forecastValue,
+                      { color: healthStatusColor(prediction.predicted_health_60d) },
+                    ]}
+                  >
+                    {Math.round(prediction.predicted_health_60d * 100)}%
+                  </Text>
+                </View>
+                <View style={styles.forecastItem}>
+                  <Text style={styles.forecastLabel}>90d</Text>
+                  <Text
+                    style={[
+                      styles.forecastValue,
+                      { color: healthStatusColor(prediction.predicted_health_90d) },
+                    ]}
+                  >
+                    {Math.round(prediction.predicted_health_90d * 100)}%
+                  </Text>
+                </View>
+              </View>
+
+              {/* Signal breakdown */}
+              <View style={styles.signalGrid}>
+                <View style={styles.signalItem}>
+                  <Text style={styles.signalLabel}>Risk</Text>
+                  <View style={styles.signalBarBg}>
+                    <View
+                      style={[
+                        styles.signalBarFill,
+                        {
+                          width: `${Math.round((1 - prediction.risk_signal) * 100)}%`,
+                          backgroundColor: healthStatusColor(1 - prediction.risk_signal),
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+                <View style={styles.signalItem}>
+                  <Text style={styles.signalLabel}>Schedule</Text>
+                  <View style={styles.signalBarBg}>
+                    <View
+                      style={[
+                        styles.signalBarFill,
+                        {
+                          width: `${Math.round(prediction.schedule_signal * 100)}%`,
+                          backgroundColor: healthStatusColor(prediction.schedule_signal),
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+                <View style={styles.signalItem}>
+                  <Text style={styles.signalLabel}>Budget</Text>
+                  <View style={styles.signalBarBg}>
+                    <View
+                      style={[
+                        styles.signalBarFill,
+                        {
+                          width: `${Math.round(prediction.budget_signal * 100)}%`,
+                          backgroundColor: healthStatusColor(prediction.budget_signal),
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+                <View style={styles.signalItem}>
+                  <Text style={styles.signalLabel}>Resource</Text>
+                  <View style={styles.signalBarBg}>
+                    <View
+                      style={[
+                        styles.signalBarFill,
+                        {
+                          width: `${Math.round(prediction.resource_signal * 100)}%`,
+                          backgroundColor: healthStatusColor(prediction.resource_signal),
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+              </View>
+            </Card>
+          ))}
+        </>
+      )}
+
       <View style={styles.sectionHeader}>
         <Text style={styles.cardTitle}>Portfolios</Text>
       </View>
@@ -293,5 +510,112 @@ const styles = StyleSheet.create({
   loading: {
     color: colors.muted,
     marginBottom: spacing.lg,
+  },
+  // Predictive Health Scoring styles
+  healthSummaryRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  healthSummaryBadge: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+  },
+  healthCriticalBg: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+  },
+  healthWarningBg: {
+    backgroundColor: 'rgba(234, 179, 8, 0.15)',
+  },
+  healthSummaryCount: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  healthCriticalText: {
+    color: colors.danger,
+  },
+  healthWarningText: {
+    color: colors.warning,
+  },
+  healthSummaryLabel: {
+    fontSize: 10,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  healthProjectHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  healthProjectName: {
+    color: colors.text,
+    fontWeight: '600',
+    fontSize: 15,
+    flex: 1,
+  },
+  healthBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+    minWidth: 36,
+    alignItems: 'center',
+  },
+  healthBadgeText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  trendText: {
+    fontSize: 12,
+    marginBottom: spacing.sm,
+  },
+  forecastRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  forecastItem: {
+    alignItems: 'center',
+  },
+  forecastLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    marginBottom: 2,
+  },
+  forecastValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  signalGrid: {
+    gap: spacing.xs,
+  },
+  signalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  signalLabel: {
+    fontSize: 11,
+    color: colors.muted,
+    width: 60,
+  },
+  signalBarBg: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    overflow: 'hidden',
+  },
+  signalBarFill: {
+    height: '100%',
+    borderRadius: 3,
   },
 });
