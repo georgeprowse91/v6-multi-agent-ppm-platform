@@ -180,3 +180,35 @@
 .analyticsChartSkeleton {
   min-height: 160px;
 }
+
+.tabBar {
+  display: flex;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 10px;
+  align-self: flex-start;
+}
+
+.tab {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.tabActive {
+  background: #fff;
+  color: #1b1b1f;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}

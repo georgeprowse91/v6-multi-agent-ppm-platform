@@ -4,6 +4,7 @@ import { hasPermission } from '@/auth/permissions';
 import { useAppStore } from '@/store';
 import { parseJsonResponse } from '@/utils/apiValidation';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { ScenarioBuilder } from '@/components/analytics/ScenarioBuilder';
 import { s } from '@/utils/schema';
 import styles from './AnalyticsDashboard.module.css';
 
@@ -130,8 +131,10 @@ export function AnalyticsDashboard() {
   const [predictiveAlerts, setPredictiveAlerts] = useState<PredictiveAlert[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'trends' | 'scenarios'>('trends');
   const canViewAnalytics = hasPermission(session.user?.permissions, 'analytics.view');
   const predictiveAlertsEnabled = featureFlags.predictive_alerts === true;
+  const scenarioModelingEnabled = featureFlags.scenario_modeling !== false;
 
   const loadTrends = useCallback(async () => {
     if (!canViewAnalytics) {
@@ -235,7 +238,9 @@ export function AnalyticsDashboard() {
         <div>
           <h1 className={styles.title}>Analytics Dashboard</h1>
           <p className={styles.subtitle}>
-            KPI trends and forecasts over the last {data?.period_count ?? 6} periods.
+            {activeTab === 'trends'
+              ? `KPI trends and forecasts over the last ${data?.period_count ?? 6} periods.`
+              : 'Run what-if scenario analyses with preset templates or custom parameters.'}
           </p>
         </div>
         <div className={styles.controls}>
@@ -257,6 +262,25 @@ export function AnalyticsDashboard() {
         </div>
       </header>
 
+      {canViewAnalytics && scenarioModelingEnabled && (
+        <div className={styles.tabBar}>
+          <button
+            type="button"
+            className={`${styles.tab} ${activeTab === 'trends' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('trends')}
+          >
+            KPI Trends
+          </button>
+          <button
+            type="button"
+            className={`${styles.tab} ${activeTab === 'scenarios' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('scenarios')}
+          >
+            What-If Scenarios
+          </button>
+        </div>
+      )}
+
       {!canViewAnalytics && (
         <div className={styles.emptyState}>
           You do not have permission to view analytics dashboards.
@@ -265,7 +289,11 @@ export function AnalyticsDashboard() {
 
       {error && <div className={styles.emptyState}>{error}</div>}
 
-      {canViewAnalytics && data?.warnings?.length ? (
+      {canViewAnalytics && activeTab === 'scenarios' && scenarioModelingEnabled && (
+        <ScenarioBuilder projectId={projectId} />
+      )}
+
+      {activeTab === 'trends' && canViewAnalytics && data?.warnings?.length ? (
         <div className={styles.warningPanel}>
           <div className={styles.warningTitle}>Predictive Warnings</div>
           {data.warnings.map((warning) => (
@@ -277,7 +305,7 @@ export function AnalyticsDashboard() {
         </div>
       ) : null}
 
-      {canViewAnalytics && loading ? (
+      {activeTab === 'trends' && canViewAnalytics && loading ? (
         <div className={styles.grid} aria-busy="true" aria-live="off">
           {Array.from({ length: 4 }).map((_, index) => (
             <div key={`analytics-skeleton-${index}`} className={styles.card}>
@@ -293,7 +321,7 @@ export function AnalyticsDashboard() {
         </div>
       ) : null}
 
-      {canViewAnalytics && !loading && data?.series?.length ? (
+      {activeTab === 'trends' && canViewAnalytics && !loading && data?.series?.length ? (
         <div className={styles.grid} aria-live="polite">
           {data.series.map((series) => {
             const alert = alertsByMetric.get(series.metric);

@@ -100,6 +100,19 @@ intents:
       - agent_id: analytics-insights-agent
         action: get_insights
         dependencies: []
+  - name: what_if
+    description: What-if scenario analysis, impact simulation, or hypothetical portfolio/project change queries.
+    min_confidence: 0.6
+    routes:
+      - agent_id: portfolio-optimisation-agent
+        action: run_scenario_analysis
+        dependencies: []
+      - agent_id: financial-management-agent
+        action: generate_financial_variants
+        dependencies: []
+      - agent_id: schedule-planning-agent
+        action: what_if_analysis
+        dependencies: []
   - name: general_query
     description: General inquiry requiring a default response.
     min_confidence: 0.0

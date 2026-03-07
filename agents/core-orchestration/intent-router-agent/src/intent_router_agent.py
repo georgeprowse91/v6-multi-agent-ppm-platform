@@ -341,6 +341,7 @@ class IntentRouterAgent(BaseAgent):
         "risk_query": ["risk", "issue", "threat", "vulnerability", "mitigation", "register", "hazard"],
         "resource_query": ["resource", "capacity", "utilization", "allocation", "headcount", "team", "staffing"],
         "compliance_query": ["compliance", "regulatory", "regulation", "hipaa", "audit", "gdpr", "policy", "governance"],
+        "what_if": ["what if", "what-if", "scenario", "simulate", "simulation", "hypothetical", "impact analysis", "cascade", "trade-off", "tradeoff"],
     }
 
     def _keyword_classify_intent(self, query: str) -> list[dict[str, Any]]:
@@ -499,6 +500,31 @@ class IntentRouterAgent(BaseAgent):
             parameters["schedule_focus"] = "critical_path"
         elif "milestone" in query_lower:
             parameters["schedule_focus"] = "milestones"
+
+        # What-if scenario parameter extraction
+        if any(kw in query_lower for kw in ("what if", "what-if", "scenario", "simulate")):
+            parameters["scenario_type"] = "what_if"
+            if "budget" in query_lower or "cost" in query_lower:
+                parameters["scenario_domain"] = "financial"
+            elif "schedule" in query_lower or "timeline" in query_lower:
+                parameters["scenario_domain"] = "schedule"
+            elif "resource" in query_lower or "capacity" in query_lower:
+                parameters["scenario_domain"] = "resource"
+            else:
+                parameters["scenario_domain"] = "portfolio"
+
+            # Extract percentage changes (e.g. "increase by 20%", "cut 15%")
+            pct_match = re.search(
+                r"(?:increase|raise|grow|boost|add|up)\s*(?:by\s*)?(\d+)\s*%", query_lower
+            )
+            if pct_match:
+                parameters["scenario_delta_pct"] = float(pct_match.group(1))
+            else:
+                pct_cut = re.search(
+                    r"(?:decrease|reduce|cut|lower|down)\s*(?:by\s*)?(\d+)\s*%", query_lower
+                )
+                if pct_cut:
+                    parameters["scenario_delta_pct"] = -float(pct_cut.group(1))
 
         try:
             return ExtractedParameters.model_validate(parameters).model_dump(exclude_none=True)

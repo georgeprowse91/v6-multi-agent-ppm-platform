@@ -13,7 +13,9 @@ from portfolio_actions.prioritization_actions import (
 )
 from portfolio_actions.scenario_actions import (
     compare_scenarios,
+    create_scenario_from_template,
     get_scenario,
+    list_scenario_templates,
     list_scenarios,
     run_scenario_analysis,
     upsert_scenario,
@@ -37,4 +39,6 @@ __all__ = [
     "get_portfolio_status",
     "submit_portfolio_for_approval",
     "record_portfolio_decision",
+    "list_scenario_templates",
+    "create_scenario_from_template",
 ]

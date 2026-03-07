@@ -45,6 +45,7 @@ const ExecutiveBriefingPage = React.lazy(() => import('./pages/ExecutiveBriefing
 const ProjectSetupWizardPage = React.lazy(() => import('./pages/ProjectSetupWizardPage'));
 const SecurityPostureDashboardPage = React.lazy(() => import('./pages/SecurityPostureDashboardPage'));
 const KnowledgeGraphPage = React.lazy(() => import('./pages/KnowledgeGraphPage'));
+const ScenarioAnalysisPage = React.lazy(() => import('./pages/ScenarioAnalysisPage'));
 
 function isDemoModeEnabled(): boolean {
   const env = import.meta.env as Record<string, unknown>;
@@ -152,6 +153,7 @@ function AppRoutes() {
             <Route path="/analytics/dashboard" element={<AnalyticsDashboard />} />
             <Route path="/analytics/predictive" element={<PredictiveDashboardPage />} />
             <Route path="/analytics/briefings" element={<ExecutiveBriefingPage />} />
+            <Route path="/analytics/scenarios" element={<ScenarioAnalysisPage />} />
             <Route path="/connectors/health" element={<ConnectorHealthDashboardPage />} />
             <Route path="/projects/new" element={<ProjectSetupWizardPage />} />
             <Route path="/knowledge/graph" element={<KnowledgeGraphPage />} />

@@ -32,6 +32,7 @@ from financial_actions import (
     convert_currency as _act_convert_currency,
     create_budget as _act_create_budget,
     generate_financial_variants as _act_generate_financial_variants,
+    cascade_impact as _act_cascade_impact,
     generate_forecast as _act_generate_forecast,
     generate_report as _act_generate_report,
     get_financial_summary as _act_get_financial_summary,
@@ -355,6 +356,15 @@ class FinancialManagementAgent(BaseAgent):
         elif action == "calculate_profitability":
             return await _act_calculate_profitability(
                 self, input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+            )
+
+        elif action == "cascade_impact":
+            return await _act_cascade_impact(
+                self,
+                input_data.get("source_project_id") or input_data.get("project_id", ""),
+                input_data.get("delta", {}),
+                input_data.get("linked_project_ids", []),
+                tenant_id=tenant_id,
             )
 
         else:
@@ -1763,6 +1773,7 @@ class FinancialManagementAgent(BaseAgent):
             "cost_driver_analysis",
             "financial_compliance",
             "audit_trail_management",
+            "cascade_impact_analysis",
         ]
 
 

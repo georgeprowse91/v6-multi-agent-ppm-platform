@@ -21,8 +21,10 @@ from observability.tracing import get_trace_id
 from portfolio_actions import (
     calculate_alignment_score,
     compare_scenarios,
+    create_scenario_from_template,
     get_portfolio_status,
     get_scenario,
+    list_scenario_templates,
     list_scenarios,
     optimize_portfolio,
     prioritize_portfolio,
@@ -295,6 +297,18 @@ class PortfolioStrategyAgent(BaseAgent):
                 self,
                 input_data.get("portfolio_id"),
                 decision=input_data.get("decision", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
+            )
+
+        elif action == "list_scenario_templates":
+            return await list_scenario_templates(self)
+
+        elif action == "create_scenario_from_template":
+            return await create_scenario_from_template(
+                self,
+                input_data.get("template_id", ""),
+                overrides=input_data.get("overrides"),
                 tenant_id=tenant_id,
                 correlation_id=correlation_id,
             )

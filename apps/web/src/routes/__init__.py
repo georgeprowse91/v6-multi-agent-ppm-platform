@@ -37,6 +37,7 @@ from routes.pipeline import router as pipeline_router
 from routes.project_setup import router as project_setup_router
 from routes.security_posture import router as security_posture_router
 from routes.roles import router as roles_router
+from routes.scenarios import router as scenarios_router
 from routes.search import router as search_router
 from routes.spreadsheets import router as spreadsheets_router
 from routes.templates_api import router as templates_api_router
@@ -54,6 +55,7 @@ FEATURE_ROUTERS = [
     workflow_stub_router,
     documents_stub_router,
     analytics_router,
+    scenarios_router,
     connectors_stub_router,
     workspace_stub_router,
 ]
