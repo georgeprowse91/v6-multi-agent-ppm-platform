@@ -234,6 +234,52 @@ async def get_document(document_id: str, request: Request) -> DocumentResponse:
     return _build_response(record, [])
 
 
+# ---------------------------------------------------------------------------
+# Briefing export endpoints (PDF / PPTX)
+# ---------------------------------------------------------------------------
+
+class BriefingExportRequest(BaseModel):
+    title: str
+    content: str
+    sections: list[dict[str, str]] = Field(default_factory=list)
+    audience: str = "c_suite"
+    generated_at: str = ""
+    export_format: str = Field(default="pdf", pattern="^(pdf|pptx)$")
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class BriefingExportResponse(BaseModel):
+    filename: str
+    content_base64: str
+    content_type: str
+
+
+@api_router.post("/briefings/export", response_model=BriefingExportResponse)
+async def export_briefing(payload: BriefingExportRequest) -> BriefingExportResponse:
+    """Render an executive briefing to PDF or PPTX format."""
+    from briefing_renderer import render_briefing
+
+    try:
+        result = render_briefing(
+            title=payload.title,
+            content=payload.content,
+            sections=payload.sections,
+            audience=payload.audience,
+            generated_at=payload.generated_at,
+            export_format=payload.export_format,
+            metadata=payload.metadata,
+        )
+    except Exception as exc:
+        logger.exception("briefing_export_failed")
+        raise HTTPException(status_code=500, detail=f"Export failed: {exc}") from exc
+
+    return BriefingExportResponse(
+        filename=result["filename"],
+        content_base64=result["content_base64"],
+        content_type=result["content_type"],
+    )
+
+
 app.include_router(api_router)
 
 
