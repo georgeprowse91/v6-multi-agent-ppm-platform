@@ -8,293 +8,268 @@
 
 ## 1. Natural-Language Portfolio What-If Scenario Engine
 
-**Problem:** The Analytics Dashboard has what-if controls in the UI but they are not wired to the backend (documented as Known Gap #4 in `docs/UI.md`). Portfolio leaders cannot interactively model "what happens if we delay Project X by 3 months?" or "what if we cut this program's budget by 20%?" — the exact kind of question that justifies a premium PPM tool.
+**Current implementation: ~60% complete**
 
-**Enhancement:** Build a conversational what-if engine that lets users describe scenarios in plain English via the Assistant Panel. The system would:
-- Parse the scenario using the Intent Router agent and route to the Portfolio Optimisation and Financial Management agents.
-- Execute Monte Carlo simulations (infrastructure already exists in the Business Case agent at `agents/portfolio-management/business-case-agent/src/business_case_investment_agent.py`) across the affected portfolio.
-- Return side-by-side comparison views (baseline vs. scenario) with impact on NPV, resource utilisation, schedule, and risk scores.
-- Persist named scenarios for board-level comparison.
+| Capability | Status | Detail |
+|---|---|---|
+| Schedule what-if analysis | Done | `schedule_actions/what_if.py` — duration changes, multipliers, cost/resource impact |
+| Portfolio scenario comparison | Done | `portfolio_actions/scenario_actions.py` — budget/capacity/priority multipliers, trade-off identification, DB persistence |
+| Business case scenario analysis | Done | `business_case_actions/roi_actions.py` — Monte Carlo (1000+ iterations), sensitivity analysis, NPV/IRR/payback |
+| Financial variants generation | Done | `financial_actions/forecast_actions.py` — budget deltas/multipliers, CPI/SPI adjustments |
+| Scenario data model | Done | `data/schemas/scenario.schema.json` — baseline reference, deltas array, status lifecycle |
+| Natural-language input layer | Missing | No NLP parser for "what if" queries; users must call agents with structured JSON |
+| Cross-project cascade impact | Missing | Each scenario analysed in isolation; no downstream ripple effect across projects |
+| Web UI what-if controls | Missing | `AnalyticsDashboard.tsx` has placeholder text but no functional controls |
 
-**Key files to extend:**
-- `apps/web/frontend/src/pages/AnalyticsDashboard.tsx` — wire the existing what-if controls
-- `agents/portfolio-management/portfolio-optimisation-agent/` — add scenario comparison action
-- `agents/delivery-management/financial-management-agent/` — add cascade impact calculation
-
-**Customer appeal:** Transforms the platform from a reporting tool into a strategic decision-support system. Directly addresses the CFO persona's "poor forecasting" pain point identified in `docs/platform-commercials.md`.
+**What remains:** Wire the existing backend scenario engines to the UI, add a natural-language front-end via the Intent Router, and implement cross-project financial cascade logic.
 
 ---
 
 ## 2. Predictive Project Health Scoring with Early-Warning Alerts
 
-**Problem:** The System Health agent (`agents/operations-management/system-health-agent/`) monitors infrastructure but does not surface predictive project-level health signals to end users. The platform tracks telemetry and agent costs, but there is no unified "project health score" that aggregates schedule variance, budget burn rate, risk severity, resource contention, and scope creep into a single actionable indicator.
+**Current implementation: ~55% complete**
 
-**Enhancement:** Introduce a composite Project Health Index (PHI) that:
-- Aggregates signals from Schedule Planning, Financial Management, Risk Management, and Resource Management agents.
-- Uses a time-series model to detect deteriorating trends before they become critical (leveraging the existing ML prediction service integration in the Risk Management agent).
-- Pushes early-warning alerts through the Notification Service (`services/notification-service/`) to Slack, Teams, email, and mobile push (infrastructure already in the Stakeholder Communications agent).
-- Displays a traffic-light health badge on every project card, portfolio dashboard, and the mobile app's Dashboard screen.
+| Capability | Status | Detail |
+|---|---|---|
+| System health score calculation | Done | `health_actions/check_health.py` — calculates `(total - unhealthy) / total` |
+| Predictive health forecasting | Done | `apps/analytics-service/src/predictive_models.py` — trend-based prediction with confidence intervals |
+| Predictive dashboard UI | Done | `PredictiveDashboardPage.tsx` — current/predicted scores (30/60/90d), colour-coded badges, risk heatmap, resource bottleneck predictions |
+| Predictive alert notifications | Done | `POST /v1/notifications/predictive-alerts` — severity, rationale, mitigations; feature-flagged; multi-channel delivery |
+| Analytics insights agent prediction | Done | `run_prediction.py` — supports health_score model type |
+| Composite project health index | Missing | Current score is infrastructure-only (healthy services ratio), not a composite of schedule + budget + risk + resource health |
+| ML-based early warning | Missing | Prediction is linear trend extrapolation only; no anomaly detection or ML model |
+| Root cause analysis | Missing | Alerts don't explain why health is declining; mitigations are hardcoded placeholders |
+| Cross-project health correlation | Missing | Each project scored independently; no portfolio-level aggregation or inter-project impact |
 
-**Key files to extend:**
-- `agents/operations-management/analytics-insights-agent/` — add PHI calculation action
-- `services/notification-service/src/` — add alert-rule engine for threshold breaches
-- `apps/mobile/src/screens/DashboardScreen.tsx` — add health badge component
-
-**Customer appeal:** PMO Directors and executives get proactive warnings instead of retrospective reports. Directly addresses the documented success metric of ">40% manual reporting reduction" by surfacing issues automatically.
+**What remains:** Build a composite PHI aggregating signals from multiple agents, replace linear prediction with ML-based anomaly detection, and add root cause explanations to alerts.
 
 ---
 
 ## 3. Searchable Portfolio, Program, and Project Collection Pages
 
-**Problem:** This is documented as Known Gap #1 in `docs/UI.md` and affects capabilities 4, 5, 6, and 7. Currently, `/portfolios`, `/programs`, and `/projects` routes only redirect to a hardcoded fallback or the current selection — there is no way for users to browse, search, or filter their full portfolio of work. For enterprise customers with 500+ active projects, this is a critical navigation gap.
+**Current implementation: ~25% complete**
 
-**Enhancement:** Implement dedicated collection pages with:
-- Full-text search across project names, descriptions, and metadata.
-- Faceted filtering by status, methodology, owner, date range, health score, and custom tags.
-- Sortable table and card views with bulk actions (export, reassign, archive).
-- Saved filter presets per user/role.
-- Deep-link support for bookmarking filtered views.
+| Capability | Status | Detail |
+|---|---|---|
+| Routes defined | Done | `/portfolios`, `/programs`, `/projects` routes wired to `WorkspaceDirectoryPage` |
+| Basic card list UI | Done | `WorkspaceDirectoryPage.tsx` — generic component showing cards with name, owner, status |
+| Client-side search | Done | Simple case-insensitive string matching on ID/name/owner/status |
+| Backend search/filter endpoints | Missing | Data Service has no search endpoints; only basic entity listing with skip/limit |
+| Faceted filtering | Missing | No filtering by status, methodology, owner, date range, health score, or tags |
+| Table/grid view option | Missing | Card layout only; no sortable table view |
+| Saved filter presets | Missing | No persistence of user filter preferences |
+| Bulk actions | Missing | No export, reassign, or archive capabilities |
+| Deep-link support | Missing | No bookmarkable filtered views |
 
-**Key files to create/extend:**
-- `apps/web/frontend/src/pages/` — new `PortfolioListPage.tsx`, `ProgramListPage.tsx`, `ProjectListPage.tsx`
-- `apps/web/frontend/src/App.tsx` — replace `EntityCollectionRedirect` with real pages
-- `services/data-service/src/` — add search/filter query endpoints
-
-**Customer appeal:** Table-stakes for any enterprise PPM tool. Without this, the platform cannot credibly serve organisations with large portfolios. Every competitor (Planview, Smartsheet, Monday.com) offers this.
+**What remains:** Implement backend search/filter query endpoints in the Data Service, add faceted filtering and table view to the UI, and add bulk operations.
 
 ---
 
 ## 4. Agent Marketplace with Custom Agent SDK
 
-**Problem:** The platform has 25 built-in agents but no mechanism for customers or partners to extend the agent ecosystem. The commercial docs (`docs/platform-commercials.md`) already envision "Model D — Agent Marketplace" as a future revenue stream, and the `BaseAgent` abstraction (`agents/runtime/src/base_agent.py`) is well-designed for extension — but no public SDK, packaging format, or marketplace UI exists.
+**Current implementation: ~15% complete**
 
-**Enhancement:** Create a customer-facing Agent Marketplace:
-- Publish a public Agent SDK based on the existing `BaseAgent` class with clear extension points (`validate_input`, `process`, `cleanup`).
-- Define a packaging format (manifest + Docker image + prompt templates + schema declarations) aligned with the existing agent catalog structure.
-- Build a marketplace UI in the web console where administrators can browse, install, configure, and monitor third-party agents.
-- Include a sandbox environment for testing custom agents before production deployment.
-- Revenue model: per-agent activation fees as already outlined in the pricing tiers.
+| Capability | Status | Detail |
+|---|---|---|
+| BaseAgent abstraction | Done | Well-designed abstract class with clear extension points (`validate_input`, `process`, `cleanup`) |
+| Agent configuration system | Done | Config injection, readiness checks, cost tracking, policy evaluation, audit logging |
+| Agent gallery (built-in) | Done | `AgentGallery.tsx` — displays 25 hardcoded agents with enable/disable toggles and parameter config |
+| Agent catalog | Done | `agent_catalog.py` — static tuple of 25 entries; lookup functions |
+| Public SDK package | Missing | No published SDK, no extension documentation |
+| Dynamic agent registration | Missing | Catalog is hardcoded; no `register_agent()` or runtime registration API |
+| Marketplace UI | Missing | No browse/install/configure flow for third-party agents |
+| Packaging format | Missing | No manifest, Docker image, or schema declaration standard for external agents |
+| Sandbox testing | Missing | No isolated environment for testing custom agents |
+| Third-party RBAC | Missing | No permissions model for externally provided agents |
 
-**Key files to extend:**
-- `agents/runtime/src/base_agent.py` — extract public SDK interface
-- `agents/runtime/src/agent_catalog.py` — support dynamic registration
-- `agents/runtime/src/orchestrator.py` — allow dynamically registered agents in task graphs
-
-**Customer appeal:** Creates a network effect and ecosystem moat. Customers can build domain-specific agents (e.g., pharmaceutical regulatory, aerospace compliance) without forking the platform. Partners get a revenue channel.
+**What remains:** Extract a public SDK interface from BaseAgent, add dynamic registration to the catalog and orchestrator, define a packaging format, and build the marketplace UI.
 
 ---
 
 ## 5. Unified Cross-System Search with AI-Powered Summarisation
 
-**Problem:** The platform connects to 40+ external systems through its connector ecosystem, but there is no unified search experience that lets users query across all connected systems simultaneously. A project manager looking for "the latest SAP cost report for Project Alpha" must know which system holds that data and navigate to it directly.
+**Current implementation: ~40% complete**
 
-**Enhancement:** Build a federated search layer that:
-- Accepts natural-language queries via the Header's global search trigger (already present in the UI but limited to local navigation).
-- Fan-out searches across connected systems (Jira, Confluence, SharePoint, SAP, etc.) via the connector SDK's existing HTTP client infrastructure.
-- Uses the LLM Gateway (`packages/llm/src/llm/client.py`) to rank and summarise results, collapsing duplicates using the vector similarity infrastructure already in the Demand Intake agent.
-- Presents results in a unified panel with source attribution, relevance scores, and one-click navigation to the source system.
-- Respects RBAC/ABAC policies so users only see results they are authorised to access.
+| Capability | Status | Detail |
+|---|---|---|
+| Global search page | Done | `GlobalSearch.tsx` — type filtering (documents, projects, knowledge, approvals, workflows), date range, project filter, pagination, highlighted excerpts |
+| Header search integration | Done | `Header.tsx` — Cmd+K shortcut, recent searches (localStorage), quick navigation, inline preview with 300ms debounce |
+| Local document/knowledge search | Done | `search_service.py` — searches documents, lessons, spreadsheet items, projects, approvals, workflows |
+| Backend search endpoint | Done | `GET /api/search?q=...&types=...&project_ids=...&offset=...&limit=...` |
+| Vector store infrastructure | Done | `packages/vector_store/faiss_store.py` — FAISS-based with sharding, TTL, batch search (not wired into search path) |
+| Connector search interface | Missing | `BaseConnector` has no `search()` method; no standard search interface across connectors |
+| Multi-system fan-out | Missing | Search queries only local stores; no parallel invocation of connector searches |
+| LLM-powered ranking/summarisation | Missing | No LLM Gateway integration for relevance scoring or result summarisation |
+| Cross-system deduplication | Missing | Vector store exists but is not integrated into the search pipeline |
+| RBAC/ABAC on search results | Missing | Search filters by tenant_id only; no field-level access policy enforcement |
 
-**Key files to extend:**
-- `connectors/sdk/src/base_connector.py` — add standard `search()` interface method
-- `packages/vector_store/` — extend for cross-system indexing
-- `apps/web/frontend/src/components/layout/Header.tsx` — upgrade global search
-
-**Customer appeal:** Directly addresses the documented pain point that "PMO analysts spend up to 40% of time on manual aggregation across disconnected systems." Makes the platform the single pane of glass that the go-to-market positioning promises.
+**What remains:** Add a standard `search()` method to BaseConnector, build a federated search orchestrator, integrate the vector store for deduplication, and add LLM-powered ranking.
 
 ---
 
 ## 6. Interactive Gantt Chart with AI-Assisted Schedule Optimisation
 
-**Problem:** The methodology workspace supports a `gantt` canvas type (documented in `docs/UI.md` component reference), but the current implementation is a read-only visualisation. Enterprise project managers expect interactive Gantt charts where they can drag tasks, adjust dependencies, and see the critical path recalculate in real time — capabilities that competitors like Microsoft Project and Planview offer natively.
+**Current implementation: ~45% complete**
 
-**Enhancement:** Upgrade the Gantt canvas to a fully interactive experience:
-- Drag-and-drop task rescheduling with automatic dependency cascade.
-- Critical path highlighting and resource-levelling visualisation.
-- AI-assisted optimisation: a "Suggest optimal schedule" button that invokes the Schedule Planning agent to propose resequencing based on resource availability, dependencies, and risk factors.
-- Real-time collaborative editing via the existing Realtime Co-edit Service (`services/realtime-coedit/`).
-- Baseline comparison overlay (planned vs. actual vs. AI-suggested).
+| Capability | Status | Detail |
+|---|---|---|
+| Gantt canvas component | Done | `GanttCanvas.tsx` — tabular CRUD for tasks (name, dates, dependencies, baseline); no visual timeline bars |
+| Timeline canvas with drag-and-drop | Done | `TimelineCanvas.tsx` — visual bars with drag-to-reschedule, milestone detection, gate status |
+| Critical Path Method | Done | `critical_path.py` — calculates early/late start/finish |
+| Resource levelling algorithm | Done | `resource_scheduling.py` — RCPSP with serial schedule generation, resource utilisation metrics |
+| Schedule optimisation recommendations | Done | `optimize.py` — identifies parallelisation, fast-track, crashing opportunities (returns text recommendations only) |
+| Baseline data model | Done | Tasks track `baselineStart`/`baselineEnd` dates |
+| Realtime co-edit infrastructure | Done | WebSocket hub with cursor tracking and content updates (generic, not Gantt-specific) |
+| Unified interactive Gantt | Missing | GanttCanvas (tabular) and TimelineCanvas (visual bars) are separate; neither is a complete interactive Gantt |
+| Dependency cascade on drag | Missing | Dragging a task doesn't recalculate dependent task dates |
+| AI optimisation UI | Missing | No "Suggest optimal schedule" button; recommendations not actionable from UI |
+| Resource levelling visualisation | Missing | Algorithm exists but results not pushed to UI |
+| Gantt-specific collaboration events | Missing | Realtime service uses generic content updates; no task-level event protocol |
+| Baseline comparison overlay | Missing | Data model supports it but no visual overlay implemented |
 
-**Key files to extend:**
-- `apps/web/frontend/src/components/methodology/` — Gantt canvas renderer
-- `agents/delivery-management/schedule-planning-agent/` — add optimisation action
-- `services/realtime-coedit/src/` — add Gantt event types for collaborative editing
-
-**Customer appeal:** Interactive Gantt is a must-have for predictive methodology customers (construction, aerospace, government). Combined with AI optimisation, it leapfrogs traditional tools that offer drag-and-drop but no intelligence.
+**What remains:** Merge GanttCanvas visuals with TimelineCanvas drag logic, add dependency cascade, build AI optimisation UI flow, and add Gantt-specific realtime event types.
 
 ---
 
 ## 7. Executive AI Briefing Generator
 
-**Problem:** The platform collects rich data across portfolios, programmes, and projects but does not offer a one-click executive summary. Executives and board members — a key buyer persona — want concise, actionable briefings, not dashboards they must interpret themselves. The templates directory (`docs/templates/Executive-Report-Templates.md`) defines report formats, but no automated generation pipeline exists.
+**Current implementation: ~65% complete**
 
-**Enhancement:** Build an AI-powered briefing generator that:
-- Collects data from all relevant agents (Analytics Insights, Financial Management, Risk Management, Resource Management, Stakeholder Communications).
-- Uses the LLM Gateway to generate a structured executive briefing covering: portfolio health summary, top 5 risks, budget variance highlights, resource bottlenecks, and recommended actions.
-- Supports configurable frequency (weekly, fortnightly, monthly) and delivery channels (email, PDF, Teams/Slack post).
-- Allows executives to ask follow-up questions via the Assistant Panel ("Why is Project X flagged red?").
-- Produces branded, exportable PDF/PowerPoint reports using the executive report templates.
+| Capability | Status | Detail |
+|---|---|---|
+| Briefing page UI | Done | `ExecutiveBriefingPage.tsx` — audience selector (board/c-suite/PMO/delivery), tone, section checkboxes, format, generate/copy/regenerate, live preview, history |
+| Backend generation API | Done | `POST /api/briefings/generate` — LLM-powered with audience-specific system prompts, section parsing, request validation |
+| Briefing history | Done | `GET /api/briefings/history` — retrieves last 20 briefings |
+| Unit tests | Done | Full test coverage for all audience types, section combinations, metadata formatting |
+| Executive report templates | Done | `docs/templates/Executive-Report-Templates.md` — formal status report structure |
+| Multi-channel notification delivery | Done | Notification Service supports Teams, Slack, Email, ACS (text/template rendering) |
+| Cross-agent data aggregation | Missing | Briefing uses portfolio data passed to LLM but does not aggregate from Financial, Risk, Resource, Analytics agents |
+| Scheduled delivery | Missing | No periodic delivery (weekly/fortnightly/monthly); Stakeholder Communications agent has scheduling capability but briefings are not connected to it |
+| PDF/PPTX export | Missing | No rich-format document generation; notification service only supports text/template rendering |
+| Template rendering engine | Missing | Document Service handles encryption/DLP only; no report template rendering to branded PDF/PowerPoint |
 
-**Key files to extend:**
-- `agents/operations-management/analytics-insights-agent/` — add briefing generation action
-- `agents/operations-management/stakeholder-communications-agent/` — add scheduled delivery
-- `services/notification-service/` — add rich-format delivery (PDF, PPTX attachments)
-- `apps/document-service/` — add report template rendering
-
-**Customer appeal:** Eliminates hours of manual report preparation. Directly addresses the PMO Director persona's pain point and the documented goal of "near-real-time dashboards." Provides a clear, tangible ROI that customers can calculate immediately.
+**What remains:** Connect briefing generation to cross-agent data aggregation, integrate scheduled delivery via the Stakeholder Communications agent, and add PDF/PPTX rendering capability.
 
 ---
 
 ## 8. Intelligent Resource Capacity Planning with Skill Matching
 
-**Problem:** The Resource Management agent handles allocation and utilisation tracking, but the platform lacks forward-looking capacity planning with skill-based matching. Enterprise customers with hundreds of resources need to answer "Do we have enough cloud architects to staff next quarter's programmes?" — not just "Who is allocated where today?"
+**Current implementation: ~75% complete**
 
-**Enhancement:** Build a capacity planning module that:
-- Maintains a skills taxonomy and resource skill profiles (extending the `resource` schema in `data/schemas/`).
-- Projects future demand by aggregating planned work from all active and pipeline projects.
-- Identifies capacity gaps by skill, role, location, and time period.
-- Recommends actions: internal reallocation, training investment, or contractor hiring — using the LLM Gateway for natural-language justifications.
-- Integrates with HR connectors (Workday, SAP SuccessFactors, ADP) already in the connector ecosystem to pull real-time headcount and skill data.
-- Visualises supply vs. demand curves with drill-down by skill category.
+| Capability | Status | Detail |
+|---|---|---|
+| Capacity planning engine | Done | `resource_capacity_agent.py` — `plan_capacity`, `forecast_capacity`, `scenario_analysis` actions with gap identification and mitigation strategies |
+| Skill matching engine | Done | Weighted scoring (skills 0.6, availability 0.2, cost 0.1, performance 0.1), configurable threshold (0.70), Azure Search + embedding integration |
+| ML-based forecasting | Done | Azure ML integration with AutoML, TimeSeriesForecaster, Synapse analytics |
+| Hiring/training recommendations | Done | Plan includes hiring, training, and reallocation recommendations |
+| LMS integration | Done | Training client for Moodle and Coursera Business with skill development tracking |
+| Resource schema | Partial | `data/schemas/resource.schema.json` has `skills` (array of strings), `capacity_hours_per_week`, `allocation_pct`, `availability_pct` — but no structured taxonomy |
+| HR connector sync | Partial | Workday syncs workers/positions; SAP SuccessFactors syncs users/jobs — neither syncs skill profiles |
+| Skills taxonomy | Missing | No structured skill categories, levels, or standard framework (ESCO, SFIA, O*NET); skills are free-text only |
+| HR skill data sync | Missing | No implementation to extract skills from HRIS systems and populate resource records |
+| Portfolio-level demand aggregation | Missing | Forecast works per-project; no roll-up of planned demand by skill/role across the portfolio |
+| Supply vs demand visualisation | Missing | No frontend for capacity curves or supply/demand graphs with drill-down by skill |
 
-**Key files to extend:**
-- `agents/delivery-management/resource-management-agent/` — add capacity planning actions
-- `data/schemas/resource.json` — extend with skills taxonomy
-- `connectors/workday/`, `connectors/sap_successfactors/` — add skill data sync
-
-**Customer appeal:** Resource capacity planning is consistently ranked as a top PPM challenge by analysts. Combining it with AI-driven skill matching creates a differentiated offering that addresses the CIO's desire to "increase ROI on current tools."
+**What remains:** Define a structured skills taxonomy, implement skill data sync from HR connectors, add portfolio-level demand aggregation, and build a capacity planning dashboard.
 
 ---
 
 ## 9. End-to-End Intake-to-Project Automation with Guided Setup
 
-**Problem:** Known Gap #2 in `docs/UI.md`: the intake creation flow routes to a status page, but the SPA does not automatically route users to a newly created project workspace when approval completes. The Demand Intake agent classifies and validates requests, and the Approval Workflow agent manages gates, but the handoff between "approved demand" and "active project" is a manual step.
+**Current implementation: ~45% complete**
 
-**Enhancement:** Close the intake-to-project lifecycle with a two-phase approach:
+| Capability | Status | Detail |
+|---|---|---|
+| Intake form UI | Done | `IntakeFormPage.tsx` — multi-step form (sponsor, business, success, attachments), submits to `/api/intake` |
+| Intake status page | Done | `IntakeStatusPage.tsx` — shows pending/approved/rejected status with sponsor, reviewers, decision card |
+| Approval workflow agent | Done | Full approval chain orchestration with role-based routing, multi-level chains, delegation, escalation, event publishing |
+| Workspace Setup agent | Done | `initialise_workspace`, `select_methodology`, `validate_connectors`, `provision_external_workspace`, event emission |
+| Project Setup Wizard page | Done | `ProjectSetupWizardPage.tsx` — 4-step wizard (profile, methodology recommendation, template selection, configure & launch) |
+| Intake workflow definition | Done | `project-intake.workflow.yaml` — submit → strategic alignment → PMO triage → notify |
+| Post-approval project creation | Missing | No hook in approval agent to auto-create a project entity when intake is approved |
+| Approval-to-setup routing | Missing | `IntakeStatusPage.tsx` shows decision status but has no "Create Project" button or redirect to `ProjectSetupWizardPage` |
+| Linked workflow | Missing | Intake workflow terminates at `notify_requester`; no `create_project` or `provision_workspace` step |
+| Connector toggle in setup wizard | Missing | Setup wizard recommends methodology and templates but has no connector category browser with per-project toggle |
+| Team member assignment in wizard | Missing | No team/role assignment step in the existing setup wizard |
 
-### Phase 1 — Automatic project instance creation (on intake approval)
-
-When an intake request is approved, the platform automatically:
-- Creates a canonical project entity in the Data Service, pre-populated with metadata from the intake form and business case (name, sponsor, category, budget envelope, target dates, regulatory category).
-- Sets the project status to `initiated`.
-- Sends a real-time notification (via the existing WebSocket channel in `useRealtimeConsole`) deep-linking the creator and sponsor to the new project's setup wizard.
-- Records the intake-to-project transition in the audit trail for governance traceability.
-
-The project instance exists immediately so nothing falls through the cracks after approval, but it is not yet configured — that is a deliberate user-driven step.
-
-### Phase 2 — User-driven project setup (via the setup wizard)
-
-The user lands on the `ProjectSetupWizardPage` and completes configuration:
-
-1. **Select methodology** — choose from the three organisationally tailored methodologies (predictive, adaptive, or hybrid) defined during platform deployment (see Enhancement #11).
-2. **Toggle connectors** — browse the connector registry by category (PM, ERP, GRC, HR, Collaboration, etc.) and enable the specific connectors relevant to this project (e.g. Jira from PM, SAP from ERP, Slack from Collaboration).
-3. **Assign team members and roles** — specify the PM, team members, and stakeholders with their project-level RBAC roles.
-
-### Phase 3 — Automated workspace scaffolding (on setup confirmation)
-
-Once the user confirms their choices, the Workspace Setup agent executes:
-- **Scaffold the methodology map** — instantiate the selected organisational methodology's activity tree with the correct phases, stages, gates, and templates.
-- **Provision toggled connectors** — create sync jobs in the Data Sync Service and authenticate against the external systems the user selected.
-- **Configure RBAC** — apply project-level role assignments and field-level access rules from `config/rbac/field-level.yaml` for the assigned team members.
-- **Activate real-time channels** — register the project's WebSocket channels in the Realtime Co-edit Service for collaborative editing.
-
-Artefacts such as the project charter, risk register, and stakeholder map remain user-initiated — the PM creates them when ready, optionally using the AI assistant for drafting help.
-
-**Key files to extend:**
-- `agents/core-orchestration/approval-workflow-agent/` — add post-approval project creation hook
-- `agents/core-orchestration/workspace-setup-agent/` — add user-configuration-driven setup
-- `apps/web/frontend/src/pages/IntakeFormPage.tsx` — add redirect on approval event
-- `apps/web/frontend/src/pages/ProjectSetupWizardPage.tsx` — embed methodology selection and connector toggle UI
-
-**Customer appeal:** Reduces project setup time from days to minutes while keeping the PM in control of configuration decisions. Demonstrates the platform's end-to-end orchestration capability in a way that is immediately visible and impressive during sales demos.
+**What remains:** Add a post-approval hook to create the project entity, link the intake status page to the setup wizard on approval, extend the setup wizard with connector toggle and team assignment steps, and add a `create_project` step to the intake workflow.
 
 ---
 
 ## 10. Mobile-First Approval and Status Update Experience
 
-**Problem:** The mobile app (`apps/mobile/`) has screens for approvals, status updates, dashboards, and an AI assistant, but the experience is basic compared to the web SPA. For executives and project managers on the go, mobile is often the primary interaction channel. The current mobile app has an `ApprovalsScreen`, `StatusUpdatesScreen`, and `AssistantScreen`, but lacks offline support, push notification deep-linking, and the rich methodology-aware context that the web console provides.
+**Current implementation: ~35% complete**
 
-**Enhancement:** Upgrade the mobile experience to be a first-class client:
-- Offline-first architecture: queue approvals and status updates locally (infrastructure exists in `services/statusQueue.ts`) and sync when connectivity returns.
-- Push notification deep-linking: tap a notification to land directly on the relevant approval, project, or risk item (notification service already exists at `apps/mobile/src/services/notifications.ts`).
-- Quick-action approval cards: swipe-to-approve/reject with one-tap confirmation for common gate approvals.
-- Voice-to-status: use device speech recognition to dictate status updates that the AI assistant transcribes and routes to the correct project.
-- Biometric authentication for sensitive approvals (extending the existing `secureSession.ts`).
-- Rich dashboard widgets with the same health badges and trend sparklines as the web console.
+| Capability | Status | Detail |
+|---|---|---|
+| Approvals screen | Done | `ApprovalsScreen.tsx` — FlatList with approve/reject buttons, pull-to-refresh |
+| Status update queue | Done | `statusQueue.ts` — offline persistence via SecureStore with enqueue/replay/clear (status updates only, not approvals) |
+| Deep-link URL scheme | Partial | `notifications.ts` — `extractApprovalDeepLink()` generates `ppm://approvals/{id}`, `subscribeToApprovalDeepLinks()` listener; but `registerForApprovalNotifications()` is a stub |
+| Secure session | Done | `secureSession.ts` — token persistence via SecureStore with restore/persist/clear |
+| Dashboard | Done | `DashboardScreen.tsx` — portfolio summary, health status, risks, blockers, KPIs (plain text only) |
+| AI assistant chat | Done | `AssistantScreen.tsx` — text-based chat with message history |
+| Swipe-to-approve gestures | Missing | No gesture handler imports; approvals use standard Pressable buttons only |
+| Offline approval queue | Missing | `statusQueue.ts` handles status updates only; no offline buffering for approve/reject actions |
+| Biometric authentication | Missing | No `react-native-biometrics` or platform biometric API integration |
+| Health badges and sparklines | Missing | Dashboard renders health as plain text; no charting library integrated |
+| Voice-to-status | Missing | No speech recognition or voice input in AssistantScreen; text input only |
+| Native push notifications | Missing | Notification registration is a stub (`Promise.resolve()`); no FCM/APNs setup |
 
-**Key files to extend:**
-- `apps/mobile/src/screens/ApprovalsScreen.tsx` — add swipe gestures and offline queue
-- `apps/mobile/src/services/notifications.ts` — add deep-link routing
-- `apps/mobile/src/services/statusQueue.ts` — add offline persistence
-- `apps/mobile/src/screens/DashboardScreen.tsx` — add health badge widgets
-
-**Customer appeal:** Executives approve budgets and review risks from their phone. This is a competitive differentiator against traditional PPM tools that are desktop-only. The "voice-to-status" feature is a showstopper for demos and directly leverages the platform's AI-native positioning.
+**What remains:** Add swipe gesture handling, implement offline approval queue, integrate biometric auth, add charting library for health badges/sparklines, and add voice input capability.
 
 ---
 
 ## 11. Organisational Methodology Tailoring
 
-**Problem:** The platform ships with three default methodology templates (predictive, adaptive, hybrid) defined in `docs/methodology/`. However, every enterprise has its own phase names, stage gates, approval requirements, and activity structures. A financial services firm's predictive methodology will have different phases and gate criteria than a defence contractor's. Without the ability to tailor these templates to organisational standards, customers must either work with generic defaults or request custom development.
+**Current implementation: ~60% complete**
 
-**Enhancement:** Provide a methodology tailoring capability as part of platform deployment:
+| Capability | Status | Detail |
+|---|---|---|
+| Methodology Editor UI | Done | `MethodologyEditor.tsx` — edit stages (add/remove/reorder), activities (with prerequisites, categories), gates and gate criteria; permission-gated on `methodology.edit` |
+| Methodology Engine (Python) | Done | `methodology_engine.py` — built-in templates (Waterfall, Agile, PRINCE2, SAFe, Hybrid, Lean, Kanban), runtime `register_template()`, `recommend_methodology()` |
+| Editor API routes | Done | `GET/POST /api/methodology/editor` — load and save customised definitions |
+| Runtime lifecycle actions | Done | Generate, review, approve, publish actions with approval workflow; SoR read/publish endpoints |
+| Methodology map discovery | Done | Auto-discovery from `docs/methodology/*/map.yaml`; override support via `METHODOLOGY_STORAGE_PATH` |
+| Methodology workspace components | Done | `MethodologyWorkspaceSurface`, `MethodologyMapCanvas`, `MethodologyNav`, `ActivityDetailPanel` — activity locking, prerequisite enforcement, review queues |
+| Methodology persistence | Partial | Stored in flat JSON file (`apps/web/storage/methodologies.json`); not integrated with Data Service |
+| Tenant-level storage isolation | Missing | Storage is global; no per-tenant scoping of customised methodologies |
+| Tenant-level policy enforcement | Missing | No org-level methodology restrictions (e.g. "this tenant only uses Hybrid and Adaptive") |
+| Canonical schema and versioning | Missing | No JSON Schema in `data/schemas/` for methodology definitions; no Alembic migration |
+| Data Service integration | Missing | Methodologies not persisted in the canonical data layer |
+| Organisation settings UI | Missing | No admin page to configure allowed methodologies, org-level defaults, or department-specific policies |
+| Change impact analysis | Missing | No detection of which active workspaces use a methodology being edited |
+| Methodology version history | Missing | Audit events logged but not tied to methodology versions |
 
-### What the PMO admin can customise
-
-Using the existing `MethodologyEditor` page (already in the SPA at `/ops/config/methodologies`), the customer's PMO admin tailors each of the three methodology templates to match organisational standards:
-- **Phases and stages** — rename, add, remove, or reorder phases and stages within each methodology.
-- **Stage gate criteria** — define the gate conditions that must be met before progressing (e.g. required approvals, artefact completions, quality thresholds).
-- **Prerequisite dependencies** — specify which activities must complete before others can begin.
-- **Approval requirements** — configure which roles must approve at each gate and the escalation rules.
-- **Templates and artefacts** — associate organisational document templates with each phase (e.g. the company's standard project charter template at initiation, their risk register format at planning).
-
-### How it works
-
-- Tailored methodologies are stored as tenant-level definitions in the Data Service, separate from the platform defaults.
-- Each tenant gets its own set of three methodology templates that all projects within that organisation select from.
-- The platform defaults serve as a starting point — customers can modify them incrementally rather than building from scratch.
-- Validation rules prevent broken configurations (e.g. circular dependencies, gates referencing non-existent phases).
-- Changes to methodology templates do not retroactively alter in-flight projects — only new projects pick up the latest version.
-
-### When it happens
-
-This is a **deployment-time activity**, not a per-project decision. It typically occurs during the implementation engagement (documented in `docs/platform-commercials.md` as the "Discovery and blueprinting" service) and is maintained by PMO admins thereafter.
-
-**Key files to extend:**
-- `apps/web/frontend/src/pages/MethodologyEditor.tsx` — enhance with full CRUD for phases, gates, dependencies, and template associations
-- `services/data-service/src/` — persist tenant-level methodology definitions with versioning
-- `packages/methodology-engine/` — add validation rules for methodology structure integrity
-- `docs/methodology/` — document the tailoring workflow and provide examples
-
-**Customer appeal:** Methodology alignment is a make-or-break requirement for enterprise PMO adoption. Customers will not use a platform whose methodology does not match their governance framework. This capability turns a potential objection ("it doesn't match how we work") into a selling point ("it adapts to exactly how you work"). It also creates implementation services revenue during deployment.
+**What remains:** Migrate methodology storage to the Data Service with tenant scoping, add a canonical schema with versioning, build an organisation settings admin page, and implement change impact analysis.
 
 ---
 
 ## Summary Matrix
 
-| # | Enhancement | Primary Persona | Effort | Impact | Revenue Lever |
-|---|------------|----------------|--------|--------|---------------|
-| 1 | What-If Scenario Engine | CFO, PMO Director | Medium | High | Upsell to Enterprise tier |
-| 2 | Predictive Health Scoring | PMO Director, PM | Medium | High | Core value prop |
-| 3 | Collection Search Pages | All users | Low | Critical | Table stakes |
-| 4 | Agent Marketplace | CIO, Partners | High | Very High | New revenue stream |
-| 5 | Cross-System Search | PM, PMO Analyst | Medium | High | Orchestration differentiator |
-| 6 | Interactive Gantt + AI | PM, Scheduler | High | High | Win predictive-methodology deals |
-| 7 | Executive Briefing Generator | C-suite, PMO Director | Medium | Very High | Premium feature |
-| 8 | AI Capacity Planning | CIO, Resource Manager | Medium | High | Enterprise upsell |
-| 9 | Intake-to-Project Automation | PM, PMO Director | Low-Medium | High | Demo showpiece |
-| 10 | Mobile-First Experience | Executives, PM | Medium | High | Competitive differentiator |
-| 11 | Organisational Methodology Tailoring | PMO Admin, CIO | Medium | Critical | Deployment prerequisite + services revenue |
+| # | Enhancement | Current Status | Primary Persona | Remaining Effort | Impact | Revenue Lever |
+|---|------------|---------------|----------------|-----------------|--------|---------------|
+| 1 | What-If Scenario Engine | ~60% — backend engines done, UI and NLP missing | CFO, PMO Director | Medium | High | Upsell to Enterprise tier |
+| 2 | Predictive Health Scoring | ~55% — dashboard and alerts done, composite index and ML missing | PMO Director, PM | Medium | High | Core value prop |
+| 3 | Collection Search Pages | ~25% — basic card list done, backend search and filtering missing | All users | Low-Medium | Critical | Table stakes |
+| 4 | Agent Marketplace | ~15% — BaseAgent abstraction done, everything else missing | CIO, Partners | High | Very High | New revenue stream |
+| 5 | Cross-System Search | ~40% — local search UI done, federated connector search missing | PM, PMO Analyst | Medium | High | Orchestration differentiator |
+| 6 | Interactive Gantt + AI | ~45% — components and algorithms exist separately, unification missing | PM, Scheduler | Medium-High | High | Win predictive-methodology deals |
+| 7 | Executive Briefing Generator | ~65% — generation UI and API done, scheduled delivery and PDF export missing | C-suite, PMO Director | Low-Medium | Very High | Premium feature |
+| 8 | AI Capacity Planning | ~75% — planning and matching engines done, taxonomy and HR sync missing | CIO, Resource Manager | Low-Medium | High | Enterprise upsell |
+| 9 | Intake-to-Project Automation | ~45% — individual pieces exist, end-to-end linking missing | PM, PMO Director | Low-Medium | High | Demo showpiece |
+| 10 | Mobile-First Experience | ~35% — basic screens done, advanced UX features missing | Executives, PM | Medium | High | Competitive differentiator |
+| 11 | Methodology Tailoring | ~60% — editor and engine done, tenant isolation and Data Service integration missing | PMO Admin, CIO | Medium | Critical | Deployment prerequisite + services revenue |
 
 ### Recommended Priority Order
 
-1. **#11 Organisational Methodology Tailoring** — Deployment prerequisite; customers won't adopt without methodology alignment
-2. **#3 Collection Search Pages** — Low effort, blocks basic usability at scale
-3. **#9 Intake-to-Project Automation** — Closes a documented gap, high demo impact (depends on #11)
-4. **#2 Predictive Health Scoring** — Core AI value proposition
-5. **#7 Executive Briefing Generator** — Immediate ROI for buyer personas
-6. **#1 What-If Scenario Engine** — Strategic decision support
-7. **#5 Cross-System Search** — Fulfils the "single pane of glass" promise
-8. **#10 Mobile-First Experience** — Competitive differentiator
-9. **#8 AI Capacity Planning** — Enterprise upsell
-10. **#6 Interactive Gantt + AI** — Wins predictive-methodology deals
-11. **#4 Agent Marketplace** — Highest long-term value, highest effort
+1. **#11 Organisational Methodology Tailoring** — Deployment prerequisite; editor functional but needs tenant isolation
+2. **#3 Collection Search Pages** — Table stakes; basic UI exists but backend search missing
+3. **#9 Intake-to-Project Automation** — Individual pieces exist; needs end-to-end linking (depends on #11)
+4. **#7 Executive Briefing Generator** — Generation MVP works; needs scheduled delivery and export
+5. **#8 AI Capacity Planning** — Engine is mature; needs taxonomy and visualisation
+6. **#2 Predictive Health Scoring** — Dashboard exists; needs composite index and ML upgrade
+7. **#1 What-If Scenario Engine** — Backend engines complete; needs UI wiring and NLP layer
+8. **#5 Cross-System Search** — Local search works well; federated layer is a new build
+9. **#6 Interactive Gantt + AI** — Strong components exist; unification effort
+10. **#10 Mobile-First Experience** — Basic app works; advanced UX is incremental
+11. **#4 Agent Marketplace** — Highest long-term value, mostly greenfield
