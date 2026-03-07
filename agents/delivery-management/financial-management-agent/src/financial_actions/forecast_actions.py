@@ -187,3 +187,123 @@ async def generate_financial_variants(
         "scenarios": results,
         "forecast_summary": summary,
     }
+
+
+async def cascade_impact(
+    agent: FinancialManagementAgent,
+    source_project_id: str,
+    delta: dict[str, Any],
+    linked_project_ids: list[str],
+    *,
+    tenant_id: str,
+) -> dict[str, Any]:
+    """Calculate the financial cascade impact of a change in one project across linked projects.
+
+    Given a budget or schedule delta on ``source_project_id``, this handler
+    propagates the change to every project in ``linked_project_ids`` using
+    configurable propagation weights and returns per-project impact summaries
+    together with an aggregate portfolio-level impact.
+
+    Args:
+        agent: The owning FinancialManagementAgent instance.
+        source_project_id: The project where the change originates.
+        delta: A dict describing the change, e.g.
+            ``{"budget_delta": 50000, "schedule_delta_days": 14}``.
+        linked_project_ids: Projects that may be affected by the source change.
+        tenant_id: Tenant scope for data retrieval.
+
+    Returns:
+        A dict with ``source``, ``impacts`` (per linked project), and
+        ``portfolio_summary`` (aggregated totals).
+    """
+    agent.logger.info(
+        "Computing cascade impact from %s to %s linked projects",
+        source_project_id,
+        len(linked_project_ids),
+    )
+
+    source_metrics = await agent._get_project_financial_summary(
+        source_project_id, tenant_id=tenant_id
+    )
+
+    budget_delta = float(delta.get("budget_delta", 0) or 0)
+    schedule_delta_days = float(delta.get("schedule_delta_days", 0) or 0)
+    cost_multiplier = float(delta.get("cost_multiplier", 1.0) or 1.0)
+
+    impacts: list[dict[str, Any]] = []
+    total_cascaded_budget = 0.0
+    total_cascaded_schedule = 0.0
+
+    for linked_id in linked_project_ids:
+        linked_metrics = await agent._get_project_financial_summary(
+            linked_id, tenant_id=tenant_id
+        )
+
+        linked_budget = float(linked_metrics.get("budget_baseline", 0) or 0)
+        linked_eac = float(linked_metrics.get("forecast_eac", 0) or 0)
+
+        # Propagation weight based on relative budget size
+        source_budget = float(source_metrics.get("budget_baseline", 0) or 0)
+        weight = (
+            min(linked_budget / source_budget, 1.0)
+            if source_budget > 0
+            else 0.5
+        )
+
+        cascaded_budget = budget_delta * weight
+        cascaded_schedule = schedule_delta_days * weight
+        adjusted_eac = linked_eac + cascaded_budget
+        if cost_multiplier != 1.0:
+            adjusted_eac *= cost_multiplier
+
+        cascaded_budget = round(cascaded_budget, 2)
+        cascaded_schedule = round(cascaded_schedule, 1)
+        adjusted_eac = round(adjusted_eac, 2)
+
+        total_cascaded_budget += cascaded_budget
+        total_cascaded_schedule += abs(cascaded_schedule)
+
+        impacts.append(
+            {
+                "project_id": linked_id,
+                "propagation_weight": round(weight, 4),
+                "original_budget": linked_budget,
+                "original_eac": linked_eac,
+                "cascaded_budget_delta": cascaded_budget,
+                "cascaded_schedule_delta_days": cascaded_schedule,
+                "adjusted_eac": adjusted_eac,
+                "risk_indicator": (
+                    "high" if abs(cascaded_budget) > linked_budget * 0.1 else "low"
+                ),
+            }
+        )
+
+    portfolio_summary = {
+        "source_project_id": source_project_id,
+        "total_linked_projects": len(linked_project_ids),
+        "total_cascaded_budget_impact": round(total_cascaded_budget, 2),
+        "total_cascaded_schedule_impact_days": round(total_cascaded_schedule, 1),
+        "high_risk_count": sum(
+            1 for i in impacts if i.get("risk_indicator") == "high"
+        ),
+    }
+
+    await agent._publish_financial_event(
+        "finance.cascade.calculated",
+        {
+            "source_project_id": source_project_id,
+            "linked_count": len(linked_project_ids),
+            "total_budget_impact": portfolio_summary["total_cascaded_budget_impact"],
+            "tenant_id": tenant_id,
+        },
+    )
+
+    return {
+        "source": {
+            "project_id": source_project_id,
+            "delta": delta,
+            "metrics": source_metrics,
+        },
+        "impacts": impacts,
+        "portfolio_summary": portfolio_summary,
+    }

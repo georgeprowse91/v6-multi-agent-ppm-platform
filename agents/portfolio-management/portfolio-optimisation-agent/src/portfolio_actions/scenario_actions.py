@@ -198,3 +198,137 @@ async def get_scenario(
 async def list_scenarios(agent: PortfolioStrategyAgent) -> dict[str, Any]:
     """Return all stored scenario definitions."""
     return {"scenarios": list(agent.scenario_definitions.values())}
+
+
+# ---------------------------------------------------------------------------
+# Scenario template presets
+# ---------------------------------------------------------------------------
+
+SCENARIO_TEMPLATES: dict[str, dict[str, Any]] = {
+    "cost_reduction": {
+        "name": "Cost Reduction (-15%)",
+        "description": "Simulate a 15% across-the-board cost reduction programme.",
+        "budget_multiplier": 0.85,
+        "capacity_multiplier": 1.0,
+        "priority_shift": {"roi": 1.3, "strategic_alignment": 0.9},
+        "parameter_multipliers": {"cost": 0.85},
+        "risk_appetite": 0.5,
+        "optimization_method": "integer_programming",
+    },
+    "aggressive_growth": {
+        "name": "Aggressive Growth (+30% budget)",
+        "description": "Model the impact of increasing portfolio investment by 30%.",
+        "budget_multiplier": 1.3,
+        "capacity_multiplier": 1.15,
+        "priority_shift": {"strategic_alignment": 1.4, "roi": 1.0},
+        "parameter_multipliers": {"cost": 1.0},
+        "risk_appetite": 0.7,
+        "optimization_method": "integer_programming",
+    },
+    "risk_averse": {
+        "name": "Risk-Averse Portfolio",
+        "description": "Minimise portfolio risk by filtering high-risk projects and favouring proven approaches.",
+        "budget_multiplier": 1.0,
+        "capacity_multiplier": 1.0,
+        "priority_shift": {"risk": 1.8, "roi": 0.8, "compliance": 1.3},
+        "parameter_multipliers": {},
+        "risk_appetite": 0.3,
+        "risk_aversion": 0.8,
+        "optimization_method": "mean_variance",
+    },
+    "innovation_focused": {
+        "name": "Innovation-Focused Rebalance",
+        "description": "Shift portfolio mix toward innovation and R&D at the expense of BAU.",
+        "budget_multiplier": 1.1,
+        "capacity_multiplier": 1.05,
+        "priority_shift": {"strategic_alignment": 1.5, "compliance": 0.7},
+        "parameter_multipliers": {"projections": {"innovation_score": 1.3}},
+        "risk_appetite": 0.65,
+        "optimization_method": "multi_objective",
+        "objective_weights": {"value": 0.25, "alignment": 0.4, "roi": 0.15, "risk": 0.2},
+    },
+    "headcount_freeze": {
+        "name": "Headcount Freeze",
+        "description": "Model portfolio impact when resource capacity is frozen at current levels.",
+        "budget_multiplier": 1.0,
+        "capacity_multiplier": 0.85,
+        "priority_shift": {"resource_feasibility": 1.5},
+        "parameter_multipliers": {},
+        "risk_appetite": 0.5,
+        "optimization_method": "integer_programming",
+    },
+    "regulatory_compliance": {
+        "name": "Compliance-First",
+        "description": "Prioritise regulatory and compliance projects above all discretionary spend.",
+        "budget_multiplier": 1.0,
+        "capacity_multiplier": 1.0,
+        "priority_shift": {"compliance": 2.0, "roi": 0.6, "strategic_alignment": 0.8},
+        "parameter_multipliers": {},
+        "risk_appetite": 0.4,
+        "min_compliance_spend": 200000,
+        "optimization_method": "integer_programming",
+    },
+}
+
+
+async def list_scenario_templates(
+    agent: PortfolioStrategyAgent,
+) -> dict[str, Any]:
+    """Return the catalogue of pre-built scenario templates.
+
+    Each template contains ready-to-use parameters that can be passed
+    directly to ``run_scenario_analysis`` or customised by the user first.
+    """
+    templates = []
+    for template_id, template in SCENARIO_TEMPLATES.items():
+        templates.append(
+            {
+                "template_id": template_id,
+                "name": template["name"],
+                "description": template["description"],
+                **{k: v for k, v in template.items() if k not in ("name", "description")},
+            }
+        )
+    return {"templates": templates}
+
+
+async def create_scenario_from_template(
+    agent: PortfolioStrategyAgent,
+    template_id: str,
+    overrides: dict[str, Any] | None = None,
+    *,
+    tenant_id: str,
+    correlation_id: str,
+) -> dict[str, Any]:
+    """Instantiate a scenario from a preset template, optionally applying overrides.
+
+    Args:
+        agent: The owning PortfolioStrategyAgent instance.
+        template_id: One of the keys in ``SCENARIO_TEMPLATES``.
+        overrides: Optional dict of parameter overrides to merge on top of the
+            template defaults (e.g. ``{"budget_multiplier": 0.9}``).
+        tenant_id: Tenant scope.
+        correlation_id: Request correlation ID.
+
+    Returns:
+        The created scenario definition.
+    """
+    if template_id not in SCENARIO_TEMPLATES:
+        available = ", ".join(sorted(SCENARIO_TEMPLATES))
+        raise ValueError(
+            f"Unknown template: {template_id}. Available templates: {available}"
+        )
+
+    template = dict(SCENARIO_TEMPLATES[template_id])
+    if overrides:
+        template.update(overrides)
+
+    scenario_id = f"template-{template_id}-{uuid.uuid4().hex[:8]}"
+    scenario = {"id": scenario_id, **template}
+
+    return await upsert_scenario(
+        agent,
+        scenario,
+        tenant_id=tenant_id,
+        correlation_id=correlation_id,
+    )
