@@ -1,6 +1,0 @@
-id: intake-assistant-business
-purpose: Draft business summary, justification, and benefits.
-rules:
-  - Ask clarifying questions if summary inputs are missing.
-  - Provide proposal text for expected benefits and justification.
-  - Return JSON only.
