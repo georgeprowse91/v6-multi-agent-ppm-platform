@@ -640,6 +640,155 @@ async def send_predictive_alert(
     )
 
 
+# ---------------------------------------------------------------------------
+# Briefing delivery with attachment support
+# ---------------------------------------------------------------------------
+
+
+class BriefingAttachment(BaseModel):
+    filename: str
+    content_base64: str
+    content_type: str = "application/pdf"
+
+
+class BriefingDeliveryRequest(BaseModel):
+    briefing_id: str
+    title: str
+    content: str
+    audience: str = "c_suite"
+    recipients: list[str] = Field(default_factory=list)
+    channels: list[str] = Field(default_factory=lambda: ["email"])
+    attachment: BriefingAttachment | None = None
+
+
+class BriefingDeliveryResult(BaseModel):
+    recipient: str
+    channel: str
+    status: str
+    delivery_id: str
+
+
+class BriefingDeliveryResponse(BaseModel):
+    briefing_id: str
+    status: str
+    deliveries: list[BriefingDeliveryResult]
+
+
+def _render_briefing_notification(
+    title: str, content: str, audience: str, recipient: str
+) -> str:
+    """Render a briefing notification message for delivery."""
+    audience_labels = {
+        "board": "Board of Directors",
+        "c_suite": "C-Suite Executive",
+        "pmo": "PMO Leadership",
+        "delivery_team": "Delivery Team",
+    }
+    audience_label = audience_labels.get(audience, "Executive")
+
+    # Truncate long content for chat channels, keep full for email
+    preview = content[:2000] + "..." if len(content) > 2000 else content
+
+    lines = [
+        f"Executive Briefing: {title}",
+        f"Audience: {audience_label}",
+        f"Delivered to: {recipient}",
+        "",
+        preview,
+    ]
+    return "\n".join(lines)
+
+
+@api_router.post(
+    "/notifications/briefing-delivery",
+    response_model=BriefingDeliveryResponse,
+)
+@limiter.limit(RATE_LIMIT)
+async def deliver_briefing(
+    request: BriefingDeliveryRequest,
+) -> BriefingDeliveryResponse:
+    """Deliver an executive briefing to specified recipients with optional attachment."""
+    deliveries: list[BriefingDeliveryResult] = []
+
+    for recipient in request.recipients:
+        for channel in request.channels:
+            delivery_id = str(uuid4())
+            rendered = _render_briefing_notification(
+                request.title, request.content, request.audience, recipient,
+            )
+
+            # Append attachment info to rendered content for channels that support it
+            if request.attachment:
+                rendered += (
+                    f"\n\n[Attachment: {request.attachment.filename} "
+                    f"({request.attachment.content_type})]"
+                )
+
+            try:
+                destination = await _deliver_with_channels(
+                    rendered, channel, recipient, delivery_id,
+                )
+                deliveries.append(BriefingDeliveryResult(
+                    recipient=recipient,
+                    channel=channel,
+                    status="delivered",
+                    delivery_id=delivery_id,
+                ))
+                logger.info(
+                    "briefing_delivered",
+                    extra={
+                        "briefing_id": request.briefing_id,
+                        "recipient": recipient,
+                        "channel": channel,
+                        "destination": destination,
+                        "has_attachment": request.attachment is not None,
+                    },
+                )
+            except (NotificationDeliveryError, Exception) as exc:
+                logger.warning(
+                    "briefing_delivery_failed",
+                    extra={
+                        "briefing_id": request.briefing_id,
+                        "recipient": recipient,
+                        "channel": channel,
+                        "error": str(exc),
+                    },
+                )
+                try:
+                    _write_dead_letter(
+                        {
+                            "delivery_id": delivery_id,
+                            "template": "briefing-delivery",
+                            "channel": channel,
+                            "recipient": recipient,
+                            "briefing_id": request.briefing_id,
+                        },
+                        error=str(exc),
+                    )
+                except (OSError, TypeError, ValueError) as err:
+                    logger.warning(
+                        "notification_dlq_write_failed", extra={"error": str(err)},
+                    )
+                deliveries.append(BriefingDeliveryResult(
+                    recipient=recipient,
+                    channel=channel,
+                    status="failed",
+                    delivery_id=delivery_id,
+                ))
+
+    status = "delivered" if all(
+        d.status == "delivered" for d in deliveries
+    ) else "partial"
+    if not any(d.status == "delivered" for d in deliveries):
+        status = "failed"
+
+    return BriefingDeliveryResponse(
+        briefing_id=request.briefing_id,
+        status=status,
+        deliveries=deliveries,
+    )
+
+
 app.include_router(api_router)
 
 

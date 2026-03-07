@@ -5,6 +5,7 @@ Each action is implemented as an async function that receives the agent instance
 and delegates to the appropriate utilities.
 """
 
+from .briefing_actions import execute_scheduled_briefing, schedule_briefing
 from .classify_stakeholder import classify_stakeholder
 from .communication_plan import create_communication_plan
 from .dashboard_actions import generate_communication_report, get_stakeholder_dashboard
@@ -32,12 +33,14 @@ __all__ = [
     "collect_feedback",
     "create_communication_plan",
     "edit_message",
+    "execute_scheduled_briefing",
     "flush_digest_notifications",
     "generate_communication_report",
     "generate_message",
     "get_stakeholder_dashboard",
     "queue_digest_notifications",
     "register_stakeholder",
+    "schedule_briefing",
     "schedule_event",
     "schedule_message",
     "send_message",

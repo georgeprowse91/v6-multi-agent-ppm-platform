@@ -252,6 +252,7 @@ class ResourceCapacityAgent(BaseAgent):
             "approve_request", "search_resources", "match_skills", "forecast_capacity",
             "plan_capacity", "scenario_analysis", "allocate_resource", "get_availability",
             "get_utilization", "identify_conflicts", "get_resource_pool",
+            "aggregate_portfolio_demand", "route_recommendation",
         }
         if action not in valid_actions:
             self.logger.warning("Invalid action: %s", action)
@@ -323,6 +324,17 @@ class ResourceCapacityAgent(BaseAgent):
             return await handle_identify_conflicts(self, input_data.get("filters", {}))
         if action == "get_resource_pool":
             return await handle_get_resource_pool(self, input_data.get("filters", {}), tenant_id=tenant_id)
+        if action == "aggregate_portfolio_demand":
+            return await self._aggregate_portfolio_demand(
+                input_data.get("portfolio_id", ""),
+                input_data.get("filters", {}),
+                tenant_id=tenant_id,
+            )
+        if action == "route_recommendation":
+            return await self._route_recommendation(
+                input_data.get("recommendation", {}),
+                tenant_id=tenant_id,
+            )
         raise ValueError(f"Unknown action: {action}")
 
     # -------------------------------------------------------------------------
@@ -679,6 +691,451 @@ class ResourceCapacityAgent(BaseAgent):
             return "Scenario decreases utilization. Not recommended."
         return "Scenario has minimal impact on utilization."
 
+    # -------------------------------------------------------------------------
+    # Portfolio-level demand aggregation
+    # -------------------------------------------------------------------------
+
+    async def _aggregate_portfolio_demand(
+        self,
+        portfolio_id: str,
+        filters: dict[str, Any],
+        *,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Aggregate planned resource demand across all projects in a portfolio.
+
+        Rolls up demand by skill and role, compares against current supply,
+        and identifies gaps at the portfolio level.
+        """
+        self.logger.info(
+            "Aggregating portfolio demand: portfolio_id=%s, tenant_id=%s",
+            portfolio_id, tenant_id,
+        )
+
+        # Collect all demand requests across projects
+        demand_by_skill: dict[str, dict[str, Any]] = {}
+        demand_by_role: dict[str, dict[str, Any]] = {}
+        total_demand_hours = 0.0
+        project_demands: list[dict[str, Any]] = []
+
+        for request_id, request in self.demand_requests.items():
+            project_id = request.get("project_id", "")
+            req_portfolio = request.get("portfolio_id", portfolio_id)
+            if portfolio_id and req_portfolio != portfolio_id:
+                continue
+            if request.get("status") in ("cancelled", "rejected"):
+                continue
+
+            req_skills = request.get("required_skills", [])
+            req_role = request.get("role", "")
+            hours = float(request.get("effort_hours", 0) or request.get("hours_per_week", 40))
+            headcount = float(request.get("headcount", 1))
+
+            for skill in req_skills:
+                skill_name = skill if isinstance(skill, str) else skill.get("name", "")
+                if not skill_name:
+                    continue
+                entry = demand_by_skill.setdefault(skill_name, {
+                    "skill": skill_name,
+                    "total_headcount": 0.0,
+                    "total_hours": 0.0,
+                    "project_count": 0,
+                    "projects": [],
+                    "min_proficiency": 1,
+                })
+                entry["total_headcount"] += headcount
+                entry["total_hours"] += hours
+                entry["project_count"] += 1
+                entry["projects"].append(project_id)
+                if isinstance(skill, dict):
+                    entry["min_proficiency"] = max(
+                        entry["min_proficiency"],
+                        int(skill.get("proficiency_level", 1)),
+                    )
+
+            if req_role:
+                role_entry = demand_by_role.setdefault(req_role, {
+                    "role": req_role,
+                    "total_headcount": 0.0,
+                    "total_hours": 0.0,
+                    "project_count": 0,
+                    "projects": [],
+                })
+                role_entry["total_headcount"] += headcount
+                role_entry["total_hours"] += hours
+                role_entry["project_count"] += 1
+                role_entry["projects"].append(project_id)
+
+            total_demand_hours += hours * headcount
+            project_demands.append({
+                "project_id": project_id,
+                "request_id": request_id,
+                "skills": req_skills,
+                "role": req_role,
+                "headcount": headcount,
+                "hours": hours,
+                "start_date": request.get("start_date"),
+                "end_date": request.get("end_date"),
+                "priority": request.get("priority", "medium"),
+            })
+
+        # Calculate supply from current resource pool
+        supply_by_skill: dict[str, dict[str, Any]] = {}
+        supply_by_role: dict[str, dict[str, Any]] = {}
+        total_supply_hours = 0.0
+
+        for resource_id, resource in self.resource_pool.items():
+            if resource.get("status") not in ("Active", "active", "allocated"):
+                continue
+            role = resource.get("role", "")
+            capacity = float(resource.get("capacity_hours_per_week", 40))
+            alloc = float(resource.get("allocation_pct", 0)) / 100.0
+            available_hours = capacity * (1 - alloc)
+            total_supply_hours += available_hours
+
+            # Legacy free-text skills
+            skills = resource.get("skills", [])
+            for skill in skills:
+                if not isinstance(skill, str):
+                    continue
+                entry = supply_by_skill.setdefault(skill, {
+                    "skill": skill,
+                    "available_count": 0,
+                    "available_hours": 0.0,
+                    "avg_proficiency": 0.0,
+                    "_proficiency_sum": 0,
+                })
+                entry["available_count"] += 1
+                entry["available_hours"] += available_hours
+
+            # Structured skills
+            structured_skills = resource.get("structured_skills", [])
+            for ss in structured_skills:
+                if not isinstance(ss, dict):
+                    continue
+                skill_name = ss.get("name", "")
+                if not skill_name:
+                    continue
+                entry = supply_by_skill.setdefault(skill_name, {
+                    "skill": skill_name,
+                    "available_count": 0,
+                    "available_hours": 0.0,
+                    "avg_proficiency": 0.0,
+                    "_proficiency_sum": 0,
+                })
+                entry["available_count"] += 1
+                entry["available_hours"] += available_hours
+                entry["_proficiency_sum"] += int(ss.get("proficiency_level", 2))
+                entry["avg_proficiency"] = (
+                    entry["_proficiency_sum"] / entry["available_count"]
+                )
+
+            if role:
+                role_entry = supply_by_role.setdefault(role, {
+                    "role": role,
+                    "available_count": 0,
+                    "available_hours": 0.0,
+                })
+                role_entry["available_count"] += 1
+                role_entry["available_hours"] += available_hours
+
+        # Calculate gaps
+        skill_gaps: list[dict[str, Any]] = []
+        for skill_name, demand in demand_by_skill.items():
+            supply = supply_by_skill.get(skill_name, {
+                "available_count": 0, "available_hours": 0.0, "avg_proficiency": 0.0,
+            })
+            gap = demand["total_headcount"] - supply.get("available_count", 0)
+            hours_gap = demand["total_hours"] - supply.get("available_hours", 0.0)
+            if gap > 0 or hours_gap > 0:
+                skill_gaps.append({
+                    "skill": skill_name,
+                    "demand_headcount": demand["total_headcount"],
+                    "supply_count": supply.get("available_count", 0),
+                    "headcount_gap": max(0, gap),
+                    "demand_hours": demand["total_hours"],
+                    "supply_hours": supply.get("available_hours", 0.0),
+                    "hours_gap": max(0, hours_gap),
+                    "avg_supply_proficiency": supply.get("avg_proficiency", 0.0),
+                    "min_required_proficiency": demand.get("min_proficiency", 1),
+                    "project_count": demand["project_count"],
+                    "severity": "critical" if gap >= 3 else "high" if gap >= 1 else "medium",
+                })
+
+        role_gaps: list[dict[str, Any]] = []
+        for role_name, demand in demand_by_role.items():
+            supply = supply_by_role.get(role_name, {"available_count": 0, "available_hours": 0.0})
+            gap = demand["total_headcount"] - supply.get("available_count", 0)
+            if gap > 0:
+                role_gaps.append({
+                    "role": role_name,
+                    "demand_headcount": demand["total_headcount"],
+                    "supply_count": supply.get("available_count", 0),
+                    "headcount_gap": max(0, gap),
+                    "project_count": demand["project_count"],
+                })
+
+        # Cleanup internal counters
+        for entry in supply_by_skill.values():
+            entry.pop("_proficiency_sum", None)
+
+        # Generate recommendations
+        recommendations: list[dict[str, Any]] = []
+        for gap in sorted(skill_gaps, key=lambda g: g["headcount_gap"], reverse=True)[:5]:
+            if gap["headcount_gap"] >= 3:
+                recommendations.append({
+                    "type": "hire",
+                    "skill": gap["skill"],
+                    "count": int(gap["headcount_gap"]),
+                    "priority": "high",
+                    "rationale": f"{gap['project_count']} projects need {gap['skill']}",
+                })
+            elif gap["headcount_gap"] >= 1:
+                recommendations.append({
+                    "type": "train",
+                    "skill": gap["skill"],
+                    "count": int(gap["headcount_gap"]),
+                    "priority": "medium",
+                    "rationale": f"Cross-train existing resources in {gap['skill']}",
+                })
+
+        result = {
+            "status": "success",
+            "action": "aggregate_portfolio_demand",
+            "portfolio_id": portfolio_id,
+            "summary": {
+                "total_demand_hours": total_demand_hours,
+                "total_supply_hours": total_supply_hours,
+                "capacity_ratio": total_supply_hours / total_demand_hours if total_demand_hours else 1.0,
+                "unique_skills_demanded": len(demand_by_skill),
+                "unique_roles_demanded": len(demand_by_role),
+                "total_skill_gaps": len(skill_gaps),
+                "total_role_gaps": len(role_gaps),
+                "critical_gaps": sum(1 for g in skill_gaps if g["severity"] == "critical"),
+            },
+            "demand_by_skill": list(demand_by_skill.values()),
+            "demand_by_role": list(demand_by_role.values()),
+            "supply_by_skill": list(supply_by_skill.values()),
+            "supply_by_role": list(supply_by_role.values()),
+            "skill_gaps": sorted(skill_gaps, key=lambda g: g["headcount_gap"], reverse=True),
+            "role_gaps": sorted(role_gaps, key=lambda g: g["headcount_gap"], reverse=True),
+            "recommendations": recommendations,
+            "project_demands": project_demands,
+        }
+
+        await self._publish_resource_event("resource.portfolio_demand.aggregated", {
+            "portfolio_id": portfolio_id,
+            "tenant_id": tenant_id,
+            "total_demand_hours": total_demand_hours,
+            "total_supply_hours": total_supply_hours,
+            "skill_gaps_count": len(skill_gaps),
+        })
+
+        return result
+
+    # -------------------------------------------------------------------------
+    # HR workflow recommendation routing
+    # -------------------------------------------------------------------------
+
+    async def _route_recommendation(
+        self,
+        recommendation: dict[str, Any],
+        *,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Route a capacity recommendation (hire, train, reallocate) to the
+        appropriate HR system or workflow.
+
+        Connects to Workday or SAP SuccessFactors connectors to initiate
+        hiring requisitions, training requests, or reallocation workflows.
+        """
+        rec_type = recommendation.get("type", "")
+        skill = recommendation.get("skill", "")
+        count = int(recommendation.get("count", 1))
+        priority = recommendation.get("priority", "medium")
+        rationale = recommendation.get("rationale", "")
+
+        self.logger.info(
+            "Routing recommendation: type=%s, skill=%s, count=%d, priority=%s",
+            rec_type, skill, count, priority,
+        )
+
+        routing_result: dict[str, Any] = {
+            "recommendation_id": f"REC-{uuid.uuid4().hex[:8]}",
+            "type": rec_type,
+            "skill": skill,
+            "count": count,
+            "priority": priority,
+            "status": "routed",
+            "routed_to": [],
+            "actions_created": [],
+        }
+
+        if rec_type == "hire":
+            routing_result = await self._route_hiring_recommendation(
+                routing_result, recommendation, tenant_id=tenant_id,
+            )
+        elif rec_type == "train":
+            routing_result = await self._route_training_recommendation(
+                routing_result, recommendation, tenant_id=tenant_id,
+            )
+        elif rec_type == "reallocate":
+            routing_result = await self._route_reallocation_recommendation(
+                routing_result, recommendation, tenant_id=tenant_id,
+            )
+        elif rec_type == "contract":
+            routing_result["routed_to"].append("vendor_procurement_agent")
+            routing_result["actions_created"].append({
+                "action": "create_contractor_request",
+                "skill": skill,
+                "count": count,
+                "priority": priority,
+            })
+        else:
+            routing_result["status"] = "unrecognised_type"
+            routing_result["message"] = f"Unknown recommendation type: {rec_type}"
+
+        await self._publish_resource_event("resource.recommendation.routed", {
+            "recommendation_id": routing_result["recommendation_id"],
+            "type": rec_type,
+            "tenant_id": tenant_id,
+            "status": routing_result["status"],
+        })
+
+        return {
+            "status": "success",
+            "action": "route_recommendation",
+            "result": routing_result,
+        }
+
+    async def _route_hiring_recommendation(
+        self,
+        result: dict[str, Any],
+        recommendation: dict[str, Any],
+        *,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Route hiring recommendation to HR system (Workday or SAP SF)."""
+        skill = recommendation.get("skill", "")
+        count = int(recommendation.get("count", 1))
+        role = recommendation.get("role", skill)
+
+        # Determine target HR system
+        hr_system = self.hr_profile_provider or "workday"
+        result["routed_to"].append(hr_system)
+
+        requisition = {
+            "action": "create_requisition",
+            "job_title": f"{role} ({skill})",
+            "department": recommendation.get("department", ""),
+            "headcount": count,
+            "skills_required": [skill],
+            "priority": recommendation.get("priority", "medium"),
+            "rationale": recommendation.get("rationale", ""),
+            "status": "pending_approval",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        result["actions_created"].append(requisition)
+
+        # Route to approval workflow
+        if self.approval_client:
+            try:
+                approval_req = {
+                    "request_type": "hiring_requisition",
+                    "request_id": result["recommendation_id"],
+                    "payload": requisition,
+                    "tenant_id": tenant_id,
+                }
+                self.approval_client.submit_request(approval_req)
+                result["routed_to"].append("approval_workflow")
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+                self.logger.warning("Failed to route hiring requisition to approval workflow")
+
+        return result
+
+    async def _route_training_recommendation(
+        self,
+        result: dict[str, Any],
+        recommendation: dict[str, Any],
+        *,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Route training recommendation to LMS and/or HR system."""
+        skill = recommendation.get("skill", "")
+        count = int(recommendation.get("count", 1))
+        target_resources = recommendation.get("target_resources", [])
+
+        result["routed_to"].append("learning_management_system")
+
+        training_request = {
+            "action": "create_training_plan",
+            "skill": skill,
+            "target_count": count,
+            "target_resources": target_resources,
+            "priority": recommendation.get("priority", "medium"),
+            "rationale": recommendation.get("rationale", ""),
+            "estimated_duration_weeks": recommendation.get("duration_weeks", 4),
+            "status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        result["actions_created"].append(training_request)
+
+        # Check if LMS has relevant courses
+        if self.training_client:
+            try:
+                courses = self.training_client.search_courses(skill)
+                if courses:
+                    training_request["matched_courses"] = courses[:3]
+                    training_request["status"] = "courses_identified"
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+                self.logger.warning("Failed to search LMS courses for skill %s", skill)
+
+        return result
+
+    async def _route_reallocation_recommendation(
+        self,
+        result: dict[str, Any],
+        recommendation: dict[str, Any],
+        *,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        """Route reallocation recommendation to resource management."""
+        skill = recommendation.get("skill", "")
+        source_project = recommendation.get("source_project", "")
+        target_project = recommendation.get("target_project", "")
+        resource_ids = recommendation.get("resource_ids", [])
+
+        result["routed_to"].append("resource_management")
+
+        reallocation = {
+            "action": "reallocate_resources",
+            "skill": skill,
+            "source_project": source_project,
+            "target_project": target_project,
+            "resource_ids": resource_ids,
+            "priority": recommendation.get("priority", "medium"),
+            "rationale": recommendation.get("rationale", ""),
+            "status": "pending_approval",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        result["actions_created"].append(reallocation)
+
+        # Route to approval workflow for manager sign-off
+        if self.approval_client:
+            try:
+                approval_req = {
+                    "request_type": "resource_reallocation",
+                    "request_id": result["recommendation_id"],
+                    "payload": reallocation,
+                    "tenant_id": tenant_id,
+                }
+                self.approval_client.submit_request(approval_req)
+                result["routed_to"].append("approval_workflow")
+            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError):
+                self.logger.warning("Failed to route reallocation to approval workflow")
+
+        return result
+
     async def cleanup(self) -> None:
         """Cleanup resources."""
         self.logger.info("Cleaning up Resource & Capacity Management Agent...")
@@ -705,5 +1162,6 @@ class ResourceCapacityAgent(BaseAgent):
             "capacity_planning", "capacity_forecasting", "scenario_modeling",
             "resource_allocation", "availability_tracking", "utilization_monitoring",
             "conflict_identification", "approval_routing", "cross_project_management",
-            "what_if_analysis",
+            "what_if_analysis", "portfolio_demand_aggregation",
+            "hr_recommendation_routing", "structured_skills_taxonomy",
         ]

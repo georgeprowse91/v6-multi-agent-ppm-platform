@@ -14,6 +14,7 @@ from routes.assistant import router as assistant_stub_router
 from routes.assistant_api import router as assistant_api_router
 from routes.auth import router as auth_router
 from routes.briefings import router as briefings_router
+from routes.capacity import router as capacity_router
 from routes.copilot_stream import router as copilot_stream_router
 from routes.connectors import legacy_router as connectors_legacy_router
 from routes.connectors import router as connectors_stub_router
@@ -92,4 +93,5 @@ LEGACY_ROUTE_MODULES = [
     knowledge_graph_router,
     project_setup_router,
     security_posture_router,
+    capacity_router,
 ]

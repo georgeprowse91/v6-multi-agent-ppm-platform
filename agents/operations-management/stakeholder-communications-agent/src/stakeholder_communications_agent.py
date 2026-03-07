@@ -57,11 +57,13 @@ from .actions import (  # noqa: E402
     collect_feedback,
     create_communication_plan,
     edit_message,
+    execute_scheduled_briefing,
     flush_digest_notifications,
     generate_communication_report,
     generate_message,
     get_stakeholder_dashboard,
     register_stakeholder,
+    schedule_briefing,
     schedule_event,
     schedule_message,
     send_message,
@@ -308,6 +310,8 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "flush_digest_notifications",
             "get_stakeholder_dashboard",
             "generate_communication_report",
+            "schedule_briefing",
+            "execute_scheduled_briefing",
         ]
 
         if action not in valid_actions:
@@ -412,6 +416,16 @@ class StakeholderCommunicationsAgent(BaseAgent):
         elif action == "generate_communication_report":
             return await generate_communication_report(
                 self, input_data.get("report_type", "summary"), input_data.get("filters", {})
+            )
+
+        elif action == "schedule_briefing":
+            return await schedule_briefing(
+                self, tenant_id, input_data.get("schedule_config", {})
+            )
+
+        elif action == "execute_scheduled_briefing":
+            return await execute_scheduled_briefing(
+                self, tenant_id, input_data.get("schedule", {})
             )
 
         else:
@@ -535,4 +549,6 @@ class StakeholderCommunicationsAgent(BaseAgent):
             "delivery_tracking",
             "stakeholder_dashboards",
             "communication_reporting",
+            "briefing_scheduling",
+            "briefing_delivery",
         ]

@@ -36,7 +36,93 @@
     },
     "skills": {
       "type": "array",
-      "items": {"type": "string"}
+      "items": {"type": "string"},
+      "description": "Legacy free-text skill names (deprecated, use structured_skills)"
+    },
+    "structured_skills": {
+      "type": "array",
+      "description": "Structured skill entries with taxonomy category, proficiency level, and framework reference",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "skill_id": {
+            "type": "string",
+            "description": "Unique identifier for the skill entry"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable skill name"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "technical",
+              "leadership",
+              "domain",
+              "methodology",
+              "tool",
+              "language",
+              "certification",
+              "soft_skill"
+            ],
+            "description": "Skill taxonomy category"
+          },
+          "proficiency_level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Proficiency level: 1=Beginner, 2=Intermediate, 3=Advanced, 4=Expert, 5=Thought Leader"
+          },
+          "framework": {
+            "type": "string",
+            "enum": [
+              "SFIA",
+              "ESCO",
+              "ONET",
+              "custom"
+            ],
+            "description": "Skills framework reference (SFIA, ESCO, O*NET, or custom)"
+          },
+          "framework_code": {
+            "type": "string",
+            "description": "Code within the framework (e.g. SFIA 'PROG' for Programming)"
+          },
+          "years_experience": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Years of experience with this skill"
+          },
+          "last_assessed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date of last skill assessment"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "self_reported",
+              "manager_assessed",
+              "hr_system",
+              "certification",
+              "training_completion",
+              "ai_inferred"
+            ],
+            "description": "How this skill entry was sourced"
+          },
+          "verified": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the skill has been verified by a manager or certification"
+          }
+        },
+        "required": [
+          "skill_id",
+          "name",
+          "category",
+          "proficiency_level"
+        ]
+      }
     },
     "tags": {
       "type": "array",
@@ -51,7 +137,32 @@
     "availability_pct": {
       "type": "number"
     },
+    "department": {
+      "type": "string",
+      "description": "Organisational department or business unit"
+    },
+    "manager_id": {
+      "type": "string",
+      "description": "ID of the resource's line manager"
+    },
+    "hr_system_id": {
+      "type": "string",
+      "description": "External identifier in the source HR system (Workday, SAP SF)"
+    },
+    "hr_system_source": {
+      "type": "string",
+      "enum": [
+        "workday",
+        "sap_successfactors",
+        "manual"
+      ],
+      "description": "Source HR system for this resource record"
+    },
     "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
       "type": "string",
       "format": "date-time"
     },
@@ -69,7 +180,19 @@
   ],
   "x-schema-metadata": {
     "name": "resource",
-    "version": "1.0.0",
-    "compatibility_mode": "full"
+    "version": "2.0.0",
+    "compatibility_mode": "full",
+    "changelog": [
+      {
+        "version": "2.0.0",
+        "date": "2026-03-07",
+        "changes": [
+          "Added structured_skills array with taxonomy (category, proficiency_level, framework)",
+          "Added department, manager_id, hr_system_id, hr_system_source fields",
+          "Added updated_at timestamp",
+          "Deprecated free-text skills array in favour of structured_skills"
+        ]
+      }
+    ]
   }
 }

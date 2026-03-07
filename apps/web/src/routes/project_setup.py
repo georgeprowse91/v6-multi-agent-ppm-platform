@@ -5,6 +5,9 @@ Production-grade implementation:
 - Template loading from config directory + built-in defaults
 - Project creation via DataServiceClient + workspace state persistence
 - WorkspaceStateStore integration for project lifecycle tracking
+- Connector browser with per-project toggle
+- Team member assignment with RBAC role picker
+- Intake-to-project creation flow
 """
 
 from __future__ import annotations
@@ -69,12 +72,21 @@ class ProjectTemplate(BaseModel):
     activity_count: int
 
 
+class TeamMemberInput(BaseModel):
+    name: str
+    email: str
+    role: str = "Developer"
+
+
 class WorkspaceConfig(BaseModel):
     project_id: str
     project_name: str
     methodology: str
     template_id: str
     stages: list[dict[str, Any]]
+    enabled_connectors: list[str] = Field(default_factory=list)
+    team_members: list[dict[str, Any]] = Field(default_factory=list)
+    intake_request_id: str | None = None
     persisted: bool = False
     created_at: str = ""
 
@@ -375,23 +387,35 @@ async def list_templates(
     return results
 
 
+class ConfigureWorkspaceRequest(BaseModel):
+    """Request body for configure-workspace endpoint."""
+    project_name: str
+    template_id: str
+    customizations: dict[str, Any] | None = None
+    enabled_connectors: list[str] = Field(default_factory=list)
+    team_members: list[TeamMemberInput] = Field(default_factory=list)
+    intake_request_id: str | None = None
+
+
 @router.post("/api/project-setup/configure-workspace")
 async def configure_workspace(
-    project_name: str,
-    template_id: str,
-    customizations: dict[str, Any] = None,
+    body: ConfigureWorkspaceRequest,
 ) -> WorkspaceConfig:
-    """Configure, persist, and register a new project workspace."""
-    if not project_name or not project_name.strip():
+    """Configure, persist, and register a new project workspace.
+
+    Accepts connector selections and team assignments alongside the
+    template and customization parameters.
+    """
+    if not body.project_name or not body.project_name.strip():
         raise HTTPException(status_code=422, detail="project_name must be non-empty")
-    if len(project_name) > 200:
+    if len(body.project_name) > 200:
         raise HTTPException(status_code=422, detail="project_name must be at most 200 characters")
-    if not template_id or not template_id.strip():
+    if not body.template_id or not body.template_id.strip():
         raise HTTPException(status_code=422, detail="template_id must be non-empty")
 
-    if customizations:
+    if body.customizations:
         allowed_keys = {"extra_stages", "remove_stages"}
-        invalid_keys = set(customizations.keys()) - allowed_keys
+        invalid_keys = set(body.customizations.keys()) - allowed_keys
         if invalid_keys:
             raise HTTPException(
                 status_code=422,
@@ -400,7 +424,7 @@ async def configure_workspace(
             )
 
     templates = _load_templates()
-    template = next((t for t in templates if t.template_id == template_id), None)
+    template = next((t for t in templates if t.template_id == body.template_id), None)
 
     if template is None:
         if templates:
@@ -411,24 +435,29 @@ async def configure_workspace(
     stages = list(template.stages)
 
     # Apply customizations
-    if customizations:
-        if customizations.get("extra_stages"):
-            for stage in customizations["extra_stages"]:
+    if body.customizations:
+        if body.customizations.get("extra_stages"):
+            for stage in body.customizations["extra_stages"]:
                 if isinstance(stage, dict):
                     stages.append(stage)
-        if customizations.get("remove_stages"):
-            remove_ids = set(customizations["remove_stages"])
+        if body.customizations.get("remove_stages"):
+            remove_ids = set(body.customizations["remove_stages"])
             stages = [s for s in stages if s.get("id") not in remove_ids]
 
     project_id = f"proj-{uuid.uuid4().hex[:8]}"
     now = datetime.now(timezone.utc).isoformat()
 
+    team_data = [m.model_dump() for m in body.team_members]
+
     config = WorkspaceConfig(
         project_id=project_id,
-        project_name=project_name,
+        project_name=body.project_name,
         methodology=template.methodology,
         template_id=template.template_id,
         stages=stages,
+        enabled_connectors=body.enabled_connectors,
+        team_members=team_data,
+        intake_request_id=body.intake_request_id,
         persisted=False,
         created_at=now,
     )
@@ -436,5 +465,111 @@ async def configure_workspace(
     if _persist_project(config):
         config.persisted = True
 
-    logger.info("Workspace created: project_id=%s, template_id=%s", project_id, template_id)
+    # Try to notify Workspace Setup agent for connector provisioning
+    _notify_workspace_agent(config)
+
+    logger.info(
+        "Workspace created: project_id=%s, template_id=%s, connectors=%d, team=%d",
+        project_id,
+        body.template_id,
+        len(body.enabled_connectors),
+        len(body.team_members),
+    )
     return config
+
+
+class CreateFromIntakeRequest(BaseModel):
+    """Request body for creating a project from an approved intake request."""
+    intake_request_id: str
+    project_name: str | None = None
+
+
+@router.post("/api/project-setup/create-from-intake")
+async def create_from_intake(body: CreateFromIntakeRequest) -> dict[str, Any]:
+    """Create a project stub from an approved intake request.
+
+    Generates a project entity and returns the project_id so the frontend
+    can redirect to the setup wizard with the intake context.
+    """
+    project_id = f"proj-{uuid.uuid4().hex[:8]}"
+    now = datetime.now(timezone.utc).isoformat()
+    project_name = body.project_name or f"Project from intake {body.intake_request_id}"
+
+    # Persist a minimal project entry
+    try:
+        PROJECTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        existing: dict[str, Any] = {"projects": []}
+        if PROJECTS_PATH.exists():
+            with open(PROJECTS_PATH) as f:
+                existing = json.load(f)
+        projects = existing.get("projects", [])
+        projects.append({
+            "id": project_id,
+            "name": project_name,
+            "status": "setup_pending",
+            "intake_request_id": body.intake_request_id,
+            "created_at": now,
+            "methodology": {},
+            "agent_config": {"enabled_agents": [], "agent_overrides": {}},
+            "connector_config": {"enabled_connectors": [], "connector_overrides": {}},
+        })
+        existing["projects"] = projects
+        with open(PROJECTS_PATH, "w") as f:
+            json.dump(existing, f, indent=2)
+    except Exception as exc:
+        logger.warning("Failed to persist intake project: %s", exc)
+
+    return {
+        "project_id": project_id,
+        "project_name": project_name,
+        "intake_request_id": body.intake_request_id,
+        "status": "setup_pending",
+        "created_at": now,
+    }
+
+
+@router.get("/api/connectors/registry")
+async def get_connector_registry() -> list[dict[str, str]]:
+    """Return available connectors from the connector registry."""
+    registry_path = REPO_ROOT / "connectors" / "registry" / "connectors.json"
+    if not registry_path.exists():
+        return []
+    try:
+        with open(registry_path) as f:
+            data = json.load(f)
+        return [
+            {"name": c.get("name", ""), "category": c.get("category", "")}
+            for c in data
+            if c.get("name")
+        ]
+    except Exception as exc:
+        logger.debug("Failed to load connector registry: %s", exc)
+        return []
+
+
+def _notify_workspace_agent(config: WorkspaceConfig) -> None:
+    """Attempt to notify the Workspace Setup agent to provision connectors and resources."""
+    try:
+        from agents.runtime.src.agent_catalog import AgentCatalog
+
+        catalog = AgentCatalog()
+        agent = catalog.get_agent("workspace_setup")
+        if agent and hasattr(agent, "process"):
+            import asyncio
+
+            asyncio.ensure_future(
+                agent.process(
+                    {
+                        "action": "initialise_workspace",
+                        "project_id": config.project_id,
+                        "project_name": config.project_name,
+                        "methodology": config.methodology,
+                        "template_id": config.template_id,
+                        "enabled_connectors": config.enabled_connectors,
+                        "team_members": config.team_members,
+                        "intake_request_id": config.intake_request_id,
+                    },
+                ),
+            )
+    except Exception as exc:
+        logger.debug("Workspace agent notification skipped: %s", exc)

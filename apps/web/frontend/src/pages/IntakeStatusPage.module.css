@@ -106,3 +106,53 @@
   background: rgba(220, 38, 38, 0.1);
   border-radius: 12px;
 }
+
+.approvalActions {
+  margin-top: 8px;
+}
+
+.projectCreated,
+.setupPrompt {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid rgba(22, 163, 74, 0.3);
+}
+
+.projectCreated h2,
+.setupPrompt h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.setupPrompt {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.projectActionRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.configureBtn {
+  background: #22c55e;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.configureBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.configureBtn:hover:not(:disabled) {
+  background: #16a34a;
+}

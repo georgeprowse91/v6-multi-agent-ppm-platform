@@ -47,6 +47,7 @@ const SecurityPostureDashboardPage = React.lazy(() => import('./pages/SecurityPo
 const KnowledgeGraphPage = React.lazy(() => import('./pages/KnowledgeGraphPage'));
 const ScenarioAnalysisPage = React.lazy(() => import('./pages/ScenarioAnalysisPage'));
 const AgentMarketplacePage = React.lazy(() => import('./pages/AgentMarketplacePage'));
+const CapacityPlanningPage = React.lazy(() => import('./pages/CapacityPlanningPage'));
 
 function isDemoModeEnabled(): boolean {
   const env = import.meta.env as Record<string, unknown>;
@@ -156,6 +157,7 @@ function AppRoutes() {
             <Route path="/analytics/predictive" element={<PredictiveDashboardPage />} />
             <Route path="/analytics/briefings" element={<ExecutiveBriefingPage />} />
             <Route path="/analytics/scenarios" element={<ScenarioAnalysisPage />} />
+            <Route path="/analytics/capacity" element={<CapacityPlanningPage />} />
             <Route path="/connectors/health" element={<ConnectorHealthDashboardPage />} />
             <Route path="/projects/new" element={<ProjectSetupWizardPage />} />
             <Route path="/knowledge/graph" element={<KnowledgeGraphPage />} />

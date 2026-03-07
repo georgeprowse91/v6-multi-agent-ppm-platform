@@ -2,9 +2,9 @@ apiVersion: ppm.workflows/v1
 kind: Workflow
 metadata:
   name: Project Intake Workflow
-  version: 1.0.0
+  version: 2.0.0
   owner: PMO Office
-  description: Intake and triage process for new project proposals.
+  description: End-to-end intake and triage process for new project proposals, with automatic project creation on approval.
 steps:
   - id: submit_intake
     type: task
@@ -37,12 +37,30 @@ steps:
     config:
       queue: pmo-intake
       required_role: PortfolioManager
-    next: notify_requester
+    next: create_project
   - id: reject_request
     type: notification
     config:
       channel: notifications
       template: intake-rejected
+    next: notify_requester
+  - id: create_project
+    type: task
+    description: Auto-create project entity from approved intake request
+    config:
+      agent: approval_workflow
+      action: record_decision
+      post_approval_hook: create_project_entity
+      endpoint: /api/project-setup/create-from-intake
+    next: provision_workspace
+  - id: provision_workspace
+    type: task
+    description: Initialise workspace via Workspace Setup agent
+    config:
+      agent: workspace_setup
+      action: initialise_workspace
+      endpoint: /api/project-setup/configure-workspace
+      pass_project_id: true
     next: notify_requester
   - id: notify_requester
     type: notification

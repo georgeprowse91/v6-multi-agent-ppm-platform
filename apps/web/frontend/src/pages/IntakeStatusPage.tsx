@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import styles from './IntakeStatusPage.module.css';
 
 const API_BASE = '/v1';
@@ -9,6 +9,7 @@ interface IntakeRequest {
   status: 'pending' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
+  project_id?: string | null;
   sponsor: {
     name: string;
     email: string;
@@ -41,9 +42,11 @@ interface IntakeRequest {
 
 export function IntakeStatusPage() {
   const { requestId } = useParams();
+  const navigate = useNavigate();
   const [request, setRequest] = useState<IntakeRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [creatingProject, setCreatingProject] = useState(false);
 
   useEffect(() => {
     const fetchRequest = async () => {
@@ -130,6 +133,61 @@ export function IntakeStatusPage() {
           )}
         </div>
       </section>
+
+      {request.status === 'approved' && (
+        <section className={styles.approvalActions}>
+          {request.project_id ? (
+            <div className={styles.projectCreated}>
+              <h2>Project Created</h2>
+              <p>Project <strong>{request.project_id}</strong> has been created from this intake request.</p>
+              <div className={styles.projectActionRow}>
+                <Link to={`/projects/${request.project_id}`} className={styles.linkButton}>
+                  Open Project
+                </Link>
+                <Link to={`/projects/${request.project_id}/config`} className={styles.secondaryLink}>
+                  Project Settings
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className={styles.setupPrompt}>
+              <h2>Ready for Setup</h2>
+              <p>This intake request has been approved. Configure the project using the setup wizard.</p>
+              <div className={styles.projectActionRow}>
+                <button
+                  className={styles.configureBtn}
+                  disabled={creatingProject}
+                  onClick={async () => {
+                    setCreatingProject(true);
+                    try {
+                      const resp = await fetch(`${API_BASE}/api/project-setup/create-from-intake`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ intake_request_id: request.request_id }),
+                      });
+                      if (resp.ok) {
+                        const data = await resp.json();
+                        navigate(`/projects/new?intake=${request.request_id}&project_id=${data.project_id || ''}`);
+                      } else {
+                        navigate(`/projects/new?intake=${request.request_id}`);
+                      }
+                    } catch {
+                      navigate(`/projects/new?intake=${request.request_id}`);
+                    } finally {
+                      setCreatingProject(false);
+                    }
+                  }}
+                >
+                  {creatingProject ? 'Setting up...' : 'Configure Project'}
+                </button>
+                <Link to={`/projects/new?intake=${request.request_id}`} className={styles.secondaryLink}>
+                  Go to Setup Wizard
+                </Link>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className={styles.detailSection}>
         <div className={styles.detailCard}>

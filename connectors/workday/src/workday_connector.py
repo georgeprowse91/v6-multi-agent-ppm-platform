@@ -3,7 +3,8 @@ Workday Connector Implementation.
 
 Supports:
 - OAuth2 authentication
-- Reading worker and position data
+- Reading worker, position, and skill profile data
+- Skill profile extraction and structured taxonomy mapping
 """
 
 from __future__ import annotations
@@ -65,10 +66,48 @@ class WorkdayConnector(OAuth2RestConnector):
     RESOURCE_PATHS = {
         "workers": {"path": "/ccx/api/v1/workers", "items_path": "data", "write_path": "/ccx/api/v1/workers", "write_method": "POST"},
         "positions": {"path": "/ccx/api/v1/positions", "items_path": "data", "write_path": "/ccx/api/v1/positions", "write_method": "POST"},
+        "skills": {"path": "/ccx/api/v1/workers", "items_path": "data"},
+        "skill_profiles": {"path": "/staffing/v6/workers", "items_path": "data"},
     }
     SCHEMA = {
         "workers": {"id": "string", "name": "string", "status": "string"},
         "positions": {"id": "string", "title": "string"},
+        "skills": {"worker_id": "string", "skills": "array"},
+        "skill_profiles": {"worker_id": "string", "skill_id": "string", "name": "string", "proficiency_level": "integer", "category": "string"},
+    }
+
+    # Workday proficiency level → numeric 1-5 mapping
+    _PROFICIENCY_MAP: dict[str, int] = {
+        "beginner": 1,
+        "basic": 1,
+        "developing": 2,
+        "intermediate": 2,
+        "proficient": 3,
+        "advanced": 3,
+        "expert": 4,
+        "mastery": 5,
+        "thought_leader": 5,
+    }
+
+    # Workday skill group → structured taxonomy category
+    _SKILL_GROUP_CATEGORY_MAP: dict[str, str] = {
+        "technology": "technical",
+        "technical": "technical",
+        "programming": "technical",
+        "engineering": "technical",
+        "management": "leadership",
+        "leadership": "leadership",
+        "business": "domain",
+        "industry": "domain",
+        "finance": "domain",
+        "methodology": "methodology",
+        "agile": "methodology",
+        "tool": "tool",
+        "software": "tool",
+        "language": "language",
+        "certification": "certification",
+        "communication": "soft_skill",
+        "interpersonal": "soft_skill",
     }
 
     def __init__(self, config: ConnectorConfig, **kwargs: object) -> None:
@@ -160,6 +199,8 @@ class WorkdayConnector(OAuth2RestConnector):
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
+        if resource_type in ("skills", "skill_profiles"):
+            return self.read_skill_profiles(filters=filters, limit=limit, offset=offset)
         return self._list_records_via_mcp(
             resource_type=resource_type,
             filters=filters,
@@ -167,3 +208,146 @@ class WorkdayConnector(OAuth2RestConnector):
             offset=offset,
             rest_call=lambda: OAuth2RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset),
         )
+
+    def read_skill_profiles(
+        self,
+        filters: dict[str, Any] | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        """Extract skill profiles from Workday worker data.
+
+        Reads worker records and extracts embedded skill/competency data,
+        mapping Workday's proficiency levels and skill groups to the
+        platform's structured skills taxonomy.
+
+        Returns a list of structured skill records per worker.
+        """
+        workers = self._list_records_via_mcp(
+            resource_type="workers",
+            filters=filters,
+            limit=limit,
+            offset=offset,
+            rest_call=lambda: OAuth2RestConnector.read(
+                self, "workers", filters=filters, limit=limit, offset=offset,
+            ),
+        )
+
+        skill_records: list[dict[str, Any]] = []
+        for worker in workers:
+            worker_id = worker.get("id") or worker.get("worker_id", "")
+            worker_name = worker.get("name", "")
+            raw_skills = (
+                worker.get("skills", [])
+                or worker.get("competencies", [])
+                or worker.get("skillProfile", {}).get("skills", [])
+            )
+
+            if isinstance(raw_skills, list):
+                for raw_skill in raw_skills:
+                    skill_entry = self._map_workday_skill(raw_skill, worker_id)
+                    if skill_entry:
+                        skill_records.append(skill_entry)
+            elif isinstance(raw_skills, dict):
+                skill_entry = self._map_workday_skill(raw_skills, worker_id)
+                if skill_entry:
+                    skill_records.append(skill_entry)
+
+            # Also extract from qualifications if present
+            qualifications = worker.get("qualifications", [])
+            if isinstance(qualifications, list):
+                for qual in qualifications:
+                    skill_entry = self._map_workday_qualification(qual, worker_id)
+                    if skill_entry:
+                        skill_records.append(skill_entry)
+
+        logger.info(
+            "Extracted %d skill records from %d Workday workers",
+            len(skill_records),
+            len(workers),
+        )
+        return skill_records
+
+    def _map_workday_skill(
+        self, raw: dict[str, Any], worker_id: str
+    ) -> dict[str, Any] | None:
+        """Map a single Workday skill/competency to structured format."""
+        if not isinstance(raw, dict):
+            return None
+
+        name = (
+            raw.get("name")
+            or raw.get("skillName")
+            or raw.get("competencyName")
+            or raw.get("descriptor")
+            or ""
+        )
+        if not name:
+            return None
+
+        skill_id = raw.get("id") or raw.get("skillId") or name.lower().replace(" ", "_")
+
+        # Map proficiency level
+        raw_level = str(
+            raw.get("proficiency")
+            or raw.get("proficiencyLevel")
+            or raw.get("level")
+            or ""
+        ).lower().strip()
+        proficiency_level = self._PROFICIENCY_MAP.get(raw_level, 2)
+        # Also support numeric levels directly
+        if raw_level.isdigit():
+            proficiency_level = max(1, min(5, int(raw_level)))
+
+        # Infer category from skill group or type
+        group = str(
+            raw.get("skillGroup")
+            or raw.get("category")
+            or raw.get("type")
+            or ""
+        ).lower().strip()
+        category = self._SKILL_GROUP_CATEGORY_MAP.get(group, "technical")
+
+        years_exp = raw.get("yearsOfExperience") or raw.get("years_experience")
+
+        return {
+            "worker_id": worker_id,
+            "skill_id": skill_id,
+            "name": name,
+            "category": category,
+            "proficiency_level": proficiency_level,
+            "framework": "custom",
+            "framework_code": raw.get("frameworkCode") or raw.get("externalCode"),
+            "years_experience": float(years_exp) if years_exp is not None else None,
+            "source": "hr_system",
+            "verified": bool(raw.get("verified") or raw.get("managerVerified")),
+            "last_assessed_at": raw.get("lastAssessedDate") or raw.get("lastUpdated"),
+            "raw_proficiency": raw_level or None,
+        }
+
+    def _map_workday_qualification(
+        self, qual: dict[str, Any], worker_id: str
+    ) -> dict[str, Any] | None:
+        """Map a Workday qualification (certification, education) to a skill."""
+        if not isinstance(qual, dict):
+            return None
+        name = qual.get("name") or qual.get("qualificationName") or ""
+        if not name:
+            return None
+
+        qual_type = str(qual.get("type") or qual.get("qualificationType") or "").lower()
+        category = "certification" if "cert" in qual_type else "domain"
+
+        return {
+            "worker_id": worker_id,
+            "skill_id": name.lower().replace(" ", "_"),
+            "name": name,
+            "category": category,
+            "proficiency_level": 3,
+            "framework": "custom",
+            "framework_code": qual.get("externalCode"),
+            "years_experience": None,
+            "source": "hr_system",
+            "verified": True,
+            "last_assessed_at": qual.get("issuedDate") or qual.get("completionDate"),
+        }

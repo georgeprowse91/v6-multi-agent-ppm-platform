@@ -117,7 +117,21 @@ async def record_decision(
                 "comments": comments,
             },
         )
-    return {
+
+    # --- Post-approval hook: auto-create project entity for intake requests ---
+    created_project = None
+    if decision == "approved" and request_type == "intake":
+        created_project = _handle_intake_approval(
+            agent,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            approval_id=approval_id,
+            request_id=request_id,
+            request_details=request_details or {},
+            approver_id=approver_id,
+        )
+
+    result: dict[str, Any] = {
         "approval_id": approval_id,
         "decision": decision,
         "status": decision,
@@ -128,3 +142,100 @@ async def record_decision(
             ),
         },
     }
+    if created_project:
+        result["created_project"] = created_project
+    return result
+
+
+def _handle_intake_approval(
+    agent: ApprovalWorkflowAgent,
+    *,
+    tenant_id: str,
+    correlation_id: str,
+    approval_id: str,
+    request_id: str | None,
+    request_details: dict[str, Any],
+    approver_id: str,
+) -> dict[str, Any] | None:
+    """Create a project entity when an intake request is approved.
+
+    Generates a project stub from the intake request details and publishes
+    a ``project.created`` event so downstream agents and the UI can react.
+    """
+    import uuid
+
+    project_id = f"proj-{uuid.uuid4().hex[:8]}"
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Extract project metadata from the intake request details
+    sponsor = request_details.get("sponsor", {})
+    business_case = request_details.get("business_case", {})
+    project_name = (
+        business_case.get("title")
+        or business_case.get("summary", "")[:80]
+        or f"Project from intake {request_id or approval_id}"
+    )
+
+    project_entity = {
+        "project_id": project_id,
+        "name": project_name,
+        "status": "setup_pending",
+        "intake_request_id": request_id or approval_id,
+        "sponsor": sponsor,
+        "business_case_summary": business_case.get("summary", ""),
+        "approved_by": approver_id,
+        "approved_at": now,
+        "created_at": now,
+        "tenant_id": tenant_id,
+    }
+
+    # Publish project.created event for downstream consumers
+    agent._publish_approval_event(
+        event_type="project.created",
+        tenant_id=tenant_id,
+        approval_chain={},
+        payload={
+            "project_id": project_id,
+            "project_name": project_name,
+            "intake_request_id": request_id or approval_id,
+            "approval_id": approval_id,
+            "approved_by": approver_id,
+            "status": "setup_pending",
+        },
+    )
+
+    # Publish real-time notification event for WebSocket consumers
+    agent._publish_approval_event(
+        event_type="notification.project_created",
+        tenant_id=tenant_id,
+        approval_chain={},
+        payload={
+            "project_id": project_id,
+            "project_name": project_name,
+            "message": f"Project '{project_name}' created from approved intake request.",
+            "severity": "info",
+            "channel": "realtime",
+        },
+    )
+
+    agent._emit_audit_event(
+        tenant_id=tenant_id,
+        correlation_id=correlation_id,
+        action="project.created_from_intake",
+        outcome="success",
+        resource_id=project_id,
+        metadata={
+            "approval_id": approval_id,
+            "intake_request_id": request_id,
+            "project_name": project_name,
+            "approver_id": approver_id,
+        },
+    )
+
+    agent.logger.info(
+        "Project created from intake approval: project_id=%s, intake=%s",
+        project_id,
+        request_id,
+    )
+
+    return project_entity
