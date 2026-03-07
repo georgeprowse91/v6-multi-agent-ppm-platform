@@ -22,6 +22,8 @@ export type {
   BacklogContent,
   GanttTask,
   GanttContent,
+  OptimizationSuggestion,
+  ResourceUtilization,
   GridColumn,
   GridContent,
   FinancialLineItem,
