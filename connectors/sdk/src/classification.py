@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 SENSITIVE_FIELDS = {"ssn", "social_security", "credit_card", "iban", "passport"}
 CONFIDENTIAL_FIELDS = {"salary", "compensation", "bonus", "health"}
 

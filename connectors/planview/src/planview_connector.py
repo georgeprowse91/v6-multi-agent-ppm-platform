@@ -13,7 +13,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -22,7 +21,6 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
 ensure_monorepo_paths(_REPO_ROOT)
 
-from connectors.sdk.src.auth import OAuth2TokenManager  # noqa: E402
 from base_connector import (  # noqa: E402
     BaseConnector,
     ConnectionStatus,
@@ -31,6 +29,9 @@ from base_connector import (  # noqa: E402
     ConnectorConfig,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig  # noqa: E402
+
+from connectors.sdk.src.auth import OAuth2TokenManager  # noqa: E402
+
 try:
     from mcp_client.client import MCPClient
     from mcp_client.errors import (

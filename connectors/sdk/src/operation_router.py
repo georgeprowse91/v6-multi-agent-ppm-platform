@@ -3,12 +3,14 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from base_connector import ConnectorConfig, ConnectorError, normalize_mcp_operation
+from observability.metrics import build_mcp_fallback_metrics
+
 from connectors.mcp_client.client import MCPClient
 from connectors.mcp_client.errors import MCPClientError, MCPToolNotFoundError
-from observability.metrics import build_mcp_fallback_metrics
 
 logger = logging.getLogger(__name__)
 

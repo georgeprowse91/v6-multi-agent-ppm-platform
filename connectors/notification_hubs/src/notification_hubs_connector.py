@@ -12,7 +12,6 @@ import base64
 import hashlib
 import hmac
 import os
-import sys
 import time
 import urllib.parse
 from pathlib import Path
@@ -24,9 +23,9 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(_REPO_ROOT)
 
 from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from connector_secrets import resolve_secret  # noqa: E402
 from http_client import HttpClient, RetryConfig  # noqa: E402
 from rest_connector import RestConnector  # noqa: E402
-from connector_secrets import resolve_secret  # noqa: E402
 
 
 class NotificationHubsConnector(RestConnector):
@@ -60,7 +59,7 @@ class NotificationHubsConnector(RestConnector):
     def _build_sas_token(self, uri: str, key_name: str, key: str) -> str:
         expiry = int(time.time() + 3600)
         encoded_uri = urllib.parse.quote_plus(uri)
-        sign_key = f"{encoded_uri}\n{expiry}".encode("utf-8")
+        sign_key = f"{encoded_uri}\n{expiry}".encode()
         signature = base64.b64encode(
             hmac.new(base64.b64decode(key), sign_key, hashlib.sha256).digest()
         ).decode()

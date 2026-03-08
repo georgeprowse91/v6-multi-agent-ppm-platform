@@ -3,7 +3,6 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from pathlib import Path
-import sys
 from typing import Any
 
 from http_client import HttpClient, HttpClientError
@@ -11,6 +10,7 @@ from http_client import HttpClient, HttpClientError
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
 ensure_monorepo_paths(REPO_ROOT)
 
 try:

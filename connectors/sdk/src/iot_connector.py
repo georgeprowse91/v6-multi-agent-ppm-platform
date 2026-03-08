@@ -16,8 +16,8 @@ from base_connector import (
     ConnectorCategory,
     ConnectorConfig,
 )
-from http_client import HttpClient, HttpClientError, RetryConfig
 from connector_secrets import resolve_secret
+from http_client import HttpClient, HttpClientError, RetryConfig
 
 
 class IoTConnector(BaseConnector):

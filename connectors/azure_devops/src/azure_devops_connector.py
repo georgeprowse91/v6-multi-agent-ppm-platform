@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import base64
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -22,9 +21,9 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(_REPO_ROOT)
 
 from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from connector_secrets import resolve_secret  # noqa: E402
 from http_client import HttpClient, RetryConfig  # noqa: E402
 from rest_connector import RestConnector  # noqa: E402
-from connector_secrets import resolve_secret  # noqa: E402
 
 
 class AzureDevOpsConnector(RestConnector):
@@ -75,7 +74,7 @@ class AzureDevOpsConnector(RestConnector):
         if self._client:
             return self._client
         organization_url, pat = self._get_credentials()
-        token = f":{pat}".encode("utf-8")
+        token = f":{pat}".encode()
         auth_header = base64.b64encode(token).decode("utf-8")
         retry_config = RetryConfig(
             max_retries=3,

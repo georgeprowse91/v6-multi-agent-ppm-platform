@@ -9,9 +9,7 @@ Supports:
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
-from typing import Any
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
@@ -19,9 +17,9 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(_REPO_ROOT)
 
 from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from connector_secrets import resolve_secret  # noqa: E402
 from http_client import HttpClient  # noqa: E402
 from rest_connector import OAuth2RestConnector  # noqa: E402
-from connector_secrets import resolve_secret  # noqa: E402
 
 DEFAULT_TOKEN_URL = "https://accounts.netsuite.com/services/oauth2/v1/token"
 

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
 ensure_monorepo_paths(REPO_ROOT)
 
 try:

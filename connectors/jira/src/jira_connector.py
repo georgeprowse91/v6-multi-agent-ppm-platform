@@ -19,7 +19,6 @@ import asyncio
 import base64
 import logging
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -45,6 +44,7 @@ from mcp_client import (  # noqa: E402
     MCPToolNotFoundError,
     MCPTransportError,
 )
+
 try:
     from .mappers import map_from_mcp_response, map_to_mcp_params  # noqa: E402
 except ImportError:
@@ -264,7 +264,7 @@ class JiraConnector(BaseConnector):
         self._api_token = api_token
 
         # Build Basic auth header
-        token = f"{email}:{api_token}".encode("utf-8")
+        token = f"{email}:{api_token}".encode()
         auth_header = base64.b64encode(token).decode("utf-8")
 
         retry_config = RetryConfig(
@@ -423,7 +423,7 @@ class JiraConnector(BaseConnector):
                 return True
             self._authenticated = False
             return False
-        except (HttpClientError, ValueError) as e:
+        except (HttpClientError, ValueError):
             self._authenticated = False
             return False
 

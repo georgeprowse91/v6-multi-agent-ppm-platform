@@ -9,7 +9,6 @@ import time and exposes them via a stable Python API.
 from __future__ import annotations
 
 import logging
-import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path

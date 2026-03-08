@@ -28,7 +28,6 @@ from common.resilience import (
     RetryPolicy,
     TimeoutPolicy,
 )
-
 from jsonschema import ValidationError as JsonSchemaValidationError
 
 try:

@@ -12,7 +12,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -22,10 +21,11 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(_REPO_ROOT)
 
 from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from connector_secrets import resolve_secret  # noqa: E402
 from http_client import HttpClient, RetryConfig  # noqa: E402
 from mcp_client import MCPClient, MCPClientError  # noqa: E402
 from rest_connector import RestConnector  # noqa: E402
-from connector_secrets import resolve_secret  # noqa: E402
+
 try:
     from .mappers import map_from_mcp_response, map_to_mcp_params
 except ImportError:
@@ -184,7 +184,8 @@ class SlackConnector(RestConnector):
             "users": "list_users",
         }
         tool_key = read_tools.get(resource_type)
-        rest_call = lambda: RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset)
+        def rest_call() -> list[dict[str, Any]]:
+            return RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset)
         if not tool_key:
             return rest_call()
         params = map_to_mcp_params(
@@ -212,7 +213,8 @@ class SlackConnector(RestConnector):
             "messages": "post_message",
         }
         tool_key = write_tools.get(resource_type)
-        rest_call = lambda: RestConnector.write(self, resource_type, data)
+        def rest_call() -> list[dict[str, Any]]:
+            return RestConnector.write(self, resource_type, data)
         if not tool_key:
             return rest_call()
         params = map_to_mcp_params("write", {"resource_type": resource_type, "records": data})
