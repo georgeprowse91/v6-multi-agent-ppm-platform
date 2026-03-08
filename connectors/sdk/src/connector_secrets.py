@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Optional
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
 ensure_monorepo_paths(REPO_ROOT)
 
-from security.secrets import resolve_secret as _resolve_secret
 from security.keyvault import KeyVaultClient, KeyVaultConfig, KeyVaultUnavailableError
+from security.secrets import resolve_secret as _resolve_secret
 
 __all__ = ["resolve_secret", "fetch_keyvault_secret"]
 

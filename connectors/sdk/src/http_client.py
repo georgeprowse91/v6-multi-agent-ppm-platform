@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import json
 import logging
-import sys
 import time
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any
 
 import httpx
 from opentelemetry import trace
@@ -17,6 +17,7 @@ from opentelemetry.trace import SpanKind, Status, StatusCode
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
 ensure_monorepo_paths(REPO_ROOT)
 
 from security.dlp import redact_payload  # noqa: E402

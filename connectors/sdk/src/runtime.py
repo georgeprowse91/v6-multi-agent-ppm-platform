@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
-import os
 from pathlib import Path
 from typing import Any
 
@@ -17,8 +17,8 @@ from connectors.sdk.src.data_service_client import (
     LineageEventEmitter,
 )
 from connectors.sdk.src.quality import evaluate_quality
-from connectors.sdk.src.transformations import apply_transformation
 from connectors.sdk.src.telemetry import get_connector_telemetry
+from connectors.sdk.src.transformations import apply_transformation
 
 
 @dataclass

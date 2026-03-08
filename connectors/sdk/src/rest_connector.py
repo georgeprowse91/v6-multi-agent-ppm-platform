@@ -8,12 +8,11 @@ for connectors that integrate with REST APIs.
 from __future__ import annotations
 
 import base64
-import os
-from typing import Any
-
 import importlib as _importlib
+import os
 import pathlib as _pathlib
 import sys as _sys
+from typing import Any
 
 
 def _load_sdk_auth():
@@ -34,13 +33,13 @@ OAuth2TokenManager = _sdk_auth.OAuth2TokenManager
 OAuthToken = _sdk_auth.OAuthToken
 from base_connector import (
     BaseConnector,
-    ConnectorCallFailedError,
-    ConnectorError,
     ConnectionStatus,
     ConnectionTestResult,
+    ConnectorCallFailedError,
+    ConnectorError,
 )
-from http_client import HttpClient, HttpClientError, RetryConfig
 from connector_secrets import fetch_keyvault_secret, resolve_secret
+from http_client import HttpClient, HttpClientError, RetryConfig
 from sync_controls import WriteControlPolicy, dedupe_by_idempotency
 
 
@@ -293,7 +292,7 @@ class BasicAuthRestConnector(RestConnector):
         if self._client:
             return self._client
         instance_url, username, password = self._get_credentials()
-        token = f"{username}:{password}".encode("utf-8")
+        token = f"{username}:{password}".encode()
         auth_header = base64.b64encode(token).decode("utf-8")
         retry_config = RetryConfig(
             max_retries=3,

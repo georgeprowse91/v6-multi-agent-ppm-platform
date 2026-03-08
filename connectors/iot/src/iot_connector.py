@@ -9,15 +9,18 @@ from __future__ import annotations
 
 import json
 import os
-import sys
+from collections.abc import Iterable
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
 ensure_monorepo_paths(_REPO_ROOT)
+
+import importlib
+import importlib.util
 
 from base_connector import (  # noqa: E402
     BaseConnector,
@@ -26,11 +29,8 @@ from base_connector import (  # noqa: E402
     ConnectorCategory,
     ConnectorConfig,
 )
-from http_client import HttpClient, HttpClientError, RetryConfig  # noqa: E402
 from connector_secrets import resolve_secret  # noqa: E402
-
-import importlib
-import importlib.util
+from http_client import HttpClient, HttpClientError, RetryConfig  # noqa: E402
 
 _PAHO_SPEC = importlib.util.find_spec("paho")
 _MQTT_SPEC = importlib.util.find_spec("paho.mqtt.client") if _PAHO_SPEC else None

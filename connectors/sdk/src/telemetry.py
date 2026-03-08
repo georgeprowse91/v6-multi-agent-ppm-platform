@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import logging
 import os
-import sys
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind, Status, StatusCode
@@ -15,6 +15,7 @@ from opentelemetry.trace import SpanKind, Status, StatusCode
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
 ensure_monorepo_paths(REPO_ROOT)
 
 from observability.logging import configure_logging  # noqa: E402

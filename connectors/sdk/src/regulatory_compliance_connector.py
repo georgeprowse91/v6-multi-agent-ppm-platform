@@ -17,6 +17,7 @@ from base_connector import (
     ConnectorConfig,
 )
 from http_client import HttpClient, HttpClientError, RetryConfig
+
 try:
     from connector_secrets import resolve_secret
 except ImportError:  # pragma: no cover

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import base64
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -21,9 +20,9 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(_REPO_ROOT)
 
 from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from connector_secrets import resolve_secret  # noqa: E402
 from http_client import HttpClient, RetryConfig  # noqa: E402
 from rest_connector import RestConnector  # noqa: E402
-from connector_secrets import resolve_secret  # noqa: E402
 
 DEFAULT_TWILIO_URL = "https://api.twilio.com/2010-04-01"
 
@@ -59,7 +58,7 @@ class TwilioConnector(RestConnector):
         if self._client:
             return self._client
         base_url, account_sid, auth_token = self._get_credentials()
-        auth_bytes = f"{account_sid}:{auth_token}".encode("utf-8")
+        auth_bytes = f"{account_sid}:{auth_token}".encode()
         auth_header = base64.b64encode(auth_bytes).decode("utf-8")
         retry_config = RetryConfig(
             max_retries=3,

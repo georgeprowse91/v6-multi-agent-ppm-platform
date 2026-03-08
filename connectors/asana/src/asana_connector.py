@@ -12,7 +12,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -22,10 +21,10 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(_REPO_ROOT)
 
 from base_connector import ConnectorCategory, ConnectorConfig  # noqa: E402
+from connector_secrets import resolve_secret  # noqa: E402
 from http_client import HttpClient, RetryConfig  # noqa: E402
 from mcp_client import MCPClient, MCPClientError  # noqa: E402
 from rest_connector import RestConnector  # noqa: E402
-from connector_secrets import resolve_secret  # noqa: E402
 
 DEFAULT_ASANA_URL = "https://app.asana.com/api/1.0"
 
@@ -198,7 +197,8 @@ class AsanaConnector(RestConnector):
             "tasks": "list_tasks",
         }
         tool_key = read_tools.get(resource_type)
-        rest_call = lambda: RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset)
+        def rest_call() -> list[dict[str, Any]]:
+            return RestConnector.read(self, resource_type, filters=filters, limit=limit, offset=offset)
         if not tool_key:
             return rest_call()
         params = {
@@ -223,7 +223,8 @@ class AsanaConnector(RestConnector):
             "tasks": "create_task",
         }
         tool_key = write_tools.get(resource_type)
-        rest_call = lambda: RestConnector.write(self, resource_type, data)
+        def rest_call() -> list[dict[str, Any]]:
+            return RestConnector.write(self, resource_type, data)
         if not tool_key:
             return rest_call()
         params = {"resource_type": resource_type, "records": data}

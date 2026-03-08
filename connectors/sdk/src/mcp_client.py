@@ -5,20 +5,20 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import sys
 import time
 import uuid
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Coroutine
+from typing import Any
 
 import httpx
-
 from base_connector import ConnectorConfig
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
 ensure_monorepo_paths(REPO_ROOT)
 
 from observability.metrics import build_mcp_client_metrics  # noqa: E402
@@ -38,7 +38,7 @@ class MCPAuthConfig:
     oauth_token: str | None = None
 
     @classmethod
-    def from_env(cls) -> "MCPAuthConfig":
+    def from_env(cls) -> MCPAuthConfig:
         return cls(
             api_key=os.getenv("MCP_API_KEY"),
             api_key_header=os.getenv("MCP_API_KEY_HEADER", DEFAULT_API_KEY_HEADER),
@@ -46,7 +46,7 @@ class MCPAuthConfig:
         )
 
     @classmethod
-    def from_config(cls, config: ConnectorConfig) -> "MCPAuthConfig":
+    def from_config(cls, config: ConnectorConfig) -> MCPAuthConfig:
         custom_fields = config.custom_fields or {}
         return cls(
             api_key=config.mcp_api_key or custom_fields.get("mcp_api_key"),
@@ -57,7 +57,7 @@ class MCPAuthConfig:
             oauth_token=config.mcp_oauth_token or custom_fields.get("mcp_oauth_token"),
         )
 
-    def with_fallback(self, other: "MCPAuthConfig") -> "MCPAuthConfig":
+    def with_fallback(self, other: MCPAuthConfig) -> MCPAuthConfig:
         return MCPAuthConfig(
             api_key=self.api_key or other.api_key,
             api_key_header=self.api_key_header or other.api_key_header,
