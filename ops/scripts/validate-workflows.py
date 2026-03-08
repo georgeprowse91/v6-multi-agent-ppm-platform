@@ -13,11 +13,11 @@ import yaml
 from jsonschema import Draft202012Validator
 
 DEFAULT_WORKFLOWS = [
-    Path("apps/workflow-service/workflows/definitions/intake-triage.workflow.yaml"),
+    Path("services/workflow-service/workflows/definitions/intake-triage.workflow.yaml"),
     Path("examples/workflows/portfolio-intake.workflow.yaml"),
 ]
 
-SCHEMA_PATH = Path("apps/workflow-service/workflows/schema/workflow.schema.json")
+SCHEMA_PATH = Path("services/workflow-service/workflows/schema/workflow.schema.json")
 
 
 class WorkflowValidationError(Exception):

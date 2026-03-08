@@ -130,7 +130,7 @@ where = [
     "packages/llm/src",
     "packages/workflow/src",
     "packages/event-bus/src",
-    "apps/api-gateway/src",
+    "services/api-gateway/src",
     "services/agent-config/src",
     "services/scope_baseline",
 ]
@@ -145,9 +145,9 @@ timeout_method = "thread"
 addopts = "-v -ra --durations=10 --import-mode=importlib"
 # Monorepo src trees added here so tests can import intra-repo packages without
 # sys.path.insert().  tests/conftest.py _bootstrap_paths() also handles this
-# dynamically and ensures apps/api-gateway/src is prioritised.
+# dynamically and ensures services/api-gateway/src is prioritised.
 # Note: packages/contracts/src is intentionally omitted here because it contains
-# an 'api' sub-package that would shadow apps/api-gateway/src/api; conftest.py
+# an 'api' sub-package that would shadow services/api-gateway/src/api; conftest.py
 # handles the correct prioritisation via _bootstrap_paths().
 pythonpath = [
     "vendor/stubs",

@@ -23,7 +23,7 @@ Examples:
 
 ## Capture guidelines
 
-- Capture screenshots from the running UI in `apps/web` or `apps/admin-console`.
+- Capture screenshots from the running UI in `apps/web` or `services/admin-console`.
 - Use seed/demo data that does not contain customer or personal information.
 - Ensure UI chrome is consistent (no dev tools panels, no debug banners, no local-only feature flags).
 - Capture in light mode unless explicitly documenting a dark theme variant.

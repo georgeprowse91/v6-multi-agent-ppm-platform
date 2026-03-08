@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   description: |
     OpenAPI specification for the Multi-Agent PPM Platform API gateway.
-    This document covers the currently implemented endpoints in `apps/api-gateway`.
+    This document covers the currently implemented endpoints in `services/api-gateway`.
 servers:
   - url: http://localhost:8000
     description: Local development

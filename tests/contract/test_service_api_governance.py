@@ -18,10 +18,10 @@ SERVICE_ENTRYPOINTS = [
     "services/telemetry-service/src/main.py",
     "services/audit-log/src/main.py",
     "services/identity-access/src/main.py",
-    "apps/orchestration-service/src/main.py",
-    "apps/document-service/src/main.py",
-    "apps/workflow-service/src/main.py",
-    "apps/analytics-service/src/main.py",
+    "services/orchestration-service/src/main.py",
+    "services/document-service/src/main.py",
+    "services/workflow-service/src/main.py",
+    "services/analytics-service/src/main.py",
     "apps/web/src/main.py",
 ]
 

@@ -14,11 +14,11 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths(REPO_ROOT)
 
 SERVICES: dict[str, tuple[str, str]] = {
-    "api-gateway": ("apps/api-gateway/src", "api.config"),
-    "orchestration-service": ("apps/orchestration-service/src", "config"),
-    "document-service": ("apps/document-service/src", "config"),
-    "workflow-service": ("apps/workflow-service/src", "config"),
-    "analytics-service": ("apps/analytics-service/src", "config"),
+    "api-gateway": ("services/api-gateway/src", "api.config"),
+    "orchestration-service": ("services/orchestration-service/src", "config"),
+    "document-service": ("services/document-service/src", "config"),
+    "workflow-service": ("services/workflow-service/src", "config"),
+    "analytics-service": ("services/analytics-service/src", "config"),
     "web": ("apps/web/src", "config"),
 }
 

@@ -11,8 +11,8 @@ import yaml
 from jsonschema import Draft202012Validator
 
 DEFAULT_BUNDLE_PATHS = [
-    Path("apps/orchestration-service/policies/bundles/default-policy-bundle.yaml"),
-    Path("apps/document-service/policies/bundles/default-policy-bundle.yaml"),
+    Path("services/orchestration-service/policies/bundles/default-policy-bundle.yaml"),
+    Path("services/document-service/policies/bundles/default-policy-bundle.yaml"),
     Path("services/policy-engine/policies/bundles/default-policy-bundle.yaml"),
     Path("ops/infra/policies/dlp/bundles/default-dlp-policy-bundle.yaml"),
     Path("ops/infra/policies/network/bundles/default-network-policy-bundle.yaml"),

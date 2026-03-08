@@ -10,7 +10,7 @@ The platform needs durable workflow execution for stage gates, approvals, and or
 
 ## Decision
 
-Implement a focused workflow service in `apps/workflow-service` using FastAPI and SQLite-backed storage. Workflow definitions are YAML files stored under `apps/workflow-service/workflows/definitions/` and discovered via a registry.
+Implement a focused workflow service in `services/workflow-service` using FastAPI and SQLite-backed storage. Workflow definitions are YAML files stored under `services/workflow-service/workflows/definitions/` and discovered via a registry.
 
 To support distributed execution, introduce a Celery-backed workflow runtime that dispatches each workflow step as an idempotent Celery task. Celery uses Redis or RabbitMQ as the broker and handles asynchronous task orchestration, while the workflow service persists state in SQLite (or a future external store) and exposes workflow lifecycle APIs. The new shared package `packages/workflow` defines workflow dispatchers, task definitions, and result aggregation for worker pools.
 
@@ -24,8 +24,8 @@ To support distributed execution, introduce a Celery-backed workflow runtime tha
 
 ## References
 
-- `apps/workflow-service/src/main.py`
-- `apps/workflow-service/src/workflow_storage.py`
-- `apps/workflow-service/workflows/definitions`
+- `services/workflow-service/src/main.py`
+- `services/workflow-service/src/workflow_storage.py`
+- `services/workflow-service/workflows/definitions`
 - `packages/workflow/src/workflow`
 - `docs/architecture/workflow-architecture.md`

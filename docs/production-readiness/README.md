@@ -608,7 +608,7 @@ The `SecurityHeadersMiddleware` omitted the `Content-Security-Policy` header, le
 
 #### 2.2 OIDC Discovery Cache Memory Leak & Stale-Data Risk — High
 
-**File:** `apps/api-gateway/src/api/middleware/security.py`
+**File:** `services/api-gateway/src/api/middleware/security.py`
 
 The module-level `_OIDC_CONFIG_CACHE` was a plain unbounded dict: it never evicted entries, never expired stale JWKS data, and was not thread-safe.
 

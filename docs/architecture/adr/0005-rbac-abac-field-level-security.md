@@ -20,7 +20,7 @@ Implement RBAC and classification-based field-level masking in the API gateway m
 
 ## References
 
-- `apps/api-gateway/src/api/middleware/security.py`
+- `services/api-gateway/src/api/middleware/security.py`
 - `services/policy-engine/src/main.py`
 - `ops/config/rbac/roles.yaml`
 - `ops/config/rbac/field-level.yaml`

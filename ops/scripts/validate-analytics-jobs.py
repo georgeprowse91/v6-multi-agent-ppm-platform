@@ -11,10 +11,10 @@ import yaml
 from jsonschema import Draft202012Validator
 
 DEFAULT_MANIFESTS = [
-    Path("apps/analytics-service/jobs/manifests/daily-portfolio-rollup.yaml"),
+    Path("services/analytics-service/jobs/manifests/daily-portfolio-rollup.yaml"),
 ]
 
-SCHEMA_PATH = Path("apps/analytics-service/jobs/schema/job-manifest.schema.json")
+SCHEMA_PATH = Path("services/analytics-service/jobs/schema/job-manifest.schema.json")
 
 
 class JobValidationError(Exception):

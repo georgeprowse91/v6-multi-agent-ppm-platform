@@ -561,7 +561,7 @@ multi-agent-ppm-platform-v4/
 │   └── terraform/envs/demo/
 │
 ├── integrations/
-│   ├── apps/connector-hub/
+│   ├── services/connector-hub/
 │   │   ├── Dockerfile
 │   │   ├── helm/{Chart.yaml,values.yaml,templates/…}
 │   │   ├── registry/

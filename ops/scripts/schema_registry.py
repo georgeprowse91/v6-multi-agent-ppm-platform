@@ -27,8 +27,8 @@ class SchemaRecord:
 DEFAULT_SCHEMA_ROOTS = [
     "data/schemas",
     "ops/schemas",
-    "apps/workflow-service/workflows/schema",
-    "apps/analytics-service/jobs/schema",
+    "services/workflow-service/workflows/schema",
+    "services/analytics-service/jobs/schema",
     "agents/runtime/prompts/schema",
 ]
 

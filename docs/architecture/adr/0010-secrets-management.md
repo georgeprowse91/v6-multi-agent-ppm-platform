@@ -20,6 +20,6 @@ Use Azure Key Vault via the Kubernetes SecretProviderClass in Helm charts for pr
 
 ## References
 
-- `apps/api-gateway/helm/templates/secretproviderclass.yaml`
+- `services/api-gateway/helm/templates/secretproviderclass.yaml`
 - `services/audit-log/helm/templates/secretproviderclass.yaml`
 - `ops/infra/kubernetes/secret-provider-class.yaml`

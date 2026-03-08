@@ -16,7 +16,7 @@ _CONTEXT: WorkflowTaskContext | None = None
 def _task_context() -> WorkflowTaskContext:
     global _CONTEXT
     if _CONTEXT is None:
-        db_path = os.getenv("WORKFLOW_DB_PATH", "apps/workflow-service/storage/workflows.db")
+        db_path = os.getenv("WORKFLOW_DB_PATH", "services/workflow-service/storage/workflows.db")
         _CONTEXT = WorkflowTaskContext(Path(db_path))
     if AGENT_CLIENT_OVERRIDE is not None:
         _CONTEXT.agent_client = AGENT_CLIENT_OVERRIDE

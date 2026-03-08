@@ -79,19 +79,19 @@ jobs:
       matrix:
         include:
           - service: api-gateway
-            chart: apps/api-gateway/helm
+            chart: services/api-gateway/helm
           - service: admin-console
-            chart: apps/admin-console/helm
+            chart: services/admin-console/helm
           - service: analytics-service
-            chart: apps/analytics-service/helm
+            chart: services/analytics-service/helm
           - service: connector-hub
-            chart: integrations/apps/connector-hub/helm
+            chart: services/connector-hub/helm
           - service: document-service
-            chart: apps/document-service/helm
+            chart: services/document-service/helm
           - service: orchestration-service
-            chart: apps/orchestration-service/helm
+            chart: services/orchestration-service/helm
           - service: workflow-service
-            chart: apps/workflow-service/helm
+            chart: services/workflow-service/helm
           - service: web
             chart: apps/web/helm
           - service: audit-log
@@ -187,19 +187,19 @@ jobs:
       matrix:
         include:
           - service: api-gateway
-            chart: apps/api-gateway/helm
+            chart: services/api-gateway/helm
           - service: admin-console
-            chart: apps/admin-console/helm
+            chart: services/admin-console/helm
           - service: analytics-service
-            chart: apps/analytics-service/helm
+            chart: services/analytics-service/helm
           - service: connector-hub
-            chart: integrations/apps/connector-hub/helm
+            chart: services/connector-hub/helm
           - service: document-service
-            chart: apps/document-service/helm
+            chart: services/document-service/helm
           - service: orchestration-service
-            chart: apps/orchestration-service/helm
+            chart: services/orchestration-service/helm
           - service: workflow-service
-            chart: apps/workflow-service/helm
+            chart: services/workflow-service/helm
           - service: web
             chart: apps/web/helm
           - service: audit-log

@@ -9,14 +9,14 @@ from typing import Iterable
 import yaml
 
 DEFAULT_HELM_DIRS = [
-    Path("apps/api-gateway/helm"),
-    Path("apps/admin-console/helm"),
-    Path("apps/analytics-service/helm"),
-    Path("apps/document-service/helm"),
-    Path("apps/orchestration-service/helm"),
+    Path("services/api-gateway/helm"),
+    Path("services/admin-console/helm"),
+    Path("services/analytics-service/helm"),
+    Path("services/document-service/helm"),
+    Path("services/orchestration-service/helm"),
     Path("apps/web/helm"),
-    Path("apps/connector-hub/helm"),
-    Path("apps/workflow-service/helm"),
+    Path("services/connector-hub/helm"),
+    Path("services/workflow-service/helm"),
     Path("services/audit-log/helm"),
     Path("services/data-sync-service/helm"),
     Path("services/identity-access/helm"),

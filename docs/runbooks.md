@@ -462,9 +462,9 @@ Define service-level objectives (SLOs) and the service-level indicators (SLIs) u
 
 ### Scope
 
-- API Gateway (`apps/api-gateway`)
-- Orchestration Service (`apps/orchestration-service`)
-- Workflow Service (`apps/workflow-service`)
+- API Gateway (`services/api-gateway`)
+- Orchestration Service (`services/orchestration-service`)
+- Workflow Service (`services/workflow-service`)
 - Data Sync Service (`services/data-sync-service`)
 - Audit Log Service (`services/audit-log`)
 

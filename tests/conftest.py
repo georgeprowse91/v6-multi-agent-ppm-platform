@@ -85,7 +85,7 @@ def _bootstrap_paths() -> None:
     if runtime_src.exists():
         src_paths.append(runtime_src)
 
-    api_gateway_src = root / "apps" / "api-gateway" / "src"
+    api_gateway_src = root / "services" / "api-gateway" / "src"
     # web/src must come BEFORE orchestration-service/src to avoid 'config.py' namespace collision:
     # both have a top-level 'config.py' and whichever appears first in sys.path wins for
     # `from config import ...` imports.
@@ -122,12 +122,12 @@ def _bootstrap_paths() -> None:
 
 def _assert_api_import_bootstrapped() -> None:
     expected = (
-        Path(__file__).resolve().parents[1] / "apps" / "api-gateway" / "src" / "api"
+        Path(__file__).resolve().parents[1] / "services" / "api-gateway" / "src" / "api"
     ).resolve()
     api_module = importlib.import_module("api")
     module_path = Path(getattr(api_module, "__file__", "")).resolve()
     assert module_path == expected / "__init__.py", (
-        "Expected `import api` to resolve to apps/api-gateway/src/api/__init__.py, "
+        "Expected `import api` to resolve to services/api-gateway/src/api/__init__.py, "
         f"got {module_path}"
     )
 

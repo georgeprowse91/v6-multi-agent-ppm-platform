@@ -133,9 +133,9 @@ Classification levels are configured in `ops/config/data-classification/levels.y
 
 ### Enforcement points
 
-- **API gateway**: classification in request payloads is evaluated against RBAC rules; unauthorised roles receive masked fields (`apps/api-gateway/src/api/middleware/security.py`).
+- **API gateway**: classification in request payloads is evaluated against RBAC rules; unauthorised roles receive masked fields (`services/api-gateway/src/api/middleware/security.py`).
 - **Audit log service**: classification drives retention policy selection for audit events (`services/audit-log/src/main.py`).
-- **Document service**: classification is evaluated against document policies (`apps/document-service/src/document_policy.py`).
+- **Document service**: classification is evaluated against document policies (`services/document-service/src/document_policy.py`).
 - **DLP scanning**: document ingestion and connector payload logging are scanned for sensitive data; findings are blocked or advisory based on `ops/config/security/dlp-policies.yaml`.
 - **Assistant prompt safety**: assistant requests are sanitised for prompt-injection markers and blocked or warned before forwarding.
 - **Encryption at rest**: document content is encrypted in local storage using Fernet keys provided via secret references.
@@ -223,7 +223,7 @@ Retention policies are defined in `ops/config/retention/policies.yaml` and refer
 ### Enforcement points
 
 - **Audit log service**: applies retention policies based on classification and writes to immutable storage (`services/audit-log/src/audit_storage.py`).
-- **Document service**: evaluates retention rules using document policies (`apps/document-service/src/document_policy.py`).
+- **Document service**: evaluates retention rules using document policies (`services/document-service/src/document_policy.py`).
 - **Runbook verification**: backup and recovery runbooks include retention validation steps.
 
 ### Governance

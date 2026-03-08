@@ -20,6 +20,6 @@ Use logical multi-tenancy enforced by headers and JWT claims. Services persist a
 
 ## References
 
-- `apps/api-gateway/src/api/middleware/security.py`
+- `services/api-gateway/src/api/middleware/security.py`
 - `ops/config/tenants/default.yaml`
 - `docs/architecture/tenancy-architecture.md`

@@ -14,7 +14,7 @@ AI-native Project Portfolio Management (PPM) platform with 25 specialized agents
 
 ```
 agents/                  25 domain agents + runtime scaffolding (BaseAgent, orchestrator)
-apps/                    User-facing applications (API gateway, web console, admin, mobile, etc.)
+apps/                    User-facing applications (web console, mobile, demo)
 config/                  RBAC/ABAC policy definitions
 connectors/              40 integration connectors + SDK + registry + MCP client
 constraints/             Python version constraint files (e.g. py313.txt)
@@ -24,7 +24,7 @@ examples/                Scenario and configuration examples
 integrations/            AI model, analytics, event bus, and persistence integration modules
 ops/                     Scripts, tools, infra (Terraform, K8s), Docker, config files
 packages/                Shared Python and TypeScript packages
-services/                Backend microservices (13 of 16; API Gateway, Orchestration, and Workflow services are in apps/)
+services/                All backend microservices (API gateway, orchestration, workflow, and 18 others)
 tests/                   Full test taxonomy: unit, integration, e2e, security, contract, load, performance
 tools/                   Agent runner, connector runner, local dev tooling
 vendor/                  Vendored stubs and third-party shims
@@ -137,15 +137,19 @@ Agents live under `agents/` organized by domain:
 
 Each agent follows the pattern: `agents/<domain>/<agent-name>/src/<agent_module>.py` with corresponding tests, prompts, and README specs.
 
-### Services (16 microservices)
+### Services (21 microservices under `services/`)
 
-All services use FastAPI + Uvicorn. Standard structure: `src/`, `tests/`, `helm/`, `contracts/`, `Dockerfile`. **Note:** API Gateway, Orchestration Service, and Workflow Service are located under `apps/` rather than `services/`. `agent-config` and `memory_service` do not yet follow the full standard structure (missing `helm/`, `contracts/`, or `Dockerfile`). The `services/scope_baseline/` directory exists but is not a deployed microservice.
+All services use FastAPI + Uvicorn. Standard structure: `src/`, `tests/`, `helm/`, `contracts/`, `Dockerfile`. `agent-config` and `memory_service` do not yet follow the full standard structure (missing `helm/`, `contracts/`, or `Dockerfile`). The `services/scope_baseline/` directory exists but is not a deployed microservice.
 
 | Service | Port | Purpose |
 |---------|------|---------|
 | API Gateway | 8000 | Front door, auth, rate limiting, circuit breaker |
 | Orchestration Service | 8080 | Multi-agent workflow coordination |
 | Workflow Service | 8080 | Workflow execution, gate evaluation |
+| Admin Console | 8080 | Platform operator management |
+| Analytics Service | 8080 | KPI and metrics computation |
+| Connector Hub | 8080 | Integration connector management |
+| Document Service | 8080 | Document storage and versioning |
 | Agent Runtime | 8080 | Agent hosting and connector integration |
 | Agent Config | 8080 | Agent configuration CRUD |
 | Audit Log | 8080 | Immutable audit trail (WORM) |
@@ -160,17 +164,12 @@ All services use FastAPI + Uvicorn. Standard structure: `src/`, `tests/`, `helm/
 | Realtime Co-edit | 8080 | WebSocket collaborative editing |
 | Memory Service | — | Conversation context persistence |
 
-### Applications
+### Applications (under `apps/`)
 
 | App | Tech Stack | Port |
 |-----|-----------|------|
-| API Gateway | FastAPI | 8000 |
 | Web Console | React 18 + Vite + FastAPI backend | 8501 |
 | Mobile | React Native 0.73 + Expo 50 | — |
-| Admin Console | FastAPI | 8080 |
-| Analytics Service | FastAPI | 8080 |
-| Document Service | FastAPI | 8080 |
-| Connector Hub | FastAPI | 8080 |
 | Demo Streamlit | Streamlit | — |
 
 ### Shared packages (`packages/`)

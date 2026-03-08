@@ -134,7 +134,7 @@ Available endpoints:
 Inspect the API gateway authentication middleware:
 
 ```bash
-rg -n "AuthTenantMiddleware" apps/api-gateway/src/api/middleware/security.py
+rg -n "AuthTenantMiddleware" services/api-gateway/src/api/middleware/security.py
 ```
 
 Review the identity-access token validation endpoint:

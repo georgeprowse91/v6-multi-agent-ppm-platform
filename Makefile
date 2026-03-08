@@ -138,16 +138,16 @@ clean: ## Clean build artifacts and cache
 	rm -rf build/ dist/ .coverage htmlcov/ .pytest_cache/
 
 run-api: ## Run the production API server
-	uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 --app-dir apps/api-gateway/src
+	uvicorn api.main:app --reload --host 0.0.0.0 --port 8000 --app-dir services/api-gateway/src
 
 run-api-prod: ## Run the API server in production mode
-	uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 4 --app-dir apps/api-gateway/src
+	uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 4 --app-dir services/api-gateway/src
 
 run-web: ## Run the production web console
 	uvicorn src.main:app --reload --host 0.0.0.0 --port 8501 --app-dir apps/web/src
 
 docker-build: ## Build Docker image
-	docker build -t multi-agent-ppm:latest -f apps/api-gateway/Dockerfile .
+	docker build -t multi-agent-ppm:latest -f services/api-gateway/Dockerfile .
 
 docker-build-web: ## Build web console Docker image
 	docker build -t multi-agent-ppm-web:latest -f apps/web/Dockerfile apps/web

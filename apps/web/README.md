@@ -124,7 +124,7 @@ python -m tools.component_runner run --type app --name web
 To exercise the Document canvas end-to-end, run the document service and point the web app to it:
 
 ```bash
-cd apps/document-service
+cd services/document-service
 uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
@@ -144,7 +144,7 @@ Then open `http://localhost:8501/app/projects/demo-1`. The SPA hydrates methodol
 To exercise the Dashboard canvas end-to-end, run the analytics service and point the web app to it:
 
 ```bash
-cd apps/analytics-service
+cd services/analytics-service
 uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 
@@ -163,7 +163,7 @@ Then open `http://localhost:8501/app/projects/demo-1` and select the Dashboard t
 To exercise the Connector Gallery in the SPA workspace, run connector-hub alongside the web app:
 
 ```bash
-cd integrations/apps/connector-hub
+cd services/connector-hub
 uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 ```
 

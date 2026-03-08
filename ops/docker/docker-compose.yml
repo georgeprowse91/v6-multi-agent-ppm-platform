@@ -5,7 +5,7 @@ version: '3.8'
 services:
   api:
     build:
-      context: ../../apps/api-gateway
+      context: ../../services/api-gateway
       dockerfile: Dockerfile
       additional_contexts:
         repo-root: ../..
@@ -35,8 +35,8 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ../../apps/api-gateway/src:/app/apps/api-gateway/src
-      - ../../apps/orchestration-service/src:/app/apps/orchestration-service/src
+      - ../../services/api-gateway/src:/app/services/api-gateway/src
+      - ../../services/orchestration-service/src:/app/services/orchestration-service/src
       - ../../agents:/app/agents
       - ../../tools:/app/tools
       - ../../ops/config:/app/ops/config
@@ -54,7 +54,7 @@ services:
 
   workflow-service:
     build:
-      context: ../../apps/workflow-service
+      context: ../../services/workflow-service
       dockerfile: Dockerfile
       additional_contexts:
         repo-root: ../..
@@ -67,9 +67,9 @@ services:
       - AUTH_DEV_ROLES=${AUTH_DEV_ROLES}
       - AUTH_DEV_TENANT_ID=${AUTH_DEV_TENANT_ID}
       - DEMO_MODE=${DEMO_MODE}
-      - WORKFLOW_DB_PATH=${WORKFLOW_DB_PATH:-/app/apps/workflow-service/storage/workflows.db}
+      - WORKFLOW_DB_PATH=${WORKFLOW_DB_PATH:-/app/services/workflow-service/storage/workflows.db}
     volumes:
-      - ../../apps/workflow-service:/app/apps/workflow-service
+      - ../../services/workflow-service:/app/services/workflow-service
     depends_on:
       db:
         condition: service_healthy
@@ -116,7 +116,7 @@ services:
 
   orchestration-service:
     build:
-      context: ../../apps/orchestration-service
+      context: ../../services/orchestration-service
       dockerfile: Dockerfile
       additional_contexts:
         repo-root: ../..
@@ -204,7 +204,7 @@ services:
 
   document-service:
     build:
-      context: ../../apps/document-service
+      context: ../../services/document-service
       dockerfile: Dockerfile
       additional_contexts:
         repo-root: ../..
@@ -282,7 +282,7 @@ services:
 
   analytics-service:
     build:
-      context: ../../apps/analytics-service
+      context: ../../services/analytics-service
       dockerfile: Dockerfile
       additional_contexts:
         repo-root: ../..

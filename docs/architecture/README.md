@@ -241,7 +241,7 @@ The deployment architecture maps logical components into Azure environments with
 
 ### Release flow
 
-1. **Build**: GitHub Actions builds Docker images from `apps/api-gateway/Dockerfile`.
+1. **Build**: GitHub Actions builds Docker images from `services/api-gateway/Dockerfile`.
 2. **Validate**: unit tests and docs checks (`ops/scripts/check-links.py`, `ops/scripts/check-placeholders.py`).
 3. **Deploy**: Terraform provisions infrastructure, then Kubernetes manifests roll out services.
 
@@ -492,19 +492,19 @@ Explain how durable workflows are defined, executed, and audited across the plat
 
 ### Architecture-level context
 
-Workflows are the backbone for stage-gate execution, approvals, and multi-step orchestration. The platform uses a dedicated workflow service (`apps/workflow-service`) and the Approval Workflow agent (`agents/core-orchestration/approval-workflow-agent`) to execute workflow instances, persist state in an external database, and emit audit entries to the audit log service. Orchestration services and agents call the workflow service to start, resume, and inspect workflow runs, while worker nodes pull tasks from a shared queue.
+Workflows are the backbone for stage-gate execution, approvals, and multi-step orchestration. The platform uses a dedicated workflow service (`services/workflow-service`) and the Approval Workflow agent (`agents/core-orchestration/approval-workflow-agent`) to execute workflow instances, persist state in an external database, and emit audit entries to the audit log service. Orchestration services and agents call the workflow service to start, resume, and inspect workflow runs, while worker nodes pull tasks from a shared queue.
 
 ### Core components
 
 | Component | Location | Responsibility |
 | --- | --- | --- |
-| Workflow engine API | `apps/workflow-service/src/main.py` | REST API for workflow lifecycle (start/status/resume). |
+| Workflow engine API | `services/workflow-service/src/main.py` | REST API for workflow lifecycle (start/status/resume). |
 | Approval Workflow agent | `agents/core-orchestration/approval-workflow-agent/src/approval_workflow_agent.py` | Orchestrates workflow execution, approval chains, and task routing across worker nodes. |
 | Workflow storage | `agents/core-orchestration/approval-workflow-agent/src/workflow_state_store.py` | External database-backed state store for workflow definitions, instances, and tasks. |
 | Workflow task queue | `agents/core-orchestration/approval-workflow-agent/src/workflow_task_queue.py` | Queue-backed coordination for distributing workflow tasks to workers. |
-| Workflow definitions | `apps/workflow-service/workflows/definitions/*.workflow.yaml` | Declarative workflow definitions. |
-| Workflow registry | `apps/workflow-service/workflow_registry.py` | Discovery of workflow definitions. |
-| Orchestration service | `apps/orchestration-service/src/main.py` | Calls workflow service and coordinates agent plans. |
+| Workflow definitions | `services/workflow-service/workflows/definitions/*.workflow.yaml` | Declarative workflow definitions. |
+| Workflow registry | `services/workflow-service/workflow_registry.py` | Discovery of workflow definitions. |
+| Orchestration service | `services/orchestration-service/src/main.py` | Calls workflow service and coordinates agent plans. |
 
 ### Workflow lifecycle
 
@@ -516,7 +516,7 @@ Workflows are the backbone for stage-gate execution, approvals, and multi-step o
 
 ### Workflow definitions and fields
 
-Workflow definitions live in `apps/workflow-service/workflows/definitions/*.workflow.yaml` and follow the schema below.
+Workflow definitions live in `services/workflow-service/workflows/definitions/*.workflow.yaml` and follow the schema below.
 
 | Field | Description |
 | --- | --- |
@@ -558,17 +558,17 @@ Workflow definitions live in `apps/workflow-service/workflows/definitions/*.work
 
 Inspect workflow definitions:
 ```bash
-ls apps/workflow-service/workflows/definitions
+ls services/workflow-service/workflows/definitions
 ```
 
 Check workflow service routes:
 ```bash
-rg -n "workflows" apps/workflow-service/src/main.py
+rg -n "workflows" services/workflow-service/src/main.py
 ```
 
 Verify workflow instance storage includes `tenant_id`:
 ```bash
-rg -n "tenant_id" apps/workflow-service/src/workflow_storage.py
+rg -n "tenant_id" services/workflow-service/src/workflow_storage.py
 ```
 
 ### Implementation status
@@ -1428,13 +1428,13 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
 
 ### Tenant identification and request flow
 
-- **Headers:** Every request to a tenant-aware service must include `X-Tenant-ID`. The API gateway middleware validates the tenant claim in the JWT and rejects mismatches (`apps/api-gateway/src/api/middleware/security.py`).
+- **Headers:** Every request to a tenant-aware service must include `X-Tenant-ID`. The API gateway middleware validates the tenant claim in the JWT and rejects mismatches (`services/api-gateway/src/api/middleware/security.py`).
 - **Identity validation:** The gateway can validate JWTs locally using `IDENTITY_JWKS_URL` / `IDENTITY_JWT_SECRET` or delegate to the Identity Access service (`services/identity-access`).
 - **Dev mode:** Local development can use `AUTH_DEV_MODE=true` with `AUTH_DEV_TENANT_ID` and `AUTH_DEV_ROLES` for deterministic testing.
 
 ### Data isolation approach
 
-- **Logical isolation:** Tenant identifiers are persisted with records in workflow, analytics, audit, and document stores (`apps/workflow-service/src/workflow_storage.py`, `apps/analytics-service/src/scheduler.py`, `services/audit-log/src/main.py`, `apps/document-service/src/main.py`).
+- **Logical isolation:** Tenant identifiers are persisted with records in workflow, analytics, audit, and document stores (`services/workflow-service/src/workflow_storage.py`, `services/analytics-service/src/scheduler.py`, `services/audit-log/src/main.py`, `services/document-service/src/main.py`).
 - **Authorization enforcement:** RBAC and classification-based checks occur in the gateway (field masking and permission checks) and the policy engine (`services/policy-engine`).
 - **Storage boundaries:** The default local stores use SQLite files scoped by service; for production deployments, replace local storage with environment-specific backing stores via Helm/Terraform configuration.
 
@@ -1462,11 +1462,11 @@ Tenant-aware routing is enforced at the API gateway and service layers. Each req
   ```
 - Confirm API gateway tenant enforcement:
   ```bash
-  rg -n "X-Tenant-ID" apps/api-gateway/src/api/middleware/security.py
+  rg -n "X-Tenant-ID" services/api-gateway/src/api/middleware/security.py
   ```
 - Validate workflow storage includes tenant IDs:
   ```bash
-  rg -n "tenant_id" apps/workflow-service/src/workflow_storage.py
+  rg -n "tenant_id" services/workflow-service/src/workflow_storage.py
   ```
 
 ### Implementation status
@@ -1666,7 +1666,7 @@ The abstract `process()` method signature (`base_agent.py:95`) returns `Any`, an
 
 **1.5 — Global Orchestrator Singleton**
 
-In `apps/api-gateway/src/api/main.py:126`, the orchestrator is stored as a module-level global variable and also on `app.state`. This creates dual state management and makes testing harder, as the global must be patched independently of the app state.
+In `services/api-gateway/src/api/main.py:126`, the orchestrator is stored as a module-level global variable and also on `app.state`. This creates dual state management and makes testing harder, as the global must be patched independently of the app state.
 
 *Recommendation:* Remove the module-level global. Use only `app.state.orchestrator` and inject it via FastAPI's dependency injection system. This simplifies testing and eliminates the risk of the two references diverging.
 
