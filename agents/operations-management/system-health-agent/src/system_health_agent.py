@@ -9,7 +9,6 @@ Specification: agents/operations-management/system-health-agent/README.md
 """
 
 import asyncio
-import importlib.util
 import os
 import re
 from pathlib import Path
@@ -28,19 +27,9 @@ from integrations.services.integration.analytics import AnalyticsClient
 # continue to work).
 # ---------------------------------------------------------------------------
 
-
-def _safe_find_spec(module_name: str) -> bool:
-    try:
-        return importlib.util.find_spec(module_name) is not None
-    except (ModuleNotFoundError, ValueError):
-        return False
-
-
-_HAS_AZURE = _safe_find_spec("azure")
-_HAS_AZURE_MONITOR_OPENTELEMETRY = _HAS_AZURE and (_safe_find_spec("azure.monitor.opentelemetry"))
-if _HAS_AZURE_MONITOR_OPENTELEMETRY:
+try:
     from azure.monitor.opentelemetry import configure_azure_monitor as _configure_azure_monitor
-else:
+except (ImportError, Exception):
     _configure_azure_monitor = None
 
 # ---------------------------------------------------------------------------

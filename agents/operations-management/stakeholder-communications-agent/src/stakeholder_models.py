@@ -4,23 +4,15 @@ Data models and persistence stores for Stakeholder & Communications Management A
 
 from __future__ import annotations
 
-import importlib.util
 import json
 import sqlite3
 from typing import Any
 
-
-def _safe_find_spec(module_name: str) -> bool:
-    try:
-        return importlib.util.find_spec(module_name) is not None
-    except (ModuleNotFoundError, ValueError):
-        return False
-
-
-# SQLAlchemy (optional)
-if _safe_find_spec("sqlalchemy"):
+# SQLAlchemy (optional) — guarded with try/except so transitive-dep failures
+# don't prevent the module from loading.
+try:
     from sqlalchemy import JSON, Column, DateTime, MetaData, String, Table, Text, create_engine
-else:
+except (ImportError, Exception):
     create_engine = None  # type: ignore[assignment,misc]
     Table = None  # type: ignore[assignment,misc]
     Column = None  # type: ignore[assignment,misc]
@@ -31,9 +23,9 @@ else:
     JSON = None  # type: ignore[assignment,misc]
 
 # Azure Service Bus (optional)
-if _safe_find_spec("azure.servicebus"):
+try:
     from azure.servicebus import ServiceBusClient, ServiceBusMessage
-else:
+except (ImportError, Exception):
     ServiceBusClient = None  # type: ignore[assignment,misc]
     ServiceBusMessage = None  # type: ignore[assignment,misc]
 
