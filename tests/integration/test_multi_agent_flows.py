@@ -2,9 +2,18 @@ from __future__ import annotations
 
 import pytest
 
-pytest.importorskip("pytest_asyncio")
-import pytest_asyncio
+try:
+    import pytest_asyncio
+
+    _has_pytest_asyncio = True
+except ModuleNotFoundError:
+    _has_pytest_asyncio = False
+
 from response_orchestration_agent import ResponseOrchestrationAgent
+
+pytestmark = pytest.mark.skipif(
+    not _has_pytest_asyncio, reason="pytest-asyncio is not installed"
+)
 
 
 class EventCollector:
@@ -36,7 +45,7 @@ class MockAgent:
         return {**self.output, **connector_data}
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def orchestration_agent() -> ResponseOrchestrationAgent:
     orchestrator = ResponseOrchestrationAgent(config={"event_bus": EventCollector()})
     await orchestrator.initialize()

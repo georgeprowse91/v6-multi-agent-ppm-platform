@@ -26,7 +26,7 @@ os.environ.setdefault("AUTH_DEV_MODE", "true")
 
 try:
     import jwt
-except Exception:  # cryptography pyo3 panic or missing package
+except BaseException:  # cryptography pyo3 panic or missing package
     jwt = None  # type: ignore[assignment]
 import pytest
 
