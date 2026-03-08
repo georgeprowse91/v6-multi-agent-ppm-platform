@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import pytest
+
+pytest.importorskip("pytest_asyncio")
 import pytest_asyncio
 from response_orchestration_agent import ResponseOrchestrationAgent
 
