@@ -1,5 +1,7 @@
 """Intake request action handlers."""
+
 from __future__ import annotations
+
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
@@ -59,8 +61,7 @@ async def submit_request(
             "recipient": demand_item.get("created_by"),
             "subject": f"Demand request {demand_id} received",
             "body": (
-                "Your request has been received and routed for screening. "
-                f"Category: {category}."
+                "Your request has been received and routed for screening. " f"Category: {category}."
             ),
             "metadata": {"demand_id": demand_id, "tenant_id": tenant_id},
             "sent_at": datetime.now(timezone.utc).isoformat(),

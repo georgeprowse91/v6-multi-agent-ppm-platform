@@ -54,9 +54,7 @@ async def get_deployment_metrics(
             if isinstance(value, (int, float)):
                 overall.setdefault(key, []).append(float(value))
 
-    aggregate = {
-        key: statistics.mean(values) if values else 0.0 for key, values in overall.items()
-    }
+    aggregate = {key: statistics.mean(values) if values else 0.0 for key, values in overall.items()}
 
     return {
         "metrics": aggregate,
@@ -77,9 +75,7 @@ async def get_deployment_baseline(
     for svc_name in service_names:
         records = await agent._get_service_metrics(svc_name, time_range)
         for metric_name in metric_baselines:
-            metric_baselines[metric_name].extend(
-                extract_metric_series(records, metric_name)
-            )
+            metric_baselines[metric_name].extend(extract_metric_series(records, metric_name))
 
     baseline: dict[str, Any] = {}
     for metric_name, values in metric_baselines.items():
@@ -154,6 +150,7 @@ async def get_grafana_dashboard(agent: SystemHealthAgent) -> dict[str, Any]:
 # Summary helpers
 # ---------------------------------------------------------------------------
 
+
 def summarize_metrics_history(
     agent: SystemHealthAgent, time_range: dict[str, Any], tenant_id: str | None = None
 ) -> dict[str, Any]:
@@ -166,9 +163,7 @@ def summarize_metrics_history(
             continue
         timestamp = record.get("timestamp")
         if timestamp:
-            parsed = (
-                datetime.fromisoformat(timestamp) if isinstance(timestamp, str) else timestamp
-            )
+            parsed = datetime.fromisoformat(timestamp) if isinstance(timestamp, str) else timestamp
             if parsed < start_time or parsed > end_time:
                 continue
         total_records += 1
@@ -178,9 +173,7 @@ def summarize_metrics_history(
             continue
         for metric_name, value in metrics_data.items():
             if isinstance(value, (int, float)):
-                summaries.setdefault(svc_name, {}).setdefault(metric_name, []).append(
-                    float(value)
-                )
+                summaries.setdefault(svc_name, {}).setdefault(metric_name, []).append(float(value))
 
     summarized: dict[str, dict[str, float]] = {}
     for svc_name, metrics in summaries.items():
@@ -251,9 +244,7 @@ def summarize_alerts(
     return {
         "total_alerts": len(filtered),
         "severity_counts": severity_counts,
-        "average_response_minutes": (
-            statistics.mean(response_times) if response_times else 0.0
-        ),
+        "average_response_minutes": (statistics.mean(response_times) if response_times else 0.0),
     }
 
 

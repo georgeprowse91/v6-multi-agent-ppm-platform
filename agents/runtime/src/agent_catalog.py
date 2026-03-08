@@ -207,9 +207,7 @@ def register_agent(entry: AgentCatalogEntry) -> None:
     Raises ValueError if the agent_id conflicts with a built-in agent.
     """
     if entry.agent_id in AGENT_CATALOG_BY_AGENT_ID:
-        raise ValueError(
-            f"Cannot register '{entry.agent_id}': conflicts with a built-in agent"
-        )
+        raise ValueError(f"Cannot register '{entry.agent_id}': conflicts with a built-in agent")
     with _registry_lock:
         _dynamic_registry[entry.agent_id] = entry
     logger.info("Registered dynamic agent %s (source=%s)", entry.agent_id, entry.source)

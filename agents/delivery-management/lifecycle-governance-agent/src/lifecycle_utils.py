@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 # Methodology helpers
 # ---------------------------------------------------------------------------
 
+
 async def load_methodology_map(
     agent: ProjectLifecycleAgent, methodology: str, *, tenant_id: str = "default"
 ) -> dict[str, Any]:
@@ -133,6 +134,7 @@ async def map_phase_to_methodology(
 # Gate helpers
 # ---------------------------------------------------------------------------
 
+
 async def get_gate_name(from_phase: str, to_phase: str) -> str:
     """Get gate name for phase transition."""
     return f"{from_phase}_to_{to_phase}_gate"
@@ -236,9 +238,7 @@ async def check_criterion(agent: ProjectLifecycleAgent, project_id: str, criteri
         or approvals.get("release", False),
         "sprint_planning_complete": artifacts.get("sprint_plan", {}).get("complete", False),
         "sprint_review_complete": artifacts.get("sprint_review", {}).get("complete", False),
-        "sprint_retrospective_complete": artifacts.get("sprint_retro", {}).get(
-            "complete", False
-        ),
+        "sprint_retrospective_complete": artifacts.get("sprint_retro", {}).get("complete", False),
     }
 
     return bool(criteria_map.get(criterion, False))
@@ -283,6 +283,7 @@ async def get_pending_gates(agent: ProjectLifecycleAgent, project_id: str) -> li
 # ---------------------------------------------------------------------------
 # Health helpers
 # ---------------------------------------------------------------------------
+
 
 async def determine_health_status(composite_score: float) -> str:
     """Determine health status from composite score."""
@@ -382,12 +383,8 @@ async def generate_health_trends(
     schedule_values = [
         record.get("metrics", {}).get("schedule", {}).get("score", 0) for record in history
     ]
-    cost_values = [
-        record.get("metrics", {}).get("cost", {}).get("score", 0) for record in history
-    ]
-    risk_values = [
-        record.get("metrics", {}).get("risk", {}).get("score", 0) for record in history
-    ]
+    cost_values = [record.get("metrics", {}).get("cost", {}).get("score", 0) for record in history]
+    risk_values = [record.get("metrics", {}).get("risk", {}).get("score", 0) for record in history]
     quality_values = [
         record.get("metrics", {}).get("quality", {}).get("score", 0) for record in history
     ]
@@ -423,6 +420,7 @@ async def generate_alerts(health_data: dict[str, Any]) -> list[dict[str, Any]]:
 # Lifecycle state helpers
 # ---------------------------------------------------------------------------
 
+
 async def get_lifecycle_state(
     agent: ProjectLifecycleAgent, tenant_id: str, project_id: str
 ) -> dict[str, Any] | None:
@@ -437,6 +435,7 @@ async def get_lifecycle_state(
 # ---------------------------------------------------------------------------
 # Configuration helpers
 # ---------------------------------------------------------------------------
+
 
 async def bootstrap_configuration(agent: ProjectLifecycleAgent) -> None:
     for methodology, methodology_map in agent.methodology_maps.items():
@@ -469,6 +468,7 @@ async def update_methodology_config(
 # ---------------------------------------------------------------------------
 # Event publishing helpers
 # ---------------------------------------------------------------------------
+
 
 async def publish_project_transitioned(
     agent: ProjectLifecycleAgent,

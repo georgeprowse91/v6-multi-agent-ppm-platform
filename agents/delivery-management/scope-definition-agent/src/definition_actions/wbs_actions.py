@@ -30,7 +30,10 @@ if TYPE_CHECKING:
 # WBS helpers (previously private methods on the agent)
 # ---------------------------------------------------------------------------
 
-async def _find_similar_projects(agent: ProjectDefinitionAgent, charter: dict[str, Any]) -> list[dict[str, Any]]:
+
+async def _find_similar_projects(
+    agent: ProjectDefinitionAgent, charter: dict[str, Any]
+) -> list[dict[str, Any]]:
     """Find similar projects for WBS reference."""
     if not charter:
         return []
@@ -41,7 +44,9 @@ async def _find_similar_projects(agent: ProjectDefinitionAgent, charter: dict[st
     return [result.metadata for result in results]
 
 
-async def _generate_wbs_with_openai(agent: ProjectDefinitionAgent, prompt: str) -> dict[str, Any] | None:
+async def _generate_wbs_with_openai(
+    agent: ProjectDefinitionAgent, prompt: str
+) -> dict[str, Any] | None:
     response = await _generate_with_openai(agent, prompt)
     if not response:
         return None
@@ -115,9 +120,7 @@ async def _generate_wbs_from_objectives(
             child_code = f"{idx + index_offset}.{pkg_index}"
             children[child_code] = {"name": package, "children": {}}
         if deliverables:
-            for deliverable_index, deliverable in enumerate(
-                deliverables, start=len(children) + 1
-            ):
+            for deliverable_index, deliverable in enumerate(deliverables, start=len(children) + 1):
                 child_code = f"{idx + index_offset}.{deliverable_index}"
                 children[child_code] = {"name": f"Deliver {deliverable}", "children": {}}
         if similar_projects:
@@ -153,9 +156,7 @@ async def _generate_wbs_structure(
     openai_structure = await _generate_wbs_with_openai(agent, openai_prompt)
     if openai_structure:
         return openai_structure
-    objectives = charter.get("document", {}).get("objectives", []) or charter.get(
-        "objectives", []
-    )
+    objectives = charter.get("document", {}).get("objectives", []) or charter.get("objectives", [])
     scope_overview = scope_statement or charter.get("document", {}).get("scope_overview", {})
     wbs_from_objectives = await _generate_wbs_from_objectives(
         objectives, scope_overview, similar_projects
@@ -234,6 +235,7 @@ async def _publish_wbs_updated(
 # Public action handlers
 # ---------------------------------------------------------------------------
 
+
 async def handle_generate_wbs(
     agent: ProjectDefinitionAgent,
     project_id: str,
@@ -255,9 +257,7 @@ async def handle_generate_wbs(
         raise ValueError(f"Charter not found for project: {project_id}")
 
     similar_projects = await _find_similar_projects(agent, charter)
-    wbs_structure = await _generate_wbs_structure(
-        agent, charter, scope_statement, similar_projects
-    )
+    wbs_structure = await _generate_wbs_structure(agent, charter, scope_statement, similar_projects)
     wbs_with_details = await _add_work_package_details(wbs_structure)
     wbs_id = await generate_wbs_id(project_id)
 

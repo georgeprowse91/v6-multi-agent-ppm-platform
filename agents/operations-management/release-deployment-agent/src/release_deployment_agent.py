@@ -72,7 +72,9 @@ class ReleaseDeploymentAgent(BaseAgent):
     - Deployment metrics and reporting
     """
 
-    def __init__(self, agent_id: str = "release-deployment-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "release-deployment-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
 
         # Configuration parameters
@@ -210,12 +212,22 @@ class ReleaseDeploymentAgent(BaseAgent):
             return False
 
         valid_actions = {
-            "plan_release", "assess_readiness", "create_deployment_plan",
-            "execute_deployment", "rollback_deployment", "manage_environment",
-            "check_configuration_drift", "generate_release_notes",
-            "track_deployment_metrics", "schedule_deployment_window",
-            "verify_post_deployment", "get_release_calendar", "get_release_status",
-            "get_deployment_status", "get_deployment_history", "trigger_deployment",
+            "plan_release",
+            "assess_readiness",
+            "create_deployment_plan",
+            "execute_deployment",
+            "rollback_deployment",
+            "manage_environment",
+            "check_configuration_drift",
+            "generate_release_notes",
+            "track_deployment_metrics",
+            "schedule_deployment_window",
+            "verify_post_deployment",
+            "get_release_calendar",
+            "get_release_status",
+            "get_deployment_status",
+            "get_deployment_history",
+            "trigger_deployment",
         }
 
         if action not in valid_actions:
@@ -444,7 +456,13 @@ class ReleaseDeploymentAgent(BaseAgent):
     # ------------------------------------------------------------------
 
     async def _plan_release(self, release_data, *, tenant_id, correlation_id, actor_id):
-        return await plan_release(self, release_data, tenant_id=tenant_id, correlation_id=correlation_id, actor_id=actor_id)
+        return await plan_release(
+            self,
+            release_data,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
+            actor_id=actor_id,
+        )
 
     async def _assess_readiness(self, release_id):
         return await assess_readiness(self, release_id)
@@ -453,7 +471,9 @@ class ReleaseDeploymentAgent(BaseAgent):
         return await create_deployment_plan(self, release_id, plan_data, tenant_id=tenant_id)
 
     async def _execute_deployment(self, deployment_plan_id, *, tenant_id, correlation_id):
-        return await execute_deployment(self, deployment_plan_id, tenant_id=tenant_id, correlation_id=correlation_id)
+        return await execute_deployment(
+            self, deployment_plan_id, tenant_id=tenant_id, correlation_id=correlation_id
+        )
 
     async def _rollback_deployment(self, deployment_plan_id):
         return await rollback_deployment(self, deployment_plan_id)

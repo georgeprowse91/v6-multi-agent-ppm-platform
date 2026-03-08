@@ -63,9 +63,7 @@ async def get_health_dashboard(
         "status": project.get("status"),
         "health_status": health_data.get("health_status", "Unknown"),
         "composite_score": health_data.get("composite_score", 0),
-        "phase_start_date": (
-            lifecycle_state.get("phase_start_date") if lifecycle_state else None
-        ),
+        "phase_start_date": (lifecycle_state.get("phase_start_date") if lifecycle_state else None),
         "transitions_count": (
             len(lifecycle_state.get("transitions", [])) if lifecycle_state else 0
         ),

@@ -134,10 +134,18 @@ reject_placeholder_secrets(
     secret_vars={
         k: v
         for k, v in {
-            "NOTIFICATION_TEAMS_CLIENT_SECRET": resolve_secret(os.getenv("NOTIFICATION_TEAMS_CLIENT_SECRET", "")),
-            "NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN": resolve_secret(os.getenv("NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN", "")),
-            "NOTIFICATION_SLACK_BOT_TOKEN": resolve_secret(os.getenv("NOTIFICATION_SLACK_BOT_TOKEN", "")),
-            "NOTIFICATION_ACS_ACCESS_TOKEN": resolve_secret(os.getenv("NOTIFICATION_ACS_ACCESS_TOKEN", "")),
+            "NOTIFICATION_TEAMS_CLIENT_SECRET": resolve_secret(
+                os.getenv("NOTIFICATION_TEAMS_CLIENT_SECRET", "")
+            ),
+            "NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN": resolve_secret(
+                os.getenv("NOTIFICATION_TEAMS_GRAPH_ACCESS_TOKEN", "")
+            ),
+            "NOTIFICATION_SLACK_BOT_TOKEN": resolve_secret(
+                os.getenv("NOTIFICATION_SLACK_BOT_TOKEN", "")
+            ),
+            "NOTIFICATION_ACS_ACCESS_TOKEN": resolve_secret(
+                os.getenv("NOTIFICATION_ACS_ACCESS_TOKEN", "")
+            ),
         }.items()
         if v
     },
@@ -148,7 +156,7 @@ api_router = APIRouter(prefix="/v1")
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
 app.add_middleware(SlowAPIMiddleware)
 configure_tracing("notification-service")
 configure_metrics("notification-service")
@@ -506,7 +514,9 @@ def _render_health_digest(request: HealthDigestNotificationRequest) -> str:
     critical_count = sum(1 for item in request.items if item.status == "critical")
     at_risk_count = sum(1 for item in request.items if item.status == "at_risk")
     healthy_count = sum(1 for item in request.items if item.status == "healthy")
-    lines.append(f"Overview: {critical_count} critical, {at_risk_count} at risk, {healthy_count} healthy")
+    lines.append(
+        f"Overview: {critical_count} critical, {at_risk_count} at risk, {healthy_count} healthy"
+    )
     lines.append("")
 
     for item in request.items:
@@ -674,9 +684,7 @@ class BriefingDeliveryResponse(BaseModel):
     deliveries: list[BriefingDeliveryResult]
 
 
-def _render_briefing_notification(
-    title: str, content: str, audience: str, recipient: str
-) -> str:
+def _render_briefing_notification(title: str, content: str, audience: str, recipient: str) -> str:
     """Render a briefing notification message for delivery."""
     audience_labels = {
         "board": "Board of Directors",
@@ -714,7 +722,10 @@ async def deliver_briefing(
         for channel in request.channels:
             delivery_id = str(uuid4())
             rendered = _render_briefing_notification(
-                request.title, request.content, request.audience, recipient,
+                request.title,
+                request.content,
+                request.audience,
+                recipient,
             )
 
             # Append attachment info to rendered content for channels that support it
@@ -726,14 +737,19 @@ async def deliver_briefing(
 
             try:
                 destination = await _deliver_with_channels(
-                    rendered, channel, recipient, delivery_id,
+                    rendered,
+                    channel,
+                    recipient,
+                    delivery_id,
                 )
-                deliveries.append(BriefingDeliveryResult(
-                    recipient=recipient,
-                    channel=channel,
-                    status="delivered",
-                    delivery_id=delivery_id,
-                ))
+                deliveries.append(
+                    BriefingDeliveryResult(
+                        recipient=recipient,
+                        channel=channel,
+                        status="delivered",
+                        delivery_id=delivery_id,
+                    )
+                )
                 logger.info(
                     "briefing_delivered",
                     extra={
@@ -767,18 +783,19 @@ async def deliver_briefing(
                     )
                 except (OSError, TypeError, ValueError) as err:
                     logger.warning(
-                        "notification_dlq_write_failed", extra={"error": str(err)},
+                        "notification_dlq_write_failed",
+                        extra={"error": str(err)},
                     )
-                deliveries.append(BriefingDeliveryResult(
-                    recipient=recipient,
-                    channel=channel,
-                    status="failed",
-                    delivery_id=delivery_id,
-                ))
+                deliveries.append(
+                    BriefingDeliveryResult(
+                        recipient=recipient,
+                        channel=channel,
+                        status="failed",
+                        delivery_id=delivery_id,
+                    )
+                )
 
-    status = "delivered" if all(
-        d.status == "delivered" for d in deliveries
-    ) else "partial"
+    status = "delivered" if all(d.status == "delivered" for d in deliveries) else "partial"
     if not any(d.status == "delivered" for d in deliveries):
         status = "failed"
 

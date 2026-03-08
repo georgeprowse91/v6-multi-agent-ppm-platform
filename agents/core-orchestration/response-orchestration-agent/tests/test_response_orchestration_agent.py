@@ -1,17 +1,25 @@
 from __future__ import annotations
+
 import sys
 from pathlib import Path
+
 import pytest
 
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parents[3]
 SRC_DIR = TESTS_DIR.parent / "src"
-sys.path.extend([str(SRC_DIR), str(REPO_ROOT), str(REPO_ROOT / "packages"), str(REPO_ROOT / "agents" / "runtime")])
+sys.path.extend(
+    [
+        str(SRC_DIR),
+        str(REPO_ROOT),
+        str(REPO_ROOT / "packages"),
+        str(REPO_ROOT / "agents" / "runtime"),
+    ]
+)
 
+from pydantic import ValidationError
 from response_orchestration_agent import ResponseOrchestrationAgent
 from response_orchestration_models import AgentInvocationResult, OrchestrationRequest, RoutingEntry
-from pydantic import ValidationError
-
 
 # ---------------------------------------------------------------------------
 # Pydantic model tests
@@ -87,6 +95,7 @@ def _build_agent(*, require_approval: bool = False) -> ResponseOrchestrationAgen
     """Build a ResponseOrchestrationAgent with mocked external dependencies."""
     event_bus = _MockEventBus()
     import tempfile
+
     plans_dir = tempfile.mkdtemp()
     agent = ResponseOrchestrationAgent(
         config={
@@ -133,6 +142,7 @@ async def test_process_with_single_agent_returns_result() -> None:
     """process() with one in-registry agent should return a completed orchestration response."""
     event_bus = _MockEventBus()
     import tempfile
+
     plans_dir = tempfile.mkdtemp()
 
     class _MockAgent:
@@ -153,6 +163,7 @@ async def test_process_with_single_agent_returns_result() -> None:
 
     # Initialize http_client to avoid None assertion
     import httpx
+
     agent.http_client = httpx.AsyncClient(timeout=5)
 
     result = await agent.process(
@@ -193,6 +204,7 @@ async def test_process_with_require_approval_returns_pending() -> None:
     """process() with require_approval=True and no approval_decision should pend."""
     event_bus = _MockEventBus()
     import tempfile
+
     plans_dir = tempfile.mkdtemp()
 
     agent = ResponseOrchestrationAgent(

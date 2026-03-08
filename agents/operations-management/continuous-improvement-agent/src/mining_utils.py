@@ -16,6 +16,7 @@ from typing import Any
 # ID generation
 # ---------------------------------------------------------------------------
 
+
 async def generate_log_id() -> str:
     """Generate unique log ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
@@ -31,6 +32,7 @@ async def generate_improvement_id() -> str:
 # ---------------------------------------------------------------------------
 # Timestamp handling
 # ---------------------------------------------------------------------------
+
 
 def safe_parse_timestamp(value: Any) -> datetime | None:
     """Parse an ISO-format timestamp, returning ``None`` on failure."""
@@ -66,6 +68,7 @@ async def calculate_time_range(events: list[dict[str, Any]]) -> dict[str, str | 
 # ---------------------------------------------------------------------------
 # Event normalization / mapping
 # ---------------------------------------------------------------------------
+
 
 async def normalize_event(event: dict[str, Any]) -> dict[str, Any] | None:
     """Normalize a raw event dict, returning ``None`` when invalid."""
@@ -104,6 +107,7 @@ async def map_events_to_cases(events: list[dict[str, Any]]) -> list[dict[str, An
 # Trace building
 # ---------------------------------------------------------------------------
 
+
 async def build_traces(events: list[dict[str, Any]]) -> dict[str, list[str]]:
     """Build ordered activity traces keyed by case_id."""
     traces: dict[str, list[dict[str, Any]]] = {}
@@ -137,6 +141,7 @@ def get_start_end_activities(
 # Waiting-time / cycle-time helpers
 # ---------------------------------------------------------------------------
 
+
 async def calculate_average_waiting_time(events: list[dict[str, Any]]) -> float:
     """Calculate average waiting time across all traces."""
     traces = await build_traces(events)
@@ -160,6 +165,7 @@ async def calculate_average_waiting_time(events: list[dict[str, Any]]) -> float:
 # ---------------------------------------------------------------------------
 # Compliance scoring
 # ---------------------------------------------------------------------------
+
 
 async def calculate_compliance_rate(
     deviations: list[dict[str, Any]],
@@ -225,6 +231,7 @@ async def calculate_compliance_rate(
 # Iteration helpers
 # ---------------------------------------------------------------------------
 
+
 def pairwise(sequence: Iterable[str]) -> Iterable[tuple[str, str]]:
     """Yield consecutive pairs from *sequence*."""
     items = list(sequence)
@@ -235,6 +242,7 @@ def pairwise(sequence: Iterable[str]) -> Iterable[tuple[str, str]]:
 # ---------------------------------------------------------------------------
 # Dimension extraction (for KPI grouping)
 # ---------------------------------------------------------------------------
+
 
 def extract_dimension(event: dict[str, Any], key: str) -> str | None:
     """Extract a grouping dimension from an event."""
@@ -248,9 +256,8 @@ def extract_dimension(event: dict[str, Any], key: str) -> str | None:
 # Owner resolution
 # ---------------------------------------------------------------------------
 
-def resolve_improvement_owner(
-    recommendation: Any, index: int, default_owner: str
-) -> str:
+
+def resolve_improvement_owner(recommendation: Any, index: int, default_owner: str) -> str:
     """Determine the improvement owner based on keyword hints."""
     owner_hints = {
         "training": "l&d-lead",
@@ -269,6 +276,7 @@ def resolve_improvement_owner(
 # Store-path resolution
 # ---------------------------------------------------------------------------
 
+
 def resolve_store_path(config: dict[str, Any] | None, key: str, fallback: str) -> Path:
     """Resolve a ``TenantStateStore`` file path from config or fallback."""
     if config and config.get(key):
@@ -279,6 +287,7 @@ def resolve_store_path(config: dict[str, Any] | None, key: str, fallback: str) -
 # ---------------------------------------------------------------------------
 # Event-log loading
 # ---------------------------------------------------------------------------
+
 
 async def load_all_event_logs(event_log_store: Any) -> list[dict[str, Any]]:
     """Load all event logs from the store file on disk."""
@@ -302,9 +311,7 @@ async def load_all_event_logs(event_log_store: Any) -> list[dict[str, Any]]:
     logs: list[dict[str, Any]] = []
     for tenant_records in parsed.values():
         if isinstance(tenant_records, dict):
-            logs.extend(
-                record for record in tenant_records.values() if isinstance(record, dict)
-            )
+            logs.extend(record for record in tenant_records.values() if isinstance(record, dict))
     return logs
 
 

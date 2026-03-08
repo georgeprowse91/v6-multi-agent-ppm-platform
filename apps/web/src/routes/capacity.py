@@ -3,6 +3,7 @@
 Provides portfolio-level demand aggregation and skill gap analysis
 by delegating to the Resource Management agent.
 """
+
 from __future__ import annotations
 
 import logging

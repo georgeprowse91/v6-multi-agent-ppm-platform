@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 
-from agent_sdk.src.context import AgentContext
 from agent_sdk.src.custom_agent import CustomAgent
 from agent_sdk.src.manifest import AgentManifest, validate_manifest
-from agent_sdk.src.sandbox import SandboxResult, SandboxRunner
+from agent_sdk.src.sandbox import SandboxRunner
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +65,11 @@ class AgentTestHarness:
             return {
                 "name": "capabilities_declared",
                 "passed": has_caps,
-                "message": f"Agent declares {len(caps)} capabilities" if has_caps else "No capabilities declared",
+                "message": (
+                    f"Agent declares {len(caps)} capabilities"
+                    if has_caps
+                    else "No capabilities declared"
+                ),
                 "capabilities": caps,
             }
         except Exception as exc:
@@ -84,7 +86,11 @@ class AgentTestHarness:
             return {
                 "name": "initialization",
                 "passed": self.agent.initialized,
-                "message": "Agent initialized successfully" if self.agent.initialized else "Agent did not set initialized=True",
+                "message": (
+                    "Agent initialized successfully"
+                    if self.agent.initialized
+                    else "Agent did not set initialized=True"
+                ),
             }
         except Exception as exc:
             return {
@@ -117,7 +123,9 @@ class AgentTestHarness:
         return {
             "name": "sandbox_execution",
             "passed": result.success,
-            "message": "Execution succeeded" if result.success else f"Execution failed: {result.error}",
+            "message": (
+                "Execution succeeded" if result.success else f"Execution failed: {result.error}"
+            ),
             "execution_time_seconds": result.execution_time_seconds,
             "output": result.output,
         }

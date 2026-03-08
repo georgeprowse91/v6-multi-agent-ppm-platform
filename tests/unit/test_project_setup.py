@@ -6,7 +6,6 @@ workspace configuration, and persistence.
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -15,7 +14,6 @@ import pytest
 # Ensure helper is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _route_test_helpers import load_route_module
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -85,7 +83,8 @@ def test_list_templates_filtered(client):
 
 def test_configure_workspace(client):
     resp = client.post(
-        "/api/project-setup/configure-workspace?project_name=My%20New%20Project&template_id=tmpl-agile-tech"
+        "/api/project-setup/configure-workspace",
+        json={"project_name": "My New Project", "template_id": "tmpl-agile-tech"},
     )
     assert resp.status_code == 200
     data = resp.json()
@@ -97,7 +96,8 @@ def test_configure_workspace(client):
 
 def test_configure_workspace_persisted(client):
     resp = client.post(
-        "/api/project-setup/configure-workspace?project_name=Persisted%20Project&template_id=tmpl-waterfall-construct"
+        "/api/project-setup/configure-workspace",
+        json={"project_name": "Persisted Project", "template_id": "tmpl-waterfall-construct"},
     )
     assert resp.status_code == 200
     data = resp.json()
@@ -124,7 +124,12 @@ def test_recommend_methodology_government(client):
     """Government industry should favor predictive."""
     resp = client.post(
         "/api/project-setup/recommend-methodology",
-        json={"industry": "government", "team_size": 100, "duration_months": 24, "risk_level": "high"},
+        json={
+            "industry": "government",
+            "team_size": 100,
+            "duration_months": 24,
+            "risk_level": "high",
+        },
     )
     recs = resp.json()
     assert recs[0]["methodology"] == "predictive"
@@ -134,7 +139,12 @@ def test_recommend_methodology_scores_sum_to_one(client):
     """Match scores across all recommendations should sum to approximately 1.0."""
     resp = client.post(
         "/api/project-setup/recommend-methodology",
-        json={"industry": "technology", "team_size": 10, "duration_months": 6, "risk_level": "medium"},
+        json={
+            "industry": "technology",
+            "team_size": 10,
+            "duration_months": 6,
+            "risk_level": "medium",
+        },
     )
     recs = resp.json()
     total = sum(r["match_score"] for r in recs)
@@ -145,7 +155,12 @@ def test_recommend_methodology_has_rationale(client):
     """Each recommendation should have a non-empty rationale."""
     resp = client.post(
         "/api/project-setup/recommend-methodology",
-        json={"industry": "technology", "team_size": 10, "duration_months": 6, "risk_level": "medium"},
+        json={
+            "industry": "technology",
+            "team_size": 10,
+            "duration_months": 6,
+            "risk_level": "medium",
+        },
     )
     for rec in resp.json():
         assert rec["rationale"], f"Missing rationale for {rec['methodology']}"
@@ -172,7 +187,8 @@ def test_configure_workspace_unique_ids(client):
     ids = set()
     for i in range(5):
         resp = client.post(
-            f"/api/project-setup/configure-workspace?project_name=Project%20{i}&template_id=tmpl-agile-tech"
+            "/api/project-setup/configure-workspace",
+            json={"project_name": f"Project {i}", "template_id": "tmpl-agile-tech"},
         )
         pid = resp.json()["project_id"]
         assert pid not in ids
@@ -182,7 +198,8 @@ def test_configure_workspace_unique_ids(client):
 def test_configure_workspace_stages_from_template(client):
     """Workspace should inherit stages from the selected template."""
     resp = client.post(
-        "/api/project-setup/configure-workspace?project_name=StageTest&template_id=tmpl-agile-tech"
+        "/api/project-setup/configure-workspace",
+        json={"project_name": "StageTest", "template_id": "tmpl-agile-tech"},
     )
     data = resp.json()
     assert len(data["stages"]) >= 2

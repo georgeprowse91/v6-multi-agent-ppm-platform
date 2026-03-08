@@ -15,7 +15,6 @@ import pytest
 # Ensure helper is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _route_test_helpers import load_route_module
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -63,7 +62,14 @@ def test_generate_briefing_all_sections(client):
         "/api/briefings/generate",
         json={
             "audience": "board",
-            "sections": ["highlights", "risks", "financials", "schedule", "resources", "recommendations"],
+            "sections": [
+                "highlights",
+                "risks",
+                "financials",
+                "schedule",
+                "resources",
+                "recommendations",
+            ],
         },
     )
     assert resp.status_code == 200
@@ -425,9 +431,11 @@ def test_gather_cross_agent_data():
     """Cross-agent data aggregation should return all four domains."""
     import asyncio
 
-    data = asyncio.get_event_loop().run_until_complete(
-        _mod._gather_cross_agent_data("test-portfolio")
-    )
+    loop = asyncio.new_event_loop()
+    try:
+        data = loop.run_until_complete(_mod._gather_cross_agent_data("test-portfolio"))
+    finally:
+        loop.close()
     assert "financial" in data
     assert "risk" in data
     assert "resource" in data

@@ -99,15 +99,15 @@ class HealthResponse(BaseModel):
 class TenantCreateRequest(BaseModel):
     tenant_id: str = Field(..., min_length=1, max_length=128)
     display_name: str = Field(..., min_length=1, max_length=256)
-    environment: str = Field(default="development", pattern="^(development|dev|staging|production)$")
+    environment: str = Field(
+        default="development", pattern="^(development|dev|staging|production)$"
+    )
     settings: dict[str, Any] = Field(default_factory=dict)
 
 
 class TenantUpdateRequest(BaseModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=256)
-    environment: str | None = Field(
-        default=None, pattern="^(development|dev|staging|production)$"
-    )
+    environment: str | None = Field(default=None, pattern="^(development|dev|staging|production)$")
     settings: dict[str, Any] | None = None
 
 
@@ -334,9 +334,7 @@ def _tenant_response(record) -> TenantResponse:
 # ---------------------------------------------------------------------------
 
 
-@api_router.post(
-    "/connectors/instances", response_model=ConnectorInstanceResponse, status_code=201
-)
+@api_router.post("/connectors/instances", response_model=ConnectorInstanceResponse, status_code=201)
 async def create_connector_instance(
     request: Request, payload: ConnectorInstanceCreateRequest
 ) -> ConnectorInstanceResponse:
@@ -375,26 +373,18 @@ async def list_connector_instances(
     return [_connector_response(r) for r in sliced]
 
 
-@api_router.get(
-    "/connectors/instances/{instance_id}", response_model=ConnectorInstanceResponse
-)
-async def get_connector_instance(
-    instance_id: str, request: Request
-) -> ConnectorInstanceResponse:
+@api_router.get("/connectors/instances/{instance_id}", response_model=ConnectorInstanceResponse)
+async def get_connector_instance(instance_id: str, request: Request) -> ConnectorInstanceResponse:
     store = _get_store(request)
     tenant_id = request.state.auth.tenant_id
     record = store.get_connector_instance(tenant_id, instance_id)
     if not record:
-        kpi_handles.errors.add(
-            1, {"operation": "get_connector_instance", "tenant_id": tenant_id}
-        )
+        kpi_handles.errors.add(1, {"operation": "get_connector_instance", "tenant_id": tenant_id})
         raise HTTPException(status_code=404, detail="Connector instance not found")
     return _connector_response(record)
 
 
-@api_router.patch(
-    "/connectors/instances/{instance_id}", response_model=ConnectorInstanceResponse
-)
+@api_router.patch("/connectors/instances/{instance_id}", response_model=ConnectorInstanceResponse)
 async def update_connector_instance(
     instance_id: str,
     request: Request,
@@ -416,9 +406,7 @@ async def update_connector_instance(
         )
         raise HTTPException(status_code=404, detail="Connector instance not found")
     connectors_configured.add(1, {"tenant_id": tenant_id, "type": record.connector_type})
-    kpi_handles.requests.add(
-        1, {"operation": "update_connector_instance", "tenant_id": tenant_id}
-    )
+    kpi_handles.requests.add(1, {"operation": "update_connector_instance", "tenant_id": tenant_id})
     return _connector_response(record)
 
 
@@ -432,9 +420,7 @@ async def delete_connector_instance(instance_id: str, request: Request) -> Respo
             1, {"operation": "delete_connector_instance", "tenant_id": tenant_id}
         )
         raise HTTPException(status_code=404, detail="Connector instance not found")
-    kpi_handles.requests.add(
-        1, {"operation": "delete_connector_instance", "tenant_id": tenant_id}
-    )
+    kpi_handles.requests.add(1, {"operation": "delete_connector_instance", "tenant_id": tenant_id})
     logger.info(
         "connector_instance_deleted",
         extra={"tenant_id": tenant_id, "instance_id": instance_id},
@@ -476,9 +462,7 @@ async def upsert_agent_setting(
         updated_by=payload.updated_by,
     )
     agent_settings_updated.add(1, {"tenant_id": tenant_id, "agent_id": agent_id})
-    kpi_handles.requests.add(
-        1, {"operation": "upsert_agent_setting", "tenant_id": tenant_id}
-    )
+    kpi_handles.requests.add(1, {"operation": "upsert_agent_setting", "tenant_id": tenant_id})
     logger.info(
         "agent_setting_upserted",
         extra={"tenant_id": tenant_id, "agent_id": agent_id},
@@ -500,9 +484,7 @@ async def get_agent_setting(agent_id: str, request: Request) -> AgentSettingResp
     tenant_id = request.state.auth.tenant_id
     record = store.get_agent_setting(tenant_id, agent_id)
     if not record:
-        kpi_handles.errors.add(
-            1, {"operation": "get_agent_setting", "tenant_id": tenant_id}
-        )
+        kpi_handles.errors.add(1, {"operation": "get_agent_setting", "tenant_id": tenant_id})
         raise HTTPException(status_code=404, detail="Agent setting not found")
     return _agent_setting_response(record)
 
@@ -513,13 +495,9 @@ async def delete_agent_setting(agent_id: str, request: Request) -> Response:
     tenant_id = request.state.auth.tenant_id
     deleted = store.delete_agent_setting(tenant_id, agent_id)
     if not deleted:
-        kpi_handles.errors.add(
-            1, {"operation": "delete_agent_setting", "tenant_id": tenant_id}
-        )
+        kpi_handles.errors.add(1, {"operation": "delete_agent_setting", "tenant_id": tenant_id})
         raise HTTPException(status_code=404, detail="Agent setting not found")
-    kpi_handles.requests.add(
-        1, {"operation": "delete_agent_setting", "tenant_id": tenant_id}
-    )
+    kpi_handles.requests.add(1, {"operation": "delete_agent_setting", "tenant_id": tenant_id})
     return Response(status_code=204)
 
 
@@ -554,12 +532,8 @@ async def create_system_event(
         severity=payload.severity,
         metadata=payload.metadata,
     )
-    system_events_recorded.add(
-        1, {"tenant_id": tenant_id, "event_type": payload.event_type}
-    )
-    kpi_handles.requests.add(
-        1, {"operation": "create_system_event", "tenant_id": tenant_id}
-    )
+    system_events_recorded.add(1, {"tenant_id": tenant_id, "event_type": payload.event_type})
+    kpi_handles.requests.add(1, {"operation": "create_system_event", "tenant_id": tenant_id})
     return _event_response(record)
 
 

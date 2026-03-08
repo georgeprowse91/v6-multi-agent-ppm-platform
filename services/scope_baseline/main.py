@@ -73,9 +73,7 @@ def create_app() -> FastAPI:
         status_code=201,
         tags=["baselines"],
     )
-    def create_project_baseline(
-        project_id: str, body: CreateBaselineRequest
-    ) -> BaselineResponse:
+    def create_project_baseline(project_id: str, body: CreateBaselineRequest) -> BaselineResponse:
         """Capture a new scope baseline for a project."""
         payload: dict[str, Any] = {
             "version": body.version,

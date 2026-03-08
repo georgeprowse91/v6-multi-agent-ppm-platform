@@ -5,7 +5,6 @@ This module contains default configuration values, type definitions,
 and any data models used by the program management domain.
 """
 
-
 # Default dependency types supported by the program management agent
 DEFAULT_DEPENDENCY_TYPES: list[str] = [
     "finish_to_start",

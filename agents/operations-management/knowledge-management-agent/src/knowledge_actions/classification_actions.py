@@ -148,9 +148,7 @@ async def capture_lesson_learned(
         f"{lesson.get('title', '')} {lesson.get('description', '')}",
         {"lesson_id": lesson_id, "category": lesson.get("category")},
     )
-    await agent._publish_event(
-        "lesson.captured", {"lesson_id": lesson_id, "tenant_id": "shared"}
-    )
+    await agent._publish_event("lesson.captured", {"lesson_id": lesson_id, "tenant_id": "shared"})
 
     return {
         "lesson_id": lesson_id,

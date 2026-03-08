@@ -33,6 +33,10 @@ GUIDANCE_REQUIREMENTS: dict[str, tuple[str, ...]] = {
 REFERENCE_SCAN_EXCLUDES = {
     "docs/templates/migration/legacy-to-canonical.csv",
     "docs/templates/migration/dependency-map.json",
+    "docs/templates/migration/migration-status.csv",
+    "docs/templates/CHANGELOG.md",
+    "docs/templates/index.json",
+    "docs/templates/standards/template-naming-rules.md",
 }
 
 

@@ -141,9 +141,7 @@ async def handle_get_program_health(
 # ---------------------------------------------------------------------------
 
 
-async def _get_schedule_health(
-    agent: ProgramManagementAgent, project_ids: list[str]
-) -> float:
+async def _get_schedule_health(agent: ProgramManagementAgent, project_ids: list[str]) -> float:
     """Get schedule health across projects."""
     action = agent.health_actions.get("schedule")
     if agent.schedule_agent and action and project_ids:
@@ -154,9 +152,7 @@ async def _get_schedule_health(
     return 0.85
 
 
-async def _get_budget_health(
-    agent: ProgramManagementAgent, project_ids: list[str]
-) -> float:
+async def _get_budget_health(agent: ProgramManagementAgent, project_ids: list[str]) -> float:
     """Get budget health across projects."""
     action = agent.health_actions.get("budget")
     if agent.financial_agent and action and project_ids:
@@ -167,9 +163,7 @@ async def _get_budget_health(
     return 0.80
 
 
-async def _get_risk_health(
-    agent: ProgramManagementAgent, project_ids: list[str]
-) -> float:
+async def _get_risk_health(agent: ProgramManagementAgent, project_ids: list[str]) -> float:
     """Get risk health across projects."""
     action = agent.health_actions.get("risk")
     if agent.risk_agent and action and project_ids:
@@ -178,22 +172,16 @@ async def _get_risk_health(
     return 0.75
 
 
-async def _get_quality_health(
-    agent: ProgramManagementAgent, project_ids: list[str]
-) -> float:
+async def _get_quality_health(agent: ProgramManagementAgent, project_ids: list[str]) -> float:
     """Get quality health across projects."""
     action = agent.health_actions.get("quality")
     if agent.quality_agent and action and project_ids:
-        response = await agent.quality_agent.process(
-            {"action": action, "project_ids": project_ids}
-        )
+        response = await agent.quality_agent.process({"action": action, "project_ids": project_ids})
         return float(response.get("quality_health", 0.90))
     return 0.90
 
 
-async def _get_resource_health(
-    agent: ProgramManagementAgent, project_ids: list[str]
-) -> float:
+async def _get_resource_health(agent: ProgramManagementAgent, project_ids: list[str]) -> float:
     """Get resource health across projects."""
     action = agent.health_actions.get("resource")
     if agent.resource_agent and action and project_ids:

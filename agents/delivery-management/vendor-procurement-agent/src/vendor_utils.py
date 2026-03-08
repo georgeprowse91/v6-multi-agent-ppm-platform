@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 # ID generators
 # ---------------------------------------------------------------------------
 
+
 async def generate_vendor_id() -> str:
     """Generate unique vendor ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -70,7 +71,10 @@ async def generate_invoice_id() -> str:
 # Compliance & risk helpers
 # ---------------------------------------------------------------------------
 
-async def run_compliance_checks(agent: VendorProcurementAgent, vendor_data: dict[str, Any]) -> dict[str, Any]:
+
+async def run_compliance_checks(
+    agent: VendorProcurementAgent, vendor_data: dict[str, Any]
+) -> dict[str, Any]:
     """Run compliance checks on vendor."""
     checks = agent.risk_client.check_vendor(vendor_data)
     if not checks:
@@ -131,18 +135,25 @@ async def calculate_vendor_risk(
 # Categorisation / budget / suggestion helpers
 # ---------------------------------------------------------------------------
 
-async def categorize_procurement_request(agent: VendorProcurementAgent, request_data: dict[str, Any]) -> str:
+
+async def categorize_procurement_request(
+    agent: VendorProcurementAgent, request_data: dict[str, Any]
+) -> str:
     """Categorize procurement request using AI."""
     description = request_data.get("description", "")
     return agent.request_classifier.predict(description, fallback="services")
 
 
-async def check_budget_availability(agent: VendorProcurementAgent, request_data: dict[str, Any]) -> dict[str, Any]:
+async def check_budget_availability(
+    agent: VendorProcurementAgent, request_data: dict[str, Any]
+) -> dict[str, Any]:
     """Check budget availability for procurement."""
     return agent.financial_client.get_budget_status(request_data)
 
 
-async def suggest_vendors(agent: VendorProcurementAgent, category: str, request_data: dict[str, Any]) -> list[str]:
+async def suggest_vendors(
+    agent: VendorProcurementAgent, category: str, request_data: dict[str, Any]
+) -> list[str]:
     """Suggest vendors based on category and requirements."""
     suggested = []
     for vendor_id, vendor in agent.vendors.items():
@@ -169,6 +180,7 @@ async def determine_approval_path(agent: VendorProcurementAgent, estimated_cost:
 # RFP helpers
 # ---------------------------------------------------------------------------
 
+
 async def select_rfp_template(
     agent: VendorProcurementAgent, category: str, *, template_id: str | None = None
 ) -> dict[str, Any]:
@@ -182,7 +194,10 @@ async def select_rfp_template(
 
 
 async def generate_rfp_content(
-    agent: VendorProcurementAgent, request: dict[str, Any], template: dict[str, Any], rfp_data: dict[str, Any]
+    agent: VendorProcurementAgent,
+    request: dict[str, Any],
+    template: dict[str, Any],
+    rfp_data: dict[str, Any],
 ) -> str:
     """Generate RFP content from template."""
     sections = template.get("sections", [])
@@ -216,7 +231,10 @@ async def generate_rfp_content(
 
 
 async def select_vendors_to_invite(
-    agent: VendorProcurementAgent, category: str, suggested_vendors: list[str], specified_vendors: list[str]
+    agent: VendorProcurementAgent,
+    category: str,
+    suggested_vendors: list[str],
+    specified_vendors: list[str],
 ) -> list[str]:
     """Select vendors to invite to RFP."""
     if specified_vendors:
@@ -227,6 +245,7 @@ async def select_vendors_to_invite(
 # ---------------------------------------------------------------------------
 # Proposal scoring
 # ---------------------------------------------------------------------------
+
 
 async def score_proposal(
     agent: VendorProcurementAgent, proposal: dict[str, Any], criteria: dict[str, float]
@@ -255,7 +274,10 @@ async def score_proposal(
 # Contract helpers
 # ---------------------------------------------------------------------------
 
-async def extract_contract_clauses(agent: VendorProcurementAgent, contract_data: dict[str, Any]) -> dict[str, Any]:
+
+async def extract_contract_clauses(
+    agent: VendorProcurementAgent, contract_data: dict[str, Any]
+) -> dict[str, Any]:
     """Extract key clauses from contract."""
     contract_text = (
         contract_data.get("content")
@@ -286,9 +308,7 @@ async def extract_contract_clauses(agent: VendorProcurementAgent, contract_data:
             extracted[clause] = match.group("value").strip()
 
     if "term" not in extracted:
-        extracted["term"] = (
-            f"{contract_data.get('start_date')} to {contract_data.get('end_date')}"
-        )
+        extracted["term"] = f"{contract_data.get('start_date')} to {contract_data.get('end_date')}"
     if "value" not in extracted and contract_data.get("value") is not None:
         extracted["value"] = str(contract_data.get("value"))
     if "sla" not in extracted and contract_data.get("slas"):
@@ -306,6 +326,7 @@ async def select_contract_template(contract_type: str) -> dict[str, Any]:
 # PO helpers
 # ---------------------------------------------------------------------------
 
+
 async def calculate_po_total(items: list[dict[str, Any]]) -> float:
     """Calculate total PO value."""
     total = 0.0
@@ -319,6 +340,7 @@ async def calculate_po_total(items: list[dict[str, Any]]) -> float:
 # ---------------------------------------------------------------------------
 # Invoice helpers
 # ---------------------------------------------------------------------------
+
 
 async def three_way_match(
     agent: VendorProcurementAgent, invoice: dict[str, Any], purchase_order: dict[str, Any]
@@ -396,7 +418,9 @@ async def three_way_match(
     return {"matched": len(discrepancies) == 0, "discrepancies": discrepancies}
 
 
-async def initiate_payment(agent: VendorProcurementAgent, invoice: dict[str, Any]) -> dict[str, Any]:
+async def initiate_payment(
+    agent: VendorProcurementAgent, invoice: dict[str, Any]
+) -> dict[str, Any]:
     """Initiate payment in ERP."""
     payment_request = {
         "invoice_id": invoice.get("invoice_id"),
@@ -416,7 +440,10 @@ async def initiate_payment(agent: VendorProcurementAgent, invoice: dict[str, Any
 # Performance & scoring helpers
 # ---------------------------------------------------------------------------
 
-async def collect_vendor_performance_data(agent: VendorProcurementAgent, vendor_id: str) -> dict[str, Any]:
+
+async def collect_vendor_performance_data(
+    agent: VendorProcurementAgent, vendor_id: str
+) -> dict[str, Any]:
     """Collect vendor performance data."""
     return agent.analytics_client.get_vendor_summary(vendor_id)
 
@@ -479,7 +506,9 @@ async def generate_vendor_recommendations(metrics: dict[str, Any]) -> list[str]:
     return recommendations
 
 
-async def get_vendor_contracts(agent: VendorProcurementAgent, vendor_id: str) -> list[dict[str, Any]]:
+async def get_vendor_contracts(
+    agent: VendorProcurementAgent, vendor_id: str
+) -> list[dict[str, Any]]:
     """Get all contracts for a vendor."""
     vendor_contracts = []
     for contract_id, contract in agent.contracts.items():
@@ -495,7 +524,10 @@ async def get_vendor_issues(agent: VendorProcurementAgent, vendor_id: str) -> li
 
 
 async def calculate_overall_vendor_score(
-    agent: VendorProcurementAgent, vendor: dict[str, Any], *, external_adjustment: dict[str, Any] | None = None
+    agent: VendorProcurementAgent,
+    vendor: dict[str, Any],
+    *,
+    external_adjustment: dict[str, Any] | None = None,
 ) -> float:
     """Calculate overall vendor score."""
     scoring = await calculate_vendor_score(agent, vendor, external_adjustment=external_adjustment)
@@ -503,7 +535,10 @@ async def calculate_overall_vendor_score(
 
 
 async def calculate_vendor_score(
-    agent: VendorProcurementAgent, vendor: dict[str, Any], *, external_adjustment: dict[str, Any] | None = None
+    agent: VendorProcurementAgent,
+    vendor: dict[str, Any],
+    *,
+    external_adjustment: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Calculate vendor score using weighted criteria."""
     risk_score = vendor.get("risk_score", 50)
@@ -543,10 +578,7 @@ async def matches_criteria(vendor: dict[str, Any], criteria: dict[str, Any]) -> 
         return False
 
     if "min_rating" in criteria:
-        if (
-            vendor.get("performance_metrics", {}).get("quality_rating", 0)
-            < criteria["min_rating"]
-        ):
+        if vendor.get("performance_metrics", {}).get("quality_rating", 0) < criteria["min_rating"]:
             return False
 
     if "max_risk_score" in criteria:
@@ -562,6 +594,7 @@ async def matches_criteria(vendor: dict[str, Any], criteria: dict[str, Any]) -> 
 # ---------------------------------------------------------------------------
 # Vendor data validation & persistence
 # ---------------------------------------------------------------------------
+
 
 async def validate_vendor_record(
     agent: VendorProcurementAgent, *, vendor: dict[str, Any], tenant_id: str
@@ -587,7 +620,9 @@ async def validate_vendor_record(
     return {"is_valid": len(errors) == 0, "issues": [error.message for error in errors]}
 
 
-async def persist_vendor(agent: VendorProcurementAgent, vendor: dict[str, Any], *, tenant_id: str) -> None:
+async def persist_vendor(
+    agent: VendorProcurementAgent, vendor: dict[str, Any], *, tenant_id: str
+) -> None:
     vendor_id = vendor.get("vendor_id")
     if not vendor_id:
         return
@@ -597,7 +632,9 @@ async def persist_vendor(agent: VendorProcurementAgent, vendor: dict[str, Any], 
         await agent.db_service.store("vendors", vendor_id, vendor)
 
 
-async def resolve_vendor(agent: VendorProcurementAgent, vendor_id: str, *, tenant_id: str) -> dict[str, Any] | None:
+async def resolve_vendor(
+    agent: VendorProcurementAgent, vendor_id: str, *, tenant_id: str
+) -> dict[str, Any] | None:
     vendor = agent.vendors.get(vendor_id)
     if vendor:
         return vendor
@@ -611,6 +648,7 @@ async def resolve_vendor(agent: VendorProcurementAgent, vendor_id: str, *, tenan
 # ---------------------------------------------------------------------------
 # Event publishing
 # ---------------------------------------------------------------------------
+
 
 async def publish_event(
     agent: VendorProcurementAgent,
@@ -643,6 +681,7 @@ async def publish_event(
 # ---------------------------------------------------------------------------
 # Mitigation workflow
 # ---------------------------------------------------------------------------
+
 
 async def initiate_mitigation_workflow(
     agent: VendorProcurementAgent,
@@ -698,6 +737,7 @@ async def initiate_mitigation_workflow(
 # ---------------------------------------------------------------------------
 # Research helpers
 # ---------------------------------------------------------------------------
+
 
 def extract_sources(snippets: list[str]) -> list[dict[str, str]]:
     sources: list[dict[str, str]] = []

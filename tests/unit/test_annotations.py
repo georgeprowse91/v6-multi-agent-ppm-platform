@@ -112,9 +112,7 @@ def test_generate_suggestions_budget():
 def test_generate_suggestions_long_content():
     """Test that long content triggers knowledge agent."""
     long_content = "This is a detailed analysis. " * 50
-    suggestions = asyncio.run(
-        generate_suggestions("s1", "b1", long_content)
-    )
+    suggestions = asyncio.run(generate_suggestions("s1", "b1", long_content))
     agent_ids = {s.agent_id for s in suggestions}
     assert "knowledge-management" in agent_ids
 
@@ -213,7 +211,5 @@ def test_generate_suggestions_schedule():
 
 def test_generate_suggestions_no_match():
     """Content with no keyword matches should return empty suggestions."""
-    suggestions = asyncio.run(
-        generate_suggestions("s1", "b1", "Hello world")
-    )
+    suggestions = asyncio.run(generate_suggestions("s1", "b1", "Hello world"))
     assert isinstance(suggestions, list)

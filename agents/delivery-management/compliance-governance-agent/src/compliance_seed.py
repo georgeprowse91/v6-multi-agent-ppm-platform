@@ -72,20 +72,107 @@ SEED_FRAMEWORKS: dict[str, dict[str, Any]] = {
 }
 
 SEED_CONTROLS: list[dict[str, Any]] = [
-    {"control_id": "CTL-ISO-01", "description": "Maintain an information security policy approved by management.", "regulation": "REG-ISO-27001", "control_type": "preventive", "owner": "security", "requirements": ["implemented", "evidence"], "test_frequency": "annually"},
-    {"control_id": "CTL-ISO-02", "description": "Perform regular risk assessments and document mitigations.", "regulation": "REG-ISO-27001", "control_type": "detective", "owner": "risk", "requirements": ["implemented", "risk_mitigation", "evidence"], "test_frequency": "quarterly"},
-    {"control_id": "CTL-SOC2-01", "description": "Monitor system availability and incident response.", "regulation": "REG-SOC-2", "control_type": "detective", "owner": "operations", "requirements": ["implemented", "quality_tests", "evidence"], "test_frequency": "quarterly"},
-    {"control_id": "CTL-SOC2-02", "description": "Maintain audit logs for changes and access.", "regulation": "REG-SOC-2", "control_type": "preventive", "owner": "security", "requirements": ["implemented", "audit_logs", "evidence"], "test_frequency": "monthly"},
-    {"control_id": "CTL-PRIVACY-AU-01", "description": "Conduct privacy impact assessments for personal information under APP obligations.", "regulation": "REG-PRIVACY-ACT-AU", "control_type": "preventive", "owner": "privacy", "requirements": ["implemented", "data_privacy", "evidence"], "test_frequency": "annually"},
-    {"control_id": "CTL-PRIVACY-AU-02", "description": "Ensure APP access and correction requests are tracked and fulfilled within statutory timelines.", "regulation": "REG-PRIVACY-ACT-AU", "control_type": "detective", "owner": "privacy", "requirements": ["implemented", "quality_tests", "evidence"], "test_frequency": "quarterly"},
+    {
+        "control_id": "CTL-ISO-01",
+        "description": "Maintain an information security policy approved by management.",
+        "regulation": "REG-ISO-27001",
+        "control_type": "preventive",
+        "owner": "security",
+        "requirements": ["implemented", "evidence"],
+        "test_frequency": "annually",
+    },
+    {
+        "control_id": "CTL-ISO-02",
+        "description": "Perform regular risk assessments and document mitigations.",
+        "regulation": "REG-ISO-27001",
+        "control_type": "detective",
+        "owner": "risk",
+        "requirements": ["implemented", "risk_mitigation", "evidence"],
+        "test_frequency": "quarterly",
+    },
+    {
+        "control_id": "CTL-SOC2-01",
+        "description": "Monitor system availability and incident response.",
+        "regulation": "REG-SOC-2",
+        "control_type": "detective",
+        "owner": "operations",
+        "requirements": ["implemented", "quality_tests", "evidence"],
+        "test_frequency": "quarterly",
+    },
+    {
+        "control_id": "CTL-SOC2-02",
+        "description": "Maintain audit logs for changes and access.",
+        "regulation": "REG-SOC-2",
+        "control_type": "preventive",
+        "owner": "security",
+        "requirements": ["implemented", "audit_logs", "evidence"],
+        "test_frequency": "monthly",
+    },
+    {
+        "control_id": "CTL-PRIVACY-AU-01",
+        "description": "Conduct privacy impact assessments for personal information under APP obligations.",
+        "regulation": "REG-PRIVACY-ACT-AU",
+        "control_type": "preventive",
+        "owner": "privacy",
+        "requirements": ["implemented", "data_privacy", "evidence"],
+        "test_frequency": "annually",
+    },
+    {
+        "control_id": "CTL-PRIVACY-AU-02",
+        "description": "Ensure APP access and correction requests are tracked and fulfilled within statutory timelines.",
+        "regulation": "REG-PRIVACY-ACT-AU",
+        "control_type": "detective",
+        "owner": "privacy",
+        "requirements": ["implemented", "quality_tests", "evidence"],
+        "test_frequency": "quarterly",
+    },
 ]
 
 COMPLIANCE_SCHEMAS: dict[str, dict[str, str]] = {
-    "regulatory_frameworks": {"framework_id": "string", "name": "string", "description": "string", "jurisdiction": "list[string]", "industry": "list[string]", "data_sensitivity": "list[string]", "effective_date": "string", "applicability_rules": "json"},
-    "control_requirements": {"control_id": "string", "regulation_id": "string", "description": "string", "owner": "string", "control_type": "string", "requirements": "list[string]", "evidence_requirements": "list[string]", "test_frequency": "string"},
-    "control_mappings": {"mapping_id": "string", "project_id": "string", "industry": "string", "geography": "string", "data_sensitivity": "string", "control_ids": "list[string]", "created_at": "string"},
-    "compliance_evidence": {"evidence_id": "string", "control_id": "string", "project_id": "string", "source_agent": "string", "metadata": "json", "created_at": "string"},
-    "compliance_reports": {"report_id": "string", "report_type": "string", "framework": "string", "generated_at": "string", "report_url": "string"},
+    "regulatory_frameworks": {
+        "framework_id": "string",
+        "name": "string",
+        "description": "string",
+        "jurisdiction": "list[string]",
+        "industry": "list[string]",
+        "data_sensitivity": "list[string]",
+        "effective_date": "string",
+        "applicability_rules": "json",
+    },
+    "control_requirements": {
+        "control_id": "string",
+        "regulation_id": "string",
+        "description": "string",
+        "owner": "string",
+        "control_type": "string",
+        "requirements": "list[string]",
+        "evidence_requirements": "list[string]",
+        "test_frequency": "string",
+    },
+    "control_mappings": {
+        "mapping_id": "string",
+        "project_id": "string",
+        "industry": "string",
+        "geography": "string",
+        "data_sensitivity": "string",
+        "control_ids": "list[string]",
+        "created_at": "string",
+    },
+    "compliance_evidence": {
+        "evidence_id": "string",
+        "control_id": "string",
+        "project_id": "string",
+        "source_agent": "string",
+        "metadata": "json",
+        "created_at": "string",
+    },
+    "compliance_reports": {
+        "report_id": "string",
+        "report_type": "string",
+        "framework": "string",
+        "generated_at": "string",
+        "report_url": "string",
+    },
 }
 
 
@@ -134,6 +221,7 @@ async def define_compliance_schemas(agent: ComplianceRegulatoryAgent) -> None:
 # Azure Cognitive Services helpers
 # ---------------------------------------------------------------------------
 
+
 async def extract_regulation_metadata(
     agent: ComplianceRegulatoryAgent, regulation_data: dict[str, Any]
 ) -> dict[str, Any]:
@@ -161,9 +249,7 @@ async def extract_regulation_metadata(
     return {"obligations": obligations, "effective_date": effective_date, "metadata": metadata}
 
 
-async def analyze_text_analytics(
-    agent: ComplianceRegulatoryAgent, text: str
-) -> dict[str, Any]:
+async def analyze_text_analytics(agent: ComplianceRegulatoryAgent, text: str) -> dict[str, Any]:
     endpoint = agent.config.get("text_analytics_endpoint") if agent.config else None
     api_key = agent.config.get("text_analytics_key") if agent.config else None
     endpoint = endpoint or os.getenv("AZURE_TEXT_ANALYTICS_ENDPOINT")
@@ -219,17 +305,19 @@ async def analyze_document_intelligence(
         return {"content": ""}
 
     headers = {"Ocp-Apim-Subscription-Key": api_key}
-    analyze_url = (
-        f"{endpoint.rstrip('/')}/formrecognizer/documentModels/prebuilt-layout:analyze"
-    )
+    analyze_url = f"{endpoint.rstrip('/')}/formrecognizer/documentModels/prebuilt-layout:analyze"
     params = {"api-version": "2023-07-31"}
 
     if document_url:
         request_body = {"urlSource": document_url}
         headers["Content-Type"] = "application/json"
         response = await asyncio.to_thread(
-            requests.post, analyze_url, params=params, headers=headers,
-            json=request_body, timeout=15,
+            requests.post,
+            analyze_url,
+            params=params,
+            headers=headers,
+            json=request_body,
+            timeout=15,
         )
     else:
         if isinstance(document_content, str):
@@ -238,8 +326,12 @@ async def analyze_document_intelligence(
             document_bytes = document_content
         headers["Content-Type"] = "application/octet-stream"
         response = await asyncio.to_thread(
-            requests.post, analyze_url, params=params, headers=headers,
-            data=document_bytes, timeout=15,
+            requests.post,
+            analyze_url,
+            params=params,
+            headers=headers,
+            data=document_bytes,
+            timeout=15,
         )
 
     try:
@@ -254,8 +346,10 @@ async def analyze_document_intelligence(
 
     try:
         result_response = await asyncio.to_thread(
-            requests.get, operation_location,
-            headers={"Ocp-Apim-Subscription-Key": api_key}, timeout=15,
+            requests.get,
+            operation_location,
+            headers={"Ocp-Apim-Subscription-Key": api_key},
+            timeout=15,
         )
         result_response.raise_for_status()
         result_payload = result_response.json()

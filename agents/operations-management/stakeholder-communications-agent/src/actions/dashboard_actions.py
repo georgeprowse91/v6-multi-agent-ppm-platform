@@ -59,6 +59,7 @@ async def generate_communication_report(
 # Dashboard sub-helpers
 # ---------------------------------------------------------------------------
 
+
 async def _get_stakeholder_summary(
     agent: StakeholderCommunicationsAgent, project_id: str | None
 ) -> dict[str, Any]:

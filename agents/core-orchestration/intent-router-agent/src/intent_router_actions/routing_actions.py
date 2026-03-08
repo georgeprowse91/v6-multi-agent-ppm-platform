@@ -1,12 +1,9 @@
 """Intent routing action handlers."""
+
 from __future__ import annotations
+
 import uuid
 from typing import TYPE_CHECKING, Any
-
-from observability.tracing import get_trace_id
-from prompt_registry import enforce_redaction
-
-from agents.runtime.src.audit import build_audit_event, emit_audit_event
 
 from intent_router_models import (
     IntentPrediction,
@@ -14,8 +11,11 @@ from intent_router_models import (
     IntentRouterRequest,
     IntentRouterResponse,
     RoutingDecision,
-    ValidationErrorPayload,
 )
+from observability.tracing import get_trace_id
+from prompt_registry import enforce_redaction
+
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
 
 if TYPE_CHECKING:
     from intent_router_agent import IntentRouterAgent

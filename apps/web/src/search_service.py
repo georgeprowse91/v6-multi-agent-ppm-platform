@@ -12,7 +12,7 @@ import logging
 import re
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from difflib import SequenceMatcher
 from typing import Any
@@ -59,8 +59,9 @@ def _load_field_policies() -> dict[str, dict[str, list[str]]]:
     if _field_policies is not None:
         return _field_policies
     try:
-        import yaml
         from pathlib import Path
+
+        import yaml
 
         policy_path = Path(__file__).resolve().parents[2] / "config" / "rbac" / "field-level.yaml"
         if policy_path.exists():
@@ -277,9 +278,7 @@ class SearchService:
         all_results: list[SearchResultItem] = []
         with ThreadPoolExecutor(max_workers=_MAX_CONNECTOR_WORKERS) as pool:
             futures = {
-                pool.submit(
-                    _search_connector, cid, conn, query, limit
-                ): cid
+                pool.submit(_search_connector, cid, conn, query, limit): cid
                 for cid, conn in _connector_registry.items()
             }
             for future in as_completed(futures, timeout=_CONNECTOR_SEARCH_TIMEOUT):

@@ -132,7 +132,9 @@ async def test_dispatch_calls_authenticate_request(monkeypatch: pytest.MonkeyPat
     await middleware.dispatch(request, call_next)
 
     assert call_count == 1, "authenticate_request should have been called once"
-    assert captured_auth is expected_ctx, "request.state.auth must be the AuthContext from authenticate_request"
+    assert (
+        captured_auth is expected_ctx
+    ), "request.state.auth must be the AuthContext from authenticate_request"
 
 
 @pytest.mark.asyncio

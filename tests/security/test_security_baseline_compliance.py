@@ -37,8 +37,26 @@ def test_service_has_required_security_middleware(service: str, main_file: Path)
     if service in AUTH_MIDDLEWARE_EXEMPT_SERVICES:
         return
 
-    expected_literal = "{" + ", ".join(sorted(REQUIRED_AUTH_EXEMPT_PATHS)) + "}"
-    assert f"app.add_middleware(AuthTenantMiddleware, exempt_paths={expected_literal})" in source
+    assert "app.add_middleware(AuthTenantMiddleware" in source or (
+        "app.add_middleware(\n" in source and "AuthTenantMiddleware" in source
+    ), f"{service} missing AuthTenantMiddleware registration"
+
+    # Verify all required exempt paths are present in the middleware call
+    auth_lines = [
+        line.strip()
+        for line in source.splitlines()
+        if "AuthTenantMiddleware" in line and "exempt_paths" in line
+    ]
+    if not auth_lines:
+        # exempt_paths may span multiple lines; check full source
+        assert all(
+            path in source for path in REQUIRED_AUTH_EXEMPT_PATHS
+        ), f"{service} missing required exempt paths {REQUIRED_AUTH_EXEMPT_PATHS}"
+    else:
+        for path in REQUIRED_AUTH_EXEMPT_PATHS:
+            assert (
+                path in auth_lines[0]
+            ), f"{service} missing required exempt path {path} in AuthTenantMiddleware"
 
 
 @pytest.mark.parametrize(

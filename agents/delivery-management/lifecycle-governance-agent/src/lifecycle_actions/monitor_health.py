@@ -207,9 +207,7 @@ async def generate_health_report(
     Generate a standardized health report and publish it as an event.
     """
     health_data = await monitor_health(agent, project_id, tenant_id=tenant_id)
-    report_id = (
-        f"health-report-{project_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
-    )
+    report_id = f"health-report-{project_id}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
     summary = (
         f"Project health is {health_data.get('health_status')} with "
         f"composite score {health_data.get('composite_score', 0):.2f}."

@@ -33,9 +33,7 @@ async def handle_query_data(
     }
 
 
-async def handle_get_dashboard(
-    agent: AnalyticsInsightsAgent, dashboard_id: str
-) -> dict[str, Any]:
+async def handle_get_dashboard(agent: AnalyticsInsightsAgent, dashboard_id: str) -> dict[str, Any]:
     """
     Get dashboard data.
 
@@ -76,6 +74,7 @@ async def handle_natural_language_query(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 async def _parse_query(query: str) -> dict[str, Any]:
     """Parse natural language query."""

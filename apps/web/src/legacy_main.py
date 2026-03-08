@@ -13,6 +13,7 @@ now serves **only** as the application assembly point:
 
 Route modules live under ``apps/web/src/routes/``.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -108,6 +109,7 @@ validate_startup_config()
 # Middleware
 # ---------------------------------------------------------------------------
 
+
 class PermissionMiddleware(BaseHTTPMiddleware):
     """Enforce ``@permission_required(...)`` decorators on route handlers."""
 
@@ -153,6 +155,7 @@ app.add_middleware(DemoAutoSessionMiddleware)
 # Startup lifecycle
 # ---------------------------------------------------------------------------
 
+
 @app.on_event("startup")
 async def startup() -> None:
     import routes._deps as deps
@@ -181,6 +184,7 @@ for _router in LEGACY_ROUTE_MODULES:
 # ---------------------------------------------------------------------------
 # Root-level catch-all routes (outside /v1 prefix)
 # ---------------------------------------------------------------------------
+
 
 @api_router.get("/")
 async def index() -> FileResponse:

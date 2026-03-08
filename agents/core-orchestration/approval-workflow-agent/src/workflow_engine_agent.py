@@ -64,7 +64,9 @@ class WorkflowEngineAgent(BaseAgent):
     - Exception handling and compensation
     """
 
-    def __init__(self, agent_id: str = "approval-workflow-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "approval-workflow-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
 
         config = config or {}
@@ -77,7 +79,10 @@ class WorkflowEngineAgent(BaseAgent):
         self.durable_config_path = Path(
             config.get(
                 "durable_workflows_config",
-                os.getenv("DURABLE_WORKFLOW_CONFIG", "ops/config/agents/approval-workflow-agent/durable_workflows.yaml"),
+                os.getenv(
+                    "DURABLE_WORKFLOW_CONFIG",
+                    "ops/config/agents/approval-workflow-agent/durable_workflows.yaml",
+                ),
             )
         )
         self.monitoring_enabled = config.get("enable_monitoring", True)
@@ -88,7 +93,10 @@ class WorkflowEngineAgent(BaseAgent):
         self.workflow_templates_path = Path(
             config.get(
                 "workflow_templates_path",
-                os.getenv("WORKFLOW_TEMPLATES_PATH", "ops/config/agents/approval-workflow-agent/workflow_templates.yaml"),
+                os.getenv(
+                    "WORKFLOW_TEMPLATES_PATH",
+                    "ops/config/agents/approval-workflow-agent/workflow_templates.yaml",
+                ),
             )
         )
         self.rbac_policy = config.get(
@@ -164,11 +172,20 @@ class WorkflowEngineAgent(BaseAgent):
             return False
 
         valid_actions = [
-            "define_workflow", "start_workflow", "get_workflow_status",
-            "assign_task", "complete_task", "cancel_workflow",
-            "pause_workflow", "resume_workflow", "handle_event",
-            "retry_failed_task", "get_workflow_instances", "get_task_inbox",
-            "deploy_bpmn_workflow", "upload_bpmn_workflow",
+            "define_workflow",
+            "start_workflow",
+            "get_workflow_status",
+            "assign_task",
+            "complete_task",
+            "cancel_workflow",
+            "pause_workflow",
+            "resume_workflow",
+            "handle_event",
+            "retry_failed_task",
+            "get_workflow_instances",
+            "get_task_inbox",
+            "deploy_bpmn_workflow",
+            "upload_bpmn_workflow",
         ]
 
         if action not in valid_actions:
@@ -184,7 +201,11 @@ class WorkflowEngineAgent(BaseAgent):
         if action == "deploy_bpmn_workflow" and "bpmn_xml" not in input_data:
             self.logger.warning("Missing BPMN XML payload")
             return False
-        if action == "upload_bpmn_workflow" and "bpmn_xml" not in input_data and "bpmn_path" not in input_data:
+        if (
+            action == "upload_bpmn_workflow"
+            and "bpmn_xml" not in input_data
+            and "bpmn_path" not in input_data
+        ):
             self.logger.warning("Missing BPMN XML payload or file path")
             return False
 
@@ -208,20 +229,30 @@ class WorkflowEngineAgent(BaseAgent):
             return await handle_define_workflow(self, tenant_id, input_data.get("workflow", {}))
         if action == "start_workflow":
             return await handle_start_workflow(
-                self, tenant_id, input_data.get("workflow_id"),
+                self,
+                tenant_id,
+                input_data.get("workflow_id"),
                 input_data.get("input_variables", {}),  # type: ignore
             )
         if action == "get_workflow_status":
             return await handle_get_workflow_status(
-                self, tenant_id, input_data.get("instance_id"),  # type: ignore
+                self,
+                tenant_id,
+                input_data.get("instance_id"),  # type: ignore
             )
         if action == "assign_task":
             return await handle_assign_task(
-                self, tenant_id, input_data.get("task_id"), input_data.get("assignee"),  # type: ignore
+                self,
+                tenant_id,
+                input_data.get("task_id"),
+                input_data.get("assignee"),  # type: ignore
             )
         if action == "complete_task":
             return await handle_complete_task(
-                self, tenant_id, input_data.get("task_id"), input_data.get("task_result", {}),  # type: ignore
+                self,
+                tenant_id,
+                input_data.get("task_id"),
+                input_data.get("task_result", {}),  # type: ignore
             )
         if action == "cancel_workflow":
             return await handle_cancel_workflow(self, tenant_id, input_data.get("instance_id"))  # type: ignore
@@ -234,17 +265,25 @@ class WorkflowEngineAgent(BaseAgent):
         if action == "retry_failed_task":
             return await handle_retry_failed_task(self, tenant_id, input_data.get("task_id"))  # type: ignore
         if action == "get_workflow_instances":
-            return await handle_get_workflow_instances(self, tenant_id, input_data.get("filters", {}))
+            return await handle_get_workflow_instances(
+                self, tenant_id, input_data.get("filters", {})
+            )
         if action == "get_task_inbox":
             return await handle_get_task_inbox(self, tenant_id, input_data.get("user_id"))  # type: ignore
         if action == "deploy_bpmn_workflow":
             return await handle_deploy_bpmn_workflow(
-                self, tenant_id, input_data.get("bpmn_xml"), input_data.get("workflow_name"),  # type: ignore
+                self,
+                tenant_id,
+                input_data.get("bpmn_xml"),
+                input_data.get("workflow_name"),  # type: ignore
             )
         if action == "upload_bpmn_workflow":
             return await handle_upload_bpmn_workflow(
-                self, tenant_id, input_data.get("bpmn_xml"),
-                input_data.get("bpmn_path"), input_data.get("workflow_name"),
+                self,
+                tenant_id,
+                input_data.get("bpmn_xml"),
+                input_data.get("bpmn_path"),
+                input_data.get("workflow_name"),
             )
         raise ValueError(f"Unknown action: {action}")
 
@@ -255,25 +294,37 @@ class WorkflowEngineAgent(BaseAgent):
     async def _execute_task(self, tenant_id: str, instance_id: str, task: dict[str, Any]) -> None:
         await execute_task(self, tenant_id, instance_id, task)
 
-    async def _trigger_compensation(self, tenant_id: str, instance: dict[str, Any], reason: str) -> None:
+    async def _trigger_compensation(
+        self, tenant_id: str, instance: dict[str, Any], reason: str
+    ) -> None:
         await trigger_compensation(self, tenant_id, instance, reason)
 
-    async def _register_event_triggers(self, tenant_id: str, workflow_id: str, triggers: list[dict[str, Any]]) -> None:
+    async def _register_event_triggers(
+        self, tenant_id: str, workflow_id: str, triggers: list[dict[str, Any]]
+    ) -> None:
         await register_event_triggers(self, tenant_id, workflow_id, triggers)
 
-    async def _find_event_subscriptions(self, tenant_id: str, event_type: str) -> list[dict[str, Any]]:
+    async def _find_event_subscriptions(
+        self, tenant_id: str, event_type: str
+    ) -> list[dict[str, Any]]:
         return await find_event_subscriptions(self, tenant_id, event_type)
 
-    async def _event_matches_criteria(self, event_data: dict[str, Any], criteria: dict[str, Any]) -> bool:
+    async def _event_matches_criteria(
+        self, event_data: dict[str, Any], criteria: dict[str, Any]
+    ) -> bool:
         return await event_matches_criteria(event_data, criteria)
 
-    async def _emit_workflow_event(self, tenant_id: str, event_type: str, payload: dict[str, Any]) -> None:
+    async def _emit_workflow_event(
+        self, tenant_id: str, event_type: str, payload: dict[str, Any]
+    ) -> None:
         await emit_workflow_event(self, tenant_id, event_type, payload)
 
     async def _invoke_logic_app(self, tenant_id: str, assignment: dict[str, Any]) -> None:
         await invoke_logic_app(self, tenant_id, assignment)
 
-    async def _send_notification(self, tenant_id: str, event_type: str, payload: dict[str, Any]) -> None:
+    async def _send_notification(
+        self, tenant_id: str, event_type: str, payload: dict[str, Any]
+    ) -> None:
         await send_notification(self, tenant_id, event_type, payload)
 
     # ------------------------------------------------------------------
@@ -314,7 +365,9 @@ class WorkflowEngineAgent(BaseAgent):
 
     async def _load_durable_workflows_config(self) -> None:
         if not self.durable_config_path.exists():
-            self.logger.info("Durable workflow config not found", extra={"path": str(self.durable_config_path)})
+            self.logger.info(
+                "Durable workflow config not found", extra={"path": str(self.durable_config_path)}
+            )
             return
         config_payload = yaml.safe_load(self.durable_config_path.read_text()) or {}
         for workflow in config_payload.get("workflows", []):
@@ -322,19 +375,31 @@ class WorkflowEngineAgent(BaseAgent):
             tasks, transitions = [], []
             for index, step in enumerate(steps):
                 if index + 1 < len(steps):
-                    transitions.append({"source": step.get("task_id"), "target": steps[index + 1].get("task_id")})
-                tasks.append({
-                    "task_id": step.get("task_id"), "name": step.get("name"),
-                    "type": step.get("type", "automated"), "initial": index == 0,
-                    "retry_policy": step.get("retry_policy"),
-                    "compensation_task_id": step.get("compensation_task_id"),
-                })
-            await handle_define_workflow(self, "default", {
-                "name": workflow.get("name") or workflow.get("workflow_id"),
-                "description": workflow.get("description"),
-                "tasks": tasks, "transitions": transitions,
-                "definition_source": "durable_config", "version": workflow.get("version", 1),
-            })
+                    transitions.append(
+                        {"source": step.get("task_id"), "target": steps[index + 1].get("task_id")}
+                    )
+                tasks.append(
+                    {
+                        "task_id": step.get("task_id"),
+                        "name": step.get("name"),
+                        "type": step.get("type", "automated"),
+                        "initial": index == 0,
+                        "retry_policy": step.get("retry_policy"),
+                        "compensation_task_id": step.get("compensation_task_id"),
+                    }
+                )
+            await handle_define_workflow(
+                self,
+                "default",
+                {
+                    "name": workflow.get("name") or workflow.get("workflow_id"),
+                    "description": workflow.get("description"),
+                    "tasks": tasks,
+                    "transitions": transitions,
+                    "definition_source": "durable_config",
+                    "version": workflow.get("version", 1),
+                },
+            )
 
     async def _handle_service_bus_trigger(self, payload: dict[str, Any]) -> None:
         tenant_id = payload.get("tenant_id") or "default"
@@ -342,14 +407,18 @@ class WorkflowEngineAgent(BaseAgent):
 
     async def _load_workflow_templates(self) -> None:
         if not self.workflow_templates_path.exists():
-            self.logger.info("Workflow templates not found", extra={"path": str(self.workflow_templates_path)})
+            self.logger.info(
+                "Workflow templates not found", extra={"path": str(self.workflow_templates_path)}
+            )
             return
         templates = yaml.safe_load(self.workflow_templates_path.read_text()) or {}
         for template in templates.get("templates", []):
             try:
                 await handle_define_workflow(self, "default", template)
             except WorkflowSpecError as exc:
-                self.logger.warning("Template invalid", extra={"template": template.get("name"), "error": str(exc)})
+                self.logger.warning(
+                    "Template invalid", extra={"template": template.get("name"), "error": str(exc)}
+                )
 
     # ------------------------------------------------------------------
     # Worker
@@ -371,10 +440,18 @@ class WorkflowEngineAgent(BaseAgent):
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
         return [
-            "workflow_definition", "workflow_orchestration", "process_execution",
-            "human_task_management", "event_driven_triggers", "dynamic_adaptation",
-            "process_versioning", "exception_handling", "compensation",
-            "workflow_monitoring", "bpmn_support", "state_management",
+            "workflow_definition",
+            "workflow_orchestration",
+            "process_execution",
+            "human_task_management",
+            "event_driven_triggers",
+            "dynamic_adaptation",
+            "process_versioning",
+            "exception_handling",
+            "compensation",
+            "workflow_monitoring",
+            "bpmn_support",
+            "state_management",
         ]
 
     def _authorize_action(self, action: str, input_data: dict[str, Any]) -> None:

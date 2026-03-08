@@ -11,9 +11,7 @@ if TYPE_CHECKING:
     from release_models import ReleaseAgentProtocol
 
 
-async def track_deployment_metrics(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> dict[str, Any]:
+async def track_deployment_metrics(agent: ReleaseAgentProtocol, release_id: str) -> dict[str, Any]:
     """
     Track and analyze deployment metrics.
 
@@ -79,8 +77,7 @@ async def _calculate_deployment_frequency(agent: ReleaseAgentProtocol) -> float:
     completed = [
         plan
         for plan in agent.deployment_plans.values()
-        if plan.get("completed_at")
-        and datetime.fromisoformat(plan["completed_at"]) >= window_start
+        if plan.get("completed_at") and datetime.fromisoformat(plan["completed_at"]) >= window_start
     ]
     return len(completed) / 1.0  # per 30 days
 
@@ -99,9 +96,7 @@ async def _calculate_lead_time(agent: ReleaseAgentProtocol, release_id: str) -> 
     return max((end - start).total_seconds() / 86400, 0.0)
 
 
-async def _calculate_mean_time_to_deploy(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> float:
+async def _calculate_mean_time_to_deploy(agent: ReleaseAgentProtocol, release_id: str) -> float:
     """Calculate mean time to deploy."""
     durations = []
     for plan in agent.deployment_plans.values():

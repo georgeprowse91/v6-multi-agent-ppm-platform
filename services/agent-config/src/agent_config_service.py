@@ -104,6 +104,7 @@ class AgentConfigRBACStore:
         if self.database_url.startswith("sqlite"):
             import re as _re
             import sqlite3
+
             m = _re.search(r"sqlite:///(.+)", self.database_url)
             if m:
                 db_path = m.group(1)
@@ -138,6 +139,7 @@ class AgentConfigRBACStore:
     def _sqlite_db_path(self) -> str | None:
         """Return the filesystem path if the database URL is SQLite, else None."""
         import re as _re
+
         m = _re.search(r"sqlite:///(.+)", self.database_url)
         return m.group(1) if m else None
 
@@ -151,6 +153,7 @@ class AgentConfigRBACStore:
     ) -> None:
         """Write RBAC data directly to the SQLite file (bypasses ORM stub)."""
         import sqlite3
+
         db_path = self._sqlite_db_path()
         if not db_path:
             return
@@ -444,7 +447,14 @@ class AgentConfigStore:
             description="Unified workflow and approval engine — orchestrates long-running workflows, approval chains, task inboxes, and process automation",
             category=AgentCategory.GOVERNANCE,
             enabled=True,
-            capabilities=["approval_management", "gate_review", "escalation", "workflow_execution", "process_automation", "task_routing"],
+            capabilities=[
+                "approval_management",
+                "gate_review",
+                "escalation",
+                "workflow_execution",
+                "process_automation",
+                "task_routing",
+            ],
         ).to_dict()
 
         # Portfolio Agents
@@ -1335,7 +1345,12 @@ class AgentConfigStore:
             description="Initialises project workspaces and validates connector configuration before delivery begins",
             category=AgentCategory.GOVERNANCE,
             enabled=True,
-            capabilities=["workspace_init", "connector_validation", "external_provisioning", "methodology_bootstrap"],
+            capabilities=[
+                "workspace_init",
+                "connector_validation",
+                "external_provisioning",
+                "methodology_bootstrap",
+            ],
             parameters=[
                 AgentParameter(
                     name="require_approval_for_provisioning",

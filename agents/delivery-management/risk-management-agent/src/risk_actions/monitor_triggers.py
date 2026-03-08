@@ -16,9 +16,7 @@ if TYPE_CHECKING:
     from risk_management_agent import RiskManagementAgent
 
 
-async def monitor_triggers(
-    agent: RiskManagementAgent, risk_id: str | None
-) -> dict[str, Any]:
+async def monitor_triggers(agent: RiskManagementAgent, risk_id: str | None) -> dict[str, Any]:
     """
     Monitor risk triggers and early warnings.
 

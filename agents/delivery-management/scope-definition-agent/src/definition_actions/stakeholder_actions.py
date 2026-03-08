@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 # Stakeholder helpers (previously private methods on the agent)
 # ---------------------------------------------------------------------------
 
+
 async def _classify_stakeholders(
     stakeholders: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
@@ -134,6 +135,7 @@ async def _validate_raci_assignments(assignments: list[dict[str, Any]]) -> dict[
 # ---------------------------------------------------------------------------
 # Public action handlers
 # ---------------------------------------------------------------------------
+
 
 async def handle_analyze_stakeholders(
     agent: ProjectDefinitionAgent,

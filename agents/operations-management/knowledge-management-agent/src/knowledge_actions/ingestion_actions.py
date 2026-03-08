@@ -189,9 +189,7 @@ async def _ingest_agent_outputs(source: dict[str, Any]) -> list[dict[str, Any]]:
 
 async def _build_agent_output_document(payload: dict[str, Any]) -> dict[str, Any]:
     source_agent = payload.get("source_agent") or payload.get("agent_id") or "agent"
-    title = (
-        payload.get("title") or payload.get("summary_title") or f"Summary from {source_agent}"
-    )
+    title = payload.get("title") or payload.get("summary_title") or f"Summary from {source_agent}"
     content = payload.get("summary") or payload.get("content") or payload.get("details", "")
     tags = payload.get("tags") or []
     tags.extend(["agent_summary", source_agent])

@@ -127,9 +127,7 @@ async def calculate_alignment_score(
 
     Returns alignment scores for each strategic objective.
     """
-    agent.logger.info(
-        "Calculating alignment score for project: %s", project.get("project_id")
-    )
+    agent.logger.info("Calculating alignment score for project: %s", project.get("project_id"))
 
     alignment_details = []
 

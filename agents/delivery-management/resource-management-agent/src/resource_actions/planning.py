@@ -35,9 +35,7 @@ async def handle_forecast_capacity(
 
     history_months = int(filters.get("history_months", 6))
     tenant_id = filters.get("tenant_id") or agent.default_tenant_id
-    cache_key = (
-        f"capacity_forecast:{tenant_id}:{history_months}:{agent.forecast_horizon_months}"
-    )
+    cache_key = f"capacity_forecast:{tenant_id}:{history_months}:{agent.forecast_horizon_months}"
     if agent.redis_client:
         cached = agent.redis_client.get(cache_key)
         if cached:
@@ -88,9 +86,7 @@ async def handle_forecast_capacity(
         "forecast_horizon_months": agent.forecast_horizon_months,
         "current_capacity": current_capacity,
         "current_demand": current_demand,
-        "current_utilization": (
-            current_demand / current_capacity if current_capacity > 0 else 0
-        ),
+        "current_utilization": (current_demand / current_capacity if current_capacity > 0 else 0),
         "history": {
             "months": history_months,
             "capacity_series": capacity_series,
@@ -146,9 +142,7 @@ async def handle_plan_capacity(
         if isinstance(planning_horizon.get("risk_data"), dict)
         else None
     )
-    forecast = await handle_forecast_capacity(
-        agent, {"risk_data": risk_data} if risk_data else {}
-    )
+    forecast = await handle_forecast_capacity(agent, {"risk_data": risk_data} if risk_data else {})
 
     # Identify gaps and mitigation strategies
     gaps = await agent._identify_capacity_gaps(forecast)

@@ -41,16 +41,18 @@ def test_no_local_oidc_ttl_cache_in_gateway_middleware() -> None:
     """_OIDCTTLCache must not be defined in the gateway middleware module."""
     import api.middleware.security as m
 
-    assert not hasattr(m, "_OIDCTTLCache"), (
-        "Duplicate _OIDCTTLCache has been removed; caching lives in security.auth._TTLCache"
-    )
+    assert not hasattr(
+        m, "_OIDCTTLCache"
+    ), "Duplicate _OIDCTTLCache has been removed; caching lives in security.auth._TTLCache"
 
 
 def test_gateway_middleware_auth_context_same_as_package() -> None:
     from api.middleware.security import AuthContext as GwAuthContext
     from security.auth import AuthContext as Pkg
 
-    assert GwAuthContext is Pkg, "AuthContext must be imported from security.auth, not redefined locally"
+    assert (
+        GwAuthContext is Pkg
+    ), "AuthContext must be imported from security.auth, not redefined locally"
 
 
 # ---------------------------------------------------------------------------
@@ -81,8 +83,8 @@ def _has_sys_path_insert(source: str) -> bool:
 
 
 _PRODUCTION_FILES_NO_SYS_PATH = [
-    REPO_ROOT / "apps" / "api-gateway" / "src" / "api" / "main.py",
-    REPO_ROOT / "apps" / "api-gateway" / "src" / "api" / "routes" / "agent_config.py",
+    REPO_ROOT / "services" / "api-gateway" / "src" / "api" / "main.py",
+    REPO_ROOT / "services" / "api-gateway" / "src" / "api" / "routes" / "agent_config.py",
     REPO_ROOT / "services" / "scope_baseline" / "main.py",
 ]
 
@@ -105,9 +107,9 @@ def test_pyproject_packages_find_section_present() -> None:
         data = tomllib.load(fh)
 
     setuptools = data.get("tool", {}).get("setuptools", {})
-    assert "packages" in setuptools, (
-        "[tool.setuptools.packages.find] must be present in pyproject.toml"
-    )
+    assert (
+        "packages" in setuptools
+    ), "[tool.setuptools.packages.find] must be present in pyproject.toml"
 
 
 def test_pyproject_pythonpath_includes_package_sources() -> None:
@@ -138,12 +140,12 @@ def test_pyproject_pythonpath_includes_package_sources() -> None:
 
 def test_install_key_rotation_handler_in_main() -> None:
     """Check that _install_key_rotation_handler is defined in api.main source."""
-    source = (REPO_ROOT / "apps" / "api-gateway" / "src" / "api" / "main.py").read_text(
+    source = (REPO_ROOT / "services" / "api-gateway" / "src" / "api" / "main.py").read_text(
         encoding="utf-8"
     )
-    assert "def _install_key_rotation_handler(" in source, (
-        "_install_key_rotation_handler must be defined in api.main"
-    )
+    assert (
+        "def _install_key_rotation_handler(" in source
+    ), "_install_key_rotation_handler must be defined in api.main"
 
 
 def test_clear_auth_caches_exported_from_security_auth() -> None:
@@ -156,9 +158,7 @@ def test_admin_rotate_endpoint_exists() -> None:
     from api.routes.admin import router
 
     routes = {r.path for r in router.routes}  # type: ignore[attr-defined]
-    assert "/llm/keys/rotate" in routes, (
-        "POST /llm/keys/rotate must be defined in the admin router"
-    )
+    assert "/llm/keys/rotate" in routes, "POST /llm/keys/rotate must be defined in the admin router"
 
 
 # ---------------------------------------------------------------------------
@@ -170,23 +170,23 @@ def test_admin_clear_model_registry_endpoint_exists() -> None:
     from api.routes.admin import router
 
     routes = {r.path for r in router.routes}  # type: ignore[attr-defined]
-    assert "/model-registry/cache/clear" in routes, (
-        "POST /model-registry/cache/clear must be defined in the admin router"
-    )
+    assert (
+        "/model-registry/cache/clear" in routes
+    ), "POST /model-registry/cache/clear must be defined in the admin router"
 
 
 def test_admin_router_included_in_main_app() -> None:
     """The admin router must be included under /v1/admin in the main app source."""
-    source = (REPO_ROOT / "apps" / "api-gateway" / "src" / "api" / "main.py").read_text(
+    source = (REPO_ROOT / "services" / "api-gateway" / "src" / "api" / "main.py").read_text(
         encoding="utf-8"
     )
-    assert "admin" in source and "include_router" in source, (
-        "Admin router must be included in the FastAPI app via include_router"
-    )
+    assert (
+        "admin" in source and "include_router" in source
+    ), "Admin router must be included in the FastAPI app via include_router"
     # Verify the admin router is imported
-    assert "from api.routes import" in source or "from api.routes.admin" in source, (
-        "Admin router module must be imported in api.main"
-    )
+    assert (
+        "from api.routes import" in source or "from api.routes.admin" in source
+    ), "Admin router module must be imported in api.main"
 
 
 # ---------------------------------------------------------------------------
@@ -196,41 +196,37 @@ def test_admin_router_included_in_main_app() -> None:
 
 def test_no_on_event_in_main() -> None:
     """main.py must not contain @app.on_event decorators."""
-    source = (REPO_ROOT / "apps" / "api-gateway" / "src" / "api" / "main.py").read_text(
+    source = (REPO_ROOT / "services" / "api-gateway" / "src" / "api" / "main.py").read_text(
         encoding="utf-8"
     )
-    assert 'on_event("startup")' not in source, (
-        "@app.on_event('startup') must be replaced with the lifespan pattern"
-    )
-    assert 'on_event("shutdown")' not in source, (
-        "@app.on_event('shutdown') must be replaced with the lifespan pattern"
-    )
+    assert (
+        'on_event("startup")' not in source
+    ), "@app.on_event('startup') must be replaced with the lifespan pattern"
+    assert (
+        'on_event("shutdown")' not in source
+    ), "@app.on_event('shutdown') must be replaced with the lifespan pattern"
 
 
 def test_lifespan_passed_to_fastapi() -> None:
     """FastAPI app must be initialised with a lifespan context manager (source check)."""
-    source = (REPO_ROOT / "apps" / "api-gateway" / "src" / "api" / "main.py").read_text(
+    source = (REPO_ROOT / "services" / "api-gateway" / "src" / "api" / "main.py").read_text(
         encoding="utf-8"
     )
     # The lifespan function must exist at module level
-    assert "def lifespan(" in source or "async def lifespan(" in source, (
-        "lifespan async context manager must be defined in api.main"
-    )
+    assert (
+        "def lifespan(" in source or "async def lifespan(" in source
+    ), "lifespan async context manager must be defined in api.main"
     # FastAPI must be initialised with lifespan= parameter
-    assert "lifespan=lifespan" in source or "FastAPI(" in source, (
-        "app must be created with lifespan=lifespan"
-    )
+    assert (
+        "lifespan=lifespan" in source or "FastAPI(" in source
+    ), "app must be created with lifespan=lifespan"
     assert "lifespan=" in source, "FastAPI app must be created with lifespan= parameter"
 
 
 def test_lifespan_is_async_context_manager() -> None:
     """lifespan must be an async context manager (asynccontextmanager-decorated, source check)."""
-    source = (REPO_ROOT / "apps" / "api-gateway" / "src" / "api" / "main.py").read_text(
+    source = (REPO_ROOT / "services" / "api-gateway" / "src" / "api" / "main.py").read_text(
         encoding="utf-8"
     )
-    assert "@asynccontextmanager" in source, (
-        "lifespan must be decorated with @asynccontextmanager"
-    )
-    assert "async def lifespan" in source, (
-        "lifespan must be an async generator function"
-    )
+    assert "@asynccontextmanager" in source, "lifespan must be decorated with @asynccontextmanager"
+    assert "async def lifespan" in source, "lifespan must be an async generator function"

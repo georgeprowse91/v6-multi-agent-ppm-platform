@@ -23,7 +23,6 @@ if str(_SECURITY_SRC) not in sys.path:
 
 from security.headers import SecurityHeadersMiddleware, _build_csp  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

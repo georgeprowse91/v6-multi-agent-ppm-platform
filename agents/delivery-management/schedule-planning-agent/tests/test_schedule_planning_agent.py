@@ -34,9 +34,7 @@ class StubResourceCapacityAgent:
 def _load_agent_class() -> type:
     repo_root = REPO_ROOT
     sys.path.append(
-        str(
-            repo_root / "agents" / "operations-management" / "change-control-agent" / "src"
-        ),
+        str(repo_root / "agents" / "operations-management" / "change-control-agent" / "src"),
     )
     sys.path.append(str(repo_root / "packages" / "contracts" / "src"))
     agent_path = Path(__file__).resolve().parents[1] / "src" / "schedule_planning_agent.py"

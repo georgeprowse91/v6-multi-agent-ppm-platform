@@ -231,9 +231,7 @@ async def forecast_capacity_for_scenario(
     capacity_multiplier = float(scenario.get("capacity_multiplier", 1.0))
     resource_count = int(scenario.get("resource_count", len(agent.resource_pool)))
     base_count = len(agent.resource_pool) or 1
-    adj_cap = [
-        value * (resource_count / base_count) * capacity_multiplier for value in cap_series
-    ]
+    adj_cap = [value * (resource_count / base_count) * capacity_multiplier for value in cap_series]
     adj_dem = [value * scope_multiplier for value in dem_series]
     forecaster = TimeSeriesForecaster(
         automl_endpoint=os.getenv("AZURE_AUTOML_ENDPOINT"),
@@ -272,11 +270,7 @@ async def find_matching_resources(
 
     matches: list[dict[str, Any]] = []
     for resource_id, resource in agent.resource_pool.items():
-        resource_skills = {
-            skill.lower()
-            for skill in get_effective_skills(resource)
-            if skill
-        }
+        resource_skills = {skill.lower() for skill in get_effective_skills(resource) if skill}
         skill_score = (
             len(resource_skills.intersection(required_skills)) / len(required_skills)
             if required_skills
@@ -416,12 +410,8 @@ async def check_allocation_overlap(
     end1_str = alloc1.get("end_date")
     start2_str = alloc2.get("start_date")
     end2_str = alloc2.get("end_date")
-    assert isinstance(start1_str, str) and isinstance(
-        end1_str, str
-    ), "alloc1 dates must be strings"
-    assert isinstance(start2_str, str) and isinstance(
-        end2_str, str
-    ), "alloc2 dates must be strings"
+    assert isinstance(start1_str, str) and isinstance(end1_str, str), "alloc1 dates must be strings"
+    assert isinstance(start2_str, str) and isinstance(end2_str, str), "alloc2 dates must be strings"
     start1 = datetime.fromisoformat(start1_str)
     end1 = datetime.fromisoformat(end1_str)
     start2 = datetime.fromisoformat(start2_str)
@@ -438,9 +428,7 @@ async def check_allocation_overlap(
     return {"has_overlap": False}
 
 
-async def update_resource_availability(
-    agent: ResourceCapacityAgent, resource_id: str
-) -> None:
+async def update_resource_availability(agent: ResourceCapacityAgent, resource_id: str) -> None:
     """Recalculate and persist availability after an allocation change."""
     allocations = agent.allocations.get(resource_id, [])
     total_allocation = sum(
@@ -449,9 +437,7 @@ async def update_resource_availability(
         if alloc.get("status") == "Active"
     )
     availability = max(0, 100 - total_allocation) / 100
-    training_load = float(
-        agent.resource_pool.get(resource_id, {}).get("training_load", 0.0)
-    )
+    training_load = float(agent.resource_pool.get(resource_id, {}).get("training_load", 0.0))
     availability = max(0.0, availability - training_load)
     agent.resource_pool[resource_id]["availability"] = availability
     schedule = agent.capacity_calendar.get(resource_id, {})
@@ -485,9 +471,7 @@ async def calculate_day_availability(
     if weekday not in calendar.get("working_days", []):
         return {"date": date.isoformat(), "available_hours": 0, "reason": "Non-working day"}
 
-    total_hours = calendar.get(
-        "available_hours_per_day", agent.default_working_hours_per_day
-    )
+    total_hours = calendar.get("available_hours_per_day", agent.default_working_hours_per_day)
     date_str = date.date().isoformat()
     holidays = {str(day) for day in calendar.get("holidays", [])}
     if date_str in holidays:
@@ -541,9 +525,7 @@ async def calculate_day_availability(
 # ---------------------------------------------------------------------------
 
 
-async def determine_approver(
-    agent: ResourceCapacityAgent, request: dict[str, Any]
-) -> str:
+async def determine_approver(agent: ResourceCapacityAgent, request: dict[str, Any]) -> str:
     """Determine the appropriate approver for a resource request."""
     default_approver = agent.approval_routing.get("default_approver", "resource_manager")
     requester = request.get("requested_by")
@@ -655,13 +637,10 @@ async def optimize_resource_allocations(
         req for req in agent.demand_requests.values() if req.get("status") == "Pending"
     ]
     pending_requests.extend(planning_horizon.get("requests", []))
-    pending_requests.sort(
-        key=lambda req: (-(req.get("effort", 1.0)), req.get("start_date", ""))
-    )
+    pending_requests.sort(key=lambda req: (-(req.get("effort", 1.0)), req.get("start_date", "")))
 
     availability = {
-        rid: float(r.get("availability", 0.0))
-        for rid, r in agent.resource_pool.items()
+        rid: float(r.get("availability", 0.0)) for rid, r in agent.resource_pool.items()
     }
     allocations_list: list[dict[str, Any]] = []
     unfilled: list[dict[str, Any]] = []
@@ -680,16 +659,12 @@ async def optimize_resource_allocations(
         required_skills = request.get("required_skills", [])
         effort = float(request.get("effort", 1.0))
         request_id = request.get("request_id") or request.get("id") or "pending"
-        matches = await find_matching_resources(
-            agent, required_skills, availability_floor=effort
-        )
+        matches = await find_matching_resources(agent, required_skills, availability_floor=effort)
         assigned = False
         for match in matches:
             resource_id = match["resource_id"]
             if availability.get(resource_id, 0.0) >= effort:
-                availability[resource_id] = max(
-                    0.0, availability.get(resource_id, 0.0) - effort
-                )
+                availability[resource_id] = max(0.0, availability.get(resource_id, 0.0) - effort)
                 matched_skills = set(match.get("skills", []))
                 required_skill_set = {s for s in required_skills if s}
                 rationale = [
@@ -749,9 +724,9 @@ def average_cost_rate(agent: ResourceCapacityAgent) -> float:
     """Compute the mean cost rate across the resource pool."""
     if not agent.resource_pool:
         return 0.0
-    return sum(
-        float(r.get("cost_rate", 0.0)) for r in agent.resource_pool.values()
-    ) / len(agent.resource_pool)
+    return sum(float(r.get("cost_rate", 0.0)) for r in agent.resource_pool.values()) / len(
+        agent.resource_pool
+    )
 
 
 async def store_canonical_profile(
@@ -787,9 +762,7 @@ async def generate_conflict_recommendations(
 # ---------------------------------------------------------------------------
 
 
-def training_capacity_adjustments(
-    agent: ResourceCapacityAgent, horizon: int
-) -> list[float]:
+def training_capacity_adjustments(agent: ResourceCapacityAgent, horizon: int) -> list[float]:
     """Compute per-month capacity reduction due to scheduled training sessions."""
     adjustments = [0.0] * horizon
     total_work_hours = agent.default_working_hours_per_day * len(agent.default_working_days)
@@ -803,17 +776,13 @@ def training_capacity_adjustments(
             if not date_str:
                 continue
             session_date = datetime.fromisoformat(date_str)
-            month_offset = (
-                (session_date.year - now.year) * 12 + session_date.month - now.month
-            )
+            month_offset = (session_date.year - now.year) * 12 + session_date.month - now.month
             if 0 <= month_offset < horizon:
                 adjustments[month_offset] += hours / max(total_work_hours, 1.0)
     return [value * agent.training_capacity_impact for value in adjustments]
 
 
-def pipeline_demand_adjustments(
-    agent: ResourceCapacityAgent, horizon: int
-) -> list[float]:
+def pipeline_demand_adjustments(agent: ResourceCapacityAgent, horizon: int) -> list[float]:
     """Compute per-month demand additions from the configured pipeline forecast."""
     adjustments = [0.0] * horizon
     pipeline = agent.config.get("pipeline_forecast", []) if agent.config else []

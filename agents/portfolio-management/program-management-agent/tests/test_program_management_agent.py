@@ -99,7 +99,10 @@ async def test_create_then_get_program(tmp_path: Path) -> None:
             "program_id": program_id,
         }
     )
-    assert get_result.get("program_id") == program_id or get_result.get("name") == "Cloud Migration Program"
+    assert (
+        get_result.get("program_id") == program_id
+        or get_result.get("name") == "Cloud Migration Program"
+    )
 
 
 @pytest.mark.anyio

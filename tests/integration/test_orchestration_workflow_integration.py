@@ -9,7 +9,7 @@ import httpx
 import pytest
 
 ORCHESTRATOR_SERVICE_ROOT = (
-    Path(__file__).resolve().parents[2] / "apps" / "orchestration-service" / "src"
+    Path(__file__).resolve().parents[2] / "services" / "orchestration-service" / "src"
 )
 ORCHESTRATOR_PATH = ORCHESTRATOR_SERVICE_ROOT / "orchestrator.py"
 WORKFLOW_CLIENT_PATH = ORCHESTRATOR_SERVICE_ROOT / "workflow_client.py"

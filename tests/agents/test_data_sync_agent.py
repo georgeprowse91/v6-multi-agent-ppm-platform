@@ -67,7 +67,12 @@ async def test_data_sync_persists_and_emits_audit(tmp_path, monkeypatch):
             "action": "sync_data",
             "tenant_id": "tenant-sync",
             "entity_type": "project",
-            "data": {"id": "proj-2", "name": "Gemini", "status": "active", "email": "owner@example.com"},
+            "data": {
+                "id": "proj-2",
+                "name": "Gemini",
+                "status": "active",
+                "email": "owner@example.com",
+            },
             "source_system": "sap",
         }
     )

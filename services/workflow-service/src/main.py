@@ -62,7 +62,7 @@ api_router = APIRouter(prefix="/v1")
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
 app.add_middleware(SlowAPIMiddleware)
 configure_tracing("workflow-service")
 configure_metrics("workflow-service")

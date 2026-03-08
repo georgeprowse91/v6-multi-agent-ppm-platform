@@ -17,6 +17,7 @@ from typing import Any
 # Date helpers
 # ---------------------------------------------------------------------------
 
+
 def parse_date(date_value: str | None) -> datetime | None:
     """Parse an ISO or ``%Y-%m-%d`` date string into a datetime."""
     if not date_value:
@@ -33,6 +34,7 @@ def parse_date(date_value: str | None) -> datetime | None:
 # ---------------------------------------------------------------------------
 # Resource helpers
 # ---------------------------------------------------------------------------
+
 
 def flatten_resource_allocations(allocation: Any) -> list[str]:
     """Flatten heterogeneous allocation data into a flat list of resource identifiers."""
@@ -62,6 +64,7 @@ def flatten_resource_allocations(allocation: Any) -> list[str]:
 # ---------------------------------------------------------------------------
 # Graph helpers
 # ---------------------------------------------------------------------------
+
 
 def extract_dependency_edges(dependency: dict[str, Any]) -> list[tuple[str, str]]:
     """Extract (predecessor, successor) edge tuples from a dependency dict."""
@@ -162,6 +165,7 @@ def calculate_critical_path(
 # Overlap / conflict detection helpers
 # ---------------------------------------------------------------------------
 
+
 def detect_schedule_overlaps(
     project_ids: list[str], schedules: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -229,12 +233,8 @@ def detect_resource_schedule_conflicts(
         data_a = schedule[project_a]
         data_b = schedule[project_b]
         if data_a["start"] <= data_b["end"] and data_b["start"] <= data_a["end"]:
-            resources_a = set(
-                flatten_resource_allocations(resource_allocations.get(project_a, {}))
-            )
-            resources_b = set(
-                flatten_resource_allocations(resource_allocations.get(project_b, {}))
-            )
+            resources_a = set(flatten_resource_allocations(resource_allocations.get(project_a, {})))
+            resources_b = set(flatten_resource_allocations(resource_allocations.get(project_b, {})))
             if resources_a.intersection(resources_b):
                 conflicts += 1
     return conflicts
@@ -243,6 +243,7 @@ def detect_resource_schedule_conflicts(
 # ---------------------------------------------------------------------------
 # Schedule building & scoring helpers
 # ---------------------------------------------------------------------------
+
 
 def build_initial_schedule(
     project_ids: list[str], schedules: dict[str, Any]

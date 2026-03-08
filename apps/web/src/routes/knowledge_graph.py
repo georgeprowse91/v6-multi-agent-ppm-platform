@@ -3,6 +3,7 @@
 Uses knowledge store for real data, LLM for pattern detection
 and contextual recommendation generation.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -30,9 +31,7 @@ class GraphNode(BaseModel):
     @classmethod
     def node_type_must_be_valid(cls, v: str) -> str:
         if v not in _VALID_NODE_TYPES:
-            raise ValueError(
-                f"node_type must be one of: {', '.join(sorted(_VALID_NODE_TYPES))}"
-            )
+            raise ValueError(f"node_type must be one of: {', '.join(sorted(_VALID_NODE_TYPES))}")
         return v
 
 
@@ -45,9 +44,7 @@ class GraphEdge(BaseModel):
     @classmethod
     def edge_type_must_be_valid(cls, v: str) -> str:
         if v not in _VALID_EDGE_TYPES:
-            raise ValueError(
-                f"edge_type must be one of: {', '.join(sorted(_VALID_EDGE_TYPES))}"
-            )
+            raise ValueError(f"edge_type must be one of: {', '.join(sorted(_VALID_EDGE_TYPES))}")
         return v
 
 
@@ -97,12 +94,17 @@ def _ensure_graph() -> None:
     projects = _load_projects()
     for p in projects[:15]:
         pid = getattr(p, "id", f"proj-{len(_graph_nodes)}")
-        _graph_nodes.append(GraphNode(
-            id=pid,
-            label=getattr(p, "name", pid),
-            node_type="project",
-            metadata={"status": getattr(p, "status", "active"), "health": getattr(p, "health", "green")},
-        ))
+        _graph_nodes.append(
+            GraphNode(
+                id=pid,
+                label=getattr(p, "name", pid),
+                node_type="project",
+                metadata={
+                    "status": getattr(p, "status", "active"),
+                    "health": getattr(p, "health", "green"),
+                },
+            )
+        )
 
     # Pull knowledge items from the knowledge store (lessons, decisions)
     try:
@@ -112,25 +114,35 @@ def _ensure_graph() -> None:
                 if isinstance(item, dict):
                     nid = item.get("id", f"know-{len(_graph_nodes)}")
                     ntype = item.get("type", "lesson")
-                    _graph_nodes.append(GraphNode(
-                        id=nid,
-                        label=item.get("title", item.get("content", "")[:60]),
-                        node_type=ntype if ntype in ("lesson", "risk", "decision") else "lesson",
-                        metadata=item,
-                    ))
+                    _graph_nodes.append(
+                        GraphNode(
+                            id=nid,
+                            label=item.get("title", item.get("content", "")[:60]),
+                            node_type=(
+                                ntype if ntype in ("lesson", "risk", "decision") else "lesson"
+                            ),
+                            metadata=item,
+                        )
+                    )
                     # Link to project if referenced
                     proj_ref = item.get("project_id") or item.get("project")
                     if proj_ref:
-                        _graph_edges.append(GraphEdge(source=nid, target=proj_ref, edge_type="learned_from"))
+                        _graph_edges.append(
+                            GraphEdge(source=nid, target=proj_ref, edge_type="learned_from")
+                        )
     except Exception as exc:
         logger.debug("Knowledge store unavailable: %s", exc)
 
     # Infer edges between risks and projects
     for node in _graph_nodes:
         if node.node_type == "risk" and node.metadata.get("project"):
-            _graph_edges.append(GraphEdge(
-                source=node.id, target=node.metadata["project"], edge_type="relates_to",
-            ))
+            _graph_edges.append(
+                GraphEdge(
+                    source=node.id,
+                    target=node.metadata["project"],
+                    edge_type="relates_to",
+                )
+            )
 
 
 @router.get("/api/knowledge/graph")
@@ -169,9 +181,7 @@ async def add_graph_edge(edge: GraphEdge) -> GraphEdge:
             status_code=422,
             detail=f"Edge references non-existent node(s): {', '.join(missing)}",
         )
-    logger.info(
-        "Adding graph edge %s --%s--> %s", edge.source, edge.edge_type, edge.target
-    )
+    logger.info("Adding graph edge %s --%s--> %s", edge.source, edge.edge_type, edge.target)
     _graph_edges.append(edge)
     return edge
 
@@ -204,14 +214,18 @@ async def get_patterns(
     risk_count = sum(1 for n in _graph_nodes if n.node_type == "risk")
     patterns: list[Pattern] = []
     if risk_count >= 2:
-        patterns.append(Pattern(
-            pattern_id="pat-001",
-            title="Multiple Active Risks",
-            description=f"{risk_count} risks across portfolio projects.",
-            occurrences=risk_count,
-            affected_projects=[n.metadata.get("project", "") for n in _graph_nodes if n.node_type == "risk"],
-            severity="medium",
-        ))
+        patterns.append(
+            Pattern(
+                pattern_id="pat-001",
+                title="Multiple Active Risks",
+                description=f"{risk_count} risks across portfolio projects.",
+                occurrences=risk_count,
+                affected_projects=[
+                    n.metadata.get("project", "") for n in _graph_nodes if n.node_type == "risk"
+                ],
+                severity="medium",
+            )
+        )
     return patterns
 
 
@@ -240,24 +254,38 @@ async def get_recommendations(request: RecommendationRequest) -> list[Recommenda
     if isinstance(result, list):
         return [Recommendation.model_validate(r) for r in result if isinstance(r, dict)]
     if isinstance(result, dict) and "recommendations" in result:
-        return [Recommendation.model_validate(r) for r in result["recommendations"] if isinstance(r, dict)]
+        return [
+            Recommendation.model_validate(r)
+            for r in result["recommendations"]
+            if isinstance(r, dict)
+        ]
 
     # Fallback
     recs: list[Recommendation] = []
     if risks:
-        recs.append(Recommendation(
-            recommendation_id="rec-001", title="Address Active Risks",
-            description=f"{len(risks)} risks need mitigation.", priority="important",
-            source_lesson_id=risks[0].id, source_lesson_title=risks[0].label,
-            actionable_text="Assign risk owners and create mitigation plans.",
-        ))
+        recs.append(
+            Recommendation(
+                recommendation_id="rec-001",
+                title="Address Active Risks",
+                description=f"{len(risks)} risks need mitigation.",
+                priority="important",
+                source_lesson_id=risks[0].id,
+                source_lesson_title=risks[0].label,
+                actionable_text="Assign risk owners and create mitigation plans.",
+            )
+        )
     if not lessons:
-        recs.append(Recommendation(
-            recommendation_id="rec-002", title="Capture Lessons Learned",
-            description="No lessons captured yet.", priority="informational",
-            source_lesson_id="none", source_lesson_title="No lessons",
-            actionable_text="Schedule lessons-learned sessions for completed milestones.",
-        ))
+        recs.append(
+            Recommendation(
+                recommendation_id="rec-002",
+                title="Capture Lessons Learned",
+                description="No lessons captured yet.",
+                priority="informational",
+                source_lesson_id="none",
+                source_lesson_title="No lessons",
+                actionable_text="Schedule lessons-learned sessions for completed milestones.",
+            )
+        )
     return recs
 
 

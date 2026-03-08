@@ -81,8 +81,14 @@ def _normalise_entity_type(name: str) -> str:
 
 def load_validation_rules(agent: DataSyncAgent) -> dict[str, list[dict[str, Any]]]:
     rules_path = (
-        Path(agent.config.get("validation_rules_path", "ops/config/agents/data-synchronisation-agent/validation_rules.yaml"))
-        if agent.config else Path("ops/config/agents/data-synchronisation-agent/validation_rules.yaml")
+        Path(
+            agent.config.get(
+                "validation_rules_path",
+                "ops/config/agents/data-synchronisation-agent/validation_rules.yaml",
+            )
+        )
+        if agent.config
+        else Path("ops/config/agents/data-synchronisation-agent/validation_rules.yaml")
     )
     if not rules_path.exists():
         return {}
@@ -101,8 +107,14 @@ def load_validation_rules(agent: DataSyncAgent) -> dict[str, list[dict[str, Any]
 
 def load_quality_thresholds(agent: DataSyncAgent) -> dict[str, float | dict[str, float]]:
     thresholds_path = (
-        Path(agent.config.get("quality_thresholds_path", "ops/config/agents/data-synchronisation-agent/quality_thresholds.yaml"))
-        if agent.config else Path("ops/config/agents/data-synchronisation-agent/quality_thresholds.yaml")
+        Path(
+            agent.config.get(
+                "quality_thresholds_path",
+                "ops/config/agents/data-synchronisation-agent/quality_thresholds.yaml",
+            )
+        )
+        if agent.config
+        else Path("ops/config/agents/data-synchronisation-agent/quality_thresholds.yaml")
     )
     if not thresholds_path.exists():
         return {}
@@ -117,14 +129,26 @@ def load_quality_thresholds(agent: DataSyncAgent) -> dict[str, float | dict[str,
         if isinstance(value, (int, float)):
             thresholds[key] = float(value)
         elif isinstance(value, dict):
-            thresholds[key] = {metric: float(metric_value) for metric, metric_value in value.items() if isinstance(metric_value, (int, float))}
+            thresholds[key] = {
+                metric: float(metric_value)
+                for metric, metric_value in value.items()
+                if isinstance(metric_value, (int, float))
+            }
     return thresholds
 
 
-def load_schema_registry(agent: DataSyncAgent) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]]:
+def load_schema_registry(
+    agent: DataSyncAgent,
+) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]]:
     registry_path = (
-        Path(agent.config.get("schema_registry_path", "ops/config/agents/data-synchronisation-agent/schema_registry.yaml"))
-        if agent.config else Path("ops/config/agents/data-synchronisation-agent/schema_registry.yaml")
+        Path(
+            agent.config.get(
+                "schema_registry_path",
+                "ops/config/agents/data-synchronisation-agent/schema_registry.yaml",
+            )
+        )
+        if agent.config
+        else Path("ops/config/agents/data-synchronisation-agent/schema_registry.yaml")
     )
     if not registry_path.exists():
         return {}, {}
@@ -152,8 +176,14 @@ def load_schema_registry(agent: DataSyncAgent) -> tuple[dict[str, dict[str, Any]
 
 def load_mapping_rules(agent: DataSyncAgent) -> list[dict[str, Any]]:
     mapping_path = (
-        Path(agent.config.get("mapping_rules_path", "ops/config/agents/data-synchronisation-agent/mapping_rules.yaml"))
-        if agent.config else Path("ops/config/agents/data-synchronisation-agent/mapping_rules.yaml")
+        Path(
+            agent.config.get(
+                "mapping_rules_path",
+                "ops/config/agents/data-synchronisation-agent/mapping_rules.yaml",
+            )
+        )
+        if agent.config
+        else Path("ops/config/agents/data-synchronisation-agent/mapping_rules.yaml")
     )
     if not mapping_path.exists():
         return []
@@ -171,8 +201,14 @@ def load_mapping_rules(agent: DataSyncAgent) -> list[dict[str, Any]]:
 
 def load_pipeline_config(agent: DataSyncAgent) -> tuple[list[str], list[str]]:
     config_path = (
-        Path(agent.config.get("pipeline_config_path", "ops/config/agents/data-synchronisation-agent/pipelines.yaml"))
-        if agent.config else Path("ops/config/agents/data-synchronisation-agent/pipelines.yaml")
+        Path(
+            agent.config.get(
+                "pipeline_config_path",
+                "ops/config/agents/data-synchronisation-agent/pipelines.yaml",
+            )
+        )
+        if agent.config
+        else Path("ops/config/agents/data-synchronisation-agent/pipelines.yaml")
     )
     if not config_path.exists():
         return [], []
@@ -182,8 +218,16 @@ def load_pipeline_config(agent: DataSyncAgent) -> tuple[list[str], list[str]]:
     except (OSError, yaml.YAMLError) as exc:
         agent.logger.warning("pipeline_config_load_failed", extra={"error": str(exc)})
         return [], []
-    pipelines = [entry.get("name") for entry in payload.get("pipelines", []) if isinstance(entry, dict) and entry.get("name")]
-    functions = [entry.get("name") for entry in payload.get("functions", []) if isinstance(entry, dict) and entry.get("name")]
+    pipelines = [
+        entry.get("name")
+        for entry in payload.get("pipelines", [])
+        if isinstance(entry, dict) and entry.get("name")
+    ]
+    functions = [
+        entry.get("name")
+        for entry in payload.get("functions", [])
+        if isinstance(entry, dict) and entry.get("name")
+    ]
     return pipelines, functions
 
 
@@ -205,10 +249,20 @@ async def initialize_key_vault_secrets(
     credential = credential_cls()
     client = secret_client_cls(vault_url=key_vault_url, credential=credential)
     secret_names = [
-        "PLANVIEW_CLIENT_ID", "PLANVIEW_CLIENT_SECRET", "PLANVIEW_REFRESH_TOKEN", "PLANVIEW_INSTANCE_URL",
-        "SAP_USERNAME", "SAP_PASSWORD", "SAP_URL",
-        "JIRA_EMAIL", "JIRA_API_TOKEN", "JIRA_INSTANCE_URL",
-        "WORKDAY_CLIENT_ID", "WORKDAY_CLIENT_SECRET", "WORKDAY_REFRESH_TOKEN", "WORKDAY_API_URL",
+        "PLANVIEW_CLIENT_ID",
+        "PLANVIEW_CLIENT_SECRET",
+        "PLANVIEW_REFRESH_TOKEN",
+        "PLANVIEW_INSTANCE_URL",
+        "SAP_USERNAME",
+        "SAP_PASSWORD",
+        "SAP_URL",
+        "JIRA_EMAIL",
+        "JIRA_API_TOKEN",
+        "JIRA_INSTANCE_URL",
+        "WORKDAY_CLIENT_ID",
+        "WORKDAY_CLIENT_SECRET",
+        "WORKDAY_REFRESH_TOKEN",
+        "WORKDAY_API_URL",
     ]
     loaded_secrets: dict[str, str] = {}
     for secret_name in secret_names:
@@ -216,8 +270,18 @@ async def initialize_key_vault_secrets(
             continue
         try:
             secret = client.get_secret(secret_name)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
-            agent.logger.warning("keyvault_secret_unavailable", extra={"secret": secret_name, "error": str(exc)})
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - network dependent
+            agent.logger.warning(
+                "keyvault_secret_unavailable", extra={"secret": secret_name, "error": str(exc)}
+            )
             continue
         if secret and secret.value:
             loaded_secrets[secret_name] = secret.value
@@ -235,12 +299,22 @@ async def initialize_connectors(agent: DataSyncAgent) -> None:
         from sap_connector import SapConnector
         from smartsheet_connector import SmartsheetConnector
         from workday_connector import WorkdayConnector
-    except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+    except (
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+        OSError,
+    ) as exc:
         agent.logger.warning("connector_import_failed", extra={"error": str(exc)})
         return
 
     agent.connectors = {}
-    agent._sync_business_metrics = build_business_workflow_metrics("data-sync-agent", "connector_sync")
+    agent._sync_business_metrics = build_business_workflow_metrics(
+        "data-sync-agent", "connector_sync"
+    )
     for connector_spec in [
         ("planview", "Planview", "PPM", "PLANVIEW_INSTANCE_URL", PlanviewConnector),
         ("sap", "SAP", "ERP", "SAP_URL", SapConnector),
@@ -252,9 +326,22 @@ async def initialize_connectors(agent: DataSyncAgent) -> None:
         cid, cname, cat_name, url_key, cls = connector_spec
         try:
             cat = getattr(ConnectorCategory, cat_name)
-            cfg = ConnectorConfig(connector_id=cid, name=cname, category=cat, instance_url=agent._get_setting(url_key, "") or "")
+            cfg = ConnectorConfig(
+                connector_id=cid,
+                name=cname,
+                category=cat,
+                instance_url=agent._get_setting(url_key, "") or "",
+            )
             agent.connectors[cid] = cls(cfg)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             agent.logger.warning("%s_connector_failed", cid, extra={"error": str(exc)})
 
 
@@ -264,14 +351,28 @@ async def initialize_service_bus(agent: DataSyncAgent) -> None:
     connection_string = agent._get_setting("AZURE_SERVICE_BUS_CONNECTION_STRING")
     if not connection_string:
         return
-    agent.event_bus = ServiceBusEventBus(connection_string=connection_string, topic_name=agent.service_bus_topic_name)
+    agent.event_bus = ServiceBusEventBus(
+        connection_string=connection_string, topic_name=agent.service_bus_topic_name
+    )
     if ServiceBusClient is None:
         return
     agent.service_bus_client = ServiceBusClient.from_connection_string(connection_string)
     try:
-        agent.service_bus_queue_sender = agent.service_bus_client.get_queue_sender(queue_name=agent.service_bus_queue_name)
-        agent.service_bus_topic_sender = agent.service_bus_client.get_topic_sender(topic_name=agent.service_bus_topic_name)
-    except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        agent.service_bus_queue_sender = agent.service_bus_client.get_queue_sender(
+            queue_name=agent.service_bus_queue_name
+        )
+        agent.service_bus_topic_sender = agent.service_bus_client.get_topic_sender(
+            topic_name=agent.service_bus_topic_name
+        )
+    except (
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+        OSError,
+    ) as exc:  # pragma: no cover - network dependent
         agent.logger.warning("service_bus_sender_unavailable", extra={"error": str(exc)})
 
 
@@ -306,9 +407,24 @@ async def initialize_data_factory(agent: DataSyncAgent) -> None:
     if resource_group and factory_name and agent.data_factory_pipelines:
         for pipeline_name in agent.data_factory_pipelines:
             try:  # pragma: no cover - network dependent
-                agent.data_factory_client.pipelines.get(resource_group_name=resource_group, factory_name=factory_name, pipeline_name=pipeline_name)
-            except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
-                agent.logger.warning("data_factory_pipeline_unavailable", extra={"pipeline": pipeline_name, "error": str(exc)})
+                agent.data_factory_client.pipelines.get(
+                    resource_group_name=resource_group,
+                    factory_name=factory_name,
+                    pipeline_name=pipeline_name,
+                )
+            except (
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RuntimeError,
+                OSError,
+            ) as exc:  # pragma: no cover - network dependent
+                agent.logger.warning(
+                    "data_factory_pipeline_unavailable",
+                    extra={"pipeline": pipeline_name, "error": str(exc)},
+                )
 
 
 async def initialize_functions(agent: DataSyncAgent) -> None:
@@ -318,7 +434,9 @@ async def initialize_functions(agent: DataSyncAgent) -> None:
     if not agent.function_names:
         return
     if not agent.function_base_url:
-        agent.logger.info("function_base_url_missing", extra={"configured_functions": agent.function_names})
+        agent.logger.info(
+            "function_base_url_missing", extra={"configured_functions": agent.function_names}
+        )
 
 
 async def initialize_monitoring(agent: DataSyncAgent) -> None:
@@ -341,50 +459,122 @@ async def publish_event(agent: DataSyncAgent, topic: str, payload: dict[str, Any
     await publish_event_grid_event(agent, topic, payload)
 
 
-async def publish_service_bus_message(agent: DataSyncAgent, topic: str, payload: dict[str, Any]) -> None:
+async def publish_service_bus_message(
+    agent: DataSyncAgent, topic: str, payload: dict[str, Any]
+) -> None:
     if not agent.service_bus_client or not ServiceBusMessage:
         return
-    message = ServiceBusMessage(json.dumps({"topic": topic, "payload": payload, "published_at": datetime.now(timezone.utc).isoformat()}, default=str))
+    message = ServiceBusMessage(
+        json.dumps(
+            {
+                "topic": topic,
+                "payload": payload,
+                "published_at": datetime.now(timezone.utc).isoformat(),
+            },
+            default=str,
+        )
+    )
     if agent.service_bus_topic_sender:
         try:  # pragma: no cover - network dependent
             async with agent.service_bus_topic_sender:
                 await agent.service_bus_topic_sender.send_messages(message)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - network dependent
             agent.logger.warning("service_bus_topic_publish_failed", extra={"error": str(exc)})
     if agent.service_bus_queue_sender:
         try:  # pragma: no cover - network dependent
             async with agent.service_bus_queue_sender:
                 await agent.service_bus_queue_sender.send_messages(message)
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - network dependent
             agent.logger.warning("service_bus_queue_publish_failed", extra={"error": str(exc)})
 
 
-async def publish_event_grid_event(agent: DataSyncAgent, topic: str, payload: dict[str, Any]) -> None:
+async def publish_event_grid_event(
+    agent: DataSyncAgent, topic: str, payload: dict[str, Any]
+) -> None:
     if not agent.event_grid_client:
         return
     event = {
-        "id": str(uuid.uuid4()), "subject": f"data-sync/{topic}", "eventType": topic,
-        "eventTime": datetime.now(timezone.utc).isoformat() + "Z", "dataVersion": "1.0", "data": payload,
+        "id": str(uuid.uuid4()),
+        "subject": f"data-sync/{topic}",
+        "eventType": topic,
+        "eventTime": datetime.now(timezone.utc).isoformat() + "Z",
+        "dataVersion": "1.0",
+        "data": payload,
     }
     try:  # pragma: no cover - network dependent
         await agent.event_grid_client.send([event])
-    except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+    except (
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+        OSError,
+    ) as exc:  # pragma: no cover - network dependent
         agent.logger.warning("event_grid_publish_failed", extra={"error": str(exc)})
 
 
-async def publish_sync_event(agent: DataSyncAgent, tenant_id: str, entity_type: str, master_id: str, source_system: str, payload: dict[str, Any]) -> None:
-    agent.logger.info("sync_event_published", extra={"tenant_id": tenant_id, "entity_type": entity_type, "master_id": master_id, "source_system": source_system})
+async def publish_sync_event(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    master_id: str,
+    source_system: str,
+    payload: dict[str, Any],
+) -> None:
+    agent.logger.info(
+        "sync_event_published",
+        extra={
+            "tenant_id": tenant_id,
+            "entity_type": entity_type,
+            "master_id": master_id,
+            "source_system": source_system,
+        },
+    )
     if not agent.sync_event_webhook_url:
         return
-    webhook_payload = {"tenant_id": tenant_id, "entity_type": entity_type, "master_id": master_id, "source_system": source_system, "payload": payload, "timestamp": datetime.now(timezone.utc).isoformat()}
+    webhook_payload = {
+        "tenant_id": tenant_id,
+        "entity_type": entity_type,
+        "master_id": master_id,
+        "source_system": source_system,
+        "payload": payload,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
     try:
         async with httpx.AsyncClient(timeout=agent.sync_event_webhook_timeout) as client:
             await client.post(agent.sync_event_webhook_url, json=webhook_payload)
     except httpx.RequestError:
-        agent.logger.warning("sync_event_webhook_unavailable", extra={"url": agent.sync_event_webhook_url})
+        agent.logger.warning(
+            "sync_event_webhook_unavailable", extra={"url": agent.sync_event_webhook_url}
+        )
 
 
-async def emit_lineage_event(agent: DataSyncAgent, tenant_id: str, entity_type: str, master_id: str, source_system: str, payload: dict[str, Any]) -> None:
+async def emit_lineage_event(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    master_id: str,
+    source_system: str,
+    payload: dict[str, Any],
+) -> None:
     base_url = agent._get_setting("DATA_LINEAGE_SERVICE_URL")
     if not base_url:
         return
@@ -393,11 +583,14 @@ async def emit_lineage_event(agent: DataSyncAgent, tenant_id: str, entity_type: 
     if token:
         headers["Authorization"] = f"Bearer {token}"
     lineage_payload = {
-        "tenant_id": tenant_id, "connector": "data-sync-agent",
+        "tenant_id": tenant_id,
+        "connector": "data-sync-agent",
         "source": {"system": source_system, "object": entity_type, "record_id": payload.get("id")},
         "target": {"schema": entity_type, "record_id": master_id},
         "transformations": [f"{source_system}.{entity_type} -> {entity_type}"],
-        "entity_type": entity_type, "entity_payload": payload, "classification": "internal",
+        "entity_type": entity_type,
+        "entity_payload": payload,
+        "classification": "internal",
     }
     try:
         async with httpx.AsyncClient(base_url=base_url, timeout=5.0) as client:
@@ -411,12 +604,36 @@ async def emit_lineage_event(agent: DataSyncAgent, tenant_id: str, entity_type: 
 # ---------------------------------------------------------------------------
 
 
-async def run_etl_workflows(agent: DataSyncAgent, tenant_id: str, entity_type: str, payload: dict[str, Any], source_system: str) -> None:
-    await trigger_data_factory_pipelines(agent, tenant_id=tenant_id, entity_type=entity_type, payload=payload, source_system=source_system)
-    await invoke_transformation_functions(agent, tenant_id=tenant_id, entity_type=entity_type, payload=payload, source_system=source_system)
+async def run_etl_workflows(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    payload: dict[str, Any],
+    source_system: str,
+) -> None:
+    await trigger_data_factory_pipelines(
+        agent,
+        tenant_id=tenant_id,
+        entity_type=entity_type,
+        payload=payload,
+        source_system=source_system,
+    )
+    await invoke_transformation_functions(
+        agent,
+        tenant_id=tenant_id,
+        entity_type=entity_type,
+        payload=payload,
+        source_system=source_system,
+    )
 
 
-async def trigger_data_factory_pipelines(agent: DataSyncAgent, tenant_id: str, entity_type: str, payload: dict[str, Any], source_system: str) -> None:
+async def trigger_data_factory_pipelines(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    payload: dict[str, Any],
+    source_system: str,
+) -> None:
     if not agent.data_factory_client:
         return
     if not agent.data_factory_resource_group or not agent.data_factory_name:
@@ -424,15 +641,38 @@ async def trigger_data_factory_pipelines(agent: DataSyncAgent, tenant_id: str, e
     for pipeline_name in agent.data_factory_pipelines:
         try:  # pragma: no cover - network dependent
             agent.data_factory_client.pipelines.create_run(
-                resource_group_name=agent.data_factory_resource_group, factory_name=agent.data_factory_name,
+                resource_group_name=agent.data_factory_resource_group,
+                factory_name=agent.data_factory_name,
                 pipeline_name=pipeline_name,
-                parameters={"tenant_id": tenant_id, "entity_type": entity_type, "source_system": source_system, "payload": payload},
+                parameters={
+                    "tenant_id": tenant_id,
+                    "entity_type": entity_type,
+                    "source_system": source_system,
+                    "payload": payload,
+                },
             )
-        except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
-            agent.logger.warning("data_factory_pipeline_trigger_failed", extra={"pipeline": pipeline_name, "error": str(exc)})
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:  # pragma: no cover - network dependent
+            agent.logger.warning(
+                "data_factory_pipeline_trigger_failed",
+                extra={"pipeline": pipeline_name, "error": str(exc)},
+            )
 
 
-async def invoke_transformation_functions(agent: DataSyncAgent, tenant_id: str, entity_type: str, payload: dict[str, Any], source_system: str) -> None:
+async def invoke_transformation_functions(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    payload: dict[str, Any],
+    source_system: str,
+) -> None:
     if not agent.function_names or not agent.function_base_url:
         return
     headers = {"Content-Type": "application/json"}
@@ -443,7 +683,12 @@ async def invoke_transformation_functions(agent: DataSyncAgent, tenant_id: str, 
             async with httpx.AsyncClient(timeout=5.0) as client:
                 await client.post(
                     f"{agent.function_base_url.rstrip('/')}/api/{function_name}",
-                    json={"tenant_id": tenant_id, "entity_type": entity_type, "source_system": source_system, "payload": payload},
+                    json={
+                        "tenant_id": tenant_id,
+                        "entity_type": entity_type,
+                        "source_system": source_system,
+                        "payload": payload,
+                    },
                     headers=headers,
                 )
         except httpx.RequestError:
@@ -459,12 +704,24 @@ async def ingest_latency_metric(agent: DataSyncAgent, record: dict[str, Any]) ->
     if not agent.log_analytics_client:
         return
     rule_id = agent._get_setting("LOG_ANALYTICS_RULE_ID")
-    stream_name = agent._get_setting("LOG_ANALYTICS_STREAM_NAME", "DataSyncLatency") or "DataSyncLatency"
+    stream_name = (
+        agent._get_setting("LOG_ANALYTICS_STREAM_NAME", "DataSyncLatency") or "DataSyncLatency"
+    )
     if not rule_id:
         return
     try:
-        await agent.log_analytics_client.upload(rule_id=rule_id, stream_name=stream_name, logs=[record])
-    except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        await agent.log_analytics_client.upload(
+            rule_id=rule_id, stream_name=stream_name, logs=[record]
+        )
+    except (
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+        OSError,
+    ) as exc:  # pragma: no cover - network dependent
         agent.logger.warning("log_analytics_upload_failed", extra={"error": str(exc)})
 
 
@@ -472,12 +729,25 @@ async def ingest_quality_metric(agent: DataSyncAgent, record: dict[str, Any]) ->
     if not agent.log_analytics_client:
         return
     rule_id = agent._get_setting("LOG_ANALYTICS_RULE_ID")
-    stream_name = agent._get_setting("LOG_ANALYTICS_QUALITY_STREAM_NAME", "DataQualityMetrics") or "DataQualityMetrics"
+    stream_name = (
+        agent._get_setting("LOG_ANALYTICS_QUALITY_STREAM_NAME", "DataQualityMetrics")
+        or "DataQualityMetrics"
+    )
     if not rule_id:
         return
     try:
-        await agent.log_analytics_client.upload(rule_id=rule_id, stream_name=stream_name, logs=[record])
-    except (ConnectionError, TimeoutError, ValueError, KeyError, TypeError, RuntimeError, OSError) as exc:  # pragma: no cover - network dependent
+        await agent.log_analytics_client.upload(
+            rule_id=rule_id, stream_name=stream_name, logs=[record]
+        )
+    except (
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+        OSError,
+    ) as exc:  # pragma: no cover - network dependent
         agent.logger.warning("log_analytics_quality_upload_failed", extra={"error": str(exc)})
 
 
@@ -486,9 +756,12 @@ async def ingest_quality_metric(agent: DataSyncAgent, record: dict[str, Any]) ->
 # ---------------------------------------------------------------------------
 
 
-async def map_to_canonical(agent: DataSyncAgent, entity_type: str, data: dict[str, Any], source_system: str) -> dict[str, Any]:
+async def map_to_canonical(
+    agent: DataSyncAgent, entity_type: str, data: dict[str, Any], source_system: str
+) -> dict[str, Any]:
     rules = [
-        rule for rule in agent.transformation_rules
+        rule
+        for rule in agent.transformation_rules
         if rule.get("entity_type") == entity_type and rule.get("source_system") == source_system
     ]
     if not rules:
@@ -509,8 +782,12 @@ async def map_to_canonical(agent: DataSyncAgent, entity_type: str, data: dict[st
     return mapped
 
 
-async def transform_data(agent: DataSyncAgent, entity_type: str, data: dict[str, Any], source_system: str) -> dict[str, Any]:
-    applicable_rules = get_transformation_rules(agent.transformation_rules, entity_type, source_system)
+async def transform_data(
+    agent: DataSyncAgent, entity_type: str, data: dict[str, Any], source_system: str
+) -> dict[str, Any]:
+    applicable_rules = get_transformation_rules(
+        agent.transformation_rules, entity_type, source_system
+    )
     if not applicable_rules:
         return data
     transformed = data.copy()
@@ -539,9 +816,13 @@ async def transform_data(agent: DataSyncAgent, entity_type: str, data: dict[str,
 # ---------------------------------------------------------------------------
 
 
-async def find_existing_master(agent: DataSyncAgent, entity_type: str, data: dict[str, Any]) -> dict[str, Any] | None:
+async def find_existing_master(
+    agent: DataSyncAgent, entity_type: str, data: dict[str, Any]
+) -> dict[str, Any] | None:
     for master_id, record in agent.master_records.items():
-        if record.get("entity_type") == entity_type and record.get("data", {}).get("id") == data.get("id"):
+        if record.get("entity_type") == entity_type and record.get("data", {}).get(
+            "id"
+        ) == data.get("id"):
             return record  # type: ignore
     return None
 
@@ -556,11 +837,21 @@ async def generate_mapping_id() -> str:
     return f"MAP-{timestamp}"
 
 
-async def record_sync_event(agent: DataSyncAgent, tenant_id: str, entity_type: str, master_id: str, source_system: str, status: str) -> str:
+async def record_sync_event(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    master_id: str,
+    source_system: str,
+    status: str,
+) -> str:
     event_id = f"EVENT-{len(agent.sync_events) + 1}"
     event_record = {
-        "event_id": event_id, "entity_type": entity_type, "master_id": master_id,
-        "source_system": source_system, "status": status,
+        "event_id": event_id,
+        "entity_type": entity_type,
+        "master_id": master_id,
+        "source_system": source_system,
+        "status": status,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     agent.sync_events[event_id] = event_record
@@ -569,11 +860,21 @@ async def record_sync_event(agent: DataSyncAgent, tenant_id: str, entity_type: s
     return event_id
 
 
-async def record_sync_lineage(agent: DataSyncAgent, tenant_id: str, entity_type: str, master_id: str, source_system: str, payload: dict[str, Any]) -> None:
+async def record_sync_lineage(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    master_id: str,
+    source_system: str,
+    payload: dict[str, Any],
+) -> None:
     lineage_id = f"LINEAGE-{len(agent.sync_events) + 1}"
     lineage_record = {
-        "lineage_id": lineage_id, "entity_type": entity_type, "master_id": master_id,
-        "source_system": source_system, "payload": payload,
+        "lineage_id": lineage_id,
+        "entity_type": entity_type,
+        "master_id": master_id,
+        "source_system": source_system,
+        "payload": payload,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
     masked_lineage = mask_lineage_payload(lineage_record)
@@ -581,48 +882,97 @@ async def record_sync_lineage(agent: DataSyncAgent, tenant_id: str, entity_type:
     await emit_lineage_event(agent, tenant_id, entity_type, master_id, source_system, payload)
 
 
-async def record_sync_metrics(agent: DataSyncAgent, tenant_id: str, entity_type: str, source_system: str, latency_seconds: float, started_at: datetime, finished_at: datetime) -> None:
+async def record_sync_metrics(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    source_system: str,
+    latency_seconds: float,
+    started_at: datetime,
+    finished_at: datetime,
+) -> None:
     record = {
-        "tenant_id": tenant_id, "entity_type": entity_type, "source_system": source_system,
+        "tenant_id": tenant_id,
+        "entity_type": entity_type,
+        "source_system": source_system,
         "latency_seconds": latency_seconds,
-        "started_at": started_at.isoformat(), "finished_at": finished_at.isoformat(),
+        "started_at": started_at.isoformat(),
+        "finished_at": finished_at.isoformat(),
     }
     agent.latency_records.append(record)
     await ingest_latency_metric(agent, record)
 
 
-async def record_sync_log(agent: DataSyncAgent, tenant_id: str, entity_type: str, source_system: str, status: str, mode: str, started_at: datetime, finished_at: datetime | None = None, master_id: str | None = None, details: dict[str, Any] | None = None) -> None:
+async def record_sync_log(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    entity_type: str,
+    source_system: str,
+    status: str,
+    mode: str,
+    started_at: datetime,
+    finished_at: datetime | None = None,
+    master_id: str | None = None,
+    details: dict[str, Any] | None = None,
+) -> None:
     log_record = {
         "log_id": f"SYNCLOG-{len(agent.sync_logs) + 1}",
-        "tenant_id": tenant_id, "entity_type": entity_type,
-        "source_system": source_system, "status": status, "mode": mode,
+        "tenant_id": tenant_id,
+        "entity_type": entity_type,
+        "source_system": source_system,
+        "status": status,
+        "mode": mode,
         "started_at": started_at.isoformat(),
         "finished_at": finished_at.isoformat() if finished_at else None,
-        "master_id": master_id, "details": details or {},
+        "master_id": master_id,
+        "details": details or {},
     }
     agent.sync_logs.append(log_record)
     await store_record(agent, "sync_logs", log_record["log_id"], log_record)
 
 
-async def emit_audit_event_helper(agent: DataSyncAgent, tenant_id: str, action: str, resource_id: str, resource_type: str, metadata: dict[str, Any]) -> None:
+async def emit_audit_event_helper(
+    agent: DataSyncAgent,
+    tenant_id: str,
+    action: str,
+    resource_id: str,
+    resource_type: str,
+    metadata: dict[str, Any],
+) -> None:
     audit_event = build_audit_event(
-        tenant_id=tenant_id, action=action, outcome="success",
-        actor_id=agent.agent_id, actor_type="service", actor_roles=[],
-        resource_id=resource_id, resource_type=resource_type,
-        metadata=metadata, trace_id=get_trace_id(),
+        tenant_id=tenant_id,
+        action=action,
+        outcome="success",
+        actor_id=agent.agent_id,
+        actor_type="service",
+        actor_roles=[],
+        resource_id=resource_id,
+        resource_type=resource_type,
+        metadata=metadata,
+        trace_id=get_trace_id(),
     )
     agent.audit_records[audit_event["id"]] = audit_event
     agent.sync_audit_store.upsert(tenant_id, audit_event["id"], audit_event)
     emit_audit_event(audit_event)
 
 
-async def store_record(agent: DataSyncAgent, table: str, record_id: str, payload: dict[str, Any]) -> None:
+async def store_record(
+    agent: DataSyncAgent, table: str, record_id: str, payload: dict[str, Any]
+) -> None:
     if not agent.db_service:
         return
     await agent.db_service.store(table, record_id, payload)
 
 
-def record_connector_sync_metrics(agent: DataSyncAgent, *, tenant_id: str, source_system: str, sync_mode: str, outcome: str, started: datetime) -> None:
+def record_connector_sync_metrics(
+    agent: DataSyncAgent,
+    *,
+    tenant_id: str,
+    source_system: str,
+    sync_mode: str,
+    outcome: str,
+    started: datetime,
+) -> None:
     attributes = {
         "service.name": "data-sync-agent",
         "tenant.id": tenant_id,

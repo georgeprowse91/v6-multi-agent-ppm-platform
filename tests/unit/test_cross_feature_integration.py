@@ -27,12 +27,14 @@ async def test_execution_events_drive_annotations(tmp_path):
     emitter = ExecutionEventEmitter("session-1")
 
     # Simulate agent emitting a risk event
-    await emitter.emit(ExecutionEvent(
-        event_type=ExecutionEventType.agent_completed,
-        agent_id="risk-management",
-        task_id="risk-check-1",
-        data={"risk_level": "high", "message": "Budget risk detected"},
-    ))
+    await emitter.emit(
+        ExecutionEvent(
+            event_type=ExecutionEventType.agent_completed,
+            agent_id="risk-management",
+            task_id="risk-check-1",
+            data={"risk_level": "high", "message": "Budget risk detected"},
+        )
+    )
 
     event = await emitter.get(timeout=1.0)
     assert event is not None
@@ -88,9 +90,7 @@ from nl_workflow import NLWorkflowParser
 def test_workflow_steps_map_to_event_types():
     """Workflow step types should have corresponding execution event types."""
     parser = NLWorkflowParser()
-    definition = asyncio.run(
-        parser.parse("Evaluate risks, get approval, and notify stakeholders")
-    )
+    definition = asyncio.run(parser.parse("Evaluate risks, get approval, and notify stakeholders"))
 
     # All steps should be translatable to execution events
     valid_step_types = {"task", "decision", "approval", "notification", "parallel", "api"}
@@ -118,9 +118,9 @@ async def test_annotation_suggestions_for_various_domains():
     for content, expected_agent in test_cases:
         suggestions = await generate_suggestions("s1", "b1", content)
         agent_ids = {s.agent_id for s in suggestions}
-        assert expected_agent in agent_ids, (
-            f"Expected {expected_agent} for '{content[:40]}...', got {agent_ids}"
-        )
+        assert (
+            expected_agent in agent_ids
+        ), f"Expected {expected_agent} for '{content[:40]}...', got {agent_ids}"
 
 
 # --- Registry singleton consistency ---
@@ -140,8 +140,6 @@ def test_intake_classification_informs_workflow():
     """Classification categories should map to workflow step types."""
     # Regulatory should produce compliance steps
     parser = NLWorkflowParser()
-    definition = asyncio.run(
-        parser.parse("New GDPR regulatory compliance requirement")
-    )
+    definition = asyncio.run(parser.parse("New GDPR regulatory compliance requirement"))
     step_names = [s["name"].lower() for s in definition["steps"]]
     assert any("compliance" in name for name in step_names)

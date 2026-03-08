@@ -3,15 +3,17 @@
 The DemandCreatedEvent is imported from the shared ``events`` package.
 Local demand record shapes are documented here for reference.
 """
+
 from __future__ import annotations
-from dataclasses import dataclass, field
-from datetime import datetime
+
+from dataclasses import dataclass
 from typing import Any
 
 
 @dataclass
 class DemandRecord:
     """In-memory representation of an intake demand item."""
+
     demand_id: str
     title: str
     description: str

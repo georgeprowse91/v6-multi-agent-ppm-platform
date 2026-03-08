@@ -16,27 +16,43 @@ from typing import Any
 import httpx
 from connector_secrets import fetch_keyvault_secret
 from data_quality.rules import evaluate_quality_rules
-from observability.tracing import get_trace_id
-
-from agents.common.connector_integration import DatabaseStorageService, ERPIntegrationService
-from agents.common.integration_services import ForecastingModel, NaiveBayesTextClassifier
-from agents.common.scenario import ScenarioEngine
-from agents.runtime import BaseAgent, ServiceBusEventBus
-from agents.runtime.src.audit import build_audit_event, emit_audit_event
-from agents.runtime.src.state_store import TenantStateStore
 from financial_actions import (
     analyze_variance as _act_analyze_variance,
+)
+from financial_actions import (
     approve_budget as _act_approve_budget,
+)
+from financial_actions import (
     calculate_evm as _act_calculate_evm,
+)
+from financial_actions import (
     calculate_profitability as _act_calculate_profitability,
-    convert_currency as _act_convert_currency,
-    create_budget as _act_create_budget,
-    generate_financial_variants as _act_generate_financial_variants,
+)
+from financial_actions import (
     cascade_impact as _act_cascade_impact,
+)
+from financial_actions import (
+    convert_currency as _act_convert_currency,
+)
+from financial_actions import (
+    create_budget as _act_create_budget,
+)
+from financial_actions import (
+    generate_financial_variants as _act_generate_financial_variants,
+)
+from financial_actions import (
     generate_forecast as _act_generate_forecast,
+)
+from financial_actions import (
     generate_report as _act_generate_report,
+)
+from financial_actions import (
     get_financial_summary as _act_get_financial_summary,
+)
+from financial_actions import (
     track_costs as _act_track_costs,
+)
+from financial_actions import (
     update_budget as _act_update_budget,
 )
 from financial_models import DataFactoryPipelineManager, ExchangeRateProvider, TaxRateProvider
@@ -47,6 +63,14 @@ from financial_utils import (
     calculate_payback_period,
     generate_budget_id,
 )
+from observability.tracing import get_trace_id
+
+from agents.common.connector_integration import DatabaseStorageService, ERPIntegrationService
+from agents.common.integration_services import ForecastingModel, NaiveBayesTextClassifier
+from agents.common.scenario import ScenarioEngine
+from agents.runtime import BaseAgent, ServiceBusEventBus
+from agents.runtime.src.audit import build_audit_event, emit_audit_event
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class FinancialManagementAgent(BaseAgent):
@@ -307,7 +331,10 @@ class FinancialManagementAgent(BaseAgent):
 
         elif action == "get_financial_summary":
             return await _act_get_financial_summary(
-                self, input_data.get("project_id"), input_data.get("portfolio_id"), tenant_id=tenant_id
+                self,
+                input_data.get("project_id"),
+                input_data.get("portfolio_id"),
+                tenant_id=tenant_id,
             )
 
         elif action == "generate_financial_variants":
@@ -1775,5 +1802,3 @@ class FinancialManagementAgent(BaseAgent):
             "audit_trail_management",
             "cascade_impact_analysis",
         ]
-
-

@@ -118,9 +118,7 @@ def test_unicode_lookalike_bypass_prevented() -> None:
 def test_sanitize_removes_all_declared_attack_phrases() -> None:
     for phrase in ATTACK_PHRASES:
         result = sanitize_prompt(f"Please {phrase} for me.")
-        assert "[REMOVED_INJECTION_PHRASE]" in result, (
-            f"Attack phrase not neutralised: {phrase!r}"
-        )
+        assert "[REMOVED_INJECTION_PHRASE]" in result, f"Attack phrase not neutralised: {phrase!r}"
 
 
 def test_sanitize_breaks_triple_backticks() -> None:

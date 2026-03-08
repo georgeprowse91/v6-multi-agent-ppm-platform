@@ -101,9 +101,7 @@ async def record_portfolio_decision(
     correlation_id: str,
 ) -> dict[str, Any]:
     """Record a portfolio governance decision in the audit log."""
-    record = agent.portfolio_store.get(tenant_id, portfolio_id) or {
-        "portfolio_id": portfolio_id
-    }
+    record = agent.portfolio_store.get(tenant_id, portfolio_id) or {"portfolio_id": portfolio_id}
     decision_entry = {
         "decision_id": str(uuid.uuid4()),
         "portfolio_id": portfolio_id,

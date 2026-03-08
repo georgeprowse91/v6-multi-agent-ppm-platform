@@ -167,7 +167,7 @@ reject_placeholder_secrets(
 
 app = FastAPI(title="Data Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
-app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
 configure_tracing("data-service")
 configure_metrics("data-service")
 app.add_middleware(TraceMiddleware, service_name="data-service")
@@ -691,7 +691,7 @@ async def search_entities(
     facets = _compute_facets(filtered, facet_fields)
 
     total = len(filtered)
-    page = filtered[skip: skip + limit]
+    page = filtered[skip : skip + limit]
 
     response.headers["X-Total-Count"] = str(total)
     response.headers["X-Limit"] = str(limit)
@@ -922,12 +922,7 @@ def _resolve_fixture_path(connector_name: str, fixture_path: str | None) -> Path
             raise HTTPException(status_code=404, detail="Fixture file not found")
         return path
     default_fixture = (
-        REPO_ROOT
-        / "connectors"
-        / connector_name
-        / "tests"
-        / "fixtures"
-        / "projects.json"
+        REPO_ROOT / "connectors" / connector_name / "tests" / "fixtures" / "projects.json"
     )
     if default_fixture.exists():
         return default_fixture
@@ -1080,9 +1075,7 @@ def _discover_facet_fields(schema_name: str) -> list[str]:
     return fields
 
 
-def _compute_facets(
-    records: list[EntityRecord], facet_fields: list[str]
-) -> list[FacetResponse]:
+def _compute_facets(records: list[EntityRecord], facet_fields: list[str]) -> list[FacetResponse]:
     """Compute facet value counts from a list of entity records."""
     counters: dict[str, dict[str, int]] = {field: {} for field in facet_fields}
 

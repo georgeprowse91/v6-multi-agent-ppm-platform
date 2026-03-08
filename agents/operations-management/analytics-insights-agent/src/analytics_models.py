@@ -176,9 +176,7 @@ class PowerBIEmbedManager:
                 "Power BI client is not configured. Set POWER_BI_* environment "
                 "variables to enable report embedding."
             )
-        embed_token = self.power_bi_client.generate_embed_token(
-            template["report_id"], user_context
-        )
+        embed_token = self.power_bi_client.generate_embed_token(template["report_id"], user_context)
         return {
             "report_type": report_type,
             "template": template,

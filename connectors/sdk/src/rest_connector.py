@@ -11,7 +11,27 @@ import base64
 import os
 from typing import Any
 
-from connectors.sdk.src.auth import OAuth2TokenManager, OAuthToken
+import importlib as _importlib
+import pathlib as _pathlib
+import sys as _sys
+
+
+def _load_sdk_auth():
+    """Load auth module from the same directory as this file (connectors/sdk/src/)."""
+    _sdk_src = _pathlib.Path(__file__).resolve().parent
+    _mod_name = "connectors_sdk_auth"
+    if _mod_name in _sys.modules:
+        return _sys.modules[_mod_name]
+    _spec = _importlib.util.spec_from_file_location(_mod_name, _sdk_src / "auth.py")
+    _mod = _importlib.util.module_from_spec(_spec)
+    _sys.modules[_mod_name] = _mod
+    _spec.loader.exec_module(_mod)
+    return _mod
+
+
+_sdk_auth = _load_sdk_auth()
+OAuth2TokenManager = _sdk_auth.OAuth2TokenManager
+OAuthToken = _sdk_auth.OAuthToken
 from base_connector import (
     BaseConnector,
     ConnectorCallFailedError,
@@ -61,7 +81,9 @@ class RestConnector(BaseConnector):
         method = payload.get("method", "GET")
         params = payload.get("params")
         json_payload = payload.get("json")
-        response = self._request(method, endpoint, params=params, json=json_payload, timeout=timeout)
+        response = self._request(
+            method, endpoint, params=params, json=json_payload, timeout=timeout
+        )
         parsed = response.json()
         if isinstance(parsed, dict):
             return parsed
@@ -176,16 +198,16 @@ class RestConnector(BaseConnector):
         data: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
         if not self.SUPPORTS_WRITE:
-            raise NotImplementedError(
-                f"{self.CONNECTOR_NAME} does not support write operations"
-            )
+            raise NotImplementedError(f"{self.CONNECTOR_NAME} does not support write operations")
         if not self._authenticated and not self.authenticate():
             raise RuntimeError("Failed to authenticate with connector")
         if resource_type not in self.RESOURCE_PATHS:
             raise ValueError(f"Unsupported resource type: {resource_type}")
         info = self.RESOURCE_PATHS[resource_type]
         policy = WriteControlPolicy(
-            idempotency_fields=tuple(getattr(self, "IDEMPOTENCY_FIELDS", ("id", "external_id", "key"))),
+            idempotency_fields=tuple(
+                getattr(self, "IDEMPOTENCY_FIELDS", ("id", "external_id", "key"))
+            ),
             conflict_timestamp_field=getattr(self, "CONFLICT_TIMESTAMP_FIELD", "updated_at"),
         )
         data = dedupe_by_idempotency(data, policy)
@@ -226,7 +248,9 @@ class ApiKeyRestConnector(RestConnector):
         if self._client:
             return self._client
         instance_url, api_key = self._get_credentials()
-        header_value = f"{self.API_KEY_PREFIX} {api_key}".strip() if self.API_KEY_PREFIX else api_key
+        header_value = (
+            f"{self.API_KEY_PREFIX} {api_key}".strip() if self.API_KEY_PREFIX else api_key
+        )
         retry_config = RetryConfig(
             max_retries=3,
             backoff_factor=0.5,

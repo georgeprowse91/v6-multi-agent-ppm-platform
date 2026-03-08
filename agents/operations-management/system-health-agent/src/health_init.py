@@ -86,10 +86,9 @@ else:
 # Initialization methods (called from SystemHealthAgent.initialize)
 # ---------------------------------------------------------------------------
 
+
 async def initialize_azure_monitoring(agent: SystemHealthAgent) -> None:
-    if _HAS_AZURE_MONITOR_QUERY and (
-        agent.monitor_workspace_id or agent.app_insights_resource_id
-    ):
+    if _HAS_AZURE_MONITOR_QUERY and (agent.monitor_workspace_id or agent.app_insights_resource_id):
         from azure.identity import DefaultAzureCredential
 
         credential = DefaultAzureCredential()
@@ -113,8 +112,13 @@ async def configure_opentelemetry_exporters(agent: SystemHealthAgent) -> None:
     # Look up _configure_azure_monitor from the main module at call time so that
     # tests can monkeypatch ``system_health_module._configure_azure_monitor``.
     import sys
+
     sha_module = sys.modules.get("system_health_agent")
-    cfg_fn = getattr(sha_module, "_configure_azure_monitor", None) if sha_module else _configure_azure_monitor
+    cfg_fn = (
+        getattr(sha_module, "_configure_azure_monitor", None)
+        if sha_module
+        else _configure_azure_monitor
+    )
     if cfg_fn is None:
         cfg_fn = _configure_azure_monitor
     if cfg_fn:
@@ -284,6 +288,7 @@ async def periodic_health_probes(agent: SystemHealthAgent) -> None:
 # Azure query methods (used by action modules via agent._query_metrics etc.)
 # ---------------------------------------------------------------------------
 
+
 async def query_metrics(
     agent: SystemHealthAgent, service_name: str, metric_name: str, time_range: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -347,9 +352,7 @@ async def get_service_metrics(
             continue
         timestamp = metric.get("timestamp")
         if timestamp:
-            parsed = (
-                datetime.fromisoformat(timestamp) if isinstance(timestamp, str) else timestamp
-            )
+            parsed = datetime.fromisoformat(timestamp) if isinstance(timestamp, str) else timestamp
             if parsed < start_time or parsed > end_time:
                 continue
         metrics_list.append(metric)
@@ -359,7 +362,9 @@ async def get_service_metrics(
     return metrics_list
 
 
-async def query_azure_resource_metrics(agent: SystemHealthAgent, resource_id: str) -> dict[str, Any]:
+async def query_azure_resource_metrics(
+    agent: SystemHealthAgent, resource_id: str
+) -> dict[str, Any]:
     if not agent._metrics_query_client:
         return {"error": "azure_monitor_unavailable"}
     end_time = datetime.now(timezone.utc)

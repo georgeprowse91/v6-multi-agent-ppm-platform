@@ -98,9 +98,7 @@ async def check_configuration_drift(
 # ---------------------------------------------------------------------------
 
 
-async def _get_baseline_configuration(
-    agent: ReleaseAgentProtocol, env_type: str
-) -> dict[str, Any]:
+async def _get_baseline_configuration(agent: ReleaseAgentProtocol, env_type: str) -> dict[str, Any]:
     """Get baseline configuration for environment type."""
     if agent.configuration_management_client:
         if hasattr(agent.configuration_management_client, "get_baseline"):

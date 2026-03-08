@@ -5,9 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
-
 from nl_workflow import NLWorkflowParser
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/v1/workflows/from-natural-language", tags=["nl-workflow"])
 _parser = NLWorkflowParser()

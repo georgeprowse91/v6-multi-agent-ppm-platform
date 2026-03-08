@@ -56,7 +56,9 @@ def test_api_version_metadata(monkeypatch) -> None:
 
 def test_api_status_with_orchestrator(monkeypatch) -> None:
     monkeypatch.setenv("IDENTITY_JWT_SECRET", "test-secret")
-    path = Path(__file__).resolve().parents[2] / "apps" / "api-gateway" / "src" / "api" / "main.py"
+    path = (
+        Path(__file__).resolve().parents[2] / "services" / "api-gateway" / "src" / "api" / "main.py"
+    )
     spec = spec_from_file_location("api_main_status", path)
     module = module_from_spec(spec)
     assert spec and spec.loader

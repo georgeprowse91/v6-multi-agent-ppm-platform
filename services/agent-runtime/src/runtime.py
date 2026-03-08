@@ -122,9 +122,14 @@ class ConnectorRegistry:
         return self._connectors.get(connector_id)
 
 
-_BLOCKED_IMPORTS = frozenset({
-    "subprocess", "shutil", "ctypes", "multiprocessing",
-})
+_BLOCKED_IMPORTS = frozenset(
+    {
+        "subprocess",
+        "shutil",
+        "ctypes",
+        "multiprocessing",
+    }
+)
 
 _module_validation_logger = logging.getLogger(__name__ + ".module_validation")
 
@@ -141,7 +146,9 @@ def _validate_module_source(path: Path) -> None:
         tree = ast.parse(source, filename=str(path))
     except (SyntaxError, UnicodeDecodeError) as exc:
         _module_validation_logger.warning(
-            "Could not parse %s for import validation: %s", path, exc,
+            "Could not parse %s for import validation: %s",
+            path,
+            exc,
         )
         return  # allow load to proceed — exec_module will surface the real error
 
@@ -158,8 +165,7 @@ def _validate_module_source(path: Path) -> None:
             top = node.module.split(".")[0]
             if top in _BLOCKED_IMPORTS:
                 raise ImportError(
-                    f"Module {path} imports blocked module {node.module!r} "
-                    f"(line {node.lineno})"
+                    f"Module {path} imports blocked module {node.module!r} " f"(line {node.lineno})"
                 )
 
 

@@ -5,12 +5,11 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "apps" / "analytics-service"))
-sys.path.insert(0, str(REPO_ROOT / "apps" / "connector-hub"))
+sys.path.insert(0, str(REPO_ROOT / "services" / "analytics-service"))
+sys.path.insert(0, str(REPO_ROOT / "services" / "connector-hub"))
 from job_registry import list_job_manifests, load_job_manifest  # noqa: E402
-from sandbox_registry import list_sandbox_configs, load_sandbox_config  # noqa: E402
-
 from prompt_registry import PromptRegistry  # noqa: E402
+from sandbox_registry import list_sandbox_configs, load_sandbox_config  # noqa: E402
 
 
 def test_job_manifests_validate() -> None:
@@ -86,9 +85,9 @@ def test_schema_enum_consistency() -> None:
         schema = json.loads((schema_dir / schema_name).read_text())
         properties = schema["properties"]
         actual_status = properties["status"]["enum"]
-        assert set(expected_status).issubset(set(actual_status)), (
-            f"{schema_name}: expected status values {expected_status!r} not all present in {actual_status!r}"
-        )
+        assert set(expected_status).issubset(
+            set(actual_status)
+        ), f"{schema_name}: expected status values {expected_status!r} not all present in {actual_status!r}"
 
 
 def test_project_schema_new_optional_fields() -> None:

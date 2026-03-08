@@ -33,9 +33,7 @@ async def create_deployment_plan(
     plan_id = await generate_deployment_plan_id()
 
     # Define deployment steps
-    deployment_steps = await _define_deployment_steps(
-        release, plan_data.get("custom_steps", [])
-    )
+    deployment_steps = await _define_deployment_steps(release, plan_data.get("custom_steps", []))
 
     # Define pre-deployment tasks
     pre_deployment = await _define_pre_deployment_tasks(release)

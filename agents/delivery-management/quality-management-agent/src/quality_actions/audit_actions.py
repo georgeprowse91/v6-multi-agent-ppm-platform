@@ -91,9 +91,7 @@ async def _perform_audit_checks(
     from quality_actions.metric_actions import _fetch_coverage_metrics
 
     coverage_snapshot = await _fetch_coverage_metrics(agent, project_id)
-    coverage_pct = (
-        float(coverage_snapshot.get("coverage_pct", 0.0)) if coverage_snapshot else 0.0
-    )
+    coverage_pct = float(coverage_snapshot.get("coverage_pct", 0.0)) if coverage_snapshot else 0.0
     coverage_result = "pass" if coverage_pct >= agent.min_test_coverage * 100 else "fail"
     checks.append(
         {

@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Any
 
 import requests  # noqa: F401 — re-exported so tests can monkeypatch via module path
-
 from connector_secrets import resolve_secret
 
 from agents.common.connector_integration import CalendarIntegrationService, NotificationService
@@ -99,7 +98,11 @@ class StakeholderCommunicationsAgent(BaseAgent):
     - Stakeholder engagement dashboards
     """
 
-    def __init__(self, agent_id: str = "stakeholder-communications-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        agent_id: str = "stakeholder-communications-agent",
+        config: dict[str, Any] | None = None,
+    ):
         super().__init__(agent_id, config)
 
         # Configuration parameters
@@ -419,14 +422,10 @@ class StakeholderCommunicationsAgent(BaseAgent):
             )
 
         elif action == "schedule_briefing":
-            return await schedule_briefing(
-                self, tenant_id, input_data.get("schedule_config", {})
-            )
+            return await schedule_briefing(self, tenant_id, input_data.get("schedule_config", {}))
 
         elif action == "execute_scheduled_briefing":
-            return await execute_scheduled_briefing(
-                self, tenant_id, input_data.get("schedule", {})
-            )
+            return await execute_scheduled_briefing(self, tenant_id, input_data.get("schedule", {}))
 
         else:
             raise ValueError(f"Unknown action: {action}")
@@ -437,10 +436,12 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     def _publish_event(self, event_type: str, payload: dict[str, Any]) -> None:
         from .stakeholder_utils import publish_event
+
         publish_event(self, event_type, payload)
 
     def _trigger_workflow(self, event_type: str, payload: dict[str, Any]) -> None:
         from .stakeholder_utils import trigger_workflow
+
         trigger_workflow(self, event_type, payload)
 
     # ------------------------------------------------------------------
@@ -456,6 +457,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
         self, tenant_id: str, message: dict[str, Any]
     ) -> list[dict[str, Any]]:
         from .actions.delivery_actions import queue_digest_notifications
+
         return await queue_digest_notifications(self, tenant_id, message)
 
     async def _flush_digest_notifications(
@@ -484,6 +486,7 @@ class StakeholderCommunicationsAgent(BaseAgent):
 
     async def _analyze_text_sentiment(self, text: str) -> dict[str, Any]:
         from .stakeholder_utils import analyze_text_sentiment
+
         return await analyze_text_sentiment(self, text)
 
     async def _trigger_sentiment_alert(
@@ -493,10 +496,12 @@ class StakeholderCommunicationsAgent(BaseAgent):
         feedback_record: dict[str, Any],
     ) -> None:
         from .stakeholder_utils import trigger_sentiment_alert
+
         await trigger_sentiment_alert(self, stakeholder_id, sentiment, feedback_record)
 
     async def _generate_openai_text(self, **kwargs: Any) -> dict[str, Any]:
         from .stakeholder_utils import generate_openai_text
+
         return await generate_openai_text(self, **kwargs)
 
     async def _suggest_meeting_times(
@@ -506,12 +511,14 @@ class StakeholderCommunicationsAgent(BaseAgent):
         time_window: Any = None,
     ) -> list[str]:
         from .stakeholder_utils import suggest_meeting_times
+
         return await suggest_meeting_times(self, stakeholder_ids, duration, time_window)
 
     async def _create_graph_event(
         self, event: dict[str, Any], attachments: list[Any]
     ) -> dict[str, Any]:
         from .stakeholder_utils import create_graph_event
+
         return await create_graph_event(self, event, attachments)
 
     # ------------------------------------------------------------------

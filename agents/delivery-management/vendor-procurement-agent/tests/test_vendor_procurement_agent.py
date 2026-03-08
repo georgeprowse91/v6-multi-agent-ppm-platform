@@ -79,7 +79,11 @@ async def test_search_vendors_returns_results(tmp_path: Path) -> None:
             {
                 "action": "onboard_vendor",
                 "tenant_id": "tenant-2",
-                "vendor": {"name": name, "category": cat, "contact_email": f"info@{name.lower().replace(' ', '')}.example.com"},
+                "vendor": {
+                    "name": name,
+                    "category": cat,
+                    "contact_email": f"info@{name.lower().replace(' ', '')}.example.com",
+                },
             }
         )
 
@@ -138,7 +142,10 @@ async def test_get_vendor_profile_after_onboard(tmp_path: Path) -> None:
             "vendor_id": vendor_id,
         }
     )
-    assert profile_result.get("vendor_id") == vendor_id or profile_result.get("name") == "TechPro Solutions"
+    assert (
+        profile_result.get("vendor_id") == vendor_id
+        or profile_result.get("name") == "TechPro Solutions"
+    )
 
 
 @pytest.mark.anyio

@@ -7451,6 +7451,1570 @@
       "correlation_id": "0781e9ed-0013-4483-8cab-89585d728742",
       "actor_id": "system",
       "timestamp": "2026-03-06T22:54:01.687359+00:00"
+    },
+    "vendor.onboarded-da95b302-473e-4b8c-8edd-8268023d357a": {
+      "event_id": "vendor.onboarded-da95b302-473e-4b8c-8edd-8268023d357a",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308022827",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308022827",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:28:27.182008+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308022827",
+          "_updated_at": "2026-03-08T02:28:27.182392+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "49b9146f-2ba6-4ba3-bd05-60e14877eeb9",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:28:27.182700+00:00"
+    },
+    "vendor.updated-f8c02d37-31db-4ee0-954e-98e30997009a": {
+      "event_id": "vendor.updated-f8c02d37-31db-4ee0-954e-98e30997009a",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308022827",
+      "payload": {
+        "vendor_id": "VND-20260308022827",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "fdbe6c1c-b96d-4109-afb3-b7da32850b3f",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:28:27.194742+00:00"
+    },
+    "vendor.onboarded-20aaa844-47e4-4721-ba49-7d4ed886d61c": {
+      "event_id": "vendor.onboarded-20aaa844-47e4-4721-ba49-7d4ed886d61c",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308022940",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308022940",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:29:40.275731+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308022940",
+          "_updated_at": "2026-03-08T02:29:40.276020+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "f09140c2-8d6b-447b-97f8-364982668aa1",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:29:40.276242+00:00"
+    },
+    "vendor.updated-437d60cc-2e90-47c4-93ac-305a07c30bfc": {
+      "event_id": "vendor.updated-437d60cc-2e90-47c4-93ac-305a07c30bfc",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308022940",
+      "payload": {
+        "vendor_id": "VND-20260308022940",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "9dccccb2-647a-4404-8ba8-664a9ca56ad3",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:29:40.286989+00:00"
+    },
+    "vendor.onboarded-a7205154-83c5-43f7-bffa-e65d142b64fa": {
+      "event_id": "vendor.onboarded-a7205154-83c5-43f7-bffa-e65d142b64fa",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308023100",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308023100",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:31:00.510199+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308023100",
+          "_updated_at": "2026-03-08T02:31:00.510594+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "3707eb96-cf0e-4243-8e79-445c781e2795",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:31:00.510831+00:00"
+    },
+    "vendor.updated-c678b078-1401-43ed-8b63-ed63c8d02200": {
+      "event_id": "vendor.updated-c678b078-1401-43ed-8b63-ed63c8d02200",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308023100",
+      "payload": {
+        "vendor_id": "VND-20260308023100",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "98cf701c-a70e-4497-a93e-20b46601a86f",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:31:00.522230+00:00"
+    },
+    "vendor.onboarded-8a51975a-5186-4a89-9911-efc278a7da43": {
+      "event_id": "vendor.onboarded-8a51975a-5186-4a89-9911-efc278a7da43",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308023218",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308023218",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:32:18.890734+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308023218",
+          "_updated_at": "2026-03-08T02:32:18.891346+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "4b534532-4c69-4f00-adb8-5e7dc9a99bb4",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:32:18.891627+00:00"
+    },
+    "vendor.updated-acb33465-41d6-440b-8965-d2773d970d37": {
+      "event_id": "vendor.updated-acb33465-41d6-440b-8965-d2773d970d37",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308023218",
+      "payload": {
+        "vendor_id": "VND-20260308023218",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "15458dfb-c47d-41a8-8768-7fe7f737f51a",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:32:18.903015+00:00"
+    },
+    "vendor.onboarded-89c1080e-6623-41d5-b710-c9b59f97a6c8": {
+      "event_id": "vendor.onboarded-89c1080e-6623-41d5-b710-c9b59f97a6c8",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308024402",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308024402",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:44:02.321371+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308024402",
+          "_updated_at": "2026-03-08T02:44:02.321764+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "b21bdd33-b74b-42bc-ae42-10c6b25754b2",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:44:02.322079+00:00"
+    },
+    "vendor.updated-4196f543-41d5-4adb-85fc-105c3613f5cd": {
+      "event_id": "vendor.updated-4196f543-41d5-4adb-85fc-105c3613f5cd",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308024402",
+      "payload": {
+        "vendor_id": "VND-20260308024402",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "d7150b7f-e34e-4f92-8a36-f7ee0e8e4458",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:44:02.409826+00:00"
+    },
+    "vendor.onboarded-a316241a-4e54-44a6-a35d-ddd9faf287a8": {
+      "event_id": "vendor.onboarded-a316241a-4e54-44a6-a35d-ddd9faf287a8",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308024447",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308024447",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:44:47.842736+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308024447",
+          "_updated_at": "2026-03-08T02:44:47.843113+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "0b477ab2-336f-4c86-a720-23a81634ab4d",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:44:47.843339+00:00"
+    },
+    "vendor.updated-0cadcc85-142f-42a4-b4f9-ac97b0f4e8b1": {
+      "event_id": "vendor.updated-0cadcc85-142f-42a4-b4f9-ac97b0f4e8b1",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308024447",
+      "payload": {
+        "vendor_id": "VND-20260308024447",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "0c458fd7-7bb3-4699-9a96-4a801ecc066e",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:44:47.855414+00:00"
+    },
+    "vendor.onboarded-233a2866-a195-4031-86fa-5f75c43db1e2": {
+      "event_id": "vendor.onboarded-233a2866-a195-4031-86fa-5f75c43db1e2",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308024558",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308024558",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:45:58.757007+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308024558",
+          "_updated_at": "2026-03-08T02:45:58.757324+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "62ab64f7-bbc5-44de-aa51-f9118a74a37f",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:45:58.757529+00:00"
+    },
+    "vendor.updated-1921f28a-77af-4931-98eb-f4152507789d": {
+      "event_id": "vendor.updated-1921f28a-77af-4931-98eb-f4152507789d",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308024558",
+      "payload": {
+        "vendor_id": "VND-20260308024558",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "002a46e9-625b-4c99-b486-4a5799813e51",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:45:58.769153+00:00"
+    },
+    "vendor.onboarded-f0380106-7d67-4aa9-af7f-0d1f5b8ef19a": {
+      "event_id": "vendor.onboarded-f0380106-7d67-4aa9-af7f-0d1f5b8ef19a",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308025049",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308025049",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:50:49.265235+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308025049",
+          "_updated_at": "2026-03-08T02:50:49.265553+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "308efc55-ba10-48fd-9019-66af0e1fa171",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:50:49.265764+00:00"
+    },
+    "vendor.updated-8cfe1e35-6076-4dbf-a15c-4e5979398601": {
+      "event_id": "vendor.updated-8cfe1e35-6076-4dbf-a15c-4e5979398601",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308025049",
+      "payload": {
+        "vendor_id": "VND-20260308025049",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "d0c09c88-bdd4-4fe1-bf83-047807ea4e67",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:50:49.281974+00:00"
+    },
+    "vendor.onboarded-bda12cb3-5cef-49e6-8f42-6bcbf524835d": {
+      "event_id": "vendor.onboarded-bda12cb3-5cef-49e6-8f42-6bcbf524835d",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308025214",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308025214",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:52:14.850720+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308025214",
+          "_updated_at": "2026-03-08T02:52:14.851005+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "aa1db3bf-ab13-4211-b5c0-160f74f799bb",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:52:14.851221+00:00"
+    },
+    "vendor.updated-6cc52f56-7216-4cff-9610-574b9b890610": {
+      "event_id": "vendor.updated-6cc52f56-7216-4cff-9610-574b9b890610",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308025214",
+      "payload": {
+        "vendor_id": "VND-20260308025214",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "df883167-49af-4ab8-8991-2405e97ae9c1",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:52:14.863243+00:00"
+    },
+    "vendor.onboarded-c8c0cd42-7d43-4697-a856-11abefa706fe": {
+      "event_id": "vendor.onboarded-c8c0cd42-7d43-4697-a856-11abefa706fe",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308025343",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308025343",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:53:43.141221+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308025343",
+          "_updated_at": "2026-03-08T02:53:43.141589+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "ee46146e-97bd-4f42-87fc-80ebed553c7e",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:53:43.141818+00:00"
+    },
+    "vendor.updated-30def99c-133e-4e30-a8c5-b442ad64cc00": {
+      "event_id": "vendor.updated-30def99c-133e-4e30-a8c5-b442ad64cc00",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308025343",
+      "payload": {
+        "vendor_id": "VND-20260308025343",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "33a5adea-d4bf-4bd4-be85-9fcdb822b3b0",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:53:43.154184+00:00"
+    },
+    "vendor.onboarded-63bc8954-a704-402f-be88-a5299e6125e6": {
+      "event_id": "vendor.onboarded-63bc8954-a704-402f-be88-a5299e6125e6",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308025508",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308025508",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:55:08.982077+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308025508",
+          "_updated_at": "2026-03-08T02:55:08.982425+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "92095f69-3ccf-4d27-aabd-275edbb11b62",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:55:08.982716+00:00"
+    },
+    "vendor.updated-784e21d1-dde1-4604-982d-18256e4105c2": {
+      "event_id": "vendor.updated-784e21d1-dde1-4604-982d-18256e4105c2",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308025508",
+      "payload": {
+        "vendor_id": "VND-20260308025508",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "d2c1a609-bfcc-447e-96a9-3d1bcb8dae6d",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:55:08.994959+00:00"
+    },
+    "vendor.onboarded-2d2e3fd6-b11e-4595-9062-4ca9cf6670be": {
+      "event_id": "vendor.onboarded-2d2e3fd6-b11e-4595-9062-4ca9cf6670be",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308025636",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308025636",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:56:36.983165+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308025636",
+          "_updated_at": "2026-03-08T02:56:36.983508+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "8114b37b-3d15-4751-b75c-3f5e9a5badc4",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:56:36.983741+00:00"
+    },
+    "vendor.updated-d96ef504-8db5-4f28-8a8a-9a365dda7597": {
+      "event_id": "vendor.updated-d96ef504-8db5-4f28-8a8a-9a365dda7597",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308025636",
+      "payload": {
+        "vendor_id": "VND-20260308025636",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "5716bac9-8ad5-45e8-a95e-4b5173b0b401",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:56:36.995872+00:00"
+    },
+    "vendor.onboarded-98499efe-01e6-4b56-9bea-09c84d7a2458": {
+      "event_id": "vendor.onboarded-98499efe-01e6-4b56-9bea-09c84d7a2458",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308025902",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308025902",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T02:59:02.427159+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308025902",
+          "_updated_at": "2026-03-08T02:59:02.427472+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "2a69d761-d3eb-45e9-8923-67ce505ebfe5",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:59:02.427689+00:00"
+    },
+    "vendor.updated-5b55a501-a3a2-42b2-964f-0f3020aaa10c": {
+      "event_id": "vendor.updated-5b55a501-a3a2-42b2-964f-0f3020aaa10c",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308025902",
+      "payload": {
+        "vendor_id": "VND-20260308025902",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "2088e5c9-e714-4eeb-94f4-abdcbe2bc219",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T02:59:02.439763+00:00"
+    },
+    "vendor.onboarded-2d932f4d-073c-4ac4-a67c-d9b10f7e2719": {
+      "event_id": "vendor.onboarded-2d932f4d-073c-4ac4-a67c-d9b10f7e2719",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308030050",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308030050",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T03:00:50.175903+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308030050",
+          "_updated_at": "2026-03-08T03:00:50.176201+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "3061264e-9957-4af0-ba93-723638668488",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T03:00:50.176514+00:00"
+    },
+    "vendor.updated-f4ccaf0b-2417-4a7c-9cfa-0d4b3b6cbc26": {
+      "event_id": "vendor.updated-f4ccaf0b-2417-4a7c-9cfa-0d4b3b6cbc26",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308030050",
+      "payload": {
+        "vendor_id": "VND-20260308030050",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "cf7263ca-c95d-4f44-b08e-7f15bc12b2be",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T03:00:50.189245+00:00"
+    },
+    "vendor.onboarded-78291f23-7ac3-4642-8d3b-77ca1d22f299": {
+      "event_id": "vendor.onboarded-78291f23-7ac3-4642-8d3b-77ca1d22f299",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308030239",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308030239",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T03:02:39.574444+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308030239",
+          "_updated_at": "2026-03-08T03:02:39.574831+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "c41c8182-47b9-4b3b-bd5b-b90651d2fdec",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T03:02:39.575045+00:00"
+    },
+    "vendor.updated-5dd04b2b-8ab1-4b93-a698-98fd768d6a44": {
+      "event_id": "vendor.updated-5dd04b2b-8ab1-4b93-a698-98fd768d6a44",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308030239",
+      "payload": {
+        "vendor_id": "VND-20260308030239",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "32c53ca3-f50d-4087-9cf2-21e7a36ab180",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T03:02:39.587360+00:00"
+    },
+    "vendor.onboarded-53cb6cb3-6eef-48a2-ba94-8b35b8b2f223": {
+      "event_id": "vendor.onboarded-53cb6cb3-6eef-48a2-ba94-8b35b8b2f223",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308030446",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308030446",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T03:04:46.244931+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308030446",
+          "_updated_at": "2026-03-08T03:04:46.245248+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "5a7201c8-2386-4b98-80d5-56cd6be2a6c9",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T03:04:46.245464+00:00"
+    },
+    "vendor.updated-b614b538-2188-400e-b3c9-13e018f02e87": {
+      "event_id": "vendor.updated-b614b538-2188-400e-b3c9-13e018f02e87",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308030446",
+      "payload": {
+        "vendor_id": "VND-20260308030446",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "f1ff82b4-ccc2-4995-b751-02d16bab09c8",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T03:04:46.259844+00:00"
+    },
+    "vendor.onboarded-2cc1592b-f30f-4770-a8eb-c532d02e00ff": {
+      "event_id": "vendor.onboarded-2cc1592b-f30f-4770-a8eb-c532d02e00ff",
+      "event_type": "vendor.onboarded",
+      "entity_id": "VND-20260308030628",
+      "payload": {
+        "vendor": {
+          "vendor_id": "VND-20260308030628",
+          "legal_name": "Evergreen Systems",
+          "tax_id": null,
+          "contact_email": "vendor@example.com",
+          "contact_phone": null,
+          "address": {},
+          "category": "software",
+          "certifications": [],
+          "diversity_classification": null,
+          "classification": "internal",
+          "risk_score": 50.0,
+          "compliance_checks": {
+            "sanctions_check": "Pass",
+            "anti_corruption_check": "Pass",
+            "credit_check": "Pass",
+            "watchlist_hits": [],
+            "sources": []
+          },
+          "compliance_status": "pending",
+          "status": "pending",
+          "created_at": "2026-03-08T03:06:28.798123+00:00",
+          "created_by": "system",
+          "performance_metrics": {
+            "total_contracts": 0,
+            "total_spend": 0,
+            "on_time_delivery_rate": 0,
+            "quality_rating": 0,
+            "compliance_rating": 0
+          },
+          "_id": "VND-20260308030628",
+          "_updated_at": "2026-03-08T03:06:28.798410+00:00"
+        },
+        "connector_results": [
+          {
+            "connector": "sap_ariba",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "coupa",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "oracle_procurement",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "dynamics_365",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          },
+          {
+            "connector": "erp_ap",
+            "status": "skipped",
+            "method": "sync_vendor",
+            "detail": "Connector not available or method not supported."
+          }
+        ]
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "7653c0b8-646d-480a-a30f-cc46edc2eee6",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T03:06:28.798656+00:00"
+    },
+    "vendor.updated-9c18fa97-9455-40fa-8893-3713276511fb": {
+      "event_id": "vendor.updated-9c18fa97-9455-40fa-8893-3713276511fb",
+      "event_type": "vendor.updated",
+      "entity_id": "VND-20260308030628",
+      "payload": {
+        "vendor_id": "VND-20260308030628",
+        "updates": {
+          "status": "Approved",
+          "risk_score": 20
+        }
+      },
+      "tenant_id": "tenant-x",
+      "correlation_id": "88f44c22-8481-4295-aa94-44cea294bf1c",
+      "actor_id": "system",
+      "timestamp": "2026-03-08T03:06:28.810985+00:00"
     }
   }
 }

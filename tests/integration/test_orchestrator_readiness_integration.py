@@ -11,7 +11,7 @@ import pytest
 from agents.runtime.src.base_agent import BaseAgent
 from agents.runtime.src.models import AgentPayload, ReadinessReport
 
-SERVICE_SRC = Path(__file__).resolve().parents[2] / "apps" / "orchestration-service" / "src"
+SERVICE_SRC = Path(__file__).resolve().parents[2] / "services" / "orchestration-service" / "src"
 if str(SERVICE_SRC) not in sys.path:
     sys.path.insert(0, str(SERVICE_SRC))
 

@@ -62,14 +62,12 @@ async def resource_constrained_schedule(
     resource_critical_path = await calculate_critical_path(agent, schedule_id)
 
     # Calculate resource utilization
-    utilization = await calculate_resource_utilization(
-        leveled_schedule, resource_availability
-    )
+    utilization = await calculate_resource_utilization(leveled_schedule, resource_availability)
 
     schedule["tasks"] = leveled_schedule
-    schedule["resource_leveled_at"] = __import__("datetime").datetime.now(
-        __import__("datetime").timezone.utc
-    ).isoformat()
+    schedule["resource_leveled_at"] = (
+        __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
+    )
     if agent.enable_persistence and agent._sql_engine:
         await persist_schedule(agent, schedule)
     await publish_schedule_updated(agent, schedule, "schedule.resource_leveled")
@@ -89,6 +87,7 @@ async def resource_constrained_schedule(
 # Resource helpers
 # ---------------------------------------------------------------------------
 
+
 async def get_resource_availability(
     agent: SchedulePlanningAgent,
     resources: dict[str, Any],
@@ -101,9 +100,7 @@ async def get_resource_availability(
     project_id = context.get("project_id")
 
     normalized = normalize_resource_availability(resources)
-    resource_ids = [
-        resource_id for resource_id in resources.keys() if isinstance(resource_id, str)
-    ]
+    resource_ids = [resource_id for resource_id in resources.keys() if isinstance(resource_id, str)]
     if not resource_ids:
         return normalized
 
@@ -156,9 +153,7 @@ async def resource_leveling(
     for key, value in resource_availability.items():
         if isinstance(value, dict):
             capacities[key] = float(value.get("capacity", 1.0))
-            period_capacities[key] = parse_period_availability(
-                value.get("period_availability", {})
-            )
+            period_capacities[key] = parse_period_availability(value.get("period_availability", {}))
         else:
             capacities[key] = float(value)
             period_capacities[key] = {}

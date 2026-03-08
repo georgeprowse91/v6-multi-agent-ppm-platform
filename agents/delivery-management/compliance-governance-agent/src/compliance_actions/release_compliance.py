@@ -26,9 +26,7 @@ async def handle_verify_release_compliance(
             "mapping": release_data.get("mapping", {}),
         },
     )
-    threshold = (
-        float(agent.config.get("release_compliance_threshold", 85)) if agent.config else 85
-    )
+    threshold = float(agent.config.get("release_compliance_threshold", 85)) if agent.config else 85
     return {
         "release_id": release_id,
         "project_id": project_id,

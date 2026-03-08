@@ -40,9 +40,8 @@ async def analyze_root_cause(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-async def _identify_problematic_cases(
-    events: list[dict[str, Any]], issue_id: str
-) -> list[str]:
+
+async def _identify_problematic_cases(events: list[dict[str, Any]], issue_id: str) -> list[str]:
     """Identify problematic cases."""
     problematic: set[str] = set()
     for event in events:

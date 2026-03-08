@@ -9,8 +9,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import pytest
-
 # Ensure helper is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _route_test_helpers import load_route_module
@@ -47,6 +45,7 @@ def test_fallback_embedding_service():
     assert len(vecs[0]) == 128
     # Vectors should be normalized (approximately unit length)
     import math
+
     norm = math.sqrt(sum(v * v for v in vecs[0]))
     assert abs(norm - 1.0) < 0.01
 
@@ -149,14 +148,25 @@ def test_duplicate_check_model():
 
 def test_business_case_model():
     """BusinessCaseRequest should accept optional category."""
-    req = _mod.BusinessCaseRequest(title="New Platform", description="Build it", category="strategic")
+    req = _mod.BusinessCaseRequest(
+        title="New Platform", description="Build it", category="strategic"
+    )
     assert req.category == "strategic"
 
 
 def test_classification_result_all_fields():
     """ClassificationResult should carry all score fields."""
-    scores = {"strategic": 0.6, "operational": 0.2, "regulatory": 0.1, "maintenance": 0.05, "innovation": 0.05}
+    scores = {
+        "strategic": 0.6,
+        "operational": 0.2,
+        "regulatory": 0.1,
+        "maintenance": 0.05,
+        "innovation": 0.05,
+    }
     result = _mod.ClassificationResult(
-        category="strategic", confidence=0.6, all_scores=scores, method="keyword",
+        category="strategic",
+        confidence=0.6,
+        all_scores=scores,
+        method="keyword",
     )
     assert len(result.all_scores) == 5

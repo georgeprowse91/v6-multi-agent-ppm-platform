@@ -60,7 +60,9 @@ class ProcessMiningAgent(BaseAgent):
     - Improvement culture enablement
     """
 
-    def __init__(self, agent_id: str = "continuous-improvement-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "continuous-improvement-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
 
         # Configuration parameters
@@ -78,12 +80,24 @@ class ProcessMiningAgent(BaseAgent):
             else ["alpha_miner", "inductive_miner", "heuristic_miner", "fuzzy_miner"]
         )
 
-        event_log_store_path = resolve_store_path(config, "event_log_store_path", "data/process_event_logs.json")
-        process_model_store_path = resolve_store_path(config, "process_model_store_path", "data/process_models.json")
-        conformance_store_path = resolve_store_path(config, "conformance_store_path", "data/process_conformance.json")
-        recommendations_store_path = resolve_store_path(config, "recommendations_store_path", "data/process_recommendations.json")
-        improvement_history_store_path = resolve_store_path(config, "improvement_history_store_path", "data/improvement_history.json")
-        improvement_backlog_store_path = resolve_store_path(config, "improvement_backlog_store_path", "data/improvement_backlog.json")
+        event_log_store_path = resolve_store_path(
+            config, "event_log_store_path", "data/process_event_logs.json"
+        )
+        process_model_store_path = resolve_store_path(
+            config, "process_model_store_path", "data/process_models.json"
+        )
+        conformance_store_path = resolve_store_path(
+            config, "conformance_store_path", "data/process_conformance.json"
+        )
+        recommendations_store_path = resolve_store_path(
+            config, "recommendations_store_path", "data/process_recommendations.json"
+        )
+        improvement_history_store_path = resolve_store_path(
+            config, "improvement_history_store_path", "data/improvement_history.json"
+        )
+        improvement_backlog_store_path = resolve_store_path(
+            config, "improvement_backlog_store_path", "data/improvement_backlog.json"
+        )
 
         self.event_log_store = TenantStateStore(event_log_store_path)
         self.process_model_store = TenantStateStore(process_model_store_path)
@@ -119,17 +133,30 @@ class ProcessMiningAgent(BaseAgent):
             ):
                 self.event_bus = None
         _default_topics = [
-            "schedule.created", "schedule.updated",
-            "task.started", "task.completed",
-            "deployment.started", "deployment.succeeded", "deployment.failed",
-            "risk.triggered", "risk.mitigated",
-            "quality.finding.created", "quality.finding.closed",
-            "approval.requested", "approval.granted", "approval.rejected",
-            "change.requested", "change.approved",
-            "workflow.step.started", "workflow.step.completed",
-            "incident.created", "incident.resolved",
+            "schedule.created",
+            "schedule.updated",
+            "task.started",
+            "task.completed",
+            "deployment.started",
+            "deployment.succeeded",
+            "deployment.failed",
+            "risk.triggered",
+            "risk.mitigated",
+            "quality.finding.created",
+            "quality.finding.closed",
+            "approval.requested",
+            "approval.granted",
+            "approval.rejected",
+            "change.requested",
+            "change.approved",
+            "workflow.step.started",
+            "workflow.step.completed",
+            "incident.created",
+            "incident.resolved",
         ]
-        self.event_topics = config.get("event_topics", _default_topics) if config else _default_topics
+        self.event_topics = (
+            config.get("event_topics", _default_topics) if config else _default_topics
+        )
         self.max_deviation_alerts = config.get("max_deviation_alerts", 5) if config else 5
         self.knowledge_event_topic = (
             config.get("knowledge_event_topic", "agent.summary.created")
@@ -328,13 +355,19 @@ class ProcessMiningAgent(BaseAgent):
     # and any code that calls agent._method_name directly)
     # ------------------------------------------------------------------
 
-    async def _ingest_event_log(self, tenant_id: str, events: list[dict[str, Any]]) -> dict[str, Any]:
+    async def _ingest_event_log(
+        self, tenant_id: str, events: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         return await ingest_event_log(self, tenant_id, events)
 
-    async def _discover_process(self, tenant_id: str, process_id: str, algorithm: str = "heuristic_miner") -> dict[str, Any]:
+    async def _discover_process(
+        self, tenant_id: str, process_id: str, algorithm: str = "heuristic_miner"
+    ) -> dict[str, Any]:
         return await discover_process(self, tenant_id, process_id, algorithm)
 
-    async def _check_conformance(self, tenant_id: str, process_id: str, expected_model: dict[str, Any]) -> dict[str, Any]:
+    async def _check_conformance(
+        self, tenant_id: str, process_id: str, expected_model: dict[str, Any]
+    ) -> dict[str, Any]:
         return await check_conformance(self, tenant_id, process_id, expected_model)
 
     async def _detect_bottlenecks(self, tenant_id: str, process_id: str) -> dict[str, Any]:
@@ -346,7 +379,9 @@ class ProcessMiningAgent(BaseAgent):
     async def _analyze_root_cause(self, process_id: str, issue_id: str) -> dict[str, Any]:
         return await analyze_root_cause(self, process_id, issue_id)
 
-    async def _create_improvement(self, tenant_id: str, improvement_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_improvement(
+        self, tenant_id: str, improvement_data: dict[str, Any]
+    ) -> dict[str, Any]:
         return await create_improvement(self, tenant_id, improvement_data)
 
     async def _prioritize_improvements(self) -> dict[str, Any]:
@@ -355,7 +390,9 @@ class ProcessMiningAgent(BaseAgent):
     async def _track_benefits(self, improvement_id: str, tenant_id: str = "") -> dict[str, Any]:
         return await track_benefits(self, improvement_id, tenant_id)
 
-    async def _benchmark_performance(self, process_id: str, benchmark_criteria: dict[str, Any]) -> dict[str, Any]:
+    async def _benchmark_performance(
+        self, process_id: str, benchmark_criteria: dict[str, Any]
+    ) -> dict[str, Any]:
         return await benchmark_performance(self, process_id, benchmark_criteria)
 
     async def _share_best_practices(self, filters: dict[str, Any]) -> dict[str, Any]:
@@ -379,10 +416,14 @@ class ProcessMiningAgent(BaseAgent):
     async def _get_kpi_report(self, filters: dict[str, Any]) -> dict[str, Any]:
         return await get_kpi_report(self, filters)
 
-    async def _ingest_analytics_report(self, tenant_id: str, analytics_report: dict[str, Any]) -> dict[str, Any]:
+    async def _ingest_analytics_report(
+        self, tenant_id: str, analytics_report: dict[str, Any]
+    ) -> dict[str, Any]:
         return await ingest_analytics_report(self, tenant_id, analytics_report)
 
-    async def _complete_improvement(self, tenant_id: str, improvement_id: str, outcome: str, completed_by: str | None) -> dict[str, Any]:
+    async def _complete_improvement(
+        self, tenant_id: str, improvement_id: str, outcome: str, completed_by: str | None
+    ) -> dict[str, Any]:
         return await complete_improvement(self, tenant_id, improvement_id, outcome, completed_by)
 
     async def _get_improvement_history(self, tenant_id: str) -> dict[str, Any]:
@@ -398,6 +439,7 @@ class ProcessMiningAgent(BaseAgent):
 
     async def _get_designed_process_model(self, tenant_id: str, process_id: str) -> dict[str, Any]:
         from ci_actions.conformance import _get_designed_process_model
+
         return await _get_designed_process_model(self, tenant_id, process_id)
 
     # ------------------------------------------------------------------

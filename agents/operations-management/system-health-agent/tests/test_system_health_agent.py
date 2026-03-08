@@ -18,10 +18,7 @@ from integrations.services.integration.analytics import (
 )
 
 MODULE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "system-health-agent"
-    / "src"
-    / "system_health_agent.py"
+    Path(__file__).resolve().parents[2] / "system-health-agent" / "src" / "system_health_agent.py"
 )
 spec = importlib.util.spec_from_file_location("system_health_agent", MODULE_PATH)
 health_module = importlib.util.module_from_spec(spec)

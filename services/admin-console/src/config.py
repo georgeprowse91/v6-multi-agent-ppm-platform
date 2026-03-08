@@ -13,7 +13,10 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 
 ensure_monorepo_paths(REPO_ROOT)
 
-from common.env_validation import build_validation_diagnostics, format_validation_report  # noqa: E402
+from common.env_validation import (  # noqa: E402
+    build_validation_diagnostics,
+    format_validation_report,
+)
 
 
 class Settings(BaseSettings):
@@ -41,9 +44,7 @@ def validate_startup_config() -> Settings:
         settings = get_settings()
     except ValidationError as exc:
         diagnostics = build_validation_diagnostics(exc)
-        raise RuntimeError(
-            format_validation_report("admin-console", diagnostics)
-        ) from exc
+        raise RuntimeError(format_validation_report("admin-console", diagnostics)) from exc
     if settings.auth_dev_mode and settings.environment in ("production", "staging"):
         raise RuntimeError(
             "AUTH_DEV_MODE must not be enabled in production or staging. "

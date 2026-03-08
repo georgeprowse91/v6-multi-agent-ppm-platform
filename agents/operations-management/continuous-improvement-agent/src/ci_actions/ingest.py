@@ -134,9 +134,8 @@ async def ingest_analytics_report(
 # Internal helpers (shared with improvement module via re-export)
 # ---------------------------------------------------------------------------
 
-async def _publish_event(
-    agent: MiningAgentProtocol, topic: str, payload: dict[str, Any]
-) -> None:
+
+async def _publish_event(agent: MiningAgentProtocol, topic: str, payload: dict[str, Any]) -> None:
     if agent.event_bus:
         await agent.event_bus.publish(topic, payload)
 

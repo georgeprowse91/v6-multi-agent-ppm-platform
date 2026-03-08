@@ -64,9 +64,7 @@ async def research_vendor(
             detail="Vendor agent returned an invalid response",
         ) from exc
     except Exception as exc:
-        logger.error(
-            "Vendor research failed for vendor %s: %s", vendor_id, exc
-        )
+        logger.error("Vendor research failed for vendor %s: %s", vendor_id, exc)
         raise HTTPException(
             status_code=502,
             detail=f"Vendor research failed: {exc}",

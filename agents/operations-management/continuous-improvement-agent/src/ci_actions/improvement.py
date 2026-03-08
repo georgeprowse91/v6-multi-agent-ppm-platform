@@ -191,9 +191,7 @@ async def complete_improvement(
         **improvement,
         "status": "Completed",
         "completed_at": datetime.now(timezone.utc).isoformat(),
-        "completed_by": completed_by
-        or improvement.get("owner")
-        or agent.default_improvement_owner,
+        "completed_by": completed_by or improvement.get("owner") or agent.default_improvement_owner,
         "outcome": outcome,
     }
     agent.improvement_backlog[improvement_id] = completed
@@ -243,9 +241,7 @@ async def get_improvement_backlog(
         if await _matches_improvement_filters(improvement, filters):
             filtered.append(improvement)
 
-    sorted_improvements = sorted(
-        filtered, key=lambda x: x.get("priority_score", 0), reverse=True
-    )
+    sorted_improvements = sorted(filtered, key=lambda x: x.get("priority_score", 0), reverse=True)
 
     return {
         "total_improvements": len(sorted_improvements),
@@ -254,9 +250,7 @@ async def get_improvement_backlog(
     }
 
 
-async def get_improvement_history(
-    agent: MiningAgentProtocol, tenant_id: str
-) -> dict[str, Any]:
+async def get_improvement_history(agent: MiningAgentProtocol, tenant_id: str) -> dict[str, Any]:
     """Return improvement history entries."""
     entries = agent.improvement_history_store.list(tenant_id)
     return {"tenant_id": tenant_id, "entries": entries, "count": len(entries)}
@@ -265,6 +259,7 @@ async def get_improvement_history(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 async def _estimate_improvement_benefits(
     improvement_data: dict[str, Any],
@@ -315,9 +310,7 @@ async def _measure_actual_benefits(improvement: dict[str, Any]) -> dict[str, Any
     }
 
 
-async def _calculate_benefit_realization(
-    expected: dict[str, Any], actual: dict[str, Any]
-) -> float:
+async def _calculate_benefit_realization(expected: dict[str, Any], actual: dict[str, Any]) -> float:
     """Calculate benefit realization percentage."""
     if not expected:
         return 0.0
@@ -374,9 +367,7 @@ async def _emit_improvement_recommendation(
         await agent.event_bus.publish("workflow.improvement.recommendation", event_payload)
 
 
-async def _publish_event(
-    agent: MiningAgentProtocol, topic: str, payload: dict[str, Any]
-) -> None:
+async def _publish_event(agent: MiningAgentProtocol, topic: str, payload: dict[str, Any]) -> None:
     if agent.event_bus:
         await agent.event_bus.publish(topic, payload)
 

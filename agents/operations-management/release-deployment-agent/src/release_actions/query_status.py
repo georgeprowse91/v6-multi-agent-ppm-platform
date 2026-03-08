@@ -45,9 +45,7 @@ async def get_release_calendar(
     }
 
 
-async def get_release_status(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> dict[str, Any]:
+async def get_release_status(agent: ReleaseAgentProtocol, release_id: str) -> dict[str, Any]:
     """
     Get detailed release status.
 
@@ -73,9 +71,7 @@ async def get_release_status(
         "planned_date": release.get("planned_date"),
         "actual_date": release.get("actual_date"),
         "target_environment": release.get("target_environment"),
-        "deployment_plan": (
-            deployment_plan.get("deployment_plan_id") if deployment_plan else None
-        ),
+        "deployment_plan": (deployment_plan.get("deployment_plan_id") if deployment_plan else None),
         "deployment_status": deployment_plan.get("status") if deployment_plan else None,
     }
 

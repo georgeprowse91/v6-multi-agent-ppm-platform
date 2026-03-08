@@ -162,7 +162,10 @@ async def test_project_definition_schedule_planning_resource_capacity_flow(
     assert payload["execution_summary"]["failed"] == 0
     assert payload["aggregated_response"]["scope-definition-agent"]["project_id"] == "PROJ-44"
     assert payload["aggregated_response"]["schedule-planning-agent"]["schedule_id"] == "SCH-44"
-    assert payload["aggregated_response"]["resource-management-agent"]["resource_capacity"]["gap_fte"] == 2
+    assert (
+        payload["aggregated_response"]["resource-management-agent"]["resource_capacity"]["gap_fte"]
+        == 2
+    )
 
 
 @pytest.mark.asyncio

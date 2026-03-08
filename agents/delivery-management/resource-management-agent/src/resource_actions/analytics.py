@@ -68,8 +68,7 @@ async def handle_get_availability(
         "date_range": date_range,
         "availability_by_day": availability_by_day,
         "average_availability": (
-            sum(d.get("available_hours", 0) for d in availability_by_day)
-            / len(availability_by_day)
+            sum(d.get("available_hours", 0) for d in availability_by_day) / len(availability_by_day)
             if availability_by_day
             else 0
         ),
@@ -127,12 +126,8 @@ async def handle_get_utilization(
     }
     if agent.analytics_client:
         agent.analytics_client.record_metric("utilization.average", average_utilization)
-        agent.analytics_client.record_metric(
-            "utilization.over_allocated", len(over_allocated)
-        )
-        agent.analytics_client.record_metric(
-            "utilization.under_utilized", len(under_utilized)
-        )
+        agent.analytics_client.record_metric("utilization.over_allocated", len(over_allocated))
+        agent.analytics_client.record_metric("utilization.under_utilized", len(under_utilized))
     return result
 
 
@@ -160,17 +155,17 @@ async def handle_identify_conflicts(
 
                 if overlap.get("has_overlap"):
                     # Calculate over-allocation
-                    total_allocation = alloc1.get(
+                    total_allocation = alloc1.get("allocation_percentage", 0) + alloc2.get(
                         "allocation_percentage", 0
-                    ) + alloc2.get("allocation_percentage", 0)
+                    )
 
                     if total_allocation > 100:
                         conflicts.append(
                             {
                                 "resource_id": resource_id,
-                                "resource_name": agent.resource_pool.get(
-                                    resource_id, {}
-                                ).get("name"),
+                                "resource_name": agent.resource_pool.get(resource_id, {}).get(
+                                    "name"
+                                ),
                                 "allocation_1": alloc1,
                                 "allocation_2": alloc2,
                                 "overlap_period": overlap.get("period"),

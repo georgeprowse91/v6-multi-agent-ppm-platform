@@ -4,6 +4,7 @@ Provides REST endpoints for running project-level and portfolio-level
 what-if scenario analyses, listing preset templates, and calculating
 cross-project cascade impacts.
 """
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -108,6 +109,7 @@ async def list_templates(request: Request) -> dict[str, Any]:
 # Run a what-if scenario
 # ---------------------------------------------------------------------------
 
+
 @router.post("/run")
 @permission_required("analytics.view")
 async def run_scenario(payload: dict[str, Any], request: Request) -> dict[str, Any]:
@@ -125,7 +127,7 @@ async def run_scenario(payload: dict[str, Any], request: Request) -> dict[str, A
         - ``name`` — human-readable scenario label
         - ``linked_project_ids`` — for cascade impact analysis
     """
-    session = _require_session(request)
+    _require_session(request)
 
     project_id = payload.get("project_id")
     portfolio_id = payload.get("portfolio_id")
@@ -159,7 +161,7 @@ async def run_scenario(payload: dict[str, Any], request: Request) -> dict[str, A
     scenario_name = payload.get("name") or (
         next(
             (t["name"] for t in SCENARIO_TEMPLATES if t["template_id"] == template_id),
-            f"Custom Scenario",
+            "Custom Scenario",
         )
         if template_id
         else "Custom Scenario"
@@ -209,6 +211,7 @@ async def run_scenario(payload: dict[str, Any], request: Request) -> dict[str, A
 # ---------------------------------------------------------------------------
 # Compare multiple scenarios side-by-side
 # ---------------------------------------------------------------------------
+
 
 @router.post("/compare")
 @permission_required("analytics.view")
@@ -264,6 +267,7 @@ async def compare_scenarios(payload: dict[str, Any], request: Request) -> dict[s
 # List all saved scenarios for an entity
 # ---------------------------------------------------------------------------
 
+
 @router.get("/list")
 @permission_required("analytics.view")
 async def list_scenarios(
@@ -278,12 +282,14 @@ async def list_scenarios(
 
     if project_id:
         filtered = [
-            s for s in all_scenarios
+            s
+            for s in all_scenarios
             if s.get("entity_id") == project_id or s.get("project_id") == project_id
         ]
     elif portfolio_id:
         filtered = [
-            s for s in all_scenarios
+            s
+            for s in all_scenarios
             if s.get("entity_id") == portfolio_id or s.get("portfolio_id") == portfolio_id
         ]
     else:
@@ -295,6 +301,7 @@ async def list_scenarios(
 # ---------------------------------------------------------------------------
 # Cascade impact endpoint
 # ---------------------------------------------------------------------------
+
 
 @router.post("/cascade-impact")
 @permission_required("analytics.view")
@@ -329,6 +336,7 @@ async def cascade_impact(payload: dict[str, Any], request: Request) -> dict[str,
 # Internal computation helpers
 # ---------------------------------------------------------------------------
 
+
 def _get_entity_baseline(entity_id: str) -> dict[str, Any]:
     """Load baseline metrics for an entity.
 
@@ -359,9 +367,7 @@ def _get_entity_baseline(entity_id: str) -> dict[str, Any]:
     }
 
 
-def _apply_scenario_params(
-    baseline: dict[str, Any], params: dict[str, Any]
-) -> dict[str, Any]:
+def _apply_scenario_params(baseline: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
     """Apply scenario parameters to baseline metrics and return adjusted values."""
     scenario = dict(baseline)
 
@@ -385,21 +391,15 @@ def _apply_scenario_params(
     if new_eac > 0:
         scenario["cost_performance_index"] = round(new_budget / new_eac, 4)
     if schedule > 0 and scenario["schedule_days"] > 0:
-        scenario["schedule_performance_index"] = round(
-            schedule / scenario["schedule_days"], 4
-        )
+        scenario["schedule_performance_index"] = round(schedule / scenario["schedule_days"], 4)
 
     return scenario
 
 
-def _compute_comparison(
-    baseline: dict[str, Any], scenario: dict[str, Any]
-) -> dict[str, Any]:
+def _compute_comparison(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[str, Any]:
     """Build a comparison dict showing deltas between baseline and scenario."""
     return {
-        "budget_variance": round(
-            scenario.get("budget", 0) - baseline.get("budget", 0), 2
-        ),
+        "budget_variance": round(scenario.get("budget", 0) - baseline.get("budget", 0), 2),
         "budget_variance_pct": round(
             (
                 (scenario.get("budget", 0) - baseline.get("budget", 0))
@@ -408,9 +408,7 @@ def _compute_comparison(
             * 100,
             2,
         ),
-        "eac_variance": round(
-            scenario.get("forecast_eac", 0) - baseline.get("forecast_eac", 0), 2
-        ),
+        "eac_variance": round(scenario.get("forecast_eac", 0) - baseline.get("forecast_eac", 0), 2),
         "schedule_variance_days": round(
             scenario.get("schedule_days", 0) - baseline.get("schedule_days", 0), 1
         ),
@@ -452,15 +450,17 @@ def _compute_cascade(
         cascaded_schedule = round(schedule_delta * weight, 1)
         total_budget_impact += cascaded_budget
 
-        impacts.append({
-            "project_id": linked_id,
-            "propagation_weight": weight,
-            "original_budget": linked_budget,
-            "cascaded_budget_delta": cascaded_budget,
-            "cascaded_schedule_delta_days": cascaded_schedule,
-            "adjusted_eac": round(linked_budget + cascaded_budget, 2),
-            "risk_indicator": "high" if abs(cascaded_budget) > linked_budget * 0.1 else "low",
-        })
+        impacts.append(
+            {
+                "project_id": linked_id,
+                "propagation_weight": weight,
+                "original_budget": linked_budget,
+                "cascaded_budget_delta": cascaded_budget,
+                "cascaded_schedule_delta_days": cascaded_schedule,
+                "adjusted_eac": round(linked_budget + cascaded_budget, 2),
+                "risk_indicator": "high" if abs(cascaded_budget) > linked_budget * 0.1 else "low",
+            }
+        )
 
     return {
         "source_project_id": source_project_id,

@@ -10,9 +10,9 @@ import importlib.util
 import sys
 from pathlib import Path
 
-import pytest
-
-_mod_path = Path(__file__).resolve().parents[2] / "apps" / "web" / "src" / "routes" / "_llm_helpers.py"
+_mod_path = (
+    Path(__file__).resolve().parents[2] / "apps" / "web" / "src" / "routes" / "_llm_helpers.py"
+)
 _spec = importlib.util.spec_from_file_location("_llm_helpers", _mod_path)
 _mod = importlib.util.module_from_spec(_spec)
 sys.modules["_llm_helpers"] = _mod
@@ -42,7 +42,7 @@ def test_try_parse_json_valid_object():
 
 
 def test_try_parse_json_valid_array():
-    result = _try_parse_json('[1, 2, 3]')
+    result = _try_parse_json("[1, 2, 3]")
     assert result == [1, 2, 3]
 
 
@@ -82,7 +82,7 @@ def test_try_parse_json_empty():
 def test_strip_markdown_fences_language_tag():
     """Strip fences with various language tags."""
     for lang in ["json", "python", "javascript", ""]:
-        raw = f"```{lang}\n{{\"key\": \"value\"}}\n```"
+        raw = f'```{lang}\n{{"key": "value"}}\n```'
         result = _strip_markdown_fences(raw)
         assert "```" not in result
         assert '"key"' in result
@@ -90,7 +90,7 @@ def test_strip_markdown_fences_language_tag():
 
 def test_strip_markdown_fences_whitespace():
     """Handle leading/trailing whitespace around fences."""
-    raw = "  \n```json\n{\"key\": 1}\n```\n  "
+    raw = '  \n```json\n{"key": 1}\n```\n  '
     result = _strip_markdown_fences(raw)
     assert "```" not in result
 

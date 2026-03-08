@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 # Charter section generators (previously private methods on the agent)
 # ---------------------------------------------------------------------------
 
+
 async def _select_charter_template(charter_data: dict[str, Any]) -> str:
     """Select appropriate charter template."""
     project_type = charter_data.get("project_type", "general")
@@ -268,6 +269,7 @@ async def _index_artifact(
 # ---------------------------------------------------------------------------
 # Public action handlers
 # ---------------------------------------------------------------------------
+
 
 async def handle_generate_charter(
     agent: ProjectDefinitionAgent,

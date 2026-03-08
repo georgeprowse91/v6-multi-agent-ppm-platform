@@ -20,9 +20,7 @@ class BusinessCaseConfig:
     inflation_rate: float = 0.0
     currency_rates: dict[str, float] = field(default_factory=lambda: {"AUD": 1.0})
     simulation_iterations: int = 1000
-    sensitivity_variations: list[float] = field(
-        default_factory=lambda: [-0.2, -0.1, 0.0, 0.1, 0.2]
-    )
+    sensitivity_variations: list[float] = field(default_factory=lambda: [-0.2, -0.1, 0.0, 0.1, 0.2])
     comparison_window_years: int = 3
     embedding_dimensions: int = 128
 

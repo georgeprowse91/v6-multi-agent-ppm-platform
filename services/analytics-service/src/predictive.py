@@ -11,7 +11,6 @@ from predictive_models import (
     ForecastResult,
     HealthPrediction,
     HealthTrendAnalysis,
-    RiskHeatmapCell,
     SimulationResult,
 )
 
@@ -29,9 +28,7 @@ class MonteCarloSimulator:
         duration_std = base_duration * 0.2
         cost_std = base_cost * 0.15
 
-        durations = sorted(
-            random.gauss(base_duration, duration_std) for _ in range(iterations)
-        )
+        durations = sorted(random.gauss(base_duration, duration_std) for _ in range(iterations))
         costs = sorted(random.gauss(base_cost, cost_std) for _ in range(iterations))
 
         target_duration = float(project_data.get("target_duration_days", base_duration))
@@ -262,9 +259,7 @@ class ResourceBottleneckDetector:
             capacity = skill_capacity.get(skill, 1)
             ratio = demand / capacity if capacity > 0 else 10.0
             if ratio > 0.85:
-                severity = (
-                    "critical" if ratio > 1.2 else "high" if ratio > 1.0 else "medium"
-                )
+                severity = "critical" if ratio > 1.2 else "high" if ratio > 1.0 else "medium"
                 bottlenecks.append(
                     BottleneckPrediction(
                         resource_type="skill",

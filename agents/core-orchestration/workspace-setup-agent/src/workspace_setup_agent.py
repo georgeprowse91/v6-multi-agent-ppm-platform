@@ -38,12 +38,12 @@ class WorkspaceSetupAgent(BaseAgent):
     """
 
     CONNECTOR_CATEGORIES = [
-        "ppm",           # Planview, Clarity, Microsoft Project
-        "pm_tools",      # Jira, Azure DevOps, Monday.com
-        "erp",           # SAP, Oracle
-        "docs",          # SharePoint, Confluence
-        "collaboration", # Teams, Slack
-        "grc",           # ServiceNow GRC, Archer
+        "ppm",  # Planview, Clarity, Microsoft Project
+        "pm_tools",  # Jira, Azure DevOps, Monday.com
+        "erp",  # SAP, Oracle
+        "docs",  # SharePoint, Confluence
+        "collaboration",  # Teams, Slack
+        "grc",  # ServiceNow GRC, Archer
     ]
 
     CONNECTOR_STATUSES = [
@@ -57,7 +57,9 @@ class WorkspaceSetupAgent(BaseAgent):
 
     DEFAULT_CANVAS_TABS = ["methodology_map", "dashboard", "registers"]
 
-    def __init__(self, agent_id: str = "workspace-setup-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "workspace-setup-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
 
         config = config or {}
@@ -134,11 +136,14 @@ class WorkspaceSetupAgent(BaseAgent):
 
         self._workspaces[workspace_id] = workspace
 
-        await self._publish_event("workspace.setup.started", {
-            "workspace_id": workspace_id,
-            "project_id": project_id,
-            "tenant_id": tenant_id,
-        })
+        await self._publish_event(
+            "workspace.setup.started",
+            {
+                "workspace_id": workspace_id,
+                "project_id": project_id,
+                "tenant_id": tenant_id,
+            },
+        )
 
         return {"success": True, "workspace_id": workspace_id, "workspace": workspace}
 
@@ -161,12 +166,14 @@ class WorkspaceSetupAgent(BaseAgent):
             connector_id = connector.get("connector_id")
             category = connector.get("category")
             status = self._check_connector_status(connector)
-            results.append({
-                "connector_id": connector_id,
-                "category": category,
-                "status": status,
-                "valid": status == "permissions_validated",
-            })
+            results.append(
+                {
+                    "connector_id": connector_id,
+                    "category": category,
+                    "status": status,
+                    "valid": status == "permissions_validated",
+                }
+            )
             workspace["connectors"][connector_id] = {
                 "category": category,
                 "status": status,
@@ -273,9 +280,7 @@ class WorkspaceSetupAgent(BaseAgent):
         if not workspace:
             return {"success": False, "error": f"Workspace {workspace_id} not found"}
 
-        policy_result = self._validate_methodology_policy(
-            tenant_id, methodology, department
-        )
+        policy_result = self._validate_methodology_policy(tenant_id, methodology, department)
         if not policy_result["allowed"]:
             return {
                 "success": False,
@@ -304,6 +309,7 @@ class WorkspaceSetupAgent(BaseAgent):
         """
         try:
             from methodologies import validate_methodology_selection
+
             return validate_methodology_selection(tenant_id, methodology, department)
         except ImportError:
             pass
@@ -364,11 +370,14 @@ class WorkspaceSetupAgent(BaseAgent):
 
         if setup_complete and workspace.get("status") != "complete":
             workspace["status"] = "complete"
-            await self._publish_event("workspace.setup.completed", {
-                "workspace_id": workspace_id,
-                "project_id": workspace["project_id"],
-                "tenant_id": tenant_id,
-            })
+            await self._publish_event(
+                "workspace.setup.completed",
+                {
+                    "workspace_id": workspace_id,
+                    "project_id": workspace["project_id"],
+                    "tenant_id": tenant_id,
+                },
+            )
 
         return {
             "success": True,
@@ -411,16 +420,34 @@ class WorkspaceSetupAgent(BaseAgent):
         """Load the lifecycle map for a given methodology."""
         lifecycle_maps = {
             "predictive": {
-                "stages": ["Initiation", "Planning", "Execution", "Monitoring & Control", "Closing"],
+                "stages": [
+                    "Initiation",
+                    "Planning",
+                    "Execution",
+                    "Monitoring & Control",
+                    "Closing",
+                ],
                 "gates": ["Charter Approval", "Plan Approval", "Go/No-Go", "Acceptance", "Closure"],
             },
             "hybrid": {
                 "stages": ["Initiation", "Planning", "Iterative Delivery", "Transition", "Closing"],
-                "gates": ["Charter Approval", "Plan Approval", "Iteration Review", "Acceptance", "Closure"],
+                "gates": [
+                    "Charter Approval",
+                    "Plan Approval",
+                    "Iteration Review",
+                    "Acceptance",
+                    "Closure",
+                ],
             },
             "adaptive": {
                 "stages": ["Vision", "Exploration", "Iteration", "Release", "Retrospective"],
-                "gates": ["Vision Approval", "Backlog Ready", "Sprint Review", "Release Ready", "Retrospective Complete"],
+                "gates": [
+                    "Vision Approval",
+                    "Backlog Ready",
+                    "Sprint Review",
+                    "Release Ready",
+                    "Retrospective Complete",
+                ],
             },
         }
         return lifecycle_maps.get(methodology, {})

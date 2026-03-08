@@ -18,9 +18,7 @@ async def prioritize_risks(
 
     Returns ranked risk list.
     """
-    agent.logger.info(
-        "Prioritizing risks for project=%s, portfolio=%s", project_id, portfolio_id
-    )
+    agent.logger.info("Prioritizing risks for project=%s, portfolio=%s", project_id, portfolio_id)
 
     # Filter risks
     risks_to_prioritize = []

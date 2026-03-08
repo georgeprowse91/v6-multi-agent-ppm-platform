@@ -1,4 +1,5 @@
 """Action handlers for profitability and currency conversion."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -74,10 +75,7 @@ async def convert_currency(
 
     exchange_rates = await agent.exchange_rate_provider.get_rates()
 
-    if (
-        from_currency not in exchange_rates["rates"]
-        or to_currency not in exchange_rates["rates"]
-    ):
+    if from_currency not in exchange_rates["rates"] or to_currency not in exchange_rates["rates"]:
         raise ValueError(f"Unsupported currency: {from_currency} or {to_currency}")
 
     # Convert to AUD first, then to target currency

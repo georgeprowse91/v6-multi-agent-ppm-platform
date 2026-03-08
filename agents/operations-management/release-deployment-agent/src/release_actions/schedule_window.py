@@ -91,15 +91,12 @@ async def _find_optimal_deployment_window(
         "start_time": start_time_str,
         "duration_hours": agent.deployment_window_hours,
         "end_time": (
-            datetime.fromisoformat(start_time_str)
-            + timedelta(hours=agent.deployment_window_hours)
+            datetime.fromisoformat(start_time_str) + timedelta(hours=agent.deployment_window_hours)
         ).isoformat(),
     }
 
 
-async def _calculate_usage_impact(
-    window: dict[str, Any], usage_patterns: dict[str, Any]
-) -> str:
+async def _calculate_usage_impact(window: dict[str, Any], usage_patterns: dict[str, Any]) -> str:
     """Calculate usage impact."""
     start_time = window.get("start_time")
     if not isinstance(start_time, str):

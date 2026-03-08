@@ -12,7 +12,9 @@ _REGISTRY_PATH = Path(__file__).resolve().parents[4] / "connectors" / "registry"
 
 
 class ConnectorService:
-    def __init__(self, connector_client: ConnectorHubClient, headers: dict[str, str] | None = None) -> None:
+    def __init__(
+        self, connector_client: ConnectorHubClient, headers: dict[str, str] | None = None
+    ) -> None:
         self._client = connector_client
         self._headers = headers or {}
 

@@ -6,11 +6,10 @@ Production-grade implementation using:
 - LLM for primary classification and business case generation
 - Real intake store and project data for the demand corpus
 """
+
 from __future__ import annotations
 
-import logging
 import math
-import os
 from typing import Any
 
 from fastapi import APIRouter
@@ -37,6 +36,7 @@ def _get_embedding_service():
         return _embedding_service
     try:
         from integration_services import LocalEmbeddingService
+
         _embedding_service = LocalEmbeddingService(dimensions=128, seed=42)
     except ImportError:
         # Inline fallback
@@ -54,6 +54,7 @@ def _get_search_index():
 
     try:
         from integration_services import VectorSearchIndex
+
         _search_index = VectorSearchIndex(embedding_svc)
     except ImportError:
         _search_index = _FallbackSearchIndex(embedding_svc)
@@ -64,7 +65,10 @@ def _get_search_index():
         text = f"{demand.get('title', '')} {demand.get('description', '')}"
         if text.strip():
             _search_index.add(
-                demand.get("id", f"demand-{len(_search_index._vectors) if hasattr(_search_index, '_vectors') else 0}"),
+                demand.get(
+                    "id",
+                    f"demand-{len(_search_index._vectors) if hasattr(_search_index, '_vectors') else 0}",
+                ),
                 text,
                 demand,
             )
@@ -82,6 +86,7 @@ def _get_classifier():
 
     try:
         from integration_services import NaiveBayesTextClassifier
+
         _classifier = NaiveBayesTextClassifier(labels)
     except ImportError:
         _classifier = None
@@ -89,7 +94,10 @@ def _get_classifier():
 
     # Training data — representative samples for each category
     training_samples = [
-        ("digital transformation cloud migration competitive advantage market expansion", "strategic"),
+        (
+            "digital transformation cloud migration competitive advantage market expansion",
+            "strategic",
+        ),
         ("AI machine learning platform modernization growth strategy", "strategic"),
         ("new market entry competitive positioning brand strategy", "strategic"),
         ("process automation workflow optimization efficiency improvement", "operational"),
@@ -126,10 +134,12 @@ def _get_classifier():
 
 class _FallbackEmbeddingService:
     """Minimal embedding service using hash-based vectors."""
+
     dimensions = 128
 
     def embed(self, texts):
         import hashlib
+
         results = []
         for text in texts:
             vector = [0.0] * 128
@@ -145,6 +155,7 @@ class _FallbackEmbeddingService:
 
 class _FallbackSearchIndex:
     """Minimal vector search index."""
+
     def __init__(self, embedding_service):
         self._embedding = embedding_service
         self._vectors = {}
@@ -161,7 +172,13 @@ class _FallbackSearchIndex:
         scored = []
         for doc_id, vec in self._vectors.items():
             dot = sum(a * b for a, b in zip(query_vec, vec))
-            scored.append(type("Result", (), {"doc_id": doc_id, "score": dot, "metadata": self._metadata[doc_id]})())
+            scored.append(
+                type(
+                    "Result",
+                    (),
+                    {"doc_id": doc_id, "score": dot, "metadata": self._metadata[doc_id]},
+                )()
+            )
         scored.sort(key=lambda x: x.score, reverse=True)
         return scored[:top_k]
 
@@ -181,6 +198,7 @@ def _ensure_corpus() -> None:
 
     try:
         from routes._deps import intake_store
+
         items = intake_store.list_requests()
         for item in items:
             if isinstance(item, dict):
@@ -193,13 +211,19 @@ def _ensure_corpus() -> None:
     # Also pull projects as past demands
     projects = _load_projects()
     for p in projects[:20]:
-        _demand_corpus.append({
-            "id": getattr(p, "id", ""),
-            "title": getattr(p, "name", ""),
-            "description": getattr(p, "description", "") if hasattr(p, "description") else "",
-            "status": getattr(p, "status", "completed"),
-            "category": getattr(p, "methodology", {}).get("type", "operational") if isinstance(getattr(p, "methodology", None), dict) else "operational",
-        })
+        _demand_corpus.append(
+            {
+                "id": getattr(p, "id", ""),
+                "title": getattr(p, "name", ""),
+                "description": getattr(p, "description", "") if hasattr(p, "description") else "",
+                "status": getattr(p, "status", "completed"),
+                "category": (
+                    getattr(p, "methodology", {}).get("type", "operational")
+                    if isinstance(getattr(p, "methodology", None), dict)
+                    else "operational"
+                ),
+            }
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -250,6 +274,7 @@ class BusinessCaseSkeleton(BaseModel):
 # Jaccard similarity (kept as supplementary signal)
 # ---------------------------------------------------------------------------
 
+
 def _jaccard_similarity(text_a: str, text_b: str) -> float:
     words_a = set(text_a.lower().split())
     words_b = set(text_b.lower().split())
@@ -295,13 +320,15 @@ async def check_duplicates(request: DuplicateCheckRequest) -> list[DuplicateMatc
         combined_score = min(max(result.score * 0.7 + jaccard * 0.3, 0.0), 1.0)
 
         if combined_score > 0.15:
-            matches.append(DuplicateMatch(
-                demand_id=demand_id,
-                title=demand.get("title", ""),
-                description=demand.get("description", "")[:200],
-                status=demand.get("status", "unknown"),
-                similarity_score=round(combined_score, 3),
-            ))
+            matches.append(
+                DuplicateMatch(
+                    demand_id=demand_id,
+                    title=demand.get("title", ""),
+                    description=demand.get("description", "")[:200],
+                    status=demand.get("status", "unknown"),
+                    similarity_score=round(combined_score, 3),
+                )
+            )
 
     matches.sort(key=lambda m: m.similarity_score, reverse=True)
     return matches[:5]
@@ -345,11 +372,48 @@ async def auto_classify(request: ClassifyRequest) -> ClassificationResult:
     # Tier 3: Keyword-based classification
     text = request.description.lower()
     keyword_map = {
-        "strategic": ["transform", "innovate", "competitive", "market", "growth", "ai", "cloud", "digital", "strategy"],
-        "operational": ["process", "efficiency", "integrate", "automate", "workflow", "team", "internal", "mobile"],
-        "regulatory": ["compliance", "gdpr", "sox", "audit", "regulation", "privacy", "retention", "security", "hipaa"],
+        "strategic": [
+            "transform",
+            "innovate",
+            "competitive",
+            "market",
+            "growth",
+            "ai",
+            "cloud",
+            "digital",
+            "strategy",
+        ],
+        "operational": [
+            "process",
+            "efficiency",
+            "integrate",
+            "automate",
+            "workflow",
+            "team",
+            "internal",
+            "mobile",
+        ],
+        "regulatory": [
+            "compliance",
+            "gdpr",
+            "sox",
+            "audit",
+            "regulation",
+            "privacy",
+            "retention",
+            "security",
+            "hipaa",
+        ],
         "maintenance": ["fix", "patch", "upgrade", "maintain", "legacy", "debt", "refactor", "bug"],
-        "innovation": ["research", "prototype", "experiment", "pilot", "emerging", "ml", "blockchain"],
+        "innovation": [
+            "research",
+            "prototype",
+            "experiment",
+            "pilot",
+            "emerging",
+            "ml",
+            "blockchain",
+        ],
     }
 
     scores: dict[str, float] = {}

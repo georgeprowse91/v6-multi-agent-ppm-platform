@@ -170,9 +170,7 @@ async def upsert_scenario(
     }
     agent.scenario_definitions[scenario_id] = definition
     if agent.db_service:
-        await agent.db_service.store(
-            "portfolio_scenario_definitions", scenario_id, definition
-        )
+        await agent.db_service.store("portfolio_scenario_definitions", scenario_id, definition)
     await agent.event_bus.publish(
         "portfolio.scenario.updated",
         {
@@ -315,9 +313,7 @@ async def create_scenario_from_template(
     """
     if template_id not in SCENARIO_TEMPLATES:
         available = ", ".join(sorted(SCENARIO_TEMPLATES))
-        raise ValueError(
-            f"Unknown template: {template_id}. Available templates: {available}"
-        )
+        raise ValueError(f"Unknown template: {template_id}. Available templates: {available}")
 
     template = dict(SCENARIO_TEMPLATES[template_id])
     if overrides:

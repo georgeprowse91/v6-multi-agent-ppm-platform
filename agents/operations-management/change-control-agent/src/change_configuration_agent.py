@@ -91,13 +91,17 @@ class ChangeConfigurationAgent(BaseAgent):
     - Configuration visualization and dependency mapping
     """
 
-    def __init__(self, agent_id: str = "change-control-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "change-control-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
         cfg = config or {}
         self.change_types = cfg.get("change_types", ["normal", "standard", "emergency"])
         self.priority_levels = cfg.get("priority_levels", ["critical", "high", "medium", "low"])
         self.baseline_threshold = cfg.get("baseline_threshold", 0.10)
-        self.approval_priority_thresholds = cfg.get("approval_priority_thresholds", ["critical", "high"])
+        self.approval_priority_thresholds = cfg.get(
+            "approval_priority_thresholds", ["critical", "high"]
+        )
         self.approval_change_types = cfg.get("approval_change_types", ["normal", "emergency"])
         change_store_path = Path(cfg.get("change_store_path", "data/change_requests.json"))
         cmdb_store_path = Path(cfg.get("cmdb_store_path", "data/cmdb.json"))
@@ -114,7 +118,10 @@ class ChangeConfigurationAgent(BaseAgent):
         if self.approval_agent is None:
             if importlib.util.find_spec("msal"):
                 from approval_workflow_agent import ApprovalWorkflowAgent
-                self.approval_agent = ApprovalWorkflowAgent(config=cfg.get("approval_agent_config", {}))
+
+                self.approval_agent = ApprovalWorkflowAgent(
+                    config=cfg.get("approval_agent_config", {})
+                )
             else:
                 self.approval_agent = ApprovalFallbackAgent()
 
@@ -132,14 +139,32 @@ class ChangeConfigurationAgent(BaseAgent):
         self.impact_model = None
         self.text_classifier = None
         self.cicd_subscriptions: list[dict[str, Any]] = []
-        self.release_deployment_endpoint = cfg.get("release_deployment_endpoint") or os.getenv("RELEASE_DEPLOYMENT_ENDPOINT")
-        self.lifecycle_governance_endpoint = cfg.get("lifecycle_governance_endpoint") or os.getenv("LIFECYCLE_GOVERNANCE_ENDPOINT")
-        self.stakeholder_comms_endpoint = cfg.get("stakeholder_comms_endpoint") or os.getenv("STAKEHOLDER_COMMS_ENDPOINT")
-        self.require_staging_tests = bool(cfg.get("require_staging_tests") or os.getenv("REQUIRE_STAGING_TESTS", "false").lower() == "true")
-        self.require_automated_tests = bool(cfg.get("require_automated_tests") or os.getenv("REQUIRE_AUTOMATED_TESTS", "false").lower() == "true")
-        self.staging_validation_endpoint = cfg.get("staging_validation_endpoint") or os.getenv("STAGING_VALIDATION_ENDPOINT")
-        self.automated_test_endpoint = cfg.get("automated_test_endpoint") or os.getenv("CHANGE_TEST_ENDPOINT")
-        self.monitoring_endpoint = cfg.get("monitoring_endpoint") or os.getenv("CHANGE_MONITORING_ENDPOINT")
+        self.release_deployment_endpoint = cfg.get("release_deployment_endpoint") or os.getenv(
+            "RELEASE_DEPLOYMENT_ENDPOINT"
+        )
+        self.lifecycle_governance_endpoint = cfg.get("lifecycle_governance_endpoint") or os.getenv(
+            "LIFECYCLE_GOVERNANCE_ENDPOINT"
+        )
+        self.stakeholder_comms_endpoint = cfg.get("stakeholder_comms_endpoint") or os.getenv(
+            "STAKEHOLDER_COMMS_ENDPOINT"
+        )
+        self.require_staging_tests = bool(
+            cfg.get("require_staging_tests")
+            or os.getenv("REQUIRE_STAGING_TESTS", "false").lower() == "true"
+        )
+        self.require_automated_tests = bool(
+            cfg.get("require_automated_tests")
+            or os.getenv("REQUIRE_AUTOMATED_TESTS", "false").lower() == "true"
+        )
+        self.staging_validation_endpoint = cfg.get("staging_validation_endpoint") or os.getenv(
+            "STAGING_VALIDATION_ENDPOINT"
+        )
+        self.automated_test_endpoint = cfg.get("automated_test_endpoint") or os.getenv(
+            "CHANGE_TEST_ENDPOINT"
+        )
+        self.monitoring_endpoint = cfg.get("monitoring_endpoint") or os.getenv(
+            "CHANGE_MONITORING_ENDPOINT"
+        )
         self.metrics_endpoint = cfg.get("metrics_endpoint") or os.getenv("CHANGE_METRICS_ENDPOINT")
 
     # ------------------------------------------------------------------
@@ -185,11 +210,15 @@ class ChangeConfigurationAgent(BaseAgent):
             if isinstance(sample, ImpactTrainingSample):
                 normalized_samples.append(sample)
             elif isinstance(sample, dict):
-                normalized_samples.append(ImpactTrainingSample(
-                    sample.get("complexity", 1.0), sample.get("historical_failure_rate", 0.1),
-                    sample.get("affected_services", 1), sample.get("risk_category", "medium"),
-                    sample.get("success_probability", 0.8),
-                ))
+                normalized_samples.append(
+                    ImpactTrainingSample(
+                        sample.get("complexity", 1.0),
+                        sample.get("historical_failure_rate", 0.1),
+                        sample.get("affected_services", 1),
+                        sample.get("risk_category", "medium"),
+                        sample.get("success_probability", 0.8),
+                    )
+                )
         self.impact_model = ChangeImpactModel()
         self.impact_model.train(normalized_samples)
 
@@ -201,7 +230,9 @@ class ChangeConfigurationAgent(BaseAgent):
             self.dependency_graph = DependencyGraphService(self.logger, cfg.get("graph", {}))
         self.dependency_graph.load_cmdb(self.cmdb)
 
-        self.cicd_subscriptions = await subscribe_cicd_webhooks(self, cfg.get("cicd_subscriptions", []))
+        self.cicd_subscriptions = await subscribe_cicd_webhooks(
+            self, cfg.get("cicd_subscriptions", [])
+        )
         self.logger.info("Change & Configuration Management Agent initialized")
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
@@ -382,59 +413,90 @@ class ChangeConfigurationAgent(BaseAgent):
     # -- Thin delegating methods (backward compat for direct calls) -----
 
     async def _submit_change_request(self, cd, *, tenant_id, correlation_id, actor_id):
-        return await submit_change_request(self, cd, tenant_id=tenant_id, correlation_id=correlation_id, actor_id=actor_id)
+        return await submit_change_request(
+            self, cd, tenant_id=tenant_id, correlation_id=correlation_id, actor_id=actor_id
+        )
+
     async def _classify_change(self, cid):
         return await classify_change(self, cid)
+
     async def _assess_impact(self, cid):
         return await assess_impact(self, cid)
+
     async def _predict_impact(self, cd):
         return await predict_impact(self, cd)
+
     async def _approve_change(self, cid, ad):
         return await approve_change(self, cid, ad)
+
     async def _review_change(self, cid, rd):
         return await review_change(self, cid, rd)
+
     async def _implement_change(self, cid, imp, *, tenant_id, correlation_id, actor_id):
-        return await implement_change(self, cid, imp, tenant_id=tenant_id, correlation_id=correlation_id, actor_id=actor_id)
+        return await implement_change(
+            self, cid, imp, tenant_id=tenant_id, correlation_id=correlation_id, actor_id=actor_id
+        )
+
     async def _update_change_request(self, cid, upd, *, tenant_id, actor_id):
         return await update_change_request(self, cid, upd, tenant_id=tenant_id, actor_id=actor_id)
+
     async def _rollback_change(self, cid, reason):
         return await rollback_change(self, cid, reason)
+
     async def _register_ci(self, ci_data, *, tenant_id):
         return await register_ci(self, ci_data, tenant_id=tenant_id)
+
     async def _create_baseline(self, bd):
         return await create_baseline(self, bd)
+
     async def _track_change_implementation(self, cid):
         return await track_change_implementation(self, cid)
+
     async def _audit_changes(self, f):
         return await audit_changes(self, f)
+
     async def _visualize_dependencies(self, ci_id):
         return await visualize_dependencies(self, ci_id)
+
     async def _get_change_dashboard(self, f):
         return await get_change_dashboard(self, f)
+
     async def _generate_change_report(self, rt, f):
         return await generate_change_report(self, rt, f)
+
     async def _get_change_metrics(self, f):
         return await get_change_metrics(self, f)
+
     async def _handle_cicd_webhook(self, p):
         return await handle_cicd_webhook(self, p)
+
     async def _query_impacted_cis(self, ci_ids):
         return await query_impacted_cis(self, ci_ids)
+
     async def _monitor_change(self, cid, wm):
         return await monitor_change(self, cid, wm)
+
     async def _identify_impacted_cis(self, cd):
         return await identify_impacted_cis(self, cd)
+
     async def _assess_compliance_impact(self, c):
         return await assess_compliance_impact(self, c)
+
     async def _publish_event(self, topic, payload):
         return await publish_event(self, topic, payload)
+
     async def _record_change_audit(self, cid, action, *, actor_id, details=None):
         return await record_change_audit(self, cid, action, actor_id=actor_id, details=details)
+
     async def _matches_filters(self, change, filters):
         return await matches_filters(change, filters)
+
     async def _run_automated_tests(self, change, implementation):
         return await run_automated_tests(self, change, implementation)
+
     async def _run_staging_validation(self, change, implementation):
         return await run_staging_validation(self, change, implementation)
+
     async def _recommend_mitigation(self, prediction):
         return await recommend_mitigation(prediction)
 

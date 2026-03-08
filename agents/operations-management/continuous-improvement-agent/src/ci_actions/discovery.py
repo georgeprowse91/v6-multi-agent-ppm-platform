@@ -80,6 +80,7 @@ async def discover_process(
 # Mining algorithms
 # ---------------------------------------------------------------------------
 
+
 async def _apply_mining_algorithm(
     agent: MiningAgentProtocol, events: list[dict[str, Any]], algorithm: str
 ) -> dict[str, Any]:
@@ -122,6 +123,7 @@ async def _apply_mining_algorithm(
 # ---------------------------------------------------------------------------
 # Model representations
 # ---------------------------------------------------------------------------
+
 
 async def _build_bpmn_model(
     events: list[dict[str, Any]], process_model: dict[str, Any]
@@ -181,6 +183,7 @@ async def _build_petri_net(
 # Metrics & visualization
 # ---------------------------------------------------------------------------
 
+
 async def _calculate_process_metrics(
     events: list[dict[str, Any]], process_model: dict[str, Any]
 ) -> dict[str, Any]:
@@ -190,9 +193,7 @@ async def _calculate_process_metrics(
     for case_id in traces:
         case_events = [e for e in events if e.get("case_id") == case_id]
         timestamps = [
-            safe_parse_timestamp(e.get("timestamp"))
-            for e in case_events
-            if e.get("timestamp")
+            safe_parse_timestamp(e.get("timestamp")) for e in case_events if e.get("timestamp")
         ]
         timestamps = [ts for ts in timestamps if ts]
         if timestamps:
@@ -223,8 +224,7 @@ async def _generate_process_visualization(
 # Shared helper
 # ---------------------------------------------------------------------------
 
-async def _publish_event(
-    agent: MiningAgentProtocol, topic: str, payload: dict[str, Any]
-) -> None:
+
+async def _publish_event(agent: MiningAgentProtocol, topic: str, payload: dict[str, Any]) -> None:
     if agent.event_bus:
         await agent.event_bus.publish(topic, payload)

@@ -80,7 +80,9 @@ async def test_validate_connectors_requires_workspace_id() -> None:
         {
             "action": "validate_connectors",
             "tenant_id": "tenant-1",
-            "connectors": [{"connector_id": "jira-1", "category": "pm_tools", "status": "connected"}],
+            "connectors": [
+                {"connector_id": "jira-1", "category": "pm_tools", "status": "connected"}
+            ],
         }
     )
     assert result["success"] is False

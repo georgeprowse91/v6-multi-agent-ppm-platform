@@ -63,6 +63,7 @@ else:
 # ServiceNow
 # ---------------------------------------------------------------------------
 
+
 async def servicenow_request(
     instance_url: str | None,
     token: str | None,
@@ -102,9 +103,7 @@ async def create_servicenow_incident(agent: Any, incident: dict[str, Any]) -> No
     if not agent.servicenow_instance_url:
         return
     payload = {
-        "short_description": incident.get("title")
-        or incident.get("name")
-        or "Monitoring incident",
+        "short_description": incident.get("title") or incident.get("name") or "Monitoring incident",
         "description": incident.get("description"),
         "severity": incident.get("severity"),
         "urgency": "1",
@@ -150,6 +149,7 @@ async def update_servicenow_incident(agent: Any, incident: dict[str, Any]) -> No
 # ---------------------------------------------------------------------------
 # Webhook notifications
 # ---------------------------------------------------------------------------
+
 
 async def trigger_webhook_notification(url: str | None, alert: dict[str, Any]) -> None:
     if not url:
@@ -199,7 +199,10 @@ async def notify_incident_integrations(agent: Any, incident: dict[str, Any]) -> 
 # Scaling / Automation
 # ---------------------------------------------------------------------------
 
-async def trigger_scaling_actions(agent: Any, service_name: str, metrics_data: dict[str, Any]) -> None:
+
+async def trigger_scaling_actions(
+    agent: Any, service_name: str, metrics_data: dict[str, Any]
+) -> None:
     scaling_payload: dict[str, Any] = {
         "service_name": service_name,
         "cpu": metrics_data.get("cpu_usage"),
@@ -246,9 +249,7 @@ async def start_automation_runbook(
     job_name = f"scale-{service_name}-{uuid.uuid4().hex[:6]}"
     parameters = JobCreateParameters(
         runbook=RunbookAssociationProperty(name=agent.automation_runbook_name),
-        parameters={
-            key: str(value) for key, value in scaling_payload.items() if value is not None
-        },
+        parameters={key: str(value) for key, value in scaling_payload.items() if value is not None},
     )
     await asyncio.to_thread(
         agent._automation_client.job.create,
@@ -263,6 +264,7 @@ async def start_automation_runbook(
 # Event Hub
 # ---------------------------------------------------------------------------
 
+
 async def emit_event_hub_event(agent: Any, payload: dict[str, Any]) -> None:
     if not agent._event_hub_producer:
         return
@@ -275,6 +277,7 @@ async def emit_event_hub_event(agent: Any, payload: dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 # Prometheus helpers
 # ---------------------------------------------------------------------------
+
 
 async def update_prometheus_metrics(
     prometheus_metrics: dict[str, Any], service_name: str, result: dict[str, Any]
@@ -292,6 +295,7 @@ async def update_prometheus_metrics(
 # ---------------------------------------------------------------------------
 # Health endpoint fetch
 # ---------------------------------------------------------------------------
+
 
 async def fetch_health_endpoint(endpoint: dict[str, Any]) -> dict[str, Any]:
     url = endpoint.get("url")

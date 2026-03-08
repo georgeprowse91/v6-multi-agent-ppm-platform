@@ -15,7 +15,6 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -63,8 +62,14 @@ class TestResourceSchema:
         skill_schema = self.schema["properties"]["structured_skills"]["items"]
         categories = skill_schema["properties"]["category"]["enum"]
         expected = [
-            "technical", "leadership", "domain", "methodology",
-            "tool", "language", "certification", "soft_skill",
+            "technical",
+            "leadership",
+            "domain",
+            "methodology",
+            "tool",
+            "language",
+            "certification",
+            "soft_skill",
         ]
         assert set(expected) == set(categories)
 
@@ -90,7 +95,9 @@ class TestResourceSchema:
 # 2. Migration structure
 # ---------------------------------------------------------------------------
 
-_MIGRATION_PATH = _REPO / "data" / "migrations" / "versions" / "0010_add_structured_skills_taxonomy.py"
+_MIGRATION_PATH = (
+    _REPO / "data" / "migrations" / "versions" / "0010_add_structured_skills_taxonomy.py"
+)
 
 
 class TestSkillsMigration:
@@ -145,7 +152,8 @@ class TestWorkdaySkillMapping:
         import importlib.util
 
         spec = importlib.util.spec_from_file_location(
-            "workday_connector", _wd_src / "workday_connector.py",
+            "workday_connector",
+            _wd_src / "workday_connector.py",
         )
         mod = importlib.util.module_from_spec(spec)
         # We only need class attributes/methods, not __init__
@@ -251,10 +259,7 @@ class TestSapSuccessFactorsSkillMapping:
 # 5. Resource Management Agent — demand aggregation & recommendations
 # ---------------------------------------------------------------------------
 
-_agent_src = (
-    _REPO / "agents" / "delivery-management"
-    / "resource-management-agent" / "src"
-)
+_agent_src = _REPO / "agents" / "delivery-management" / "resource-management-agent" / "src"
 sys.path.insert(0, str(_agent_src))
 sys.path.insert(0, str(_REPO / "agents" / "runtime" / "src"))
 
@@ -282,7 +287,6 @@ class TestResourceCapacityAgent:
 
     def test_validate_input_accepts_new_actions(self):
         """Verify the agent source contains the new action names in valid_actions."""
-        import importlib.util
 
         src_path = _agent_src / "resource_capacity_agent.py"
         source = src_path.read_text()
@@ -315,7 +319,6 @@ class TestResourceCapacityAgent:
 
 sys.path.insert(0, str(_REPO / "tests" / "unit"))
 from _route_test_helpers import load_route_module  # noqa: E402
-
 from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -380,20 +383,28 @@ class TestCapacityApiRoute:
         resp = capacity_client.get("/api/capacity/skills")
         data = resp.json()["data"]
         expected = {
-            "technical", "leadership", "domain", "methodology",
-            "tool", "language", "certification", "soft_skill",
+            "technical",
+            "leadership",
+            "domain",
+            "methodology",
+            "tool",
+            "language",
+            "certification",
+            "soft_skill",
         }
         assert expected == set(data["categories"])
 
     def test_skills_endpoint_with_category_filter(self, capacity_client):
         resp = capacity_client.get(
-            "/api/capacity/skills", params={"category": "technical"},
+            "/api/capacity/skills",
+            params={"category": "technical"},
         )
         assert resp.status_code == 200
 
     def test_skills_endpoint_with_framework_filter(self, capacity_client):
         resp = capacity_client.get(
-            "/api/capacity/skills", params={"framework": "SFIA"},
+            "/api/capacity/skills",
+            params={"framework": "SFIA"},
         )
         assert resp.status_code == 200
 
@@ -411,7 +422,8 @@ class TestWorkdaySkillMappingMethods:
         import importlib.util
 
         spec = importlib.util.spec_from_file_location(
-            "workday_connector_methods", _wd_src / "workday_connector.py",
+            "workday_connector_methods",
+            _wd_src / "workday_connector.py",
         )
         mod = importlib.util.module_from_spec(spec)
         try:

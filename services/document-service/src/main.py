@@ -238,6 +238,7 @@ async def get_document(document_id: str, request: Request) -> DocumentResponse:
 # Briefing export endpoints (PDF / PPTX)
 # ---------------------------------------------------------------------------
 
+
 class BriefingExportRequest(BaseModel):
     title: str
     content: str

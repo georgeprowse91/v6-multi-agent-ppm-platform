@@ -13,7 +13,10 @@ _HIGH_SEVERITY_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"disable safety", re.IGNORECASE), "disable_safety"),
     (re.compile(r"jailbreak", re.IGNORECASE), "jailbreak"),
     (re.compile(r"DAN mode", re.IGNORECASE), "dan_mode"),
-    (re.compile(r"act as (an? )?(unrestricted|unfiltered|uncensored)", re.IGNORECASE), "unrestricted_persona"),
+    (
+        re.compile(r"act as (an? )?(unrestricted|unfiltered|uncensored)", re.IGNORECASE),
+        "unrestricted_persona",
+    ),
 ]
 
 # Patterns that are suspicious in isolation but may have legitimate uses.
@@ -26,9 +29,7 @@ _WARNING_PATTERNS: list[tuple[re.Pattern[str], str]] = [
 ]
 
 # Combined view for callers that want the full list.
-INJECTION_PATTERNS: list[tuple[re.Pattern[str], str]] = (
-    _HIGH_SEVERITY_PATTERNS + _WARNING_PATTERNS
-)
+INJECTION_PATTERNS: list[tuple[re.Pattern[str], str]] = _HIGH_SEVERITY_PATTERNS + _WARNING_PATTERNS
 
 
 @dataclass(frozen=True)

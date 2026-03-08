@@ -4,7 +4,6 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-
 import sqlalchemy
 from sqlalchemy.exc import SQLAlchemyError
 

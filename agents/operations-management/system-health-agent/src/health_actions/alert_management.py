@@ -68,11 +68,7 @@ async def get_alerts(agent: SystemHealthAgent, filters: dict[str, Any]) -> dict[
 
     filtered.sort(
         key=lambda x: (
-            (
-                0
-                if x.get("severity") == "critical"
-                else 1 if x.get("severity") == "warning" else 2
-            ),
+            (0 if x.get("severity") == "critical" else 1 if x.get("severity") == "warning" else 2),
             x.get("created_at", ""),
         )
     )

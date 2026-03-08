@@ -9,9 +9,7 @@ if TYPE_CHECKING:
     from change_configuration_agent import ChangeConfigurationAgent
 
 
-async def classify_change(
-    agent: ChangeConfigurationAgent, change_id: str
-) -> dict[str, Any]:
+async def classify_change(agent: ChangeConfigurationAgent, change_id: str) -> dict[str, Any]:
     """Classify change request using AI."""
     agent.logger.info("Classifying change: %s", change_id)
 
@@ -36,9 +34,7 @@ async def classify_change(
     }
 
 
-async def assess_impact(
-    agent: ChangeConfigurationAgent, change_id: str
-) -> dict[str, Any]:
+async def assess_impact(agent: ChangeConfigurationAgent, change_id: str) -> dict[str, Any]:
     """Assess change impact."""
     agent.logger.info("Assessing impact for change: %s", change_id)
 
@@ -76,8 +72,8 @@ async def assess_impact(
     # Update change
     change["impact_assessment"] = impact_assessment
     change["impact_assessment"]["trend_tags"] = await build_change_trend_tags(change)
-    impact_assessment["risk_adjusted_recommendation"] = (
-        await generate_risk_adjusted_recommendation(impact_assessment)
+    impact_assessment["risk_adjusted_recommendation"] = await generate_risk_adjusted_recommendation(
+        impact_assessment
     )
 
     await agent.db_service.store("change_requests", change_id, change)

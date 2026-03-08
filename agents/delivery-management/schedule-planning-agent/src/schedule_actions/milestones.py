@@ -9,9 +9,7 @@ if TYPE_CHECKING:
     from schedule_planning_agent import SchedulePlanningAgent
 
 
-async def track_milestones(
-    agent: SchedulePlanningAgent, schedule_id: str
-) -> dict[str, Any]:
+async def track_milestones(agent: SchedulePlanningAgent, schedule_id: str) -> dict[str, Any]:
     """
     Track milestones and upcoming deadlines.
 

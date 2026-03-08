@@ -266,9 +266,7 @@ async def register_event_triggers(
             "task_id": trigger.get("task_id"),
         }
         agent.event_subscriptions[subscription_id] = subscription
-        await agent.state_store.save_subscription(
-            tenant_id, subscription_id, subscription.copy()
-        )
+        await agent.state_store.save_subscription(tenant_id, subscription_id, subscription.copy())
 
 
 async def find_event_subscriptions(

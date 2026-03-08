@@ -17,9 +17,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, Field, field_validator
-
+from fastapi import APIRouter, Query
 from predictive import (
     HealthPredictor,
     MonteCarloSimulator,
@@ -33,6 +31,7 @@ from predictive_models import (
     ScenarioComparison,
     SimulationResult,
 )
+from pydantic import BaseModel, Field, field_validator
 
 logger = logging.getLogger("predictive_routes")
 
@@ -72,7 +71,9 @@ _cache_time: float = 0.0
 _CACHE_TTL = 60.0
 
 
-def _derive_signals(project_id: str, project_name: str, methodology: dict[str, Any]) -> dict[str, Any]:
+def _derive_signals(
+    project_id: str, project_name: str, methodology: dict[str, Any]
+) -> dict[str, Any]:
     """Derive health signals from project metadata.
 
     Uses deterministic hashing for stable signal values per project,
@@ -135,11 +136,13 @@ def _load_project_data() -> list[dict[str, Any]]:
             for p in data.get("projects", []):
                 if isinstance(p, dict) and p.get("id") and p["id"] not in seen_ids:
                     seen_ids.add(p["id"])
-                    projects.append(_derive_signals(
-                        p["id"],
-                        p.get("name", p["id"]),
-                        p.get("methodology", {}),
-                    ))
+                    projects.append(
+                        _derive_signals(
+                            p["id"],
+                            p.get("name", p["id"]),
+                            p.get("methodology", {}),
+                        )
+                    )
     except (OSError, json.JSONDecodeError, KeyError) as exc:
         logger.warning("Failed to read projects.json: %s", exc)
     except Exception as exc:
@@ -155,11 +158,13 @@ def _load_project_data() -> list[dict[str, Any]]:
                 pid = p.get("id", "")
                 if isinstance(p, dict) and pid and pid not in seen_ids:
                     seen_ids.add(pid)
-                    projects.append(_derive_signals(
-                        pid,
-                        p.get("name", pid),
-                        p.get("methodology", {}),
-                    ))
+                    projects.append(
+                        _derive_signals(
+                            pid,
+                            p.get("name", pid),
+                            p.get("methodology", {}),
+                        )
+                    )
     except (OSError, json.JSONDecodeError, KeyError) as exc:
         logger.warning("Failed to read demo_seed.json: %s", exc)
     except Exception as exc:
@@ -178,11 +183,13 @@ def _load_project_data() -> list[dict[str, Any]]:
                         if proj_id not in seen_ids and isinstance(state, dict):
                             seen_ids.add(proj_id)
                             meth = state.get("methodology", "adaptive")
-                            projects.append(_derive_signals(
-                                proj_id,
-                                proj_id.replace("-", " ").title(),
-                                {"type": meth} if isinstance(meth, str) else meth,
-                            ))
+                            projects.append(
+                                _derive_signals(
+                                    proj_id,
+                                    proj_id.replace("-", " ").title(),
+                                    {"type": meth} if isinstance(meth, str) else meth,
+                                )
+                            )
     except (OSError, json.JSONDecodeError, KeyError) as exc:
         logger.warning("Failed to read workspace_state.json: %s", exc)
     except Exception as exc:
@@ -214,8 +221,7 @@ async def health_forecast(
     """Predict health trajectory for all portfolio projects."""
     projects = _load_project_data()
     return [
-        _health_predictor.predict_health(p["project_id"], p["project_name"], p)
-        for p in projects
+        _health_predictor.predict_health(p["project_id"], p["project_name"], p) for p in projects
     ]
 
 
@@ -231,9 +237,9 @@ async def risk_heatmap(
         base_risk = proj.get("risk", 0.5)
         for cat in _RISK_CATEGORIES:
             # Deterministic per-project-per-category hash
-            cat_hash = int(hashlib.sha256(
-                f"{proj['project_id']}:{cat}".encode()
-            ).hexdigest()[:8], 16)
+            cat_hash = int(
+                hashlib.sha256(f"{proj['project_id']}:{cat}".encode()).hexdigest()[:8], 16
+            )
 
             # Vary around base risk, bounded to [0.05, 0.95]
             cat_score = base_risk + ((cat_hash % 100) - 50) / 200.0
@@ -242,13 +248,15 @@ async def risk_heatmap(
             trend_val = (cat_hash >> 8) % 3
             trend = ["up", "stable", "down"][trend_val]
 
-            cells.append(RiskHeatmapCell(
-                project_id=proj["project_id"],
-                project_name=proj["project_name"],
-                risk_category=cat,
-                risk_score=cat_score,
-                trend=trend,
-            ))
+            cells.append(
+                RiskHeatmapCell(
+                    project_id=proj["project_id"],
+                    project_name=proj["project_name"],
+                    risk_category=cat,
+                    risk_score=cat_score,
+                    trend=trend,
+                )
+            )
 
     return cells
 
@@ -272,8 +280,12 @@ async def resource_bottlenecks(
     projects = _load_project_data()
     skill_areas = ["Python", "React", "DevOps", "Data Science", "Project Management", "QA"]
     base_capacities = {
-        "Python": 10, "React": 8, "DevOps": 5,
-        "Data Science": 4, "Project Management": 6, "QA": 5,
+        "Python": 10,
+        "React": 8,
+        "DevOps": 5,
+        "Data Science": 4,
+        "Project Management": 6,
+        "QA": 5,
     }
 
     skill_demand: dict[str, float] = {}
@@ -286,11 +298,13 @@ async def resource_bottlenecks(
 
     allocations = []
     for skill in skill_areas:
-        allocations.append({
-            "skill_area": skill,
-            "demand": round(skill_demand.get(skill, 3), 1),
-            "capacity": base_capacities.get(skill, 5),
-        })
+        allocations.append(
+            {
+                "skill_area": skill,
+                "demand": round(skill_demand.get(skill, 3), 1),
+                "capacity": base_capacities.get(skill, 5),
+            }
+        )
 
     return _bottleneck_detector.detect(allocations)
 
@@ -307,26 +321,32 @@ async def scenario_comparison(
     results: list[ScenarioComparison] = []
     for i, scenario in enumerate(request.scenarios):
         if all(k in scenario for k in ("total_cost", "duration_days", "risk_score")):
-            results.append(ScenarioComparison(
-                scenario_id=scenario.get("id", f"scenario-{i+1}"),
-                scenario_name=scenario.get("name", f"Scenario {i+1}"),
-                total_cost=float(scenario["total_cost"]),
-                total_duration_days=float(scenario["duration_days"]),
-                risk_score=float(scenario["risk_score"]),
-                resource_utilization=float(scenario.get("utilization", 0.75)),
-                npv=float(scenario.get("npv", 0)),
-                roi_percentage=float(scenario.get("roi", 0)),
-            ))
+            results.append(
+                ScenarioComparison(
+                    scenario_id=scenario.get("id", f"scenario-{i+1}"),
+                    scenario_name=scenario.get("name", f"Scenario {i+1}"),
+                    total_cost=float(scenario["total_cost"]),
+                    total_duration_days=float(scenario["duration_days"]),
+                    risk_score=float(scenario["risk_score"]),
+                    resource_utilization=float(scenario.get("utilization", 0.75)),
+                    npv=float(scenario.get("npv", 0)),
+                    roi_percentage=float(scenario.get("roi", 0)),
+                )
+            )
         else:
             sim = _simulator.simulate(scenario, iterations=500)
-            results.append(ScenarioComparison(
-                scenario_id=scenario.get("id", f"scenario-{i+1}"),
-                scenario_name=scenario.get("name", f"Scenario {i+1}"),
-                total_cost=sim.p50_cost,
-                total_duration_days=sim.p50_completion_days,
-                risk_score=round(1.0 - sim.on_time_probability * sim.on_budget_probability, 3),
-                resource_utilization=float(scenario.get("utilization", 0.75)),
-                npv=float(scenario.get("npv", sim.p50_cost * 0.3)),
-                roi_percentage=float(scenario.get("roi", round(sim.on_budget_probability * 30, 1))),
-            ))
+            results.append(
+                ScenarioComparison(
+                    scenario_id=scenario.get("id", f"scenario-{i+1}"),
+                    scenario_name=scenario.get("name", f"Scenario {i+1}"),
+                    total_cost=sim.p50_cost,
+                    total_duration_days=sim.p50_completion_days,
+                    risk_score=round(1.0 - sim.on_time_probability * sim.on_budget_probability, 3),
+                    resource_utilization=float(scenario.get("utilization", 0.75)),
+                    npv=float(scenario.get("npv", sim.p50_cost * 0.3)),
+                    roi_percentage=float(
+                        scenario.get("roi", round(sim.on_budget_probability * 30, 1))
+                    ),
+                )
+            )
     return results

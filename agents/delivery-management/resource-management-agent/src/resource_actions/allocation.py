@@ -202,12 +202,8 @@ async def handle_allocate_resource(
         agent.allocation_store.upsert(tenant_id, allocation_id, allocation)
         agent.repository.upsert_capacity_allocation(allocation)
         if agent.redis_client:
-            agent.redis_client.set(
-                f"allocation:{allocation_id}", json.dumps(allocation), ex=3600
-            )
-            agent.redis_client.rpush(
-                f"resource_allocations:{resource_id}", json.dumps(allocation)
-            )
+            agent.redis_client.set(f"allocation:{allocation_id}", json.dumps(allocation), ex=3600)
+            agent.redis_client.rpush(f"resource_allocations:{resource_id}", json.dumps(allocation))
 
         await update_resource_availability(agent, resource_id)
 

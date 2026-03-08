@@ -1,4 +1,5 @@
 """Agent run listing and detail routes."""
+
 from __future__ import annotations
 
 import os
@@ -22,9 +23,16 @@ async def list_agent_runs(
     data_service_url = os.getenv("DATA_SERVICE_URL")
     if not data_service_url:
         raise HTTPException(status_code=503, detail="DATA_SERVICE_URL not configured")
-    headers = {"Authorization": f"Bearer {session['access_token']}", "X-Tenant-ID": session["tenant_id"]}
+    headers = {
+        "Authorization": f"Bearer {session['access_token']}",
+        "X-Tenant-ID": session["tenant_id"],
+    }
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(f"{data_service_url}/v1/agent-runs", headers=headers, params={"tenant_id": session["tenant_id"], "skip": skip, "limit": limit})
+        response = await client.get(
+            f"{data_service_url}/v1/agent-runs",
+            headers=headers,
+            params={"tenant_id": session["tenant_id"], "skip": skip, "limit": limit},
+        )
         response.raise_for_status()
         return response.json()
 
@@ -35,9 +43,14 @@ async def get_agent_run(agent_run_id: str, request: Request) -> dict[str, Any]:
     data_service_url = os.getenv("DATA_SERVICE_URL")
     if not data_service_url:
         raise HTTPException(status_code=503, detail="DATA_SERVICE_URL not configured")
-    headers = {"Authorization": f"Bearer {session['access_token']}", "X-Tenant-ID": session["tenant_id"]}
+    headers = {
+        "Authorization": f"Bearer {session['access_token']}",
+        "X-Tenant-ID": session["tenant_id"],
+    }
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(f"{data_service_url}/v1/agent-runs/{agent_run_id}", headers=headers)
+        response = await client.get(
+            f"{data_service_url}/v1/agent-runs/{agent_run_id}", headers=headers
+        )
         response.raise_for_status()
         return response.json()
 
@@ -49,7 +62,9 @@ async def list_audit_events(
     offset: int = Query(0, ge=0),
 ) -> list[dict[str, Any]]:
     session = _require_session(request)
-    return get_audit_log_store().list_events(tenant_id=session["tenant_id"], limit=limit, offset=offset)
+    return get_audit_log_store().list_events(
+        tenant_id=session["tenant_id"], limit=limit, offset=offset
+    )
 
 
 @router.get("/audit/events/{event_id}")
@@ -57,7 +72,10 @@ async def get_audit_event(event_id: str, request: Request) -> dict[str, Any]:
     session = _require_session(request)
     audit_url = os.getenv("AUDIT_LOG_SERVICE_URL")
     if audit_url:
-        headers = {"Authorization": f"Bearer {session['access_token']}", "X-Tenant-ID": session["tenant_id"]}
+        headers = {
+            "Authorization": f"Bearer {session['access_token']}",
+            "X-Tenant-ID": session["tenant_id"],
+        }
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(f"{audit_url}/audit/events/{event_id}", headers=headers)
             if response.status_code == 404:

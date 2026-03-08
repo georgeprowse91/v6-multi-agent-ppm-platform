@@ -25,6 +25,13 @@ from observability.metrics import configure_metrics  # noqa: E402
 from observability.tracing import get_trace_id, inject_trace_headers  # noqa: E402
 from plan_schema import Plan, PlanTask  # noqa: E402
 from pydantic import ValidationError  # noqa: E402
+from response_orchestration_actions import orchestrate as _act_orchestrate  # noqa: E402
+from response_orchestration_models import (  # noqa: E402
+    OrchestrationRequest,
+    OrchestrationResponse,
+    ValidationErrorPayload,
+)
+from response_orchestration_utils import aggregate_responses, build_agent_activity  # noqa: E402
 
 from agents.common.web_search import (  # noqa: E402
     SearchPurpose,
@@ -34,16 +41,6 @@ from agents.common.web_search import (  # noqa: E402
 )
 from agents.runtime import BaseAgent, get_event_bus  # noqa: E402
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
-
-from response_orchestration_models import (  # noqa: E402
-    AgentInvocationResult,
-    OrchestrationRequest,
-    OrchestrationResponse,
-    RoutingEntry,
-    ValidationErrorPayload,
-)
-from response_orchestration_utils import aggregate_responses, build_agent_activity  # noqa: E402
-from response_orchestration_actions import orchestrate as _act_orchestrate  # noqa: E402
 
 VENDOR_RESEARCH_PROMPTS = {"vendor_research", "vendor_evaluation"}
 COMPLIANCE_RESEARCH_PROMPTS = {"compliance_updates", "compliance_checklist"}
@@ -703,9 +700,7 @@ class ResponseOrchestrationAgent(BaseAgent):
         """Delegate to utility function."""
         return build_agent_activity(results, execution_start)
 
-    async def _aggregate_responses(
-        self, results: list[dict[str, Any]]
-    ) -> str | dict[str, Any]:
+    async def _aggregate_responses(self, results: list[dict[str, Any]]) -> str | dict[str, Any]:
         """Aggregate multiple agent responses into coherent output.
 
         Returns a dict keyed by agent_id containing each agent's raw response data,

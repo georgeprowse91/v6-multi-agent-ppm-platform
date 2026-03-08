@@ -60,9 +60,7 @@ async def handle_get_report(
 async def _store_report(
     agent: ComplianceRegulatoryAgent, report_type: str, data: dict[str, Any]
 ) -> dict[str, Any]:
-    report_id = (
-        f"REP-{report_type.upper()}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
-    )
+    report_id = f"REP-{report_type.upper()}-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
     report = {
         "report_id": report_id,
         "report_type": report_type,

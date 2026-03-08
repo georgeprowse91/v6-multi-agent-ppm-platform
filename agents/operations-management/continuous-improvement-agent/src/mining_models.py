@@ -85,6 +85,7 @@ class BenefitTracking(TypedDict, total=False):
 # the concrete class (avoids circular imports).
 # ---------------------------------------------------------------------------
 
+
 class MiningAgentProtocol(Protocol):
     """Structural interface that action modules may rely on."""
 

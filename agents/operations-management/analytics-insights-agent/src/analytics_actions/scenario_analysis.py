@@ -101,9 +101,7 @@ async def _calculate_scenario_metrics(
     return scenario_metrics
 
 
-async def _compare_scenarios(
-    baseline: dict[str, Any], scenario: dict[str, Any]
-) -> dict[str, Any]:
+async def _compare_scenarios(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[str, Any]:
     """Compare baseline to scenario."""
     comparison = {}
     for key in baseline.keys():
@@ -160,9 +158,7 @@ async def _run_metric_simulations(
     return results
 
 
-async def _summarize_simulation_results(
-    simulations: list[dict[str, Any]]
-) -> dict[str, Any]:
+async def _summarize_simulation_results(simulations: list[dict[str, Any]]) -> dict[str, Any]:
     """Summarize simulation outcomes across metrics."""
     return {
         "simulation_count": len(simulations),

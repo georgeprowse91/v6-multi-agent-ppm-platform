@@ -43,9 +43,7 @@ async def handle_get_compliance_dashboard(
             RuntimeError,
             OSError,
         ) as exc:  # pragma: no cover - defensive
-            agent.logger.warning(
-                "External compliance monitoring failed", extra={"error": str(exc)}
-            )
+            agent.logger.warning("External compliance monitoring failed", extra={"error": str(exc)})
             external_monitoring = {
                 "summary": "",
                 "updates": [],

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-WORKFLOW_SRC = REPO_ROOT / "apps" / "workflow-service" / "src"
+WORKFLOW_SRC = REPO_ROOT / "services" / "workflow-service" / "src"
 COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
 for path in (WORKFLOW_SRC, COMMON_SRC):
     if str(path) not in sys.path:

@@ -5,8 +5,8 @@ from pathlib import Path
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-RBAC_PATH = REPO_ROOT / "ops" / "config" / "rbac" / "roles.yaml"
-ABAC_PATH = REPO_ROOT / "ops" / "config" / "abac" / "rules.yaml"
+RBAC_PATH = REPO_ROOT / "config" / "rbac" / "roles.yaml"
+ABAC_PATH = REPO_ROOT / "config" / "abac" / "rules.yaml"
 
 
 def _load_yaml(path: Path) -> dict:

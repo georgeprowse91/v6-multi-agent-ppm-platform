@@ -39,6 +39,7 @@ def _make_delivery_delayed(agent: VendorProcurementAgent):
         metrics["on_time_delivery_rate"] = metrics["delivery_timeliness"]
         vendor["performance_metrics"] = metrics
         await persist_vendor(agent, vendor, tenant_id=event.get("tenant_id", "unknown"))
+
     return _handle
 
 
@@ -53,6 +54,7 @@ def _make_contract_signed(agent: VendorProcurementAgent):
             agent.contract_store.upsert(tenant_id, contract_id, contract)
             if agent.db_service:
                 await agent.db_service.store("contracts", contract_id, contract)
+
     return _handle
 
 
@@ -74,6 +76,7 @@ def _make_vendor_flagged(agent: VendorProcurementAgent):
             tenant_id=event.get("tenant_id", "unknown"),
             correlation_id=event.get("correlation_id", str(uuid.uuid4())),
         )
+
     return _handle
 
 
@@ -95,6 +98,7 @@ def _make_risk_alert(agent: VendorProcurementAgent):
             tenant_id=event.get("tenant_id", "unknown"),
             correlation_id=event.get("correlation_id", str(uuid.uuid4())),
         )
+
     return _handle
 
 
@@ -117,6 +121,7 @@ def _make_compliance_violation(agent: VendorProcurementAgent):
             tenant_id=event.get("tenant_id", "unknown"),
             correlation_id=event.get("correlation_id", str(uuid.uuid4())),
         )
+
     return _handle
 
 
@@ -138,4 +143,5 @@ def _make_sanctions_hit(agent: VendorProcurementAgent):
             tenant_id=event.get("tenant_id", "unknown"),
             correlation_id=event.get("correlation_id", str(uuid.uuid4())),
         )
+
     return _handle

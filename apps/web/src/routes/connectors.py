@@ -5,6 +5,7 @@ legacy paths (``/api/connector-gallery/…``).  All operations delegate to
 :class:`web_services.connectors.ConnectorService` so that business logic
 lives in a single place.
 """
+
 from __future__ import annotations
 
 import logging
@@ -33,6 +34,7 @@ def get_connector_service() -> ConnectorService:
 
 def _get_service_with_headers(request: Request) -> ConnectorService:
     from routes._deps import _connector_hub_client, _require_session, build_forward_headers
+
     session = _require_session(request)
     headers = build_forward_headers(request, session)
     return ConnectorService(_connector_hub_client(), headers=headers)
@@ -48,6 +50,7 @@ def _passthrough(response: httpx.Response) -> Response:
 
 def _tenant_id(request: Request) -> str | None:
     from routes._deps import _require_session, _tenant_id_from_request
+
     session = _require_session(request)
     return _tenant_id_from_request(request, session)
 
@@ -55,6 +58,7 @@ def _tenant_id(request: Request) -> str | None:
 # -----------------------------------------------------------------------
 # v1 stub endpoints  (prefix: /v1/api/connector-gallery)
 # -----------------------------------------------------------------------
+
 
 @router.get("/instances")
 async def list_instances(service: ConnectorService = Depends(get_connector_service)) -> list[dict]:
@@ -64,6 +68,7 @@ async def list_instances(service: ConnectorService = Depends(get_connector_servi
 # -----------------------------------------------------------------------
 # Legacy endpoints  (full paths for backwards compatibility)
 # -----------------------------------------------------------------------
+
 
 @legacy_router.get("/api/connector-gallery/types")
 async def list_connector_types(request: Request) -> list[dict[str, Any]]:
@@ -109,13 +114,19 @@ async def create_connector_instance(payload: ConnectorInstanceCreate, request: R
     body = response.json()
     logger.info(
         "connector_gallery.instances.create",
-        extra={"tenant_id": tenant, "connector_id": body.get("connector_id"), "connector_type_id": payload.connector_type_id},
+        extra={
+            "tenant_id": tenant,
+            "connector_id": body.get("connector_id"),
+            "connector_type_id": payload.connector_type_id,
+        },
     )
     return JSONResponse(status_code=response.status_code, content=body)
 
 
 @legacy_router.patch("/api/connector-gallery/instances/{connector_id}")
-async def update_connector_instance(connector_id: str, payload: ConnectorInstanceUpdate, request: Request) -> Response:
+async def update_connector_instance(
+    connector_id: str, payload: ConnectorInstanceUpdate, request: Request
+) -> Response:
     tenant = _tenant_id(request)
     svc = _get_service_with_headers(request)
     update_payload = payload.model_dump(exclude_none=True)
@@ -128,7 +139,11 @@ async def update_connector_instance(connector_id: str, payload: ConnectorInstanc
     body = response.json()
     logger.info(
         "connector_gallery.instances.update",
-        extra={"tenant_id": tenant, "connector_id": connector_id, "connector_type_id": body.get("metadata", {}).get("connector_type_id")},
+        extra={
+            "tenant_id": tenant,
+            "connector_id": connector_id,
+            "connector_type_id": body.get("metadata", {}).get("connector_type_id"),
+        },
     )
     return JSONResponse(status_code=response.status_code, content=body)
 
@@ -146,6 +161,10 @@ async def get_connector_health(connector_id: str, request: Request) -> Response:
     body = response.json()
     logger.info(
         "connector_gallery.instances.health",
-        extra={"tenant_id": tenant, "connector_id": connector_id, "connector_type_id": body.get("metadata", {}).get("connector_type_id")},
+        extra={
+            "tenant_id": tenant,
+            "connector_id": connector_id,
+            "connector_type_id": body.get("metadata", {}).get("connector_type_id"),
+        },
     )
     return JSONResponse(status_code=response.status_code, content=body)

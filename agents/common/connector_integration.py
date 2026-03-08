@@ -64,6 +64,7 @@ logger = logging.getLogger(__name__)
 # Write-gating hook used by all integration services
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class WriteGateResult:
     """Result of a write-gating check."""
@@ -162,9 +163,7 @@ class ConnectorWriteGate:
         if self.require_dry_run and dry_run_passed is not True:
             audit_entry["result"] = "blocked"
             audit_entry["reason"] = "dry_run_not_passed"
-            logger.warning(
-                "Write gate blocked: dry-run not passed (op=%s)", operation
-            )
+            logger.warning("Write gate blocked: dry-run not passed (op=%s)", operation)
             return WriteGateResult(
                 allowed=False,
                 reason="Dry-run is required but has not passed",

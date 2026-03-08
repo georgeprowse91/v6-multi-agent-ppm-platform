@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import re
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -61,15 +60,15 @@ def assert_error_response(
         status_code: Expected HTTP status code.
         detail_contains: Optional substring expected in the ``detail`` field of the JSON body.
     """
-    assert response.status_code == status_code, (
-        f"Expected status {status_code}, got {response.status_code}: {response.text}"
-    )
+    assert (
+        response.status_code == status_code
+    ), f"Expected status {status_code}, got {response.status_code}: {response.text}"
     if detail_contains is not None:
         body = response.json()
         detail = body.get("detail", "")
-        assert detail_contains in detail, (
-            f"Expected detail to contain {detail_contains!r}, got {detail!r}"
-        )
+        assert (
+            detail_contains in detail
+        ), f"Expected detail to contain {detail_contains!r}, got {detail!r}"
 
 
 def assert_json_schema(

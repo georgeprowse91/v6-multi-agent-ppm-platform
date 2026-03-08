@@ -52,9 +52,9 @@ async def compare_to_historical(
         benchmark_roi = sum(item.get("roi", 0.0) for item in similar_projects) / len(
             similar_projects
         )
-        benchmark_payback = sum(
-            item.get("payback_period", 0.0) for item in similar_projects
-        ) / len(similar_projects)
+        benchmark_payback = sum(item.get("payback_period", 0.0) for item in similar_projects) / len(
+            similar_projects
+        )
 
     return {
         "similar_projects": similar_projects,
@@ -98,9 +98,7 @@ async def generate_recommendation(
         )
     elif roi >= agent.min_roi_threshold * 0.7:
         recommendation = "defer"
-        rationale = (
-            "Moderate financial metrics. Consider phased approach or MVP to reduce risk."
-        )
+        rationale = "Moderate financial metrics. Consider phased approach or MVP to reduce risk."
     else:
         recommendation = "reject"
         rationale = (

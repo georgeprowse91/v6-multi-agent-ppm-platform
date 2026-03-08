@@ -108,9 +108,7 @@ async def track_variance(
             "recommendation": "Create a baseline first",
         }
 
-    baseline = agent.baselines.get(baseline_id) or agent.baseline_store.get(
-        tenant_id, baseline_id
-    )
+    baseline = agent.baselines.get(baseline_id) or agent.baseline_store.get(tenant_id, baseline_id)
     if not baseline:
         raise ValueError(f"Baseline not found: {baseline_id}")
 
@@ -120,9 +118,7 @@ async def track_variance(
     schedule_variance_pct = sv / baseline_duration if baseline_duration else 0
 
     # Calculate schedule performance index (SPI)
-    earned_value = await calculate_earned_value(
-        agent, schedule, baseline, tenant_id=tenant_id
-    )
+    earned_value = await calculate_earned_value(agent, schedule, baseline, tenant_id=tenant_id)
     spi = earned_value.get("schedule_performance_index", 1.0)
 
     # Identify delayed tasks
@@ -198,9 +194,8 @@ async def track_variance(
 # EVM and variance helpers
 # ---------------------------------------------------------------------------
 
-async def calculate_schedule_variance(
-    schedule: dict[str, Any], baseline: dict[str, Any]
-) -> float:
+
+async def calculate_schedule_variance(schedule: dict[str, Any], baseline: dict[str, Any]) -> float:
     """Calculate schedule variance in days."""
     planned = baseline.get("project_duration_days", 0)
     actual = schedule.get("project_duration_days", 0)

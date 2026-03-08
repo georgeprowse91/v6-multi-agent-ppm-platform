@@ -1,10 +1,16 @@
 """Orchestration action handlers."""
+
 from __future__ import annotations
+
 import time
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from response_orchestration_models import AgentInvocationResult, OrchestrationRequest, OrchestrationResponse
+from response_orchestration_models import (
+    AgentInvocationResult,
+    OrchestrationRequest,
+    OrchestrationResponse,
+)
 from response_orchestration_utils import aggregate_responses, build_agent_activity
 
 if TYPE_CHECKING:
@@ -24,9 +30,7 @@ async def orchestrate(
     routing = [entry.model_dump() for entry in request.routing]
     parameters = dict(request.parameters)
     context = request.context or {}
-    correlation_id = (
-        context.get("correlation_id") or request.correlation_id or str(uuid.uuid4())
-    )
+    correlation_id = context.get("correlation_id") or request.correlation_id or str(uuid.uuid4())
     tenant_id = context.get("tenant_id") or request.tenant_id or "unknown"
 
     prompt_payload = agent._build_prompt_payload(request, parameters)

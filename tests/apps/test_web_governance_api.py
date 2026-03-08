@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
@@ -24,8 +23,7 @@ def _load_web_app():
     # bootstrap.py returns a module-level singleton (legacy_app); stale cached modules
     # can cause routes to be missing or middleware to fail.
     for mod_name in list(sys.modules):
-        if mod_name in {"bootstrap", "legacy_main", "middleware", "routes",
-                        "web_main_governance"}:
+        if mod_name in {"bootstrap", "legacy_main", "middleware", "routes", "web_main_governance"}:
             sys.modules.pop(mod_name, None)
 
     module_path = _WEB_SRC / "main.py"
@@ -45,6 +43,7 @@ def test_governance_api_endpoints(monkeypatch: pytest.MonkeyPatch) -> None:
     # Clear the lru_cache so our env vars take effect
     try:
         import config as _web_cfg  # noqa: PLC0415
+
         _web_cfg.get_settings.cache_clear()
     except Exception:  # noqa: BLE001
         pass

@@ -4,7 +4,6 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
 
 import yaml
 
@@ -540,6 +539,7 @@ def get_methodology_map(methodology_id: str | None) -> dict[str, Any]:
 # Tenant-scoped methodology storage
 # ---------------------------------------------------------------------------
 
+
 def _tenant_storage_path(tenant_id: str) -> Path:
     return METHODOLOGY_STORAGE_PATH.parent / f"methodology_definitions_{tenant_id}.json"
 
@@ -582,17 +582,19 @@ def get_tenant_methodologies(tenant_id: str) -> list[dict[str, Any]]:
 
     for methodology_id, custom in custom_methodologies.items():
         if methodology_id not in METHODOLOGY_MAPS:
-            result.append({
-                "methodology_id": methodology_id,
-                "name": custom.get("map", {}).get("name", methodology_id.title()),
-                "type": custom.get("map", {}).get("type", "custom"),
-                "description": custom.get("map", {}).get("description", ""),
-                "version": int(custom.get("version", 1)),
-                "status": custom.get("status", "draft"),
-                "is_default": custom.get("is_default", False),
-                "is_builtin": False,
-                "source": "custom",
-            })
+            result.append(
+                {
+                    "methodology_id": methodology_id,
+                    "name": custom.get("map", {}).get("name", methodology_id.title()),
+                    "type": custom.get("map", {}).get("type", "custom"),
+                    "description": custom.get("map", {}).get("description", ""),
+                    "version": int(custom.get("version", 1)),
+                    "status": custom.get("status", "draft"),
+                    "is_default": custom.get("is_default", False),
+                    "is_builtin": False,
+                    "source": "custom",
+                }
+            )
 
     return result
 
@@ -648,11 +650,13 @@ def save_tenant_methodology(
         "updated_at": now,
         "version_history": existing.get("version_history", []),
     }
-    entry["version_history"].append({
-        "version": new_version,
-        "created_by": created_by,
-        "created_at": now,
-    })
+    entry["version_history"].append(
+        {
+            "version": new_version,
+            "created_by": created_by,
+            "created_at": now,
+        }
+    )
 
     methodologies[methodology_id] = entry
     _write_tenant_storage(tenant_id, storage)
@@ -703,15 +707,19 @@ def deprecate_tenant_methodology(tenant_id: str, methodology_id: str) -> dict[st
 # Tenant methodology policy
 # ---------------------------------------------------------------------------
 
+
 def get_tenant_methodology_policy(tenant_id: str) -> dict[str, Any]:
     """Return the methodology policy for a tenant."""
     storage = _load_tenant_storage(tenant_id)
-    return storage.get("policy", {
-        "allowed_methodology_ids": None,
-        "default_methodology_id": None,
-        "department_overrides": {},
-        "enforce_published_only": True,
-    })
+    return storage.get(
+        "policy",
+        {
+            "allowed_methodology_ids": None,
+            "default_methodology_id": None,
+            "department_overrides": {},
+            "enforce_published_only": True,
+        },
+    )
 
 
 def set_tenant_methodology_policy(tenant_id: str, policy: dict[str, Any]) -> dict[str, Any]:
@@ -740,7 +748,7 @@ def validate_methodology_selection(
         return {
             "allowed": False,
             "reason": f"Methodology '{methodology_id}' is not in the allowed list for this organisation. "
-                      f"Allowed: {', '.join(allowed_ids)}",
+            f"Allowed: {', '.join(allowed_ids)}",
         }
 
     if department and policy.get("department_overrides"):
@@ -750,7 +758,7 @@ def validate_methodology_selection(
             return {
                 "allowed": False,
                 "reason": f"Methodology '{methodology_id}' is not allowed for department '{department}'. "
-                          f"Allowed: {', '.join(dept_allowed)}",
+                f"Allowed: {', '.join(dept_allowed)}",
             }
 
     if policy.get("enforce_published_only", True):
@@ -759,7 +767,7 @@ def validate_methodology_selection(
             return {
                 "allowed": False,
                 "reason": f"Methodology '{methodology_id}' is not published. "
-                          f"Current status: {methodology.get('status')}",
+                f"Current status: {methodology.get('status')}",
             }
 
     return {"allowed": True, "reason": None}
@@ -769,9 +777,8 @@ def validate_methodology_selection(
 # Change impact analysis
 # ---------------------------------------------------------------------------
 
-def analyse_methodology_change_impact(
-    tenant_id: str, methodology_id: str
-) -> dict[str, Any]:
+
+def analyse_methodology_change_impact(tenant_id: str, methodology_id: str) -> dict[str, Any]:
     """Detect which active workspaces use the methodology being edited."""
     # Scan workspace state files for references to this methodology
     workspace_storage_dir = METHODOLOGY_STORAGE_PATH.parent
@@ -786,12 +793,14 @@ def analyse_methodology_change_impact(
                 if isinstance(workspaces, dict):
                     for ws_id, ws in workspaces.items():
                         if ws.get("methodology_id") == methodology_id:
-                            affected_workspaces.append({
-                                "workspace_id": ws_id,
-                                "project_id": ws.get("project_id", ws_id),
-                                "tenant_id": ws.get("tenant_id", tenant_id),
-                                "status": ws.get("status", "active"),
-                            })
+                            affected_workspaces.append(
+                                {
+                                    "workspace_id": ws_id,
+                                    "project_id": ws.get("project_id", ws_id),
+                                    "tenant_id": ws.get("tenant_id", tenant_id),
+                                    "status": ws.get("status", "active"),
+                                }
+                            )
         except (json.JSONDecodeError, OSError):
             continue
 
@@ -805,12 +814,14 @@ def analyse_methodology_change_impact(
                 if key == methodology_id and isinstance(entry, dict):
                     for ws_ref in entry.get("workspace_refs", []):
                         if ws_ref not in [w["workspace_id"] for w in affected_workspaces]:
-                            affected_workspaces.append({
-                                "workspace_id": ws_ref,
-                                "project_id": ws_ref,
-                                "tenant_id": tenant_id,
-                                "status": "unknown",
-                            })
+                            affected_workspaces.append(
+                                {
+                                    "workspace_id": ws_ref,
+                                    "project_id": ws_ref,
+                                    "tenant_id": tenant_id,
+                                    "status": "unknown",
+                                }
+                            )
         except (json.JSONDecodeError, OSError):
             pass
 
@@ -820,7 +831,11 @@ def analyse_methodology_change_impact(
         "affected_workspace_count": len(affected_workspaces),
         "affected_workspaces": affected_workspaces,
         "warning": (
-            f"{len(affected_workspaces)} active workspace(s) use this methodology. "
-            "Changes will not affect existing workspaces until they re-sync."
-        ) if affected_workspaces else "No active workspaces are using this methodology.",
+            (
+                f"{len(affected_workspaces)} active workspace(s) use this methodology. "
+                "Changes will not affect existing workspaces until they re-sync."
+            )
+            if affected_workspaces
+            else "No active workspaces are using this methodology."
+        ),
     }

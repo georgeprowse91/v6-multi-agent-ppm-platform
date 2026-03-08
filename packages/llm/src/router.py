@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from typing import TypeAlias
 
 from llm.types import LLMProviderError, LLMResponse
 from model_registry import find_model, get_enabled_models
@@ -28,7 +29,7 @@ class LLMRouteRequest:
 
 
 # Type alias for all supported provider adapters.
-_AnyProvider = AnthropicProvider | AzureOpenAIProvider | GoogleProvider | OpenAIProvider
+_AnyProvider: TypeAlias = AnthropicProvider | AzureOpenAIProvider | GoogleProvider | OpenAIProvider
 
 
 class LLMRouter:
@@ -100,9 +101,7 @@ class LLMRouter:
                 timeout=self.timeout,
             )
         if provider == "azure_openai":
-            api_key = resolve_secret(
-                os.getenv("AZURE_OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
-            )
+            api_key = resolve_secret(os.getenv("AZURE_OPENAI_API_KEY") or os.getenv("LLM_API_KEY"))
             endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
             if not api_key:
                 raise LLMProviderError(

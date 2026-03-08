@@ -184,7 +184,7 @@ def create_app() -> FastAPI:
     api_router = APIRouter(prefix="/v1")
     hub = WebSocketHub(backend)
 
-    app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+    app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
     configure_tracing("realtime-coedit-service")
     configure_metrics("realtime-coedit-service")
     app.add_middleware(TraceMiddleware, service_name="realtime-coedit-service")

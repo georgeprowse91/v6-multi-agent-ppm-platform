@@ -37,9 +37,7 @@ def _resolve_key(key: str | bytes | None, env_var: str | None) -> str | bytes:
         value = os.environ.get(env_var)
         if value:
             return value
-    raise EncryptionError(
-        "An encryption key must be provided either directly or via env_var."
-    )
+    raise EncryptionError("An encryption key must be provided either directly or via env_var.")
 
 
 def encrypt_text(
@@ -91,7 +89,7 @@ def decrypt_text(
     resolved = _resolve_key(key, env_var)
     fernet = _get_fernet(resolved)
     try:
-        return fernet.decrypt(ciphertext.encode("utf-8")).decode("utf-8")
+        return fernet.decrypt(ciphertext.encode("utf-8")).decode("utf-8")  # type: ignore[no-any-return]
     except Exception as exc:
         raise EncryptionError(f"Decryption failed: {exc}") from exc
 
@@ -114,7 +112,7 @@ def encrypt_bytes(
     """
     resolved = _resolve_key(key, env_var)
     fernet = _get_fernet(resolved)
-    return fernet.encrypt(data)
+    return fernet.encrypt(data)  # type: ignore[no-any-return]
 
 
 def decrypt_bytes(
@@ -139,7 +137,7 @@ def decrypt_bytes(
     resolved = _resolve_key(key, env_var)
     fernet = _get_fernet(resolved)
     try:
-        return fernet.decrypt(token)
+        return fernet.decrypt(token)  # type: ignore[no-any-return]
     except Exception as exc:
         raise EncryptionError(f"Decryption failed: {exc}") from exc
 
@@ -154,8 +152,7 @@ def generate_fernet_key() -> str:
         from cryptography.fernet import Fernet
     except BaseException as exc:
         raise EncryptionError(
-            "The 'cryptography' package is required. "
-            "Install it with: pip install cryptography"
+            "The 'cryptography' package is required. " "Install it with: pip install cryptography"
         ) from exc
 
     return Fernet.generate_key().decode("utf-8")

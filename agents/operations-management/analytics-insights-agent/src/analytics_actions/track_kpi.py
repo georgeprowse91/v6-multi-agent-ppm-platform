@@ -60,9 +60,7 @@ async def handle_track_kpi(
     )
 
     # Check against thresholds
-    threshold_status = await check_kpi_thresholds(
-        current_value, kpi_config.get("thresholds", {})
-    )
+    threshold_status = await check_kpi_thresholds(current_value, kpi_config.get("thresholds", {}))
 
     # Update KPI record
     kpi_record = {
@@ -108,9 +106,7 @@ async def handle_track_kpi(
         "trend": trend,
         "threshold_status": threshold_status,
         "achievement_percentage": (
-            (current_value / kpi_config.get("target", 1)) * 100
-            if kpi_config.get("target")
-            else 0
+            (current_value / kpi_config.get("target", 1)) * 100 if kpi_config.get("target") else 0
         ),
         "alerts_triggered": alerts_triggered,
     }

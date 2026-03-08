@@ -38,9 +38,7 @@ async def handle_identify_synergies(
     infrastructure_synergies = synergy_analysis.get("infrastructure_synergies", [])
 
     # Calculate potential savings
-    project_costs = await agent._estimate_project_costs(
-        constituent_projects, tenant_id=tenant_id
-    )
+    project_costs = await agent._estimate_project_costs(constituent_projects, tenant_id=tenant_id)
     cost_savings = await _calculate_synergy_savings(
         shared_components, vendor_synergies, infrastructure_synergies, project_costs
     )

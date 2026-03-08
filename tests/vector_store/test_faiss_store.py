@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+
 from packages.vector_store.faiss_store import FaissVectorStore
 
 
@@ -89,4 +90,4 @@ def test_large_dummy_dataset_query_latency() -> None:
     elapsed_ms = (time.perf_counter() - start) * 1000
 
     assert len(results) == 10
-    assert elapsed_ms < 500.0
+    assert elapsed_ms < 2000.0

@@ -59,18 +59,27 @@ def test_validate_valid_definition():
 
 def test_validate_missing_name():
     parser = NLWorkflowParser()
-    result = parser.validate_generated({"name": "", "steps": [{"id": "s1", "type": "task", "name": "x", "transitions": []}]})
+    result = parser.validate_generated(
+        {"name": "", "steps": [{"id": "s1", "type": "task", "name": "x", "transitions": []}]}
+    )
     assert result["valid"] is False
 
 
 def test_validate_bad_transition():
     parser = NLWorkflowParser()
-    result = parser.validate_generated({
-        "name": "test",
-        "steps": [
-            {"id": "s1", "type": "task", "name": "x", "transitions": [{"target": "nonexistent"}]}
-        ],
-    })
+    result = parser.validate_generated(
+        {
+            "name": "test",
+            "steps": [
+                {
+                    "id": "s1",
+                    "type": "task",
+                    "name": "x",
+                    "transitions": [{"target": "nonexistent"}],
+                }
+            ],
+        }
+    )
     assert result["valid"] is False
     assert any("nonexistent" in e for e in result["errors"])
 
@@ -106,9 +115,11 @@ def test_parse_always_has_intake_and_notification():
 def test_parse_step_ids_unique():
     """All step IDs in a generated workflow should be unique."""
     parser = NLWorkflowParser()
-    definition = _run(parser.parse(
-        "Evaluate risks, get executive approval, ensure GDPR compliance, and review budget"
-    ))
+    definition = _run(
+        parser.parse(
+            "Evaluate risks, get executive approval, ensure GDPR compliance, and review budget"
+        )
+    )
     step_ids = [s["id"] for s in definition["steps"]]
     assert len(step_ids) == len(set(step_ids))
 
@@ -141,24 +152,32 @@ def test_validate_no_steps():
 def test_validate_valid_self_referencing_transition():
     """A step referencing itself in a transition should be valid (loop)."""
     parser = NLWorkflowParser()
-    result = parser.validate_generated({
-        "name": "Loop workflow",
-        "steps": [
-            {"id": "s1", "type": "decision", "name": "Check",
-             "transitions": [{"target": "s1", "condition": "retry"}, {"target": "s2"}]},
-            {"id": "s2", "type": "notification", "name": "Done", "transitions": []},
-        ],
-    })
+    result = parser.validate_generated(
+        {
+            "name": "Loop workflow",
+            "steps": [
+                {
+                    "id": "s1",
+                    "type": "decision",
+                    "name": "Check",
+                    "transitions": [{"target": "s1", "condition": "retry"}, {"target": "s2"}],
+                },
+                {"id": "s2", "type": "notification", "name": "Done", "transitions": []},
+            ],
+        }
+    )
     assert result["valid"] is True
 
 
 def test_parse_multiple_keywords_combined():
     """Description with many keywords should produce a multi-step workflow."""
     parser = NLWorkflowParser()
-    definition = _run(parser.parse(
-        "Assess project risks, get CFO approval for budget spending, "
-        "ensure SOX compliance, then execute"
-    ))
+    definition = _run(
+        parser.parse(
+            "Assess project risks, get CFO approval for budget spending, "
+            "ensure SOX compliance, then execute"
+        )
+    )
     assert len(definition["steps"]) >= 5
     step_types = {s["type"] for s in definition["steps"]}
     assert "approval" in step_types

@@ -7,13 +7,13 @@ Production-grade wrapper around LLMGateway with:
 - Semantic caching (in-process + optional Redis)
 - Graceful degradation when no provider configured
 """
+
 from __future__ import annotations
 
 import asyncio
 import json
 import logging
 import os
-import time
 from typing import Any
 
 logger = logging.getLogger("routes._llm_helpers")
@@ -92,19 +92,26 @@ async def llm_complete(
                 timeout=effective_timeout,
             )
             return response.content
-        except asyncio.TimeoutError:
+        except TimeoutError:
             last_error = TimeoutError(f"LLM call timed out after {effective_timeout}s")
-            logger.warning("llm_complete timeout (attempt %d/%d)", attempt + 1, _LLM_MAX_RETRIES + 1)
+            logger.warning(
+                "llm_complete timeout (attempt %d/%d)", attempt + 1, _LLM_MAX_RETRIES + 1
+            )
         except Exception as exc:
             last_error = exc
             # Check if retryable
             retryable = getattr(exc, "retryable", False)
             if not retryable or attempt >= _LLM_MAX_RETRIES:
                 break
-            logger.warning("llm_complete transient error (attempt %d/%d): %s", attempt + 1, _LLM_MAX_RETRIES + 1, exc)
+            logger.warning(
+                "llm_complete transient error (attempt %d/%d): %s",
+                attempt + 1,
+                _LLM_MAX_RETRIES + 1,
+                exc,
+            )
 
         if attempt < _LLM_MAX_RETRIES:
-            await asyncio.sleep(_LLM_BACKOFF_BASE * (2 ** attempt))
+            await asyncio.sleep(_LLM_BACKOFF_BASE * (2**attempt))
 
     logger.warning("llm_complete failed after %d attempts: %s", _LLM_MAX_RETRIES + 1, last_error)
     return ""
@@ -140,7 +147,7 @@ def _try_parse_json(text: str) -> dict[str, Any] | list | None:
         end = cleaned.rfind(end_char)
         if start >= 0 and end > start:
             try:
-                result = json.loads(cleaned[start:end + 1])
+                result = json.loads(cleaned[start : end + 1])
                 if isinstance(result, (dict, list)):
                     return result
             except json.JSONDecodeError:

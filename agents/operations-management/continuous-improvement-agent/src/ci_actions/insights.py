@@ -113,9 +113,7 @@ async def get_recommendations(
     }
 
 
-async def get_kpi_report(
-    agent: MiningAgentProtocol, filters: dict[str, Any]
-) -> dict[str, Any]:
+async def get_kpi_report(agent: MiningAgentProtocol, filters: dict[str, Any]) -> dict[str, Any]:
     """Compute KPI rollups across projects and programs."""
     all_events: list[dict[str, Any]] = []
     if not agent.event_logs:
@@ -144,6 +142,7 @@ async def get_kpi_report(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 async def _calculate_basic_metrics(events: list[dict[str, Any]]) -> dict[str, Any]:
     """Calculate basic performance metrics without a process model."""
     traces = await build_traces(events)
@@ -151,9 +150,7 @@ async def _calculate_basic_metrics(events: list[dict[str, Any]]) -> dict[str, An
     for case_id in traces:
         case_events = [e for e in events if e.get("case_id") == case_id]
         timestamps = [
-            safe_parse_timestamp(e.get("timestamp"))
-            for e in case_events
-            if e.get("timestamp")
+            safe_parse_timestamp(e.get("timestamp")) for e in case_events if e.get("timestamp")
         ]
         timestamps = [ts for ts in timestamps if ts]
         if timestamps:
@@ -168,9 +165,7 @@ async def _calculate_basic_metrics(events: list[dict[str, Any]]) -> dict[str, An
     }
 
 
-async def _calculate_grouped_kpis(
-    events: list[dict[str, Any]], key: str
-) -> list[dict[str, Any]]:
+async def _calculate_grouped_kpis(events: list[dict[str, Any]], key: str) -> list[dict[str, Any]]:
     grouped: dict[str, list[dict[str, Any]]] = {}
     for event in events:
         dimension = extract_dimension(event, key)

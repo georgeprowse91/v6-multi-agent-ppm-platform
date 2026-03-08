@@ -35,9 +35,7 @@ async def enqueue_retry(
     await agent._store_record("sync_retry_queue", retry_id, retry_payload)
 
 
-async def handle_process_retry_queue(
-    agent: DataSyncAgent, tenant_id: str
-) -> dict[str, Any]:
+async def handle_process_retry_queue(agent: DataSyncAgent, tenant_id: str) -> dict[str, Any]:
     retries = agent.retry_queue_store.list(tenant_id)
     processed = 0
     successes = 0
@@ -113,9 +111,7 @@ async def handle_reprocess_retry(
         return {"retry_id": retry_id, "status": "failed", "error": str(exc)}
 
 
-async def handle_get_retry_queue(
-    agent: DataSyncAgent, tenant_id: str
-) -> dict[str, Any]:
+async def handle_get_retry_queue(agent: DataSyncAgent, tenant_id: str) -> dict[str, Any]:
     retries = agent.retry_queue_store.list(tenant_id)
     return {
         "tenant_id": tenant_id,

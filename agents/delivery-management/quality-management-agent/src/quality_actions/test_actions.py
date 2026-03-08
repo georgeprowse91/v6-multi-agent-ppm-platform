@@ -31,7 +31,8 @@ async def create_test_case(
     test_case_id = await generate_test_case_id()
 
     requirements = await _link_to_requirements(
-        agent, test_case_data.get("requirement_ids", []),
+        agent,
+        test_case_data.get("requirement_ids", []),
         project_id=test_case_data.get("project_id"),
     )
     if requirements:
@@ -290,9 +291,7 @@ async def _run_test_suite(
     return results
 
 
-async def _calculate_code_coverage(
-    agent: QualityManagementAgent, project_id: str
-) -> float:
+async def _calculate_code_coverage(agent: QualityManagementAgent, project_id: str) -> float:
     ci_coverage = await _fetch_ci_coverage_report(agent, project_id)
     if ci_coverage:
         agent.coverage_snapshots[project_id] = ci_coverage
@@ -351,9 +350,7 @@ async def _auto_log_defect_from_test(
         "test_case_id": test_result.get("test_case_id"),
         "logged_by": "system",
     }
-    return await log_defect(
-        agent, defect_data, tenant_id=tenant_id, correlation_id=correlation_id
-    )
+    return await log_defect(agent, defect_data, tenant_id=tenant_id, correlation_id=correlation_id)
 
 
 async def _fetch_ci_test_results(
@@ -532,9 +529,7 @@ async def _store_test_results_in_blob(
 ) -> dict[str, Any]:
     from agents.common.connector_integration import DatabaseStorageService
 
-    container = agent.integration_config.get("blob_storage", {}).get(
-        "container", "quality-tests"
-    )
+    container = agent.integration_config.get("blob_storage", {}).get("container", "quality-tests")
     blob_name = f"{suite_id}/{execution_id}/results.json"
     payload = {
         "execution_id": execution_id,

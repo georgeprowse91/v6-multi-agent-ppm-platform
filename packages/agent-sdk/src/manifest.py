@@ -11,7 +11,9 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-_SCHEMA_PATH = Path(__file__).resolve().parents[3] / "data" / "schemas" / "agent-manifest.schema.json"
+_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[3] / "data" / "schemas" / "agent-manifest.schema.json"
+)
 
 
 class ManifestAuthor(BaseModel):
@@ -115,9 +117,7 @@ class AgentManifest(BaseModel):
             "connectors_used": self.connectors_used,
             "schemas_used": self.schemas_used,
             "runtime": (
-                self.runtime.model_dump()
-                if isinstance(self.runtime, BaseModel)
-                else self.runtime
+                self.runtime.model_dump() if isinstance(self.runtime, BaseModel) else self.runtime
             ),
             "documentation_url": self.documentation_url,
             "repository_url": self.repository_url,

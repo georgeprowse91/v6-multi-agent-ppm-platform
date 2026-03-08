@@ -169,7 +169,9 @@ reject_placeholder_secrets(
     secret_vars={
         k: v
         for k, v in {
-            "SERVICE_BUS_CONNECTION_STRING": resolve_secret(os.getenv("SERVICE_BUS_CONNECTION_STRING", "")),
+            "SERVICE_BUS_CONNECTION_STRING": resolve_secret(
+                os.getenv("SERVICE_BUS_CONNECTION_STRING", "")
+            ),
         }.items()
         if v
     },
@@ -177,7 +179,7 @@ reject_placeholder_secrets(
 
 app = FastAPI(title="Data Sync Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
-app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
 configure_tracing("data-sync-service")
 configure_metrics("data-sync-service")
 app.add_middleware(TraceMiddleware, service_name="data-sync-service")

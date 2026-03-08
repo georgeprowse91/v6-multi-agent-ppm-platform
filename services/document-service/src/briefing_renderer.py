@@ -4,6 +4,7 @@ Provides rendering capabilities for the Executive Briefing Generator,
 converting markdown briefing content into professionally formatted
 PDF and PowerPoint documents.
 """
+
 from __future__ import annotations
 
 import base64
@@ -42,8 +43,7 @@ def render_briefing(
             "filename": f"{safe_title}.pptx",
             "content_base64": base64.b64encode(pptx_bytes).decode("ascii"),
             "content_type": (
-                "application/vnd.openxmlformats-officedocument"
-                ".presentationml.presentation"
+                "application/vnd.openxmlformats-officedocument" ".presentationml.presentation"
             ),
         }
     else:
@@ -53,6 +53,7 @@ def render_briefing(
 # ---------------------------------------------------------------------------
 # PDF rendering
 # ---------------------------------------------------------------------------
+
 
 def render_briefing_pdf(
     title: str,
@@ -215,9 +216,7 @@ def _render_pdf_fallback(
         elif line.startswith("# "):
             font_size = 16
             y -= 8
-        text_objects.append(
-            f"BT /F1 {font_size} Tf {50} {y} Td ({clean}) Tj ET"
-        )
+        text_objects.append(f"BT /F1 {font_size} Tf {50} {y} Td ({clean}) Tj ET")
         y -= 14
 
     stream_content = "\n".join(text_objects)
@@ -246,6 +245,7 @@ def _render_pdf_fallback(
 # ---------------------------------------------------------------------------
 # PPTX rendering
 # ---------------------------------------------------------------------------
+
 
 def render_briefing_pptx(
     title: str,
@@ -343,6 +343,7 @@ def _render_pptx_fallback(
 # ---------------------------------------------------------------------------
 # Markdown helpers
 # ---------------------------------------------------------------------------
+
 
 def _markdown_to_html(md: str) -> str:
     """Convert basic markdown to HTML for PDF rendering."""

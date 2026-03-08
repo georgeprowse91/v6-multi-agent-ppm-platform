@@ -83,9 +83,7 @@ async def sync_hr_systems(agent: ResourceCapacityAgent) -> None:
             if has_resource_changed(existing, resource_profile):
                 agent.resource_pool[resource_id] = resource_profile
                 await store_canonical_profile(agent, resource_id, profile, resource_profile)
-                agent.resource_store.upsert(
-                    agent.default_tenant_id, resource_id, resource_profile
-                )
+                agent.resource_store.upsert(agent.default_tenant_id, resource_id, resource_profile)
                 await agent._publish_resource_event("resource.updated", resource_profile)
         if profile.get("status") == "Inactive":
             await agent._deactivate_resource(resource_id, reason="hr_status")
@@ -235,9 +233,7 @@ async def fetch_sap_profiles(
             profiles.append(
                 {
                     "employee_id": user.get("userId"),
-                    "name": (
-                        f"{user.get('firstName', '')} {user.get('lastName', '')}".strip()
-                    ),
+                    "name": (f"{user.get('firstName', '')} {user.get('lastName', '')}".strip()),
                     "status": user.get("status", "Active"),
                     "source_system": "sap_successfactors",
                     "created_at": datetime.now(timezone.utc).isoformat(),
@@ -297,9 +293,7 @@ async def refresh_capacity_allocations(agent: ResourceCapacityAgent) -> None:
                 agent.redis_client.set(
                     f"allocation:{allocation_id}", json.dumps(allocation), ex=3600
                 )
-            agent.redis_client.rpush(
-                f"resource_allocations:{resource_id}", json.dumps(allocation)
-            )
+            agent.redis_client.rpush(f"resource_allocations:{resource_id}", json.dumps(allocation))
 
 
 async def fetch_planview_allocations(
@@ -383,9 +377,7 @@ async def fetch_jira_tempo_allocations(
         for item in data:
             allocations.append(
                 {
-                    "allocation_id": (
-                        item.get("tempoWorklogId") or f"tempo-{uuid.uuid4().hex}"
-                    ),
+                    "allocation_id": (item.get("tempoWorklogId") or f"tempo-{uuid.uuid4().hex}"),
                     "resource_id": item.get("author", {}).get("accountId"),
                     "project_id": item.get("issue", {}).get("projectId"),
                     "start_date": item.get("startDate"),

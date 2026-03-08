@@ -50,7 +50,9 @@ async def research_risks_public(
     if not snippets:
         return []
 
-    summary = await _agent_module.summarize_snippets(snippets, llm_client=llm_client, purpose="risk")
+    summary = await _agent_module.summarize_snippets(
+        snippets, llm_client=llm_client, purpose="risk"
+    )
     return await agent._classify_external_risks(
         summary,
         snippets,

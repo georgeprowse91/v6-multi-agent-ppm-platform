@@ -1784,6 +1784,363 @@
       "owner": null,
       "status": "Idea",
       "created_at": "2026-03-06T22:53:43.247227+00:00"
+    },
+    "IMP-20260308022824375951": {
+      "improvement_id": "IMP-20260308022824375951",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:28:24.375977+00:00"
+    },
+    "IMP-20260308022937373379": {
+      "improvement_id": "IMP-20260308022937373379",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:29:37.373398+00:00"
+    },
+    "IMP-20260308023057208368": {
+      "improvement_id": "IMP-20260308023057208368",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:30:57.208389+00:00"
+    },
+    "IMP-20260308023215434101": {
+      "improvement_id": "IMP-20260308023215434101",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:32:15.434120+00:00"
+    },
+    "IMP-20260308024358946954": {
+      "improvement_id": "IMP-20260308024358946954",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:43:58.946974+00:00"
+    },
+    "IMP-20260308024444235951": {
+      "improvement_id": "IMP-20260308024444235951",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:44:44.235970+00:00"
+    },
+    "IMP-20260308024555002020": {
+      "improvement_id": "IMP-20260308024555002020",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:45:55.002040+00:00"
+    },
+    "IMP-20260308025045457365": {
+      "improvement_id": "IMP-20260308025045457365",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:50:45.457384+00:00"
+    },
+    "IMP-20260308025210862311": {
+      "improvement_id": "IMP-20260308025210862311",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:52:10.862334+00:00"
+    },
+    "IMP-20260308025338911076": {
+      "improvement_id": "IMP-20260308025338911076",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:53:38.911095+00:00"
+    },
+    "IMP-20260308025504607559": {
+      "improvement_id": "IMP-20260308025504607559",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:55:04.607585+00:00"
+    },
+    "IMP-20260308025632509142": {
+      "improvement_id": "IMP-20260308025632509142",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:56:32.509161+00:00"
+    },
+    "IMP-20260308025857553023": {
+      "improvement_id": "IMP-20260308025857553023",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T02:58:57.553041+00:00"
+    },
+    "IMP-20260308030045155989": {
+      "improvement_id": "IMP-20260308030045155989",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T03:00:45.156011+00:00"
+    },
+    "IMP-20260308030234573293": {
+      "improvement_id": "IMP-20260308030234573293",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T03:02:34.573310+00:00"
+    },
+    "IMP-20260308030440731216": {
+      "improvement_id": "IMP-20260308030440731216",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T03:04:40.731242+00:00"
+    },
+    "IMP-20260308030623037998": {
+      "improvement_id": "IMP-20260308030623037998",
+      "title": "Reduce cycle time",
+      "description": "Address approval bottleneck",
+      "category": "throughput",
+      "process_id": "proc-1",
+      "expected_benefits": {
+        "cycle_time_reduction": 10.0,
+        "cost_savings": 20000.0,
+        "quality_improvement": 8.0
+      },
+      "feasibility": {
+        "technical_feasibility": 0.85,
+        "resource_availability": 0.7,
+        "estimated_effort": 40
+      },
+      "priority_score": 17.849999999999998,
+      "owner": null,
+      "status": "Idea",
+      "created_at": "2026-03-08T03:06:23.038018+00:00"
     }
   }
 }

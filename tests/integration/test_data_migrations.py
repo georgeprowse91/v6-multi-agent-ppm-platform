@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import importlib
-import importlib.util
 import os
 import sys
 from pathlib import Path
@@ -24,6 +22,7 @@ def _load_real_sqlalchemy():
         sys.path.remove(vendor_dir)
     try:
         import sqlalchemy
+
         return sqlalchemy
     except ImportError:
         # Restore stub modules

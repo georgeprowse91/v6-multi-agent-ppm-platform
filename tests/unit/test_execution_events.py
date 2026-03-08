@@ -33,9 +33,7 @@ async def test_emitter_emit_and_get():
 @pytest.mark.asyncio
 async def test_emitter_complete_stops_iteration():
     emitter = ExecutionEventEmitter("corr-2")
-    await emitter.emit(
-        ExecutionEvent(event_type=ExecutionEventType.orchestration_started)
-    )
+    await emitter.emit(ExecutionEvent(event_type=ExecutionEventType.orchestration_started))
     await emitter.complete()
     event = await emitter.get(timeout=1.0)
     assert event is not None
@@ -143,7 +141,9 @@ async def test_emitter_get_no_timeout_blocks():
     async def delayed_emit():
         await asyncio.sleep(0.05)
         await emitter.emit(
-            ExecutionEvent(event_type=ExecutionEventType.agent_started, task_id="delayed", agent_id="a1")
+            ExecutionEvent(
+                event_type=ExecutionEventType.agent_started, task_id="delayed", agent_id="a1"
+            )
         )
 
     asyncio.create_task(delayed_emit())

@@ -17,7 +17,7 @@ from tests.helpers.service_bus import build_test_event_bus
 
 ORCHESTRATOR_SERVICE_PATH = (
     Path(__file__).resolve().parents[2]
-    / "apps"
+    / "services"
     / "orchestration-service"
     / "src"
     / "orchestrator.py"

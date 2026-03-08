@@ -46,9 +46,7 @@ async def handle_manage_policy(
         "approval_status": "Draft",
         "document_url": policy_data.get("document_url"),
         "related_regulations": policy_data.get("related_regulations", []),
-        "version_history": (
-            existing_policy.get("version_history", []) if existing_policy else []
-        ),
+        "version_history": (existing_policy.get("version_history", []) if existing_policy else []),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 

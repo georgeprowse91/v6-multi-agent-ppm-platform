@@ -11,12 +11,13 @@ import sys
 from pathlib import Path
 
 import pytest
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 # Import router directly to avoid routes/__init__.py triggering unrelated imports.
-_mod_path = Path(__file__).resolve().parents[2] / "apps" / "web" / "src" / "routes" / "security_posture.py"
+_mod_path = (
+    Path(__file__).resolve().parents[2] / "apps" / "web" / "src" / "routes" / "security_posture.py"
+)
 _spec = importlib.util.spec_from_file_location("security_posture", _mod_path)
 _mod = importlib.util.module_from_spec(_spec)
 sys.modules["security_posture"] = _mod
@@ -108,7 +109,9 @@ def test_test_policy_not_between(client):
                 "name": "Time Policy",
                 "description": "test",
                 "effect": "deny",
-                "conditions": [{"field": "request.hour", "operator": "not_between", "value": [8, 18]}],
+                "conditions": [
+                    {"field": "request.hour", "operator": "not_between", "value": [8, 18]}
+                ],
             },
             "context": {"request": {"hour": 22}},
         },
@@ -237,7 +240,9 @@ def test_test_policy_not_in_operator(client):
                 "name": "Not In Test",
                 "description": "test",
                 "effect": "deny",
-                "conditions": [{"field": "subject.region", "operator": "not_in", "value": ["US", "EU"]}],
+                "conditions": [
+                    {"field": "subject.region", "operator": "not_in", "value": ["US", "EU"]}
+                ],
             },
             "context": {"subject": {"region": "CN"}},
         },
@@ -256,7 +261,9 @@ def test_test_policy_contains_operator(client):
                 "name": "Contains Test",
                 "description": "test",
                 "effect": "deny",
-                "conditions": [{"field": "subject.groups", "operator": "contains", "value": "admin"}],
+                "conditions": [
+                    {"field": "subject.groups", "operator": "contains", "value": "admin"}
+                ],
             },
             "context": {"subject": {"groups": "admin,user,viewer"}},
         },
@@ -293,11 +300,23 @@ def test_update_existing_policy(client):
     """Updating an existing policy should replace it."""
     client.post(
         "/api/security/policies",
-        json={"policy_id": "upd-pol", "name": "V1", "description": "v1", "effect": "deny", "conditions": []},
+        json={
+            "policy_id": "upd-pol",
+            "name": "V1",
+            "description": "v1",
+            "effect": "deny",
+            "conditions": [],
+        },
     )
     resp = client.post(
         "/api/security/policies",
-        json={"policy_id": "upd-pol", "name": "V2", "description": "v2", "effect": "allow", "conditions": []},
+        json={
+            "policy_id": "upd-pol",
+            "name": "V2",
+            "description": "v2",
+            "effect": "allow",
+            "conditions": [],
+        },
     )
     assert resp.status_code == 200
     assert resp.json()["name"] == "V2"

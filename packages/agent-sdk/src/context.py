@@ -51,8 +51,18 @@ class AgentContext:
             project_id=context.get("project_id", input_data.get("project_id")),
             environment=context.get("environment", "production"),
             feature_flags=context.get("feature_flags", {}),
-            extra={k: v for k, v in context.items() if k not in {
-                "tenant_id", "correlation_id", "user_id", "user_roles",
-                "project_id", "environment", "feature_flags",
-            }},
+            extra={
+                k: v
+                for k, v in context.items()
+                if k
+                not in {
+                    "tenant_id",
+                    "correlation_id",
+                    "user_id",
+                    "user_roles",
+                    "project_id",
+                    "environment",
+                    "feature_flags",
+                }
+            },
         )

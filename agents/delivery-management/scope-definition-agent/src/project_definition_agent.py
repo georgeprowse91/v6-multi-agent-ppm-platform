@@ -32,8 +32,6 @@ from definition_actions.baseline_actions import handle_get_baseline
 from definition_models import Requirement, TraceabilityEntry, WBSItem
 from definition_utils import extract_wbs_item_ids
 from definition_utils import generate_traceability_matrix as _generate_traceability_matrix
-
-from agents.common.web_search import search_web  # noqa: F401
 from scope_research import generate_scope_from_search  # noqa: F401
 
 from agents.common.connector_integration import (
@@ -42,6 +40,7 @@ from agents.common.connector_integration import (
     ProjectManagementService,
 )
 from agents.common.integration_services import LocalEmbeddingService, VectorSearchIndex
+from agents.common.web_search import search_web  # noqa: F401
 from agents.runtime import BaseAgent, get_event_bus
 from agents.runtime.src.state_store import TenantStateStore
 
@@ -59,7 +58,9 @@ class ProjectDefinitionAgent(BaseAgent):
     - Requirements validation & verification
     """
 
-    def __init__(self, agent_id: str = "scope-definition-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "scope-definition-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
 
         # Configuration parameters
@@ -276,7 +277,8 @@ class ProjectDefinitionAgent(BaseAgent):
         elif action == "manage_requirements":
             return await handle_manage_requirements(
                 self,
-                input_data.get("project_id"), input_data.get("requirements", [])  # type: ignore
+                input_data.get("project_id"),
+                input_data.get("requirements", []),  # type: ignore
             )
 
         elif action == "create_traceability_matrix":
@@ -285,7 +287,8 @@ class ProjectDefinitionAgent(BaseAgent):
         elif action == "analyze_stakeholders":
             return await handle_analyze_stakeholders(
                 self,
-                input_data.get("project_id"), input_data.get("stakeholders", [])  # type: ignore
+                input_data.get("project_id"),
+                input_data.get("stakeholders", []),  # type: ignore
             )
 
         elif action == "create_raci_matrix":
@@ -302,7 +305,8 @@ class ProjectDefinitionAgent(BaseAgent):
         elif action == "detect_scope_creep":
             return await handle_detect_scope_creep(
                 self,
-                input_data.get("project_id"), input_data.get("current_scope", {})  # type: ignore
+                input_data.get("project_id"),
+                input_data.get("current_scope", {}),  # type: ignore
             )
 
         elif action == "get_baseline":

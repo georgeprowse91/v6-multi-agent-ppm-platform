@@ -1,10 +1,11 @@
+from sqlalchemy.orm import Session
+
 from integrations.services.integration.persistence import (
     Base,
     InMemoryDocumentStore,
     SqlRepository,
     create_sql_engine,
 )
-from sqlalchemy.orm import Session
 
 
 def test_sql_repository_persists_risk_record():

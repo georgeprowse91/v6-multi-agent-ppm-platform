@@ -76,9 +76,7 @@ async def implement_change(
         details={"validation": validation, "automated_tests": automated_tests},
     )
 
-    coordination = await coordinate_release_and_governance(
-        agent, change, tenant_id, correlation_id
-    )
+    coordination = await coordinate_release_and_governance(agent, change, tenant_id, correlation_id)
     if coordination.get("deployment_status") == "scheduled":
         change["status"] = "Scheduled"
     await agent.db_service.store("change_requests", change_id, change)
@@ -238,9 +236,7 @@ async def coordinate_release_and_governance(
             req = request.Request(agent.release_deployment_endpoint, data=body, method="POST")
             req.add_header("Content-Type", "application/json")
             with request.urlopen(req, timeout=10) as response:
-                coordination["deployment_status"] = (
-                    response.read().decode("utf-8") or "scheduled"
-                )
+                coordination["deployment_status"] = response.read().decode("utf-8") or "scheduled"
         except OSError as exc:
             coordination["deployment_status"] = f"error:{exc}"
     else:

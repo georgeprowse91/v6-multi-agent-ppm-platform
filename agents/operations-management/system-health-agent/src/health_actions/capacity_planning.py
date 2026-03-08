@@ -32,9 +32,7 @@ async def get_capacity_recommendations(
     }
 
 
-async def forecast_capacity(
-    agent: SystemHealthAgent, service_name: str | None
-) -> dict[str, Any]:
+async def forecast_capacity(agent: SystemHealthAgent, service_name: str | None) -> dict[str, Any]:
     utilization_trends = await analyze_utilization_trends(agent, service_name)
     forecasts = await forecast_capacity_needs(utilization_trends)
     return {

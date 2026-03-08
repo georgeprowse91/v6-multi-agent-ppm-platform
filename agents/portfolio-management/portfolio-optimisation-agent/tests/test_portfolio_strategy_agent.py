@@ -18,15 +18,16 @@ import pytest
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parents[3]
 SRC_DIR = TESTS_DIR.parent / "src"
-sys.path.extend([
-    str(SRC_DIR),
-    str(REPO_ROOT),
-    str(REPO_ROOT / "packages"),
-    str(REPO_ROOT / "agents" / "runtime"),
-])
+sys.path.extend(
+    [
+        str(SRC_DIR),
+        str(REPO_ROOT),
+        str(REPO_ROOT / "packages"),
+        str(REPO_ROOT / "agents" / "runtime"),
+    ]
+)
 
 from portfolio_strategy_agent import PortfolioStrategyAgent
-
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
@@ -113,9 +114,7 @@ async def test_validate_input_accepts_prioritize_portfolio(tmp_path: Path) -> No
 @pytest.mark.asyncio
 async def test_validate_input_rejects_optimize_without_constraints(tmp_path: Path) -> None:
     agent = _make_agent(tmp_path)
-    result = await agent.validate_input(
-        {"action": "optimize_portfolio", "constraints": {}}
-    )
+    result = await agent.validate_input({"action": "optimize_portfolio", "constraints": {}})
     assert result is False
 
 

@@ -76,6 +76,7 @@ async def process_query(request: QueryRequest, http_request: Request) -> AgentRe
     This endpoint routes the query through the Intent Router and Response Orchestration agents.
     """
     import sys
+
     _main = sys.modules.get("api.main")
     orchestrator = getattr(_main, "orchestrator", None) or getattr(
         http_request.app.state, "orchestrator", None
@@ -124,6 +125,7 @@ async def list_agents(request: Request) -> dict[str, Any]:
     Returns information about all loaded agents and their capabilities.
     """
     import sys
+
     _main = sys.modules.get("api.main")
     orchestrator = getattr(_main, "orchestrator", None) or getattr(
         request.app.state, "orchestrator", None
@@ -144,6 +146,7 @@ async def get_agent_info(agent_id: str, request: Request) -> dict[str, Any]:
     Get information about a specific agent.
     """
     import sys
+
     _main = sys.modules.get("api.main")
     orchestrator = getattr(_main, "orchestrator", None) or getattr(
         request.app.state, "orchestrator", None

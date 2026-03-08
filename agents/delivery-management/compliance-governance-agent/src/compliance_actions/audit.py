@@ -71,9 +71,7 @@ async def handle_prepare_audit(
     }
 
 
-async def handle_conduct_audit(
-    agent: ComplianceRegulatoryAgent, audit_id: str
-) -> dict[str, Any]:
+async def handle_conduct_audit(agent: ComplianceRegulatoryAgent, audit_id: str) -> dict[str, Any]:
     """
     Conduct audit and record findings.
 
@@ -214,9 +212,7 @@ async def _compile_evidence(
     return evidence_package
 
 
-async def _generate_control_summary(
-    agent: ComplianceRegulatoryAgent, project_id: str
-) -> list[str]:
+async def _generate_control_summary(agent: ComplianceRegulatoryAgent, project_id: str) -> list[str]:
     """Generate control summary for audit."""
     mapping = agent.compliance_mappings.get(project_id)
     if not mapping:

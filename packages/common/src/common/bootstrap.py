@@ -55,7 +55,7 @@ def ensure_monorepo_paths(repo_root: Path | None = None) -> None:
 
     # Prioritise api-gateway/src so its ``api`` package wins over
     # packages/contracts/src/api which would otherwise shadow it.
-    api_gw = root / "apps" / "api-gateway" / "src"
+    api_gw = root / "services" / "api-gateway" / "src"
     prioritized: list[Path] = []
     if api_gw.exists():
         prioritized.append(api_gw)

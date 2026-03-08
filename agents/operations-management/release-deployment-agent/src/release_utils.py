@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 # ID generators
 # ---------------------------------------------------------------------------
 
+
 async def generate_release_id() -> str:
     """Generate unique release ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -55,6 +56,7 @@ async def generate_readiness_assessment_id() -> str:
 # Event publishing
 # ---------------------------------------------------------------------------
 
+
 async def publish_event(agent: ReleaseAgentProtocol, topic: str, payload: dict[str, Any]) -> None:
     if not agent.event_bus:
         return
@@ -64,6 +66,7 @@ async def publish_event(agent: ReleaseAgentProtocol, topic: str, payload: dict[s
 # ---------------------------------------------------------------------------
 # Filter helpers
 # ---------------------------------------------------------------------------
+
 
 async def matches_filters(release: dict[str, Any], filters: dict[str, Any]) -> bool:
     """Check if release matches filters."""
@@ -87,6 +90,7 @@ async def matches_history_filters(record: dict[str, Any], filters: dict[str, Any
 # ---------------------------------------------------------------------------
 # Scheduling conflict detection
 # ---------------------------------------------------------------------------
+
 
 async def detect_scheduling_conflicts(
     agent: ReleaseAgentProtocol, planned_date: str, environment: str
@@ -112,6 +116,7 @@ async def detect_scheduling_conflicts(
 # ---------------------------------------------------------------------------
 # Environment reservation / release
 # ---------------------------------------------------------------------------
+
 
 async def reserve_environment(
     agent: ReleaseAgentProtocol, environment: str, planned_date: str, release_id: str
@@ -156,9 +161,7 @@ async def reserve_environment(
         "status": "reserved",
     }
     agent.environment_allocations[allocation["allocation_id"]] = allocation
-    await agent.db_service.store(
-        "environment_allocations", allocation["allocation_id"], allocation
-    )
+    await agent.db_service.store("environment_allocations", allocation["allocation_id"], allocation)
     await publish_event(
         agent,
         "environment.reserved",
@@ -201,8 +204,7 @@ async def release_environment_allocation(
         (
             allocation
             for allocation in agent.environment_allocations.values()
-            if allocation.get("release_id") == release_id
-            and allocation.get("status") == "reserved"
+            if allocation.get("release_id") == release_id and allocation.get("status") == "reserved"
         ),
         None,
     )
@@ -214,9 +216,7 @@ async def release_environment_allocation(
         agent.environment_reservation_client, "release"
     ):
         await agent.environment_reservation_client.release(allocation)
-    await agent.db_service.store(
-        "environment_allocations", allocation["allocation_id"], allocation
-    )
+    await agent.db_service.store("environment_allocations", allocation["allocation_id"], allocation)
     await publish_event(
         agent,
         "environment.released",
@@ -232,6 +232,7 @@ async def release_environment_allocation(
 # ---------------------------------------------------------------------------
 # Deployment window scoring & optimization
 # ---------------------------------------------------------------------------
+
 
 async def analyze_usage_patterns(agent: ReleaseAgentProtocol, environment: str) -> dict[str, Any]:
     """Analyze usage patterns."""
@@ -260,9 +261,7 @@ async def fetch_resource_availability(
     return {"capacity_score": 0.7, "available_slots": 2}
 
 
-async def fetch_risk_exposure(
-    agent: ReleaseAgentProtocol, environment: str
-) -> dict[str, Any]:
+async def fetch_risk_exposure(agent: ReleaseAgentProtocol, environment: str) -> dict[str, Any]:
     if agent.risk_agent:
         response = await agent.risk_agent.process(
             {"action": "get_deployment_risk", "environment": environment}
@@ -271,18 +270,14 @@ async def fetch_risk_exposure(
     return {"risk_score": 0.3, "risk_level": "low"}
 
 
-async def fetch_system_health(
-    agent: ReleaseAgentProtocol, environment: str
-) -> dict[str, Any]:
+async def fetch_system_health(agent: ReleaseAgentProtocol, environment: str) -> dict[str, Any]:
     if agent.monitoring_client and hasattr(agent.monitoring_client, "get_environment_health"):
         response = await agent.monitoring_client.get_environment_health(environment)
         return cast(dict[str, Any], response)
     return {"health_score": 0.8, "status": "healthy"}
 
 
-async def fetch_business_calendar(
-    agent: ReleaseAgentProtocol, environment: str
-) -> dict[str, Any]:
+async def fetch_business_calendar(agent: ReleaseAgentProtocol, environment: str) -> dict[str, Any]:
     if agent.configuration_management_client and hasattr(
         agent.configuration_management_client, "get_business_calendar"
     ):
@@ -383,6 +378,7 @@ async def suggest_alternative_windows(
 # Pipeline step construction
 # ---------------------------------------------------------------------------
 
+
 async def build_pipeline_steps(
     strategy: str, steps: list[dict[str, Any]], deployment_plan: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -415,6 +411,7 @@ async def build_pipeline_steps(
 # ---------------------------------------------------------------------------
 # Monitoring helpers
 # ---------------------------------------------------------------------------
+
 
 async def fetch_monitoring_metrics(
     agent: ReleaseAgentProtocol, deployment_plan: dict[str, Any]
@@ -462,6 +459,7 @@ async def check_application_health(
 # Tracking-system queries
 # ---------------------------------------------------------------------------
 
+
 async def query_tracking_systems(
     agent: ReleaseAgentProtocol, release_id: str, *, record_type: str
 ) -> list[dict[str, Any]]:
@@ -489,6 +487,7 @@ async def query_tracking_systems(
 # ---------------------------------------------------------------------------
 # Deployment history recording
 # ---------------------------------------------------------------------------
+
 
 async def record_deployment_history(
     agent: ReleaseAgentProtocol,
@@ -519,15 +518,14 @@ async def record_deployment_history(
 # Rollback helpers
 # ---------------------------------------------------------------------------
 
+
 async def build_rollback_plan(
     agent: ReleaseAgentProtocol,
     deployment_plan: dict[str, Any],
     rollback_steps: list[dict[str, Any]],
 ) -> dict[str, Any]:
     deployment_plan_id = deployment_plan.get("deployment_plan_id")
-    artifacts = (
-        agent.deployment_artifacts.get(deployment_plan_id, []) if deployment_plan_id else []
-    )
+    artifacts = agent.deployment_artifacts.get(deployment_plan_id, []) if deployment_plan_id else []
     previous_release = deployment_plan.get("previous_release") or deployment_plan.get(
         "rollback_release"
     )
@@ -546,15 +544,11 @@ async def build_rollback_plan(
     return rollback_plan
 
 
-async def write_rollback_script(
-    agent: ReleaseAgentProtocol, rollback_plan: dict[str, Any]
-) -> str:
+async def write_rollback_script(agent: ReleaseAgentProtocol, rollback_plan: dict[str, Any]) -> str:
     agent.rollback_scripts_path.mkdir(parents=True, exist_ok=True)
     deployment_plan_id = rollback_plan.get("deployment_plan_id") or str(uuid.uuid4())
     script_path = agent.rollback_scripts_path / f"rollback_{deployment_plan_id}.sh"
-    artifact_ids = [
-        artifact.get("artifact_id") for artifact in rollback_plan.get("artifacts", [])
-    ]
+    artifact_ids = [artifact.get("artifact_id") for artifact in rollback_plan.get("artifacts", [])]
     script_contents = "\n".join(
         [
             "#!/bin/bash",
@@ -597,6 +591,7 @@ async def orchestrate_rollback(rollback_plan: dict[str, Any]) -> dict[str, Any]:
 # CI/CD pipeline triggers
 # ---------------------------------------------------------------------------
 
+
 async def trigger_azure_devops_pipeline(
     agent: ReleaseAgentProtocol,
     deployment_plan: dict[str, Any],
@@ -624,6 +619,7 @@ async def trigger_github_actions_workflow(
 # ---------------------------------------------------------------------------
 # Deployment artifact & log capture
 # ---------------------------------------------------------------------------
+
 
 async def capture_deployment_artifacts(
     agent: ReleaseAgentProtocol,
@@ -674,6 +670,7 @@ async def persist_deployment_log(
 # Azure Policy compliance
 # ---------------------------------------------------------------------------
 
+
 async def check_azure_policy_compliance(
     agent: ReleaseAgentProtocol, environment: dict[str, Any]
 ) -> dict[str, Any]:
@@ -695,9 +692,8 @@ async def check_azure_policy_compliance(
 # Readiness blocker collection
 # ---------------------------------------------------------------------------
 
-async def collect_readiness_blockers(
-    checks: dict[str, dict[str, Any]]
-) -> list[dict[str, Any]]:
+
+async def collect_readiness_blockers(checks: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     blockers: list[dict[str, Any]] = []
     for name, result in checks.items():
         issues = result.get("issues", [])

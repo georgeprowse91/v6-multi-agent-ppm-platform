@@ -127,16 +127,24 @@ class AnnotationStore:
                     "block_id, content, annotation_type, created_at, dismissed, applied) "
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (
-                        annotation.annotation_id, session_id, annotation.agent_id,
-                        annotation.agent_name, annotation.block_id, annotation.content,
-                        annotation.annotation_type, annotation.created_at,
-                        int(annotation.dismissed), int(annotation.applied),
+                        annotation.annotation_id,
+                        session_id,
+                        annotation.agent_id,
+                        annotation.agent_name,
+                        annotation.block_id,
+                        annotation.content,
+                        annotation.annotation_type,
+                        annotation.created_at,
+                        int(annotation.dismissed),
+                        int(annotation.applied),
                     ),
                 )
                 logger.info(
                     "Created annotation %s for session %s (type=%s, agent=%s)",
-                    annotation.annotation_id, session_id,
-                    annotation.annotation_type, annotation.agent_id,
+                    annotation.annotation_id,
+                    session_id,
+                    annotation.annotation_type,
+                    annotation.agent_id,
                 )
                 return annotation
         except (sqlite3.OperationalError, OSError):
@@ -144,8 +152,10 @@ class AnnotationStore:
             self._fallback_store.setdefault(session_id, []).append(annotation)
             logger.info(
                 "Created annotation %s for session %s in fallback store (type=%s, agent=%s)",
-                annotation.annotation_id, session_id,
-                annotation.annotation_type, annotation.agent_id,
+                annotation.annotation_id,
+                session_id,
+                annotation.annotation_type,
+                annotation.agent_id,
             )
             return annotation
 
@@ -227,7 +237,9 @@ class AnnotationStore:
                 )
                 count = cursor.rowcount
                 logger.info(
-                    "Deleted %d annotations for session %s", count, session_id,
+                    "Deleted %d annotations for session %s",
+                    count,
+                    session_id,
                 )
                 return count
         except (sqlite3.OperationalError, OSError):
@@ -235,7 +247,8 @@ class AnnotationStore:
             count = len(annotations)
             logger.info(
                 "Deleted %d annotations for session %s from fallback store",
-                count, session_id,
+                count,
+                session_id,
             )
             return count
 
@@ -348,24 +361,28 @@ async def generate_suggestions(
     for signal in _AGENT_SIGNALS:
         if signal["keywords"]:
             if any(kw in content_lower for kw in signal["keywords"]):
-                suggestions.append(Annotation(
+                suggestions.append(
+                    Annotation(
+                        session_id=session_id,
+                        agent_id=signal["agent_id"],
+                        agent_name=signal["agent_name"],
+                        block_id=block_id,
+                        content=signal["template"],
+                        annotation_type=signal["annotation_type"],
+                    )
+                )
+        elif len(block_content) > 500:
+            # Knowledge agent triggered by content length
+            suggestions.append(
+                Annotation(
                     session_id=session_id,
                     agent_id=signal["agent_id"],
                     agent_name=signal["agent_name"],
                     block_id=block_id,
                     content=signal["template"],
                     annotation_type=signal["annotation_type"],
-                ))
-        elif len(block_content) > 500:
-            # Knowledge agent triggered by content length
-            suggestions.append(Annotation(
-                session_id=session_id,
-                agent_id=signal["agent_id"],
-                agent_name=signal["agent_name"],
-                block_id=block_id,
-                content=signal["template"],
-                annotation_type=signal["annotation_type"],
-            ))
+                )
+            )
 
     return suggestions
 

@@ -118,9 +118,7 @@ async def handle_match_skills(
             semantic_similarity = cosine_similarity(query_embedding, resource_embedding)
             performance_score = await get_performance_score(agent, resource_id, project_context)
             combined_score = (
-                match["weighted_score"] * 0.5
-                + semantic_similarity * 0.3
-                + performance_score * 0.2
+                match["weighted_score"] * 0.5 + semantic_similarity * 0.3 + performance_score * 0.2
             )
 
             if combined_score >= agent.skill_matching_threshold:

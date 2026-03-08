@@ -23,6 +23,7 @@ from agents.common.health_recommendations import generate_recommendations, ident
 # ID generators
 # ---------------------------------------------------------------------------
 
+
 async def generate_dashboard_id() -> str:
     """Generate unique dashboard ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -62,6 +63,7 @@ async def generate_lineage_id() -> str:
 # ---------------------------------------------------------------------------
 # Data helpers
 # ---------------------------------------------------------------------------
+
 
 async def maybe_await(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     """Call *func* and ``await`` the result only when it is awaitable."""
@@ -149,9 +151,8 @@ def redact_payload(payload: dict[str, Any]) -> dict[str, Any]:
 # Event filtering
 # ---------------------------------------------------------------------------
 
-def filter_events(
-    events: list[dict[str, Any]], event_types: set[str]
-) -> list[dict[str, Any]]:
+
+def filter_events(events: list[dict[str, Any]], event_types: set[str]) -> list[dict[str, Any]]:
     """Return events whose ``event_type`` is in *event_types*."""
     return [event for event in events if event.get("event_type") in event_types]
 
@@ -159,6 +160,7 @@ def filter_events(
 # ---------------------------------------------------------------------------
 # Event record storage
 # ---------------------------------------------------------------------------
+
 
 async def store_event_record(
     agent: Any,
@@ -186,6 +188,7 @@ async def store_event_record(
 # Lineage recording
 # ---------------------------------------------------------------------------
 
+
 async def record_data_lineage(
     agent: Any,
     tenant_id: str,
@@ -209,6 +212,7 @@ async def record_data_lineage(
 # ---------------------------------------------------------------------------
 # Health portfolio helpers
 # ---------------------------------------------------------------------------
+
 
 async def get_health_history(
     agent: Any, tenant_id: str, project_id: str | None = None
@@ -276,6 +280,7 @@ async def summarize_health_portfolio(agent: Any, tenant_id: str) -> dict[str, An
 # KPI calculation helpers
 # ---------------------------------------------------------------------------
 
+
 async def get_events_for_tenant(agent: Any, tenant_id: str) -> list[dict[str, Any]]:
     """Return all analytics events for a tenant."""
     events = agent.event_history.get(tenant_id, [])
@@ -314,9 +319,7 @@ async def calculate_kpi_value(agent: Any, kpi_config: dict[str, Any]) -> float:
         return len(recent) / 4.0 if recent else 0.0
     if metric_name == "resource.utilization.avg":
         allocations = []
-        for event in filter_events(
-            events, {"resource.allocation.created", "resource.updated"}
-        ):
+        for event in filter_events(events, {"resource.allocation.created", "resource.updated"}):
             payload = event.get("payload", {})
             raw = payload.get("allocation_percentage")
             if raw is None:
@@ -384,9 +387,7 @@ async def calculate_kpi_trend(
     return "stable"
 
 
-async def check_kpi_thresholds(
-    value: float, thresholds: dict[str, float]
-) -> dict[str, Any]:
+async def check_kpi_thresholds(value: float, thresholds: dict[str, float]) -> dict[str, Any]:
     """Check KPI against thresholds."""
     breached = False
     if "min" in thresholds and value < thresholds["min"]:
@@ -403,6 +404,7 @@ async def check_kpi_thresholds(
 # ---------------------------------------------------------------------------
 # Widget helpers
 # ---------------------------------------------------------------------------
+
 
 async def configure_widgets(widgets: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Configure dashboard widgets."""

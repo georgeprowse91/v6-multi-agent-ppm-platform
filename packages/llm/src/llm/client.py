@@ -451,7 +451,9 @@ class LLMGateway:
 
                 client = _redis.from_url(redis_url, decode_responses=True)
                 client.ping()
-                logger.info("llm_cache_backend", extra={"backend": "redis", "url": redis_url.split("@")[-1]})
+                logger.info(
+                    "llm_cache_backend", extra={"backend": "redis", "url": redis_url.split("@")[-1]}
+                )
                 return RedisSemanticCache(
                     client,
                     ttl_seconds=ttl,

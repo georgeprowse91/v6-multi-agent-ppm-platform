@@ -12,11 +12,8 @@ Tests cover:
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
-from typing import Any
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -27,18 +24,21 @@ _REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO / "tests" / "unit"))
 
 from _route_test_helpers import load_route_module  # noqa: E402
-
 from fastapi import FastAPI  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
-
 
 # ---------------------------------------------------------------------------
 # 1. Decision Actions — post-approval hook
 # ---------------------------------------------------------------------------
 
 _DECISION_ACTIONS_PATH = (
-    _REPO / "agents" / "core-orchestration"
-    / "approval-workflow-agent" / "src" / "actions" / "decision_actions.py"
+    _REPO
+    / "agents"
+    / "core-orchestration"
+    / "approval-workflow-agent"
+    / "src"
+    / "actions"
+    / "decision_actions.py"
 )
 
 
@@ -395,14 +395,24 @@ class TestProjectSetupRoutes:
 
 class TestCSSModules:
     def test_intake_status_css_has_approval_actions(self):
-        css = (_REPO / "apps" / "web" / "frontend" / "src" / "pages" / "IntakeStatusPage.module.css").read_text()
+        css = (
+            _REPO / "apps" / "web" / "frontend" / "src" / "pages" / "IntakeStatusPage.module.css"
+        ).read_text()
         assert ".approvalActions" in css
         assert ".configureBtn" in css
         assert ".projectCreated" in css
         assert ".setupPrompt" in css
 
     def test_wizard_css_has_connector_styles(self):
-        css = (_REPO / "apps" / "web" / "frontend" / "src" / "pages" / "ProjectSetupWizardPage.module.css").read_text()
+        css = (
+            _REPO
+            / "apps"
+            / "web"
+            / "frontend"
+            / "src"
+            / "pages"
+            / "ProjectSetupWizardPage.module.css"
+        ).read_text()
         assert ".connectorGrid" in css
         assert ".connectorCard" in css
         assert ".connectorEnabled" in css
@@ -411,7 +421,15 @@ class TestCSSModules:
         assert ".connectorToggle" in css
 
     def test_wizard_css_has_team_styles(self):
-        css = (_REPO / "apps" / "web" / "frontend" / "src" / "pages" / "ProjectSetupWizardPage.module.css").read_text()
+        css = (
+            _REPO
+            / "apps"
+            / "web"
+            / "frontend"
+            / "src"
+            / "pages"
+            / "ProjectSetupWizardPage.module.css"
+        ).read_text()
         assert ".teamTable" in css
         assert ".teamInputRow" in css
         assert ".roleBadge" in css
@@ -419,7 +437,15 @@ class TestCSSModules:
         assert ".removeBtn" in css
 
     def test_wizard_css_has_launch_summary(self):
-        css = (_REPO / "apps" / "web" / "frontend" / "src" / "pages" / "ProjectSetupWizardPage.module.css").read_text()
+        css = (
+            _REPO
+            / "apps"
+            / "web"
+            / "frontend"
+            / "src"
+            / "pages"
+            / "ProjectSetupWizardPage.module.css"
+        ).read_text()
         assert ".launchSummary" in css
         assert ".summaryGrid" in css
         assert ".summaryItem" in css

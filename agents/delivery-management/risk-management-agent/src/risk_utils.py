@@ -36,6 +36,7 @@ if TYPE_CHECKING:
 # ID generation
 # ---------------------------------------------------------------------------
 
+
 async def generate_risk_id() -> str:
     """Generate unique risk ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -51,6 +52,7 @@ async def generate_mitigation_plan_id() -> str:
 # ---------------------------------------------------------------------------
 # Risk classification & rating helpers
 # ---------------------------------------------------------------------------
+
 
 async def classify_risk_level(agent: RiskManagementAgent, score: float) -> str:
     """Classify risk level based on score."""
@@ -131,6 +133,7 @@ def fallback_risk_classification(
 # Risk assessment helpers
 # ---------------------------------------------------------------------------
 
+
 async def initial_risk_assessment(risk_data: dict[str, Any]) -> dict[str, Any]:
     """Perform initial risk assessment."""
     probability = risk_data.get("probability", 3)
@@ -148,9 +151,9 @@ async def build_risk_features(agent: RiskManagementAgent, risk: dict[str, Any]) 
     baseline_cost = financial_distribution.get("baseline_cost", 1_000_000) or 1_000_000
 
     quality_score = risk.get("quality_score") or risk.get("quality_metrics", {}).get("score")
-    resource_utilization = risk.get("resource_utilization") or risk.get(
-        "resource_metrics", {}
-    ).get("utilization")
+    resource_utilization = risk.get("resource_utilization") or risk.get("resource_metrics", {}).get(
+        "utilization"
+    )
     schedule_pressure = float(schedule_delay) / max(1.0, float(baseline_duration))
     cost_pressure = float(cost_overrun) / max(1.0, float(baseline_cost))
     quality_pressure = 1 - (float(quality_score) if quality_score is not None else 0.8)
@@ -225,9 +228,7 @@ async def predict_risk_metrics(agent: RiskManagementAgent, risk: dict[str, Any])
             impact = result.get("impact")
             if probability or impact:
                 return {
-                    "probability": coerce_rating(
-                        probability, fallback=risk.get("probability", 3)
-                    ),
+                    "probability": coerce_rating(probability, fallback=risk.get("probability", 3)),
                     "impact": coerce_rating(impact, fallback=risk.get("impact", 3)),
                     "severity_score": result.get("severity_score"),
                 }
@@ -235,9 +236,7 @@ async def predict_risk_metrics(agent: RiskManagementAgent, risk: dict[str, Any])
             mock_probability = features.get("risk_indicator", risk.get("probability", 3))
             mock_impact = features.get("impact_indicator", risk.get("impact", 3))
             return {
-                "probability": coerce_rating(
-                    mock_probability, fallback=risk.get("probability", 3)
-                ),
+                "probability": coerce_rating(mock_probability, fallback=risk.get("probability", 3)),
                 "impact": coerce_rating(mock_impact, fallback=risk.get("impact", 3)),
             }
 
@@ -256,9 +255,7 @@ async def predict_risk_metrics(agent: RiskManagementAgent, risk: dict[str, Any])
                 "probability": coerce_rating(
                     round(probability_pred), fallback=risk.get("probability", 3)
                 ),
-                "impact": coerce_rating(
-                    round(impact_pred), fallback=risk.get("impact", 3)
-                ),
+                "impact": coerce_rating(round(impact_pred), fallback=risk.get("impact", 3)),
             }
         except (
             ConnectionError,
@@ -291,14 +288,10 @@ async def predict_risk_metrics(agent: RiskManagementAgent, risk: dict[str, Any])
 
     if probability is None or impact is None:
         category = risk.get("category")
-        category_risks = [
-            r for r in agent.risk_register.values() if r.get("category") == category
-        ]
+        category_risks = [r for r in agent.risk_register.values() if r.get("category") == category]
         if category_risks:
             probability_values = [
-                r.get("probability", 3)
-                for r in category_risks
-                if r.get("probability") is not None
+                r.get("probability", 3) for r in category_risks if r.get("probability") is not None
             ]
             impact_values = [
                 r.get("impact", 3) for r in category_risks if r.get("impact") is not None
@@ -346,6 +339,7 @@ async def calculate_quantitative_impact(
 # Mitigation helpers
 # ---------------------------------------------------------------------------
 
+
 async def recommend_mitigation_strategies(
     agent: RiskManagementAgent, risk: dict[str, Any]
 ) -> list[str]:
@@ -363,9 +357,7 @@ async def recommend_mitigation_strategies(
     return base_strategies
 
 
-async def calculate_residual_risk(
-    risk: dict[str, Any], mitigation_plan: dict[str, Any]
-) -> float:
+async def calculate_residual_risk(risk: dict[str, Any], mitigation_plan: dict[str, Any]) -> float:
     """Calculate residual risk after mitigation."""
     original_score = risk.get("score", 0)
     reduction_factors = {"avoid": 0.9, "mitigate": 0.5, "transfer": 0.3, "accept": 0.0}
@@ -446,6 +438,7 @@ async def create_mitigation_tasks(
 # Trigger helpers
 # ---------------------------------------------------------------------------
 
+
 async def check_risk_triggers(risk: dict[str, Any]) -> dict[str, Any]:
     """Check if risk triggers have been activated."""
     triggers = risk.get("triggers") or []
@@ -469,9 +462,7 @@ async def check_risk_triggers(risk: dict[str, Any]) -> dict[str, Any]:
     return {"triggered": False, "trigger": None, "new_score": risk.get("score")}
 
 
-async def update_risk_from_trigger(
-    risk: dict[str, Any], trigger_status: dict[str, Any]
-) -> None:
+async def update_risk_from_trigger(risk: dict[str, Any], trigger_status: dict[str, Any]) -> None:
     """Update risk probability/impact based on trigger."""
     risk["probability"] = min(5, risk.get("probability", 3) + 1)
     risk["score"] = risk["probability"] * risk.get("impact", 3)
@@ -497,14 +488,13 @@ async def register_triggers(
         if agent.db_service:
             await agent.db_service.store("risk_trigger_definitions", trigger_id, trigger_record)
     if normalized:
-        await store_risk_dataset(
-            agent, "risk_trigger_definitions", normalized, domain="triggers"
-        )
+        await store_risk_dataset(agent, "risk_trigger_definitions", normalized, domain="triggers")
 
 
 # ---------------------------------------------------------------------------
 # Monte Carlo helpers
 # ---------------------------------------------------------------------------
+
 
 async def perform_monte_carlo_simulation(
     project_id: str,
@@ -641,6 +631,7 @@ async def submit_simulation_job(
 # Data validation
 # ---------------------------------------------------------------------------
 
+
 async def validate_risk_record(
     agent: RiskManagementAgent, *, risk: dict[str, Any], tenant_id: str
 ) -> dict[str, Any]:
@@ -681,6 +672,7 @@ async def validate_risk_record(
 # ---------------------------------------------------------------------------
 # NLP extraction helpers
 # ---------------------------------------------------------------------------
+
 
 async def extract_risks_from_documents(
     agent: RiskManagementAgent, documents: list[dict[str, Any] | str]
@@ -747,6 +739,7 @@ async def train_risk_extractor(
 # Data lake / event bus / HTTP helpers
 # ---------------------------------------------------------------------------
 
+
 async def store_risk_dataset(
     agent: RiskManagementAgent,
     dataset_type: str,
@@ -758,9 +751,7 @@ async def store_risk_dataset(
     if not payload:
         return details
     if agent.data_lake_manager:
-        details["data_lake"] = agent.data_lake_manager.store_dataset(
-            dataset_type, domain, payload
-        )
+        details["data_lake"] = agent.data_lake_manager.store_dataset(dataset_type, domain, payload)
     if agent.synapse_manager:
         details["synapse"] = {
             "workspace": agent.synapse_manager.workspace_name,
@@ -847,6 +838,7 @@ async def fetch_financial_distribution(
 # Event handlers
 # ---------------------------------------------------------------------------
 
+
 async def handle_schedule_baseline_event(
     agent: RiskManagementAgent, payload: dict[str, Any]
 ) -> None:
@@ -856,9 +848,7 @@ async def handle_schedule_baseline_event(
     agent.latest_schedule_signals[project_id] = payload
 
 
-async def handle_schedule_delay_event(
-    agent: RiskManagementAgent, payload: dict[str, Any]
-) -> None:
+async def handle_schedule_delay_event(agent: RiskManagementAgent, payload: dict[str, Any]) -> None:
     project_id = payload.get("project_id")
     if not project_id:
         return
@@ -874,9 +864,7 @@ async def handle_financial_update_event(
     agent.latest_financial_signals[project_id] = payload
 
 
-async def handle_cost_overrun_event(
-    agent: RiskManagementAgent, payload: dict[str, Any]
-) -> None:
+async def handle_cost_overrun_event(agent: RiskManagementAgent, payload: dict[str, Any]) -> None:
     await evaluate_event_trigger(agent, payload, trigger_type="cost_overrun")
 
 
@@ -886,9 +874,7 @@ async def handle_milestone_missed_event(
     await evaluate_event_trigger(agent, payload, trigger_type="schedule_delay")
 
 
-async def handle_quality_event(
-    agent: RiskManagementAgent, payload: dict[str, Any]
-) -> None:
+async def handle_quality_event(agent: RiskManagementAgent, payload: dict[str, Any]) -> None:
     await evaluate_event_trigger(agent, payload, trigger_type="quality_defect_rate")
 
 
@@ -918,8 +904,7 @@ async def evaluate_event_trigger(
         or payload.get("slip_days")
         or payload.get("delay"),
         "quality_defect_rate": payload.get("defect_rate") or payload.get("quality_defect_rate"),
-        "resource_utilization": payload.get("utilization")
-        or payload.get("resource_utilization"),
+        "resource_utilization": payload.get("utilization") or payload.get("resource_utilization"),
     }
     threshold = threshold_map.get(trigger_type)
     current_value = value_map.get(trigger_type)
@@ -964,6 +949,7 @@ async def evaluate_event_trigger(
 # External risk signals
 # ---------------------------------------------------------------------------
 
+
 async def collect_external_risk_signals(
     agent: RiskManagementAgent, project_id: str
 ) -> list[dict[str, Any]]:
@@ -998,6 +984,7 @@ async def collect_external_risk_signals(
 # Project management service initialization
 # ---------------------------------------------------------------------------
 
+
 def initialize_project_management_services(
     config: dict[str, Any] | None,
 ) -> dict[str, ProjectManagementService]:
@@ -1012,9 +999,7 @@ def initialize_project_management_services(
             "jira": "JIRA_INSTANCE_URL",
             "azure_devops": "AZURE_DEVOPS_ORG_URL",
         }
-        if not (
-            config.get("enable_all_pm_connectors") or os.getenv(env_map[connector_type])
-        ):
+        if not (config.get("enable_all_pm_connectors") or os.getenv(env_map[connector_type])):
             continue
         services[connector_type] = ProjectManagementService({"connector_type": connector_type})
     return services
@@ -1024,12 +1009,27 @@ def initialize_project_management_services(
 # Agent configuration helper
 # ---------------------------------------------------------------------------
 
+
 def apply_config(agent: RiskManagementAgent, config: dict[str, Any] | None) -> None:
     """Set all config-derived attributes on *agent* during ``__init__``."""
     from risk_models import RiskNLPExtractor
 
-    _default_categories = ["technical", "schedule", "financial", "compliance", "external", "resource"]
-    _default_keywords = ["risk", "failure", "incident", "disruption", "regulatory change", "supplier"]
+    _default_categories = [
+        "technical",
+        "schedule",
+        "financial",
+        "compliance",
+        "external",
+        "resource",
+    ]
+    _default_keywords = [
+        "risk",
+        "failure",
+        "incident",
+        "disruption",
+        "regulatory change",
+        "supplier",
+    ]
     _default_thresholds = {
         "cost_overrun_pct": 0.1,
         "schedule_delay_days": 10,
@@ -1087,14 +1087,12 @@ def apply_config(agent: RiskManagementAgent, config: dict[str, Any] | None) -> N
             ),
         )
 
-    agent.schedule_agent_endpoint = (
-        _cfg("schedule_agent_endpoint")
-        or (_cfg("related_agent_endpoints", {}) or {}).get("schedule")
-    )
-    agent.financial_agent_endpoint = (
-        _cfg("financial_agent_endpoint")
-        or (_cfg("related_agent_endpoints", {}) or {}).get("financial")
-    )
+    agent.schedule_agent_endpoint = _cfg("schedule_agent_endpoint") or (
+        _cfg("related_agent_endpoints", {}) or {}
+    ).get("schedule")
+    agent.financial_agent_endpoint = _cfg("financial_agent_endpoint") or (
+        _cfg("related_agent_endpoints", {}) or {}
+    ).get("financial")
     agent.schedule_baseline_fixture = _cfg("schedule_baseline_fixture", {})
     agent.financial_distribution_fixture = _cfg("financial_distribution_fixture", {})
     agent.simulation_offload = _cfg("simulation_offload", {})

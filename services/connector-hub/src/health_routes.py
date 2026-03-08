@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Query
-
 from health_aggregator import ConnectorHealthAggregator
 from health_models import (
     ConflictRecord,

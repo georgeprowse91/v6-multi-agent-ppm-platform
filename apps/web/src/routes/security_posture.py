@@ -3,11 +3,9 @@
 Wires to the real policy engine for ABAC policy evaluation, and
 computes posture scores from actual policy/compliance state.
 """
+
 from __future__ import annotations
 
-import logging
-import time
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -103,9 +101,7 @@ def _load_policies() -> None:
         try:
             import yaml
         except ImportError:
-            logger.warning(
-                "PyYAML not installed; skipping ABAC policy loading from %s", abac_dir
-            )
+            logger.warning("PyYAML not installed; skipping ABAC policy loading from %s", abac_dir)
             yaml = None  # type: ignore[assignment]
 
         if yaml is not None:
@@ -117,69 +113,115 @@ def _load_policies() -> None:
                     if isinstance(policies, list):
                         for p in policies:
                             if isinstance(p, dict) and p.get("id"):
-                                _policies.append(PolicyDefinition(
-                                    policy_id=p["id"],
-                                    name=p.get("name", p["id"]),
-                                    description=p.get("description", ""),
-                                    effect=p.get("effect", "deny"),
-                                    subjects=p.get("subjects", {}),
-                                    resources=p.get("resources", {}),
-                                    actions=p.get("actions", []),
-                                    conditions=p.get("conditions", []),
-                                    enabled=p.get("enabled", True),
-                                ))
+                                _policies.append(
+                                    PolicyDefinition(
+                                        policy_id=p["id"],
+                                        name=p.get("name", p["id"]),
+                                        description=p.get("description", ""),
+                                        effect=p.get("effect", "deny"),
+                                        subjects=p.get("subjects", {}),
+                                        resources=p.get("resources", {}),
+                                        actions=p.get("actions", []),
+                                        conditions=p.get("conditions", []),
+                                        enabled=p.get("enabled", True),
+                                    )
+                                )
                 except Exception as exc:
                     logger.debug("Failed to load ABAC policy %s: %s", yaml_file, exc)
 
     # Seed defaults if no config found
     if not _policies:
-        _policies.extend([
-            PolicyDefinition(
-                policy_id="pol-geo-restrict", name="Geo Restriction",
-                description="Restrict data access based on user region vs data residency",
-                effect="deny", subjects={"attributes": ["region"]},
-                resources={"attributes": ["data_residency"]}, actions=["read", "export"],
-                conditions=[{"field": "subject.region", "operator": "not_in", "value": "resource.data_residency_regions"}],
-            ),
-            PolicyDefinition(
-                policy_id="pol-time-access", name="Time-Based Access",
-                description="Deny access outside business hours for confidential data",
-                effect="deny", subjects={"roles": ["analyst", "contributor"]},
-                resources={"classification": ["confidential", "restricted"]}, actions=["read", "write"],
-                conditions=[{"field": "request.hour", "operator": "not_between", "value": [8, 18]}],
-            ),
-            PolicyDefinition(
-                policy_id="pol-mfa-escalation", name="Sensitivity Escalation",
-                description="Require MFA for restricted classification access",
-                effect="deny", subjects={"attributes": ["mfa_verified"]},
-                resources={"classification": ["restricted"]}, actions=["read", "write", "delete", "export"],
-                conditions=[{"field": "subject.mfa_verified", "operator": "equals", "value": False}],
-            ),
-            PolicyDefinition(
-                policy_id="pol-export-control", name="Export Control",
-                description="Block data export for confidential and above",
-                effect="deny", subjects={"roles": ["*"]},
-                resources={"classification": ["confidential", "restricted"]}, actions=["export"],
-                conditions=[],
-            ),
-            PolicyDefinition(
-                policy_id="pol-cross-project", name="Cross-Project Isolation",
-                description="Deny access to projects outside user's assigned portfolio",
-                effect="deny", subjects={"attributes": ["assigned_portfolio"]},
-                resources={"attributes": ["portfolio_id"]}, actions=["read", "write"],
-                conditions=[{"field": "subject.assigned_portfolio", "operator": "not_contains", "value": "resource.portfolio_id"}],
-            ),
-            PolicyDefinition(
-                policy_id="pol-contractor-limit", name="Contractor Time Limit",
-                description="Deny contractor access after contract end date",
-                effect="deny", subjects={"attributes": ["employment_type", "contract_end_date"]},
-                resources={"types": ["*"]}, actions=["read", "write"],
-                conditions=[
-                    {"field": "subject.employment_type", "operator": "equals", "value": "contractor"},
-                    {"field": "current_date", "operator": "gt", "value": "subject.contract_end_date"},
-                ],
-            ),
-        ])
+        _policies.extend(
+            [
+                PolicyDefinition(
+                    policy_id="pol-geo-restrict",
+                    name="Geo Restriction",
+                    description="Restrict data access based on user region vs data residency",
+                    effect="deny",
+                    subjects={"attributes": ["region"]},
+                    resources={"attributes": ["data_residency"]},
+                    actions=["read", "export"],
+                    conditions=[
+                        {
+                            "field": "subject.region",
+                            "operator": "not_in",
+                            "value": "resource.data_residency_regions",
+                        }
+                    ],
+                ),
+                PolicyDefinition(
+                    policy_id="pol-time-access",
+                    name="Time-Based Access",
+                    description="Deny access outside business hours for confidential data",
+                    effect="deny",
+                    subjects={"roles": ["analyst", "contributor"]},
+                    resources={"classification": ["confidential", "restricted"]},
+                    actions=["read", "write"],
+                    conditions=[
+                        {"field": "request.hour", "operator": "not_between", "value": [8, 18]}
+                    ],
+                ),
+                PolicyDefinition(
+                    policy_id="pol-mfa-escalation",
+                    name="Sensitivity Escalation",
+                    description="Require MFA for restricted classification access",
+                    effect="deny",
+                    subjects={"attributes": ["mfa_verified"]},
+                    resources={"classification": ["restricted"]},
+                    actions=["read", "write", "delete", "export"],
+                    conditions=[
+                        {"field": "subject.mfa_verified", "operator": "equals", "value": False}
+                    ],
+                ),
+                PolicyDefinition(
+                    policy_id="pol-export-control",
+                    name="Export Control",
+                    description="Block data export for confidential and above",
+                    effect="deny",
+                    subjects={"roles": ["*"]},
+                    resources={"classification": ["confidential", "restricted"]},
+                    actions=["export"],
+                    conditions=[],
+                ),
+                PolicyDefinition(
+                    policy_id="pol-cross-project",
+                    name="Cross-Project Isolation",
+                    description="Deny access to projects outside user's assigned portfolio",
+                    effect="deny",
+                    subjects={"attributes": ["assigned_portfolio"]},
+                    resources={"attributes": ["portfolio_id"]},
+                    actions=["read", "write"],
+                    conditions=[
+                        {
+                            "field": "subject.assigned_portfolio",
+                            "operator": "not_contains",
+                            "value": "resource.portfolio_id",
+                        }
+                    ],
+                ),
+                PolicyDefinition(
+                    policy_id="pol-contractor-limit",
+                    name="Contractor Time Limit",
+                    description="Deny contractor access after contract end date",
+                    effect="deny",
+                    subjects={"attributes": ["employment_type", "contract_end_date"]},
+                    resources={"types": ["*"]},
+                    actions=["read", "write"],
+                    conditions=[
+                        {
+                            "field": "subject.employment_type",
+                            "operator": "equals",
+                            "value": "contractor",
+                        },
+                        {
+                            "field": "current_date",
+                            "operator": "gt",
+                            "value": "subject.contract_end_date",
+                        },
+                    ],
+                ),
+            ]
+        )
 
 
 def _compute_posture_score() -> int:
@@ -234,9 +276,28 @@ async def security_posture(
         secrets_rotation_status="current",
         recent_violations=len(_violation_log),
         compliance_checks=[
-            {"framework": "SOC 2", "status": "pass" if posture_score >= 70 else "partial", "last_audit": "2026-01-15"},
-            {"framework": "GDPR", "status": "pass" if any("geo" in p.name.lower() or "export" in p.name.lower() for p in enabled_policies) else "partial", "last_audit": "2026-02-01"},
-            {"framework": "ISO 27001", "status": "pass" if posture_score >= 80 else "partial", "last_audit": "2025-11-30"},
+            {
+                "framework": "SOC 2",
+                "status": "pass" if posture_score >= 70 else "partial",
+                "last_audit": "2026-01-15",
+            },
+            {
+                "framework": "GDPR",
+                "status": (
+                    "pass"
+                    if any(
+                        "geo" in p.name.lower() or "export" in p.name.lower()
+                        for p in enabled_policies
+                    )
+                    else "partial"
+                ),
+                "last_audit": "2026-02-01",
+            },
+            {
+                "framework": "ISO 27001",
+                "status": "pass" if posture_score >= 80 else "partial",
+                "last_audit": "2025-11-30",
+            },
             {"framework": "HIPAA", "status": "na", "last_audit": None},
         ],
         classification_distribution=dist,
@@ -268,10 +329,7 @@ async def test_policy(request: PolicyTestRequest) -> PolicyTestResult:
     # If the request references a known policy by ID but it doesn't exist and has
     # no conditions of its own, treat it as a missing policy.
     existing_ids = {p.policy_id for p in _policies}
-    if (
-        request.policy.policy_id not in existing_ids
-        and not request.policy.conditions
-    ):
+    if request.policy.policy_id not in existing_ids and not request.policy.conditions:
         raise HTTPException(
             status_code=404,
             detail=f"Policy '{request.policy.policy_id}' not found",

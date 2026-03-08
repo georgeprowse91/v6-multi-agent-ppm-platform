@@ -13,9 +13,7 @@ if TYPE_CHECKING:
     from data_sync_agent import DataSyncAgent
 
 
-async def handle_get_sync_status(
-    agent: DataSyncAgent, filters: dict[str, Any]
-) -> dict[str, Any]:
+async def handle_get_sync_status(agent: DataSyncAgent, filters: dict[str, Any]) -> dict[str, Any]:
     """
     Get synchronization status.
 
@@ -58,9 +56,7 @@ async def handle_get_sync_status(
     }
 
 
-async def handle_get_metrics(
-    agent: DataSyncAgent, tenant_id: str
-) -> dict[str, Any]:
+async def handle_get_metrics(agent: DataSyncAgent, tenant_id: str) -> dict[str, Any]:
     """Expose latency metrics and event bus statistics."""
     records = [record for record in agent.latency_records if record["tenant_id"] == tenant_id]
     avg_latency = (
@@ -87,14 +83,10 @@ async def handle_get_quality_report(
     valid_count = sum(1 for record in records if record.get("valid"))
     error_rate = (total - valid_count) / total if total else 0.0
     avg_completeness = (
-        sum(record.get("completeness_score", 0.0) for record in records) / total
-        if total
-        else 0.0
+        sum(record.get("completeness_score", 0.0) for record in records) / total if total else 0.0
     )
     avg_consistency = (
-        sum(record.get("consistency_score", 0.0) for record in records) / total
-        if total
-        else 0.0
+        sum(record.get("consistency_score", 0.0) for record in records) / total if total else 0.0
     )
     avg_timeliness = (
         sum(record.get("timeliness_score", 0.0) for record in records) / total if total else 0.0
@@ -114,9 +106,7 @@ async def handle_get_quality_report(
     }
 
 
-async def handle_get_dashboard(
-    agent: DataSyncAgent, tenant_id: str
-) -> dict[str, Any]:
+async def handle_get_dashboard(agent: DataSyncAgent, tenant_id: str) -> dict[str, Any]:
     sync_status = await handle_get_sync_status(agent, {})
     quality_report = await handle_get_quality_report(agent, tenant_id, None)
     state_records = agent.sync_state_store.list(tenant_id)
@@ -126,9 +116,7 @@ async def handle_get_dashboard(
         if last_synced:
             try:
                 last_synced_dt = datetime.fromisoformat(last_synced)
-                lag_seconds.append(
-                    (datetime.now(timezone.utc) - last_synced_dt).total_seconds()
-                )
+                lag_seconds.append((datetime.now(timezone.utc) - last_synced_dt).total_seconds())
             except ValueError:
                 continue
     average_lag = sum(lag_seconds) / len(lag_seconds) if lag_seconds else 0.0
@@ -179,11 +167,11 @@ async def record_quality_metrics(
     await evaluate_quality_thresholds(agent, tenant_id, entity_type)
 
 
-async def store_quality_report(
-    agent: DataSyncAgent, tenant_id: str, entity_type: str
-) -> None:
+async def store_quality_report(agent: DataSyncAgent, tenant_id: str, entity_type: str) -> None:
     report = await handle_get_quality_report(agent, tenant_id, entity_type)
-    report_id = f"{tenant_id}-{entity_type}-{datetime.now(timezone.utc).isoformat().replace(':', '-')}"
+    report_id = (
+        f"{tenant_id}-{entity_type}-{datetime.now(timezone.utc).isoformat().replace(':', '-')}"
+    )
     await agent._store_record("data_quality_reports", report_id, report)
 
 

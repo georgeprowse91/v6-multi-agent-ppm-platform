@@ -49,7 +49,11 @@ class _Span:
 
 class _Tracer:
     def start_span(
-        self, name: str, context: Any | None = None, kind: SpanKind | None = None, **kwargs: Any,
+        self,
+        name: str,
+        context: Any | None = None,
+        kind: SpanKind | None = None,
+        **kwargs: Any,
     ) -> _Span:
         return _Span()
 

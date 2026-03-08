@@ -106,9 +106,7 @@ async def run_scenario_analysis(
             {"costs": adjusted_costs, "benefits": adjusted_benefits}
         )
 
-        cash_flows = build_cash_flow(
-            adjusted_costs, adjusted_benefits, agent.currency_rates
-        )
+        cash_flows = build_cash_flow(adjusted_costs, adjusted_benefits, agent.currency_rates)
         simulations = run_monte_carlo_simulation(
             cash_flows,
             agent.simulation_iterations,

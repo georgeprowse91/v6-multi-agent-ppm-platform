@@ -18,6 +18,7 @@ from xml.etree import ElementTree
 # ID generators
 # ---------------------------------------------------------------------------
 
+
 async def generate_regulation_id() -> str:
     """Generate unique regulation ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -57,6 +58,7 @@ async def generate_evidence_id() -> str:
 # ---------------------------------------------------------------------------
 # Text embedding / similarity (TF-IDF based)
 # ---------------------------------------------------------------------------
+
 
 def tokenize_text(text: str) -> list[str]:
     return re.findall(r"[a-zA-Z0-9]+", text.lower())
@@ -122,9 +124,8 @@ async def build_control_embeddings(
 # Regulation matching
 # ---------------------------------------------------------------------------
 
-def build_project_profile(
-    project_id: str, mapping_data: dict[str, Any]
-) -> dict[str, Any]:
+
+def build_project_profile(project_id: str, mapping_data: dict[str, Any]) -> dict[str, Any]:
     return {
         "project_id": project_id,
         "industry": mapping_data.get("industry", ""),
@@ -137,9 +138,7 @@ def build_project_profile(
     }
 
 
-def matches_regulation(
-    project_profile: dict[str, Any], regulation: dict[str, Any]
-) -> bool:
+def matches_regulation(project_profile: dict[str, Any], regulation: dict[str, Any]) -> bool:
     rules = regulation.get("applicability_rules", {})
     if rules.get("applies_to_all"):
         return True
@@ -157,9 +156,7 @@ def matches_regulation(
 
     jurisdiction_match = not jurisdiction_filter or geography in jurisdiction_filter
     industry_match = not industry_filter or industry in industry_filter
-    sensitivity_match = (
-        not data_sensitivity_filter or data_sensitivity in data_sensitivity_filter
-    )
+    sensitivity_match = not data_sensitivity_filter or data_sensitivity in data_sensitivity_filter
 
     if "PRIVACY ACT" in regulation.get("name", "").upper():
         return (
@@ -175,6 +172,7 @@ def matches_regulation(
 # ---------------------------------------------------------------------------
 # Compliance scoring
 # ---------------------------------------------------------------------------
+
 
 def calculate_compliance_scores(
     mapping: dict[str, Any],
@@ -219,6 +217,7 @@ def calculate_compliance_scores(
 # Control testing date helpers
 # ---------------------------------------------------------------------------
 
+
 async def is_recently_tested(control: dict[str, Any], status: dict[str, Any]) -> bool:
     """Check if control has been tested recently."""
     last_test_date_str = status.get("last_tested")
@@ -258,6 +257,7 @@ async def calculate_next_test_date(control: dict[str, Any]) -> str:
 # Gap analysis helpers
 # ---------------------------------------------------------------------------
 
+
 async def identify_gap_type(assessment: dict[str, Any]) -> str:
     """Identify type of compliance gap."""
     evaluation_gaps = assessment.get("evaluation_gaps", [])
@@ -295,9 +295,8 @@ async def recommend_remediation(assessment: dict[str, Any]) -> str:
 # Obligation / text extraction helpers
 # ---------------------------------------------------------------------------
 
-def extract_obligations_from_text(
-    text: str, key_phrases: list[str]
-) -> list[dict[str, Any]]:
+
+def extract_obligations_from_text(text: str, key_phrases: list[str]) -> list[dict[str, Any]]:
     obligations: list[dict[str, Any]] = []
     if not text:
         return obligations
@@ -357,9 +356,8 @@ def identify_control_gaps(
 # RSS / feed parsing helpers
 # ---------------------------------------------------------------------------
 
-def normalize_regulatory_update(
-    entry: Any, feed_config: dict[str, Any]
-) -> dict[str, Any] | None:
+
+def normalize_regulatory_update(entry: Any, feed_config: dict[str, Any]) -> dict[str, Any] | None:
     if not isinstance(entry, dict):
         return None
     regulation = entry.get("regulation") or entry.get("title") or entry.get("name")

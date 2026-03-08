@@ -17,6 +17,7 @@ from definition_models import Requirement, TraceabilityEntry, WBSItem
 # ID generators
 # ---------------------------------------------------------------------------
 
+
 async def generate_project_id() -> str:
     """Generate unique project ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -42,6 +43,7 @@ async def generate_baseline_id(project_id: str) -> str:
 # ---------------------------------------------------------------------------
 # Traceability helpers
 # ---------------------------------------------------------------------------
+
 
 def extract_wbs_item_ids(wbs_items: list[WBSItem]) -> list[str]:
     """Walk a WBS tree and collect all numeric-prefixed keys as item IDs."""
@@ -87,6 +89,7 @@ def generate_traceability_matrix(
 # Search-query sanitization
 # ---------------------------------------------------------------------------
 
+
 def sanitize_search_query(objective: str) -> str:
     sanitized = objective.strip()
     if not sanitized:
@@ -106,6 +109,7 @@ def sanitize_search_query(objective: str) -> str:
 # ---------------------------------------------------------------------------
 # Serialization helpers (for search indexing)
 # ---------------------------------------------------------------------------
+
 
 def serialize_charter_for_index(charter: dict[str, Any]) -> str:
     document = charter.get("document", {})
@@ -146,6 +150,7 @@ def serialize_raci_for_index(raci_matrix: dict[str, Any]) -> str:
 # Scope comparison helpers
 # ---------------------------------------------------------------------------
 
+
 def scope_to_text(scope: dict[str, Any]) -> str:
     return (
         f"In scope: {', '.join(scope.get('in_scope', []))}. "
@@ -157,6 +162,7 @@ def scope_to_text(scope: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 # Response parsers (for OpenAI output)
 # ---------------------------------------------------------------------------
+
 
 def parse_wbs_response(response: str) -> dict[str, Any]:
     lines = [line.strip() for line in response.splitlines() if line.strip()]
@@ -189,6 +195,7 @@ def parse_raci_response(response: str | None) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # Charter content formatter
 # ---------------------------------------------------------------------------
+
 
 async def generate_charter_content(charter: dict[str, Any]) -> str:
     """Generate formatted charter content from template strings."""

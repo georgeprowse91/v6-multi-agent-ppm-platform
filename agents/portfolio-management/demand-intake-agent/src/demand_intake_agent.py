@@ -210,7 +210,9 @@ class DemandIntakeAgent(BaseAgent):
                 correlation_id=correlation_id,
             )
         elif action == "check_duplicates":
-            return await _act_check_duplicates(self, input_data.get("request", {}), tenant_id=tenant_id)
+            return await _act_check_duplicates(
+                self, input_data.get("request", {}), tenant_id=tenant_id
+            )
         elif action == "get_pipeline":
             return await _act_get_pipeline(self, input_data.get("filters", {}), tenant_id=tenant_id)
         else:

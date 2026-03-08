@@ -461,8 +461,7 @@ async def _orchestrate_deployment(
         },
     )
     success = step_results.get("success", False) and all(
-        result.get("status") in {"queued", "success", "completed"}
-        for result in pipeline_results
+        result.get("status") in {"queued", "success", "completed"} for result in pipeline_results
     )
     return {
         "success": success,

@@ -11,7 +11,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-API_SRC = REPO_ROOT / "apps" / "api-gateway" / "src"
+API_SRC = REPO_ROOT / "services" / "api-gateway" / "src"
 FEATURE_FLAGS_SRC = REPO_ROOT / "packages" / "feature-flags" / "src"
 COMMON_SRC = REPO_ROOT / "packages" / "common" / "src"
 SECURITY_SRC = REPO_ROOT / "packages" / "security" / "src"

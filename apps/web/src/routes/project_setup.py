@@ -13,10 +13,8 @@ Production-grade implementation:
 from __future__ import annotations
 
 import json
-import logging
 import uuid
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
@@ -111,18 +109,23 @@ def _load_templates() -> list[ProjectTemplate]:
         for yaml_file in sorted(template_dir.glob("*.yaml")):
             try:
                 import yaml
+
                 with open(yaml_file) as f:
                     data = yaml.safe_load(f) or {}
                 if data.get("template_id"):
-                    _templates.append(ProjectTemplate(
-                        template_id=data["template_id"],
-                        name=data.get("name", data["template_id"]),
-                        methodology=data.get("methodology", "adaptive"),
-                        industry=data.get("industry", "technology"),
-                        description=data.get("description", ""),
-                        stages=data.get("stages", []),
-                        activity_count=sum(len(s.get("activities", [])) for s in data.get("stages", [])),
-                    ))
+                    _templates.append(
+                        ProjectTemplate(
+                            template_id=data["template_id"],
+                            name=data.get("name", data["template_id"]),
+                            methodology=data.get("methodology", "adaptive"),
+                            industry=data.get("industry", "technology"),
+                            description=data.get("description", ""),
+                            stages=data.get("stages", []),
+                            activity_count=sum(
+                                len(s.get("activities", [])) for s in data.get("stages", [])
+                            ),
+                        )
+                    )
             except Exception as exc:
                 logger.debug("Failed to load template %s: %s", yaml_file, exc)
 
@@ -134,15 +137,19 @@ def _load_templates() -> list[ProjectTemplate]:
                 with open(json_file) as f:
                     data = json.load(f)
                 if isinstance(data, dict) and data.get("template_id"):
-                    _templates.append(ProjectTemplate(
-                        template_id=data["template_id"],
-                        name=data.get("name", data["template_id"]),
-                        methodology=data.get("methodology", "adaptive"),
-                        industry=data.get("industry", "technology"),
-                        description=data.get("description", ""),
-                        stages=data.get("stages", []),
-                        activity_count=sum(len(s.get("activities", [])) for s in data.get("stages", [])),
-                    ))
+                    _templates.append(
+                        ProjectTemplate(
+                            template_id=data["template_id"],
+                            name=data.get("name", data["template_id"]),
+                            methodology=data.get("methodology", "adaptive"),
+                            industry=data.get("industry", "technology"),
+                            description=data.get("description", ""),
+                            stages=data.get("stages", []),
+                            activity_count=sum(
+                                len(s.get("activities", [])) for s in data.get("stages", [])
+                            ),
+                        )
+                    )
             except Exception as exc:
                 logger.debug("Failed to load template JSON %s: %s", json_file, exc)
 
@@ -156,48 +163,121 @@ def _load_templates() -> list[ProjectTemplate]:
 def _default_templates() -> list[ProjectTemplate]:
     return [
         ProjectTemplate(
-            template_id="tmpl-agile-tech", name="Agile Software Delivery",
-            methodology="adaptive", industry="technology",
+            template_id="tmpl-agile-tech",
+            name="Agile Software Delivery",
+            methodology="adaptive",
+            industry="technology",
             description="Iterative software delivery with 2-week sprints, continuous integration, and DevOps practices.",
             stages=[
-                {"id": "inception", "name": "Inception", "activities": ["Vision & Scope", "Team Formation", "Backlog Seeding"]},
-                {"id": "iteration", "name": "Iteration", "activities": ["Sprint Planning", "Daily Standup", "Sprint Review", "Retrospective"]},
-                {"id": "release", "name": "Release", "activities": ["Release Planning", "UAT", "Deployment", "Hypercare"]},
+                {
+                    "id": "inception",
+                    "name": "Inception",
+                    "activities": ["Vision & Scope", "Team Formation", "Backlog Seeding"],
+                },
+                {
+                    "id": "iteration",
+                    "name": "Iteration",
+                    "activities": [
+                        "Sprint Planning",
+                        "Daily Standup",
+                        "Sprint Review",
+                        "Retrospective",
+                    ],
+                },
+                {
+                    "id": "release",
+                    "name": "Release",
+                    "activities": ["Release Planning", "UAT", "Deployment", "Hypercare"],
+                },
             ],
             activity_count=10,
         ),
         ProjectTemplate(
-            template_id="tmpl-waterfall-construct", name="Waterfall Construction",
-            methodology="predictive", industry="construction",
+            template_id="tmpl-waterfall-construct",
+            name="Waterfall Construction",
+            methodology="predictive",
+            industry="construction",
             description="Sequential delivery with formal gates, detailed planning, and regulatory compliance.",
             stages=[
-                {"id": "initiate", "name": "Initiate", "activities": ["Project Charter", "Stakeholder Register", "Feasibility Study"]},
-                {"id": "plan", "name": "Plan", "activities": ["WBS", "Schedule Baseline", "Cost Baseline", "Risk Register"]},
-                {"id": "execute", "name": "Execute", "activities": ["Procurement", "Quality Control", "Status Reporting"]},
-                {"id": "close", "name": "Close", "activities": ["Lessons Learned", "Final Deliverable", "Contract Closure"]},
+                {
+                    "id": "initiate",
+                    "name": "Initiate",
+                    "activities": ["Project Charter", "Stakeholder Register", "Feasibility Study"],
+                },
+                {
+                    "id": "plan",
+                    "name": "Plan",
+                    "activities": ["WBS", "Schedule Baseline", "Cost Baseline", "Risk Register"],
+                },
+                {
+                    "id": "execute",
+                    "name": "Execute",
+                    "activities": ["Procurement", "Quality Control", "Status Reporting"],
+                },
+                {
+                    "id": "close",
+                    "name": "Close",
+                    "activities": ["Lessons Learned", "Final Deliverable", "Contract Closure"],
+                },
             ],
             activity_count=14,
         ),
         ProjectTemplate(
-            template_id="tmpl-hybrid-pharma", name="Hybrid Pharma Development",
-            methodology="hybrid", industry="pharma",
+            template_id="tmpl-hybrid-pharma",
+            name="Hybrid Pharma Development",
+            methodology="hybrid",
+            industry="pharma",
             description="Combines predictive regulatory gates with adaptive research sprints for drug development programs.",
             stages=[
-                {"id": "discovery", "name": "Discovery", "activities": ["Research Sprints", "Literature Review", "Hypothesis Validation"]},
-                {"id": "preclinical", "name": "Pre-Clinical", "activities": ["Protocol Design", "Lab Testing", "GxP Compliance"]},
-                {"id": "clinical", "name": "Clinical Trials", "activities": ["Trial Design", "Patient Enrollment", "Data Collection"]},
-                {"id": "submission", "name": "Regulatory Submission", "activities": ["Dossier Preparation", "FDA/EMA Review", "Approval Gate"]},
+                {
+                    "id": "discovery",
+                    "name": "Discovery",
+                    "activities": [
+                        "Research Sprints",
+                        "Literature Review",
+                        "Hypothesis Validation",
+                    ],
+                },
+                {
+                    "id": "preclinical",
+                    "name": "Pre-Clinical",
+                    "activities": ["Protocol Design", "Lab Testing", "GxP Compliance"],
+                },
+                {
+                    "id": "clinical",
+                    "name": "Clinical Trials",
+                    "activities": ["Trial Design", "Patient Enrollment", "Data Collection"],
+                },
+                {
+                    "id": "submission",
+                    "name": "Regulatory Submission",
+                    "activities": ["Dossier Preparation", "FDA/EMA Review", "Approval Gate"],
+                },
             ],
             activity_count=12,
         ),
         ProjectTemplate(
-            template_id="tmpl-agile-finance", name="Agile Financial Systems",
-            methodology="adaptive", industry="finance",
+            template_id="tmpl-agile-finance",
+            name="Agile Financial Systems",
+            methodology="adaptive",
+            industry="finance",
             description="Agile delivery with SOX compliance gates and automated audit trails.",
             stages=[
-                {"id": "inception", "name": "Inception", "activities": ["Compliance Mapping", "Architecture Review", "Backlog"]},
-                {"id": "delivery", "name": "Delivery", "activities": ["Sprint Cycles", "SOX Evidence Collection", "Security Review"]},
-                {"id": "release", "name": "Release", "activities": ["Audit Gate", "Production Deploy", "Post-Implementation Review"]},
+                {
+                    "id": "inception",
+                    "name": "Inception",
+                    "activities": ["Compliance Mapping", "Architecture Review", "Backlog"],
+                },
+                {
+                    "id": "delivery",
+                    "name": "Delivery",
+                    "activities": ["Sprint Cycles", "SOX Evidence Collection", "Security Review"],
+                },
+                {
+                    "id": "release",
+                    "name": "Release",
+                    "activities": ["Audit Gate", "Production Deploy", "Post-Implementation Review"],
+                },
             ],
             activity_count=9,
         ),
@@ -224,18 +304,20 @@ def _persist_project(config: WorkspaceConfig) -> bool:
         projects = existing.get("projects", [])
         # Check for duplicates
         if not any(p.get("id") == config.project_id for p in projects):
-            projects.append({
-                "id": config.project_id,
-                "name": config.project_name,
-                "template_id": config.template_id,
-                "template_version": "1.0",
-                "created_at": config.created_at,
-                "methodology": {"type": config.methodology, "name": config.methodology.title()},
-                "agent_config": {"enabled_agents": [], "agent_overrides": {}},
-                "connector_config": {"enabled_connectors": [], "connector_overrides": {}},
-                "initial_tabs": [],
-                "dashboards": [],
-            })
+            projects.append(
+                {
+                    "id": config.project_id,
+                    "name": config.project_name,
+                    "template_id": config.template_id,
+                    "template_version": "1.0",
+                    "created_at": config.created_at,
+                    "methodology": {"type": config.methodology, "name": config.methodology.title()},
+                    "agent_config": {"enabled_agents": [], "agent_overrides": {}},
+                    "connector_config": {"enabled_connectors": [], "connector_overrides": {}},
+                    "initial_tabs": [],
+                    "dashboards": [],
+                }
+            )
             existing["projects"] = projects
             with open(PROJECTS_PATH, "w") as f:
                 json.dump(existing, f, indent=2)
@@ -264,6 +346,7 @@ def _persist_project(config: WorkspaceConfig) -> bool:
         client = _data_service_client()
         if hasattr(client, "store_entity"):
             import asyncio
+
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 # Schedule but don't block
@@ -389,6 +472,7 @@ async def list_templates(
 
 class ConfigureWorkspaceRequest(BaseModel):
     """Request body for configure-workspace endpoint."""
+
     project_name: str
     template_id: str
     customizations: dict[str, Any] | None = None
@@ -480,6 +564,7 @@ async def configure_workspace(
 
 class CreateFromIntakeRequest(BaseModel):
     """Request body for creating a project from an approved intake request."""
+
     intake_request_id: str
     project_name: str | None = None
 
@@ -503,16 +588,18 @@ async def create_from_intake(body: CreateFromIntakeRequest) -> dict[str, Any]:
             with open(PROJECTS_PATH) as f:
                 existing = json.load(f)
         projects = existing.get("projects", [])
-        projects.append({
-            "id": project_id,
-            "name": project_name,
-            "status": "setup_pending",
-            "intake_request_id": body.intake_request_id,
-            "created_at": now,
-            "methodology": {},
-            "agent_config": {"enabled_agents": [], "agent_overrides": {}},
-            "connector_config": {"enabled_connectors": [], "connector_overrides": {}},
-        })
+        projects.append(
+            {
+                "id": project_id,
+                "name": project_name,
+                "status": "setup_pending",
+                "intake_request_id": body.intake_request_id,
+                "created_at": now,
+                "methodology": {},
+                "agent_config": {"enabled_agents": [], "agent_overrides": {}},
+                "connector_config": {"enabled_connectors": [], "connector_overrides": {}},
+            }
+        )
         existing["projects"] = projects
         with open(PROJECTS_PATH, "w") as f:
             json.dump(existing, f, indent=2)

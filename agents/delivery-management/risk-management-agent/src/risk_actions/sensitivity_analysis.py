@@ -25,9 +25,7 @@ async def perform_sensitivity_analysis(
     agent.logger.info("Performing sensitivity analysis for project: %s", project_id)
 
     # Get project risks
-    project_risks = [
-        r for r in agent.risk_register.values() if r.get("project_id") == project_id
-    ]
+    project_risks = [r for r in agent.risk_register.values() if r.get("project_id") == project_id]
 
     # Analyze sensitivity to each risk factor
     sensitivity_results = []
@@ -45,9 +43,7 @@ async def perform_sensitivity_analysis(
         )
 
     # Sort by sensitivity score
-    sorted_results = sorted(
-        sensitivity_results, key=lambda x: x["sensitivity_score"], reverse=True
-    )
+    sorted_results = sorted(sensitivity_results, key=lambda x: x["sensitivity_score"], reverse=True)
 
     results = {
         "project_id": project_id,

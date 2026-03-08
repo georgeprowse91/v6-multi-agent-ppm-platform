@@ -14,25 +14,9 @@ import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import yaml
-from data_quality.helpers import apply_rule_set, validate_against_schema
-from events import BusinessCaseCreatedEvent, InvestmentRecommendationEvent
-from feature_flags import is_feature_enabled
-from observability.tracing import get_trace_id
-
-from agents.common.integration_services import (
-    DataConnector,
-    FaissBackedVectorSearchIndex,
-    ForecastingModel,
-    LocalEmbeddingService,
-    NaiveBayesTextClassifier,
-    NotificationService,
-)
-from agents.runtime import BaseAgent, get_event_bus
-from agents.runtime.src.state_store import TenantStateStore
-
 from business_case_actions import (
     calculate_roi,
     compare_to_historical,
@@ -54,6 +38,21 @@ from business_case_utils import (
     run_monte_carlo_simulation,
     run_sensitivity_analysis,
 )
+from data_quality.helpers import apply_rule_set, validate_against_schema
+from events import BusinessCaseCreatedEvent, InvestmentRecommendationEvent
+from feature_flags import is_feature_enabled
+from observability.tracing import get_trace_id
+
+from agents.common.integration_services import (
+    DataConnector,
+    FaissBackedVectorSearchIndex,
+    ForecastingModel,
+    LocalEmbeddingService,
+    NaiveBayesTextClassifier,
+    NotificationService,
+)
+from agents.runtime import BaseAgent, get_event_bus
+from agents.runtime.src.state_store import TenantStateStore
 
 
 class BusinessCaseInvestmentAgent(BaseAgent):
@@ -69,9 +68,7 @@ class BusinessCaseInvestmentAgent(BaseAgent):
     - Market analysis integration
     """
 
-    def __init__(
-        self, agent_id: str = "business-case-agent", config: dict[str, Any] | None = None
-    ):
+    def __init__(self, agent_id: str = "business-case-agent", config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
 
         # Configuration parameters

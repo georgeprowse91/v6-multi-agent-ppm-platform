@@ -9,7 +9,6 @@ message authentication.
 from __future__ import annotations
 
 import hmac as _hmac
-import hashlib
 
 
 def sign_message(

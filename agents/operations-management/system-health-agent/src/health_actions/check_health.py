@@ -70,7 +70,9 @@ async def check_all_services_health(agent: SystemHealthAgent) -> dict[str, dict[
     return services
 
 
-async def publish_health_status(agent: SystemHealthAgent, services: dict[str, dict[str, Any]]) -> None:
+async def publish_health_status(
+    agent: SystemHealthAgent, services: dict[str, dict[str, Any]]
+) -> None:
     timestamp = datetime.now(timezone.utc).isoformat()
     total_services = len(services)
     unhealthy = sum(1 for result in services.values() if not result.get("healthy", False))
@@ -101,16 +103,16 @@ async def get_health_endpoints(agent: SystemHealthAgent) -> dict[str, Any]:
     }
 
 
-async def get_environment_health(agent: SystemHealthAgent, environment: str | None) -> dict[str, Any]:
+async def get_environment_health(
+    agent: SystemHealthAgent, environment: str | None
+) -> dict[str, Any]:
     system_status = await get_system_status(agent)
     services_health = system_status.get("services_health", {})
     total_services = len(services_health)
     unhealthy_count = sum(
         1 for result in services_health.values() if not result.get("healthy", False)
     )
-    health_score = (
-        (total_services - unhealthy_count) / total_services if total_services else 1.0
-    )
+    health_score = (total_services - unhealthy_count) / total_services if total_services else 1.0
     overall_status = system_status.get("overall_status", "unknown")
     block_deployment = (
         system_status.get("critical_alerts", 0) > 0

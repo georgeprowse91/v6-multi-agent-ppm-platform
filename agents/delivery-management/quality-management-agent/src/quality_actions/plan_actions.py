@@ -51,7 +51,11 @@ async def create_quality_plan(
     )
     if approval_response:
         quality_plan = await _apply_quality_plan_approval(
-            agent, quality_plan, approval_response, tenant_id=tenant_id, correlation_id=correlation_id
+            agent,
+            quality_plan,
+            approval_response,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
         )
         await agent._store_record("quality_plans", plan_id, quality_plan)
 
@@ -200,9 +204,7 @@ async def _apply_quality_plan_approval(
         quality_plan["status"] = "Pending Approval"
     quality_plan["approval"] = approval_response
     agent.quality_plan_store.upsert(tenant_id, quality_plan["plan_id"], quality_plan)
-    await agent._store_record(
-        "quality_plan_approvals", quality_plan["plan_id"], approval_response
-    )
+    await agent._store_record("quality_plan_approvals", quality_plan["plan_id"], approval_response)
     if quality_plan["status"] == "Approved":
         await agent._publish_quality_event(
             "quality.plan.approved",

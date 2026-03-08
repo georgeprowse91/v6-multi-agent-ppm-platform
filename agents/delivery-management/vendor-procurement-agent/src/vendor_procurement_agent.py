@@ -144,7 +144,9 @@ class VendorProcurementAgent(BaseAgent):
         },
     }
 
-    def __init__(self, agent_id: str = "vendor-procurement-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "vendor-procurement-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
         _c = (config or {}).get  # shorthand for safe config access
 
@@ -170,16 +172,29 @@ class VendorProcurementAgent(BaseAgent):
         )
         self.vendor_search_keywords = _c(
             "vendor_search_keywords",
-            ["financial health", "performance issues", "contract dispute",
-             "credit rating", "supplier review"],
+            [
+                "financial health",
+                "performance issues",
+                "contract dispute",
+                "credit rating",
+                "supplier review",
+            ],
         )
 
         # Tenant state stores
         self.vendor_store = TenantStateStore(Path(_c("vendor_store_path", "data/vendors.json")))
-        self.contract_store = TenantStateStore(Path(_c("contract_store_path", "data/vendor_contracts.json")))
-        self.invoice_store = TenantStateStore(Path(_c("invoice_store_path", "data/vendor_invoices.json")))
-        self.vendor_performance_store = TenantStateStore(Path(_c("vendor_performance_store_path", "data/vendor_performance.json")))
-        self.event_store = TenantStateStore(Path(_c("event_store_path", "data/vendor_procurement_events.json")))
+        self.contract_store = TenantStateStore(
+            Path(_c("contract_store_path", "data/vendor_contracts.json"))
+        )
+        self.invoice_store = TenantStateStore(
+            Path(_c("invoice_store_path", "data/vendor_invoices.json"))
+        )
+        self.vendor_performance_store = TenantStateStore(
+            Path(_c("vendor_performance_store_path", "data/vendor_performance.json"))
+        )
+        self.event_store = TenantStateStore(
+            Path(_c("event_store_path", "data/vendor_procurement_events.json"))
+        )
 
         # External service clients
         self.db_service: DatabaseStorageService | None = None
@@ -188,7 +203,9 @@ class VendorProcurementAgent(BaseAgent):
         self.event_bus = EventBusClient(_c("event_bus"))
         self.procurement_connector = ProcurementConnectorService(_c("procurement_connectors"))
         self.erp_ap_connector = ProcurementConnectorService(_c("erp_ap_connectors"))
-        self.event_publisher = ProcurementEventPublisher(_c("event_publisher"), event_bus=self.event_bus)
+        self.event_publisher = ProcurementEventPublisher(
+            _c("event_publisher"), event_bus=self.event_bus
+        )
         self.ml_config = _c("ml_config")
         self.ml_service = VendorMLService(self.ml_config)
         self.vendor_scoring_weights = (self.ml_config or {}).get("scoring_weights", {})
@@ -199,7 +216,9 @@ class VendorProcurementAgent(BaseAgent):
 
         # Task & communications clients (injectable)
         self.task_client = _c("task_client") or TaskManagementClient(_c("task_management"))
-        self.communications_client = _c("communications_client") or CommunicationsClient(_c("communications_config"))
+        self.communications_client = _c("communications_client") or CommunicationsClient(
+            _c("communications_config")
+        )
 
         # In-memory data stores
         self.vendors: dict[str, Any] = {}
@@ -362,8 +381,12 @@ class VendorProcurementAgent(BaseAgent):
             return await handle_get_vendor_scorecard(self, g("vendor_id"), **ctx)  # type: ignore
         if action == "research_vendor":
             return await handle_research_vendor(
-                self, vendor_id=g("vendor_id"), vendor_name=g("vendor_name"),
-                domain=g("domain"), tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                vendor_id=g("vendor_id"),
+                vendor_name=g("vendor_name"),
+                domain=g("domain"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
         if action == "get_vendor_profile":
             return await handle_get_vendor_profile(self, g("vendor_id"), tenant_id=tenant_id, correlation_id=correlation_id)  # type: ignore
@@ -432,10 +455,12 @@ class VendorProcurementAgent(BaseAgent):
 
     async def _run_compliance_checks(self, vendor_data: dict[str, Any]) -> dict[str, Any]:
         from vendor_utils import run_compliance_checks
+
         return await run_compliance_checks(self, vendor_data)
 
     async def _check_budget_availability(self, request_data: dict[str, Any]) -> dict[str, Any]:
         from vendor_utils import check_budget_availability
+
         return await check_budget_availability(self, request_data)
 
     def _resolve_approval_agent(self) -> type:

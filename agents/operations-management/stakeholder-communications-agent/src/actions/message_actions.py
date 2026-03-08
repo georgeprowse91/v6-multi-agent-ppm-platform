@@ -149,9 +149,7 @@ async def edit_message(
         stakeholder_id = personalized.get("stakeholder_id")
         stakeholder = agent.stakeholder_register.get(stakeholder_id)
         if stakeholder:
-            personalized_content = await personalize_content(
-                message["content"], stakeholder
-            )
+            personalized_content = await personalize_content(message["content"], stakeholder)
             personalized_messages.append(
                 {"stakeholder_id": stakeholder_id, "content": personalized_content}
             )
@@ -304,9 +302,7 @@ async def send_message(
         "message_id": message_id,
         "status": "Sent",
         "recipients": len(delivery_results),
-        "successful_deliveries": len(
-            [r for r in delivery_results if r["status"] == "delivered"]
-        ),
+        "successful_deliveries": len([r for r in delivery_results if r["status"] == "delivered"]),
         "sent_at": message["sent_at"],
     }
 

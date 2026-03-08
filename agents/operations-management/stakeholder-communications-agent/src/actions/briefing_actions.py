@@ -3,6 +3,7 @@
 Integrates the Stakeholder Communications agent with the briefing
 generator API to support periodic delivery of executive briefings.
 """
+
 from __future__ import annotations
 
 import os
@@ -55,10 +56,17 @@ async def schedule_briefing(
         "portfolio_id": config.get("portfolio_id", "default"),
         "audience": config.get("audience", "c_suite"),
         "tone": config.get("tone", "formal"),
-        "sections": config.get("sections", [
-            "highlights", "risks", "financials", "schedule",
-            "resources", "recommendations",
-        ]),
+        "sections": config.get(
+            "sections",
+            [
+                "highlights",
+                "risks",
+                "financials",
+                "schedule",
+                "resources",
+                "recommendations",
+            ],
+        ),
         "frequency": config.get("frequency", "weekly"),
         "recipients": config.get("recipients", []),
         "channels": config.get("channels", ["email"]),
@@ -81,13 +89,16 @@ async def schedule_briefing(
     except (httpx.HTTPError, OSError, ValueError):
         agent.logger.warning("Briefing API unavailable for schedule registration")
 
-    agent._publish_event("briefing.schedule.created", {
-        "schedule_id": schedule["schedule_id"],
-        "tenant_id": tenant_id,
-        "frequency": schedule["frequency"],
-        "audience": schedule["audience"],
-        "recipient_count": len(schedule["recipients"]),
-    })
+    agent._publish_event(
+        "briefing.schedule.created",
+        {
+            "schedule_id": schedule["schedule_id"],
+            "tenant_id": tenant_id,
+            "frequency": schedule["frequency"],
+            "audience": schedule["audience"],
+            "recipient_count": len(schedule["recipients"]),
+        },
+    )
 
     return {
         "status": "success",
@@ -170,26 +181,38 @@ async def execute_scheduled_briefing(
         for channel in channels:
             try:
                 result = await _deliver_to_recipient(
-                    agent, tenant_id, briefing_data, export_data, recipient, channel,
+                    agent,
+                    tenant_id,
+                    briefing_data,
+                    export_data,
+                    recipient,
+                    channel,
                 )
                 delivery_results.append(result)
             except Exception:
                 agent.logger.exception(
-                    "Failed to deliver briefing to %s via %s", recipient, channel,
+                    "Failed to deliver briefing to %s via %s",
+                    recipient,
+                    channel,
                 )
-                delivery_results.append({
-                    "recipient": recipient,
-                    "channel": channel,
-                    "status": "failed",
-                })
+                delivery_results.append(
+                    {
+                        "recipient": recipient,
+                        "channel": channel,
+                        "status": "failed",
+                    }
+                )
 
-    agent._publish_event("briefing.delivered", {
-        "schedule_id": schedule.get("schedule_id", ""),
-        "briefing_id": briefing_data.get("briefing_id", ""),
-        "tenant_id": tenant_id,
-        "delivery_count": len(delivery_results),
-        "success_count": sum(1 for d in delivery_results if d.get("status") == "delivered"),
-    })
+    agent._publish_event(
+        "briefing.delivered",
+        {
+            "schedule_id": schedule.get("schedule_id", ""),
+            "briefing_id": briefing_data.get("briefing_id", ""),
+            "tenant_id": tenant_id,
+            "delivery_count": len(delivery_results),
+            "success_count": sum(1 for d in delivery_results if d.get("status") == "delivered"),
+        },
+    )
 
     return {
         "status": "success",
@@ -224,7 +247,11 @@ async def _deliver_to_recipient(
 
     try:
         result = await agent._send_via_channel(
-            channel, stakeholder, message, content, subject_override=subject,
+            channel,
+            stakeholder,
+            message,
+            content,
+            subject_override=subject,
         )
         return {
             "recipient": recipient,
@@ -235,7 +262,10 @@ async def _deliver_to_recipient(
         }
     except Exception as exc:
         agent.logger.warning(
-            "Channel delivery failed for %s via %s: %s", recipient, channel, exc,
+            "Channel delivery failed for %s via %s: %s",
+            recipient,
+            channel,
+            exc,
         )
         return {
             "recipient": recipient,

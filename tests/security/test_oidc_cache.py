@@ -20,10 +20,8 @@ import time
 
 import pytest
 
-
 # Import the canonical TTL cache from the security package.
 from security.auth import _TTLCache
-
 
 # ---------------------------------------------------------------------------
 # Basic get / set

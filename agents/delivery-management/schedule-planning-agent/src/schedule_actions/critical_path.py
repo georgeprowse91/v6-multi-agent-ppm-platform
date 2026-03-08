@@ -90,6 +90,7 @@ async def calculate_critical_path(
 # CPM calculation helpers
 # ---------------------------------------------------------------------------
 
+
 async def calculate_cpm_dates(
     agent: SchedulePlanningAgent,
     tasks: list[dict[str, Any]],
@@ -237,8 +238,7 @@ async def backward_pass(
         duration = float(task.get("duration", 0))
         if successors[task_id]:
             task["late_finish"] = min(
-                task_map[succ].get("late_start", project_duration)
-                for succ in successors[task_id]
+                task_map[succ].get("late_start", project_duration) for succ in successors[task_id]
             )
         else:
             task["late_finish"] = project_duration

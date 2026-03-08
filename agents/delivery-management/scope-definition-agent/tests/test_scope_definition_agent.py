@@ -95,7 +95,11 @@ async def test_manage_requirements_creates_requirement(tmp_path: Path) -> None:
             },
         }
     )
-    assert result.get("requirement_id") or result.get("requirements") or result.get("success") is not False
+    assert (
+        result.get("requirement_id")
+        or result.get("requirements")
+        or result.get("success") is not False
+    )
 
 
 @pytest.mark.anyio

@@ -38,12 +38,8 @@ async def handle_optimize_program(
     constituent_projects = program.get("constituent_projects", [])
     project_schedules = await agent._get_project_schedules(constituent_projects)
     resource_allocations = await agent._get_resource_allocations(constituent_projects)
-    project_costs = await agent._estimate_project_costs(
-        constituent_projects, tenant_id=tenant_id
-    )
-    project_risks = await agent._estimate_project_risks(
-        constituent_projects, tenant_id=tenant_id
-    )
+    project_costs = await agent._estimate_project_costs(constituent_projects, tenant_id=tenant_id)
+    project_risks = await agent._estimate_project_risks(constituent_projects, tenant_id=tenant_id)
     project_details = await agent._get_project_details(constituent_projects)
     strategic_objectives = program.get("strategic_objectives", [])
 
@@ -57,9 +53,7 @@ async def handle_optimize_program(
     synergy_map = _build_synergy_map(synergy_analysis)
     alignment_scores = _calculate_alignment_scores(agent, project_details, strategic_objectives)
     alignment_score = (
-        sum(alignment_scores.values()) / max(1, len(alignment_scores))
-        if alignment_scores
-        else 0.0
+        sum(alignment_scores.values()) / max(1, len(alignment_scores)) if alignment_scores else 0.0
     )
     synergy_savings = await _calculate_synergy_savings(
         synergy_analysis.get("shared_components", []),
@@ -224,9 +218,7 @@ def _calculate_alignment_scores(
 ) -> dict[str, float]:
     if not strategic_objectives:
         return {project_id: 0.7 for project_id in project_details}
-    objective_terms = extract_alignment_terms(
-        " ".join(str(obj) for obj in strategic_objectives)
-    )
+    objective_terms = extract_alignment_terms(" ".join(str(obj) for obj in strategic_objectives))
     if not objective_terms:
         return {project_id: 0.7 for project_id in project_details}
     scores: dict[str, float] = {}
@@ -345,9 +337,7 @@ def _optimize_schedule_genetic(
     population_size: int = 12,
 ) -> tuple[dict[str, dict[str, Any]], float, dict[str, float]]:
     population = [
-        _mutate_schedule(
-            base_schedule, dependencies, rng=rng, max_shift_days=max_shift_days
-        )
+        _mutate_schedule(base_schedule, dependencies, rng=rng, max_shift_days=max_shift_days)
         for _ in range(max(2, population_size))
     ]
     population.append(base_schedule)
@@ -384,9 +374,7 @@ def _optimize_schedule_genetic(
                 child[project_id] = (
                     parent_a.get(project_id) if rng.random() < 0.5 else parent_b.get(project_id)
                 )  # type: ignore
-            child = _mutate_schedule(
-                child, dependencies, rng=rng, max_shift_days=max_shift_days
-            )
+            child = _mutate_schedule(child, dependencies, rng=rng, max_shift_days=max_shift_days)
             new_population.append(child)
         population = new_population
         scored = [

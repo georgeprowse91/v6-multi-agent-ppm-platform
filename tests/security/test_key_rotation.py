@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # clear_auth_caches
 # ---------------------------------------------------------------------------
@@ -33,9 +32,9 @@ def test_clear_auth_caches_clears_oidc_cache() -> None:
 
     clear_auth_caches()
 
-    assert _OIDC_CONFIG_CACHE.get("https://example.com/oidc") is None, (
-        "clear_auth_caches() must evict all entries from _OIDC_CONFIG_CACHE"
-    )
+    assert (
+        _OIDC_CONFIG_CACHE.get("https://example.com/oidc") is None
+    ), "clear_auth_caches() must evict all entries from _OIDC_CONFIG_CACHE"
 
 
 def test_clear_auth_caches_clears_jwks_cache() -> None:
@@ -47,9 +46,9 @@ def test_clear_auth_caches_clears_jwks_cache() -> None:
 
     clear_auth_caches()
 
-    assert _JWKS_CACHE.get("https://example.com/keys") is None, (
-        "clear_auth_caches() must evict all entries from _JWKS_CACHE"
-    )
+    assert (
+        _JWKS_CACHE.get("https://example.com/keys") is None
+    ), "clear_auth_caches() must evict all entries from _JWKS_CACHE"
 
 
 def test_clear_auth_caches_idempotent() -> None:
@@ -68,13 +67,14 @@ def test_clear_auth_caches_idempotent() -> None:
 def test_install_key_rotation_handler_available() -> None:
     """_install_key_rotation_handler must exist in api.main source."""
     from pathlib import Path
+
     repo_root = Path(__file__).resolve().parents[2]
-    source = (repo_root / "apps" / "api-gateway" / "src" / "api" / "main.py").read_text(
+    source = (repo_root / "services" / "api-gateway" / "src" / "api" / "main.py").read_text(
         encoding="utf-8"
     )
-    assert "def _install_key_rotation_handler(" in source, (
-        "_install_key_rotation_handler must be defined in api.main"
-    )
+    assert (
+        "def _install_key_rotation_handler(" in source
+    ), "_install_key_rotation_handler must be defined in api.main"
 
 
 def test_signal_handler_clears_caches(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -91,6 +91,7 @@ def test_signal_handler_clears_caches(monkeypatch: pytest.MonkeyPatch) -> None:
     # Invalidate the settings cache so our env vars take effect
     try:
         import api.config as _cfg
+
         _cfg.get_settings.cache_clear()
     except Exception:
         pass
@@ -140,16 +141,18 @@ def test_model_registry_cache_clear_resets_lru(tmp_path: pytest.fixture) -> None
 
     registry_file = tmp_path / "llm_models.json"
     registry_file.write_text(
-        json.dumps([
-            {
-                "provider": "openai",
-                "model_id": "gpt-4o",
-                "display_name": "GPT-4o",
-                "enabled": True,
-                "capabilities": ["chat"],
-                "allow_in_demo": False,
-            }
-        ])
+        json.dumps(
+            [
+                {
+                    "provider": "openai",
+                    "model_id": "gpt-4o",
+                    "display_name": "GPT-4o",
+                    "enabled": True,
+                    "capabilities": ["chat"],
+                    "allow_in_demo": False,
+                }
+            ]
+        )
     )
 
     from model_registry import clear_model_registry_cache, load_model_registry
@@ -162,24 +165,26 @@ def test_model_registry_cache_clear_resets_lru(tmp_path: pytest.fixture) -> None
 
         # Simulate registry update
         registry_file.write_text(
-            json.dumps([
-                {
-                    "provider": "openai",
-                    "model_id": "gpt-4o",
-                    "display_name": "GPT-4o",
-                    "enabled": True,
-                    "capabilities": ["chat"],
-                    "allow_in_demo": False,
-                },
-                {
-                    "provider": "anthropic",
-                    "model_id": "claude-3-5-sonnet",
-                    "display_name": "Claude 3.5 Sonnet",
-                    "enabled": True,
-                    "capabilities": ["chat"],
-                    "allow_in_demo": True,
-                },
-            ])
+            json.dumps(
+                [
+                    {
+                        "provider": "openai",
+                        "model_id": "gpt-4o",
+                        "display_name": "GPT-4o",
+                        "enabled": True,
+                        "capabilities": ["chat"],
+                        "allow_in_demo": False,
+                    },
+                    {
+                        "provider": "anthropic",
+                        "model_id": "claude-3-5-sonnet",
+                        "display_name": "Claude 3.5 Sonnet",
+                        "enabled": True,
+                        "capabilities": ["chat"],
+                        "allow_in_demo": True,
+                    },
+                ]
+            )
         )
 
         # Without clearing, still returns cached (1 model)

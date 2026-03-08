@@ -18,8 +18,6 @@ from compliance_utils import (
 )
 from llm.client import LLMGateway, LLMProviderError
 
-import importlib
-
 from agents.common.web_search import build_search_query
 
 if TYPE_CHECKING:
@@ -93,9 +91,7 @@ async def handle_monitor_regulatory_changes(
         await _sync_regulatory_updates(agent, all_updates)
 
     new_obligations = [
-        update
-        for update in all_updates
-        if update.get("description") or update.get("obligation")
+        update for update in all_updates if update.get("description") or update.get("obligation")
     ]
     tasks_created = await agent._create_stakeholder_tasks(new_obligations, tenant_id)
 
@@ -164,7 +160,9 @@ async def handle_monitor_regulations(
             "used_external_research": False,
         }
 
-    summary = await _agent_module.summarize_snippets(snippets, llm_client=llm_client, purpose="compliance")
+    summary = await _agent_module.summarize_snippets(
+        snippets, llm_client=llm_client, purpose="compliance"
+    )
     updates = await agent._extract_regulatory_updates(summary, snippets, llm_client=llm_client)
     gaps = identify_control_gaps(updates, agent.regulation_library)
     sources = extract_sources(snippets)
@@ -281,9 +279,7 @@ async def _sync_regulatory_updates(
                 "related_controls": [],
                 "applicability_rules": {
                     "applies_to_all": False,
-                    "jurisdiction_filter": (
-                        [update.get("region")] if update.get("region") else []
-                    ),
+                    "jurisdiction_filter": ([update.get("region")] if update.get("region") else []),
                     "industry_filter": [],
                 },
                 "metadata": {"source_url": update.get("source_url")},

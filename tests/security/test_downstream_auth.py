@@ -228,7 +228,7 @@ def test_telemetry_requires_auth(monkeypatch) -> None:
 def test_workflow_service_requires_auth(monkeypatch) -> None:
     _set_auth_env(monkeypatch)
     client = _load_client(
-        REPO_ROOT / "apps" / "workflow-service" / "src" / "main.py",
+        REPO_ROOT / "services" / "workflow-service" / "src" / "main.py",
         "workflow_service_auth",
     )
 

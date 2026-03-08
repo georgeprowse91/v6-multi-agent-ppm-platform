@@ -53,11 +53,7 @@ async def handle_handle_event(
                 if not workflow:
                     continue
                 task = next(
-                    (
-                        item
-                        for item in workflow.get("tasks", [])
-                        if item.get("task_id") == task_id
-                    ),
+                    (item for item in workflow.get("tasks", []) if item.get("task_id") == task_id),
                     None,
                 )
                 if not task:

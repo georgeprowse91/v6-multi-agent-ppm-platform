@@ -223,7 +223,8 @@ async def _predict_health_score(
         "volatility": round(volatility, 4),
         "breakdown": breakdown,
         "risk_factors": risk_factors,
-        "at_risk": current_score < HEALTH_WARNING_THRESHOLD or trend in ("declining", "rapidly_declining"),
+        "at_risk": current_score < HEALTH_WARNING_THRESHOLD
+        or trend in ("declining", "rapidly_declining"),
     }
 
 
@@ -239,10 +240,26 @@ def _build_signal_breakdown(
     elif history:
         latest = history[-1]
         metrics = latest.get("metrics", {})
-        risk = metrics.get("risk", {}).get("score", 0.5) if isinstance(metrics.get("risk"), dict) else 0.5
-        schedule = metrics.get("schedule", {}).get("score", 0.5) if isinstance(metrics.get("schedule"), dict) else 0.5
-        budget = metrics.get("budget", {}).get("score", 0.5) if isinstance(metrics.get("budget"), dict) else 0.5
-        resource = metrics.get("resource", {}).get("score", 0.5) if isinstance(metrics.get("resource"), dict) else 0.5
+        risk = (
+            metrics.get("risk", {}).get("score", 0.5)
+            if isinstance(metrics.get("risk"), dict)
+            else 0.5
+        )
+        schedule = (
+            metrics.get("schedule", {}).get("score", 0.5)
+            if isinstance(metrics.get("schedule"), dict)
+            else 0.5
+        )
+        budget = (
+            metrics.get("budget", {}).get("score", 0.5)
+            if isinstance(metrics.get("budget"), dict)
+            else 0.5
+        )
+        resource = (
+            metrics.get("resource", {}).get("score", 0.5)
+            if isinstance(metrics.get("resource"), dict)
+            else 0.5
+        )
     else:
         risk = schedule = budget = resource = 0.5
 
@@ -332,7 +349,9 @@ async def _check_health_thresholds(
         alerts.append(alert)
         agent.logger.warning(
             "Health critical threshold crossed for project %s: %.3f -> %.3f",
-            project_id, previous_score, current_score,
+            project_id,
+            previous_score,
+            current_score,
         )
 
     # Check warning threshold crossing
@@ -420,7 +439,6 @@ async def _generate_prediction_recommendations(
     recommendations: list[str] = []
     value = prediction.get("value", 1.0)
     trend = prediction.get("trend", "stable")
-    risk_factors = prediction.get("risk_factors", [])
 
     if value < HEALTH_CRITICAL_THRESHOLD:
         recommendations.append("Escalate to program management for immediate intervention")

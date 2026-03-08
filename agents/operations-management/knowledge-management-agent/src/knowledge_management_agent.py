@@ -125,8 +125,15 @@ class KnowledgeManagementAgent(BaseAgent):
     """
 
     _DEFAULT_DOC_TYPES = [
-        "charter", "requirements", "design", "test_plan", "meeting_minutes",
-        "lessons_learned", "policy", "procedure", "report",
+        "charter",
+        "requirements",
+        "design",
+        "test_plan",
+        "meeting_minutes",
+        "lessons_learned",
+        "policy",
+        "procedure",
+        "report",
     ]
     _DEFAULT_SUMMARY_PROMPT = (
         "Summarize the document below for enterprise knowledge retrieval. "
@@ -134,7 +141,9 @@ class KnowledgeManagementAgent(BaseAgent):
         "Document:\n{text}"
     )
 
-    def __init__(self, agent_id: str = "knowledge-management-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "knowledge-management-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
         _c = config or {}
 
@@ -151,12 +160,20 @@ class KnowledgeManagementAgent(BaseAgent):
         self.github_extensions: list[str] = _c.get("github_extensions", [".md", ".txt", ".rst"])
         self.document_types: list[str] = _c.get("document_types", self._DEFAULT_DOC_TYPES)
         self.summary_prompt_agent_id: str = _c.get("summary_prompt_agent_id", "knowledge-agent")
-        self.summary_prompt_template: str = _c.get("summary_prompt_template", self._DEFAULT_SUMMARY_PROMPT)
+        self.summary_prompt_template: str = _c.get(
+            "summary_prompt_template", self._DEFAULT_SUMMARY_PROMPT
+        )
 
         # Persistent stores
-        self.document_store = TenantStateStore(Path(_c.get("document_store_path", "data/knowledge_documents.json")))
-        self.document_schema = json.loads(Path(_c.get("document_schema_path", "data/schemas/document.schema.json")).read_text())
-        self.knowledge_db = KnowledgeDatabase(Path(_c.get("knowledge_db_path", "data/knowledge_management.db")))
+        self.document_store = TenantStateStore(
+            Path(_c.get("document_store_path", "data/knowledge_documents.json"))
+        )
+        self.document_schema = json.loads(
+            Path(_c.get("document_schema_path", "data/schemas/document.schema.json")).read_text()
+        )
+        self.knowledge_db = KnowledgeDatabase(
+            Path(_c.get("knowledge_db_path", "data/knowledge_management.db"))
+        )
 
         # Event bus
         self.event_bus = _c.get("event_bus")
@@ -173,14 +190,20 @@ class KnowledgeManagementAgent(BaseAgent):
         # Embedding / vector index
         fallback_embedding_service = LocalEmbeddingService(self.embedding_dimensions)
         self.embedding_service = SemanticEmbeddingService(
-            self.embedding_model, fallback_service=fallback_embedding_service,
+            self.embedding_model,
+            fallback_service=fallback_embedding_service,
             encoder=_c.get("embedding_encoder"),
         )
         self.vector_store_backend: str = _c.get("vector_store_backend", "in_memory")
         if self.vector_store_backend == "faiss":
             self.vector_index = FaissBackedVectorSearchIndex(
-                self.embedding_service, index_name="knowledge_agent",
-                config_path=Path(_c["vector_store_config_path"]) if _c.get("vector_store_config_path") else None,
+                self.embedding_service,
+                index_name="knowledge_agent",
+                config_path=(
+                    Path(_c["vector_store_config_path"])
+                    if _c.get("vector_store_config_path")
+                    else None
+                ),
             )
         else:
             self.vector_index = VectorSearchIndex(self.embedding_service)
@@ -229,13 +252,28 @@ class KnowledgeManagementAgent(BaseAgent):
             await self.event_bus.stop()
 
     _VALID_ACTIONS = {
-        "upload_document", "ingest_sources", "ingest_agent_output",
-        "search_documents", "search_semantic", "get_document", "update_document",
-        "delete_document", "classify_document", "summarize_document",
-        "extract_entities", "build_knowledge_graph", "query_knowledge_graph",
-        "capture_lesson_learned", "recommend_documents", "manage_taxonomy",
-        "track_document_access", "get_document_version_history",
-        "annotate_document", "review_document", "approve_document", "link_documents",
+        "upload_document",
+        "ingest_sources",
+        "ingest_agent_output",
+        "search_documents",
+        "search_semantic",
+        "get_document",
+        "update_document",
+        "delete_document",
+        "classify_document",
+        "summarize_document",
+        "extract_entities",
+        "build_knowledge_graph",
+        "query_knowledge_graph",
+        "capture_lesson_learned",
+        "recommend_documents",
+        "manage_taxonomy",
+        "track_document_access",
+        "get_document_version_history",
+        "annotate_document",
+        "review_document",
+        "approve_document",
+        "link_documents",
     }
 
     async def validate_input(self, input_data: dict[str, Any]) -> bool:
@@ -321,12 +359,24 @@ class KnowledgeManagementAgent(BaseAgent):
 
     def get_capabilities(self) -> list[str]:
         return [
-            "document_repository", "document_versioning", "document_classification",
-            "semantic_search", "document_summarization", "entity_extraction",
-            "knowledge_graph", "knowledge_ingestion", "knowledge_graph_traversal",
-            "lessons_learned_capture", "document_recommendations", "taxonomy_management",
-            "collaborative_editing", "document_curation", "access_control",
-            "audit_logging", "nlp_processing", "content_analysis",
+            "document_repository",
+            "document_versioning",
+            "document_classification",
+            "semantic_search",
+            "document_summarization",
+            "entity_extraction",
+            "knowledge_graph",
+            "knowledge_ingestion",
+            "knowledge_graph_traversal",
+            "lessons_learned_capture",
+            "document_recommendations",
+            "taxonomy_management",
+            "collaborative_editing",
+            "document_curation",
+            "access_control",
+            "audit_logging",
+            "nlp_processing",
+            "content_analysis",
         ]
 
     # ------------------------------------------------------------------
@@ -364,60 +414,91 @@ class KnowledgeManagementAgent(BaseAgent):
         doc_id = document.get("document_id")
         if not doc_id:
             return
-        combined = " ".join([
-            document.get("title", ""), document.get("content", ""),
-            " ".join(document.get("tags", [])),
-            document.get("topic") or "", document.get("domain") or "",
-            json.dumps(document.get("metadata", {})),
-        ])
+        combined = " ".join(
+            [
+                document.get("title", ""),
+                document.get("content", ""),
+                " ".join(document.get("tags", [])),
+                document.get("topic") or "",
+                document.get("domain") or "",
+                json.dumps(document.get("metadata", {})),
+            ]
+        )
         self.vector_index.add(doc_id, combined, {"title": document.get("title")})
 
     async def _update_graph_for_document(self, document: dict[str, Any]) -> None:
         update_graph_for_document(document, self.graph_nodes, self.graph_edges)
         self.knowledge_db.upsert_graph(self.graph_nodes, self.graph_edges)
 
-    def _register_graph_node(self, node_id: str, node_type: str, attributes: dict[str, Any]) -> None:
+    def _register_graph_node(
+        self, node_id: str, node_type: str, attributes: dict[str, Any]
+    ) -> None:
         register_graph_node(self.graph_nodes, node_id, node_type, attributes)
 
     def _register_graph_edge(self, source: str, target: str, relation: str) -> None:
         register_graph_edge(self.graph_edges, source, target, relation)
 
-    def _traverse_graph(self, start_node: str, relation: str | None = None,
-                        target_type: str | None = None, depth: int = 2) -> list[dict[str, Any]]:
-        return traverse_graph(self.graph_nodes, self.graph_edges, start_node, relation, target_type, depth)
+    def _traverse_graph(
+        self,
+        start_node: str,
+        relation: str | None = None,
+        target_type: str | None = None,
+        depth: int = 2,
+    ) -> list[dict[str, Any]]:
+        return traverse_graph(
+            self.graph_nodes, self.graph_edges, start_node, relation, target_type, depth
+        )
 
     async def _publish_event(self, topic: str, payload: dict[str, Any]) -> None:
         if not self.event_bus:
             return
         try:
             await self.event_bus.publish(topic, payload)
-        except (ConnectionError, TimeoutError, ValueError, KeyError,
-                TypeError, RuntimeError, OSError) as exc:
+        except (
+            ConnectionError,
+            TimeoutError,
+            ValueError,
+            KeyError,
+            TypeError,
+            RuntimeError,
+            OSError,
+        ) as exc:
             self.logger.warning("Failed to publish event %s: %s", topic, exc)
 
     def _register_integrations(self) -> None:
         ic = self.integration_clients
         self.integration_status = {
-            k: bool(ic.get(k)) for k in [
-                "blob_storage", "data_lake", "cognitive_search", "summarization",
-                "sharepoint", "office_online", "form_recognizer", "git_repos", "rbac",
+            k: bool(ic.get(k))
+            for k in [
+                "blob_storage",
+                "data_lake",
+                "cognitive_search",
+                "summarization",
+                "sharepoint",
+                "office_online",
+                "form_recognizer",
+                "git_repos",
+                "rbac",
             ]
         }
-        self.integration_status.update({"metadata_db": True, "graph_store": True,
-                                        "service_bus": self.event_bus is not None})
+        self.integration_status.update(
+            {"metadata_db": True, "graph_store": True, "service_bus": self.event_bus is not None}
+        )
 
     async def _publish_document_external(self, document: dict[str, Any]) -> None:
         if not self.document_management_service:
             return
         meta = DocumentMetadata(
-            title=document.get("title", ""), description=document.get("description", ""),
+            title=document.get("title", ""),
+            description=document.get("description", ""),
             classification=document.get("classification", "internal"),
             tags=document.get("tags", []),
             owner=document.get("owner") or document.get("author") or "",
             retention_days=document.get("retention_days", 365),
         )
         await self.document_management_service.publish_document(
-            document_content=document.get("content", ""), metadata=meta)
+            document_content=document.get("content", ""), metadata=meta
+        )
 
     async def summarise_document(self, text: str) -> str:
         """Create concise summary with prompt-injection sanitisation."""
@@ -428,11 +509,13 @@ class KnowledgeManagementAgent(BaseAgent):
         prompt = prompt_template.format(text=sanitized_text, token_limit=self.summary_token_limit)
         if self.summarizer:
             result = await self._invoke_summarizer(
-                {"prompt": prompt, "text": sanitized_text, "max_tokens": self.summary_token_limit})
+                {"prompt": prompt, "text": sanitized_text, "max_tokens": self.summary_token_limit}
+            )
             if result:
                 return result
         return await self._generate_summary(
-            sanitized_text, max(self.max_summary_length, self.summary_token_limit * 5))
+            sanitized_text, max(self.max_summary_length, self.summary_token_limit * 5)
+        )
 
     async def _invoke_summarizer(self, payload: dict[str, Any]) -> str:
         if not self.summarizer:
@@ -468,24 +551,33 @@ class KnowledgeManagementAgent(BaseAgent):
     async def _map_doc_type_for_schema(self, doc_type: str | None) -> str:
         return map_doc_type_for_schema(doc_type)
 
-    async def _is_access_allowed(self, document: dict[str, Any], access_context: dict[str, Any]) -> bool:
+    async def _is_access_allowed(
+        self, document: dict[str, Any], access_context: dict[str, Any]
+    ) -> bool:
         return is_access_allowed(document, access_context)
 
-    async def _matches_search_filters(self, document: dict[str, Any], filters: dict[str, Any]) -> bool:
+    async def _matches_search_filters(
+        self, document: dict[str, Any], filters: dict[str, Any]
+    ) -> bool:
         return matches_search_filters(document, filters)
 
     # ------------------------------------------------------------------
     # Thin delegation wrappers (preserve API used by tests & other callers)
     # ------------------------------------------------------------------
 
-    async def _upload_document(self, tenant_id: str, document_data: dict[str, Any]) -> dict[str, Any]:
+    async def _upload_document(
+        self, tenant_id: str, document_data: dict[str, Any]
+    ) -> dict[str, Any]:
         return await _act_upload_document(self, tenant_id, document_data)
 
-    async def _ingest_sources(self, tenant_id: str, sources: list[dict[str, Any]]) -> dict[str, Any]:
+    async def _ingest_sources(
+        self, tenant_id: str, sources: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         return await _act_ingest_sources(self, tenant_id, sources)
 
-    async def _search_documents(self, query: str, filters: dict[str, Any],
-                                access_context: dict[str, Any], tenant_id: str) -> dict[str, Any]:
+    async def _search_documents(
+        self, query: str, filters: dict[str, Any], access_context: dict[str, Any], tenant_id: str
+    ) -> dict[str, Any]:
         return await _act_search_documents(self, query, filters, access_context, tenant_id)
 
     async def _extract_entities(self, document_id: str, tenant_id: str) -> dict[str, Any]:
@@ -494,20 +586,40 @@ class KnowledgeManagementAgent(BaseAgent):
     async def _build_knowledge_graph(self, document_id: str, tenant_id: str) -> dict[str, Any]:
         return await _act_build_knowledge_graph(self, document_id, tenant_id)
 
-    async def _annotate_document(self, document_id: str, annotation: dict[str, Any],
-                                 access_context: dict[str, Any], tenant_id: str) -> dict[str, Any]:
-        return await _act_annotate_document(self, document_id, annotation, access_context, tenant_id)
+    async def _annotate_document(
+        self,
+        document_id: str,
+        annotation: dict[str, Any],
+        access_context: dict[str, Any],
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        return await _act_annotate_document(
+            self, document_id, annotation, access_context, tenant_id
+        )
 
-    async def _review_document(self, document_id: str, review: dict[str, Any],
-                               access_context: dict[str, Any], tenant_id: str) -> dict[str, Any]:
+    async def _review_document(
+        self,
+        document_id: str,
+        review: dict[str, Any],
+        access_context: dict[str, Any],
+        tenant_id: str,
+    ) -> dict[str, Any]:
         return await _act_review_document(self, document_id, review, access_context, tenant_id)
 
-    async def _approve_document(self, document_id: str, approval: dict[str, Any],
-                                access_context: dict[str, Any], tenant_id: str) -> dict[str, Any]:
+    async def _approve_document(
+        self,
+        document_id: str,
+        approval: dict[str, Any],
+        access_context: dict[str, Any],
+        tenant_id: str,
+    ) -> dict[str, Any]:
         return await _act_approve_document(self, document_id, approval, access_context, tenant_id)
 
-    async def _generate_excerpts(self, results: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
+    async def _generate_excerpts(
+        self, results: list[dict[str, Any]], query: str
+    ) -> list[dict[str, Any]]:
         from knowledge_actions.search_actions import _generate_excerpts
+
         return await _generate_excerpts(results, query)
 
     async def _extract_entities_from_text(self, text: str) -> list[dict[str, Any]]:

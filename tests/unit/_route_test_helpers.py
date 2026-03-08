@@ -31,7 +31,11 @@ def stub_routes_package() -> None:
     # --- routes package stub ---
     existing = sys.modules.get("routes")
     web_routes_str = str(_WEB_ROUTES)
-    if existing is None or not hasattr(existing, "__path__") or web_routes_str not in list(existing.__path__):
+    if (
+        existing is None
+        or not hasattr(existing, "__path__")
+        or web_routes_str not in list(existing.__path__)
+    ):
         pkg = types.ModuleType("routes")
         pkg.__path__ = [web_routes_str]
         pkg.__package__ = "routes"
@@ -90,7 +94,6 @@ def stub_routes_package() -> None:
             spec.loader.exec_module(mod)
         except Exception:
             # Fallback: noop stubs
-            import asyncio
 
             stub = types.ModuleType("routes._llm_helpers")
 

@@ -406,14 +406,10 @@ def resolve_notification_preferences(
     user_prefs = routing.get("users", {}).get(approver, {})
     group_prefs: dict[str, Any] = {}
     for role in approval_chain.get("user_roles", {}).get(approver, []):
-        group_prefs = merge_preferences(
-            group_prefs, routing.get("groups", {}).get(role, {})
-        )
+        group_prefs = merge_preferences(group_prefs, routing.get("groups", {}).get(role, {}))
     stored = agent.notification_store.get_preferences(tenant_id, approver) or {}
     preferences = merge_preferences(
-        merge_preferences(
-            merge_preferences(default_prefs, group_prefs), user_prefs
-        ),
+        merge_preferences(merge_preferences(default_prefs, group_prefs), user_prefs),
         stored,
     )
 
@@ -429,9 +425,7 @@ def resolve_notification_preferences(
     return preferences
 
 
-def find_delegation_details(
-    approval_chain: dict[str, Any], approver: str
-) -> dict[str, Any] | None:
+def find_delegation_details(approval_chain: dict[str, Any], approver: str) -> dict[str, Any] | None:
     for record in approval_chain.get("delegations", []):
         if record.get("delegate") == approver:
             return record
@@ -504,9 +498,7 @@ def record_interaction_metric(
         "interaction": interaction,
     }
     agent.analytics_client.record_event("approval.notification.interaction", metadata)
-    agent.analytics_client.record_metric(
-        f"approval.notification.{interaction}.count", 1, metadata
-    )
+    agent.analytics_client.record_metric(f"approval.notification.{interaction}.count", 1, metadata)
 
 
 def record_response_metric(
@@ -551,9 +543,7 @@ def adjust_delivery_strategy(
         agent.notification_store.upsert_preferences(tenant_id, approver_id, updated)
 
 
-async def post_webhook(
-    agent: ApprovalWorkflowAgent, url: str, payload: dict[str, Any]
-) -> None:
+async def post_webhook(agent: ApprovalWorkflowAgent, url: str, payload: dict[str, Any]) -> None:
     """Post a JSON payload to the configured webhook."""
     async with httpx.AsyncClient() as client:
         try:

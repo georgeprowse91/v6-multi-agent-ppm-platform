@@ -22,7 +22,10 @@ if TYPE_CHECKING:
 
 
 async def handle_get_powerbi_report(
-    agent: AnalyticsInsightsAgent, tenant_id: str, report_type: str | None, user_context: dict[str, Any]
+    agent: AnalyticsInsightsAgent,
+    tenant_id: str,
+    report_type: str | None,
+    user_context: dict[str, Any],
 ) -> dict[str, Any]:
     """Return Power BI Embedded configuration."""
     if not report_type:
@@ -44,9 +47,7 @@ async def handle_orchestrate_etl(
     return {"pipelines": run_ids, "scheduled_at": datetime.now(timezone.utc).isoformat()}
 
 
-async def handle_monitor_etl(
-    agent: AnalyticsInsightsAgent, run_id: str
-) -> dict[str, Any]:
+async def handle_monitor_etl(agent: AnalyticsInsightsAgent, run_id: str) -> dict[str, Any]:
     """Monitor Data Factory pipeline status."""
     return await agent.data_factory_manager.get_pipeline_status(run_id)
 
@@ -140,6 +141,7 @@ async def handle_ingest_realtime_event(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 async def _handle_realtime_event(agent: AnalyticsInsightsAgent, event: dict[str, Any]) -> None:
     """Stream real-time events through Event Hub and Stream Analytics."""

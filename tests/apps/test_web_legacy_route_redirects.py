@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
@@ -22,8 +21,13 @@ def _load_web_app():
     # the second test re-uses the already-started app and add_middleware() raises
     # RuntimeError("Cannot add middleware after an application has started").
     for mod_name in list(sys.modules):
-        if mod_name in {"bootstrap", "legacy_main", "middleware", "routes",
-                        "web_main_legacy_redirects"}:
+        if mod_name in {
+            "bootstrap",
+            "legacy_main",
+            "middleware",
+            "routes",
+            "web_main_legacy_redirects",
+        }:
             sys.modules.pop(mod_name, None)
 
     module_path = _WEB_SRC / "main.py"
@@ -41,6 +45,7 @@ def test_legacy_routes_always_redirect_to_spa(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setenv("WORKFLOW_SERVICE_URL", "http://workflow:8000")
     try:
         import config as _web_cfg  # noqa: PLC0415
+
         _web_cfg.get_settings.cache_clear()
     except Exception:  # noqa: BLE001
         pass
@@ -67,6 +72,7 @@ def test_migration_map_reports_redirect_compatibility(monkeypatch: pytest.Monkey
     monkeypatch.setenv("WORKFLOW_SERVICE_URL", "http://workflow:8000")
     try:
         import config as _web_cfg  # noqa: PLC0415
+
         _web_cfg.get_settings.cache_clear()
     except Exception:  # noqa: BLE001
         pass

@@ -1,14 +1,32 @@
 """Demand Intake Agent - Pure utility functions."""
+
 from __future__ import annotations
+
 import math
 import re
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-DEFAULT_STOPWORDS: frozenset[str] = frozenset({
-    "the", "a", "an", "and", "or", "to", "for", "of", "in", "on", "with", "via", "from", "is", "are",
-})
+DEFAULT_STOPWORDS: frozenset[str] = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "and",
+        "or",
+        "to",
+        "for",
+        "of",
+        "in",
+        "on",
+        "with",
+        "via",
+        "from",
+        "is",
+        "are",
+    }
+)
 
 
 def combine_demand_text(request_data: dict[str, Any]) -> str:

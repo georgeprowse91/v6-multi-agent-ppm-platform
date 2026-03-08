@@ -3,6 +3,7 @@
 Wires copilot queries to the real orchestrator, routing through Intent Router
 and domain agents, streaming execution events back via SSE.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -85,12 +86,14 @@ async def _run_orchestration(
 
     try:
         # Step 1: Intent classification via LLM
-        await emitter.emit(ExecutionEvent(
-            event_type=ExecutionEventType.agent_started,
-            agent_id="intent-router",
-            catalog_id="intent-router",
-            data={"step": "classifying_intent", "query": query},
-        ))
+        await emitter.emit(
+            ExecutionEvent(
+                event_type=ExecutionEventType.agent_started,
+                agent_id="intent-router",
+                catalog_id="intent-router",
+                data={"step": "classifying_intent", "query": query},
+            )
+        )
 
         intent_result = await llm_complete_json(
             _INTENT_ROUTER_PROMPT,
@@ -101,13 +104,15 @@ async def _run_orchestration(
         if not intents:
             intents = ["general"]
 
-        await emitter.emit(ExecutionEvent(
-            event_type=ExecutionEventType.agent_completed,
-            agent_id="intent-router",
-            catalog_id="intent-router",
-            data={"intents": intents, "reasoning": intent_result.get("reasoning", "")},
-            confidence_score=0.85,
-        ))
+        await emitter.emit(
+            ExecutionEvent(
+                event_type=ExecutionEventType.agent_completed,
+                agent_id="intent-router",
+                catalog_id="intent-router",
+                data={"intents": intents, "reasoning": intent_result.get("reasoning", "")},
+                confidence_score=0.85,
+            )
+        )
 
         # Step 2: Route to domain agents based on classified intents
         aggregated_responses: list[dict[str, Any]] = []
@@ -115,19 +120,23 @@ async def _run_orchestration(
         for intent in intents[:3]:  # Cap at 3 agents to avoid excessive latency
             agent_ids = _INTENT_AGENT_MAP.get(intent, ["analytics-insights"])
             for agent_id in agent_ids:
-                await emitter.emit(ExecutionEvent(
-                    event_type=ExecutionEventType.agent_started,
-                    agent_id=agent_id,
-                    catalog_id=agent_id,
-                    data={"intent": intent},
-                ))
+                await emitter.emit(
+                    ExecutionEvent(
+                        event_type=ExecutionEventType.agent_started,
+                        agent_id=agent_id,
+                        catalog_id=agent_id,
+                        data={"intent": intent},
+                    )
+                )
 
-                await emitter.emit(ExecutionEvent(
-                    event_type=ExecutionEventType.agent_thinking,
-                    agent_id=agent_id,
-                    catalog_id=agent_id,
-                    data={"status": "analyzing query and portfolio data"},
-                ))
+                await emitter.emit(
+                    ExecutionEvent(
+                        event_type=ExecutionEventType.agent_thinking,
+                        agent_id=agent_id,
+                        catalog_id=agent_id,
+                        data={"status": "analyzing query and portfolio data"},
+                    )
+                )
 
                 # Real LLM call per agent
                 system_prompt = _AGENT_SYSTEM_PROMPTS.get(
@@ -144,53 +153,64 @@ async def _run_orchestration(
                 if not agent_response:
                     agent_response = f"[{agent_id}] Analysis complete. No LLM provider configured — enable one via LLM_PROVIDER env var for full AI responses."
 
-                await emitter.emit(ExecutionEvent(
-                    event_type=ExecutionEventType.agent_intermediate,
-                    agent_id=agent_id,
-                    catalog_id=agent_id,
-                    data={"partial_response": agent_response[:200]},
-                ))
+                await emitter.emit(
+                    ExecutionEvent(
+                        event_type=ExecutionEventType.agent_intermediate,
+                        agent_id=agent_id,
+                        catalog_id=agent_id,
+                        data={"partial_response": agent_response[:200]},
+                    )
+                )
 
-                aggregated_responses.append({
-                    "agent_id": agent_id,
-                    "intent": intent,
-                    "response": agent_response,
-                })
+                aggregated_responses.append(
+                    {
+                        "agent_id": agent_id,
+                        "intent": intent,
+                        "response": agent_response,
+                    }
+                )
 
-                await emitter.emit(ExecutionEvent(
-                    event_type=ExecutionEventType.agent_completed,
-                    agent_id=agent_id,
-                    catalog_id=agent_id,
-                    data={"response": agent_response},
-                    confidence_score=0.8,
-                ))
+                await emitter.emit(
+                    ExecutionEvent(
+                        event_type=ExecutionEventType.agent_completed,
+                        agent_id=agent_id,
+                        catalog_id=agent_id,
+                        data={"response": agent_response},
+                        confidence_score=0.8,
+                    )
+                )
 
         # Step 3: Response aggregation
         combined = "\n\n".join(
-            f"**{r['agent_id']}** ({r['intent']}):\n{r['response']}"
-            for r in aggregated_responses
+            f"**{r['agent_id']}** ({r['intent']}):\n{r['response']}" for r in aggregated_responses
         )
 
-        await emitter.emit(ExecutionEvent(
-            event_type=ExecutionEventType.orchestration_completed,
-            data={
-                "final_response": combined,
-                "agents_invoked": [r["agent_id"] for r in aggregated_responses],
-                "intents": intents,
-            },
-        ))
+        await emitter.emit(
+            ExecutionEvent(
+                event_type=ExecutionEventType.orchestration_completed,
+                data={
+                    "final_response": combined,
+                    "agents_invoked": [r["agent_id"] for r in aggregated_responses],
+                    "intents": intents,
+                },
+            )
+        )
 
     except Exception as exc:
         logger.exception("Orchestration failed for %s", correlation_id)
-        await emitter.emit(ExecutionEvent(
-            event_type=ExecutionEventType.agent_error,
-            agent_id="orchestrator",
-            data={"error": str(exc)},
-        ))
-        await emitter.emit(ExecutionEvent(
-            event_type=ExecutionEventType.orchestration_completed,
-            data={"error": str(exc)},
-        ))
+        await emitter.emit(
+            ExecutionEvent(
+                event_type=ExecutionEventType.agent_error,
+                agent_id="orchestrator",
+                data={"error": str(exc)},
+            )
+        )
+        await emitter.emit(
+            ExecutionEvent(
+                event_type=ExecutionEventType.orchestration_completed,
+                data={"error": str(exc)},
+            )
+        )
 
 
 @router.post("/api/copilot/query")
@@ -200,15 +220,21 @@ async def copilot_query(request: CopilotQueryRequest) -> CopilotQueryResponse:
     registry = ExecutionEventRegistry.get_instance()
     emitter = registry.create_emitter(correlation_id)
 
-    await emitter.emit(ExecutionEvent(
-        event_type=ExecutionEventType.orchestration_started,
-        data={"query": request.query},
-    ))
+    await emitter.emit(
+        ExecutionEvent(
+            event_type=ExecutionEventType.orchestration_started,
+            data={"query": request.query},
+        )
+    )
 
     # Launch orchestration as a background task so SSE stream sees events
-    asyncio.create_task(_run_orchestration(
-        correlation_id, request.query, request.context,
-    ))
+    asyncio.create_task(
+        _run_orchestration(
+            correlation_id,
+            request.query,
+            request.context,
+        )
+    )
 
     return CopilotQueryResponse(correlation_id=correlation_id)
 

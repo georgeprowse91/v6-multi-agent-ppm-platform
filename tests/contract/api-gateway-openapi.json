@@ -1034,361 +1034,6 @@
         }
       }
     },
-    "/v1/prompts": {
-      "get": {
-        "tags": [
-          "prompts"
-        ],
-        "summary": "List Prompts",
-        "operationId": "list_prompts_v1_prompts_get",
-        "parameters": [
-          {
-            "name": "environment",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Environment"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response List Prompts V1 Prompts Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "prompts"
-        ],
-        "summary": "Create Prompt",
-        "operationId": "create_prompt_v1_prompts_post",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PromptCreateRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response Create Prompt V1 Prompts Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/prompts/flagged": {
-      "get": {
-        "tags": [
-          "prompts"
-        ],
-        "summary": "List Flagged Prompts",
-        "operationId": "list_flagged_prompts_v1_prompts_flagged_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response List Flagged Prompts V1 Prompts Flagged Get"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/prompts/{name}": {
-      "put": {
-        "tags": [
-          "prompts"
-        ],
-        "summary": "Update Prompt",
-        "operationId": "update_prompt_v1_prompts__name__put",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Name"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PromptUpdateRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response Update Prompt V1 Prompts  Name  Put"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "prompts"
-        ],
-        "summary": "Delete Prompt",
-        "operationId": "delete_prompt_v1_prompts__name__delete",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Name"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response Delete Prompt V1 Prompts  Name  Delete"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/prompts/{name}/promote/{version}": {
-      "post": {
-        "tags": [
-          "prompts"
-        ],
-        "summary": "Promote Prompt",
-        "operationId": "promote_prompt_v1_prompts__name__promote__version__post",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Name"
-            }
-          },
-          {
-            "name": "version",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "title": "Version"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PromptPromotionRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response Promote Prompt V1 Prompts  Name  Promote  Version  Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/prompts/{name}/render": {
-      "post": {
-        "tags": [
-          "prompts"
-        ],
-        "summary": "Render Prompt",
-        "operationId": "render_prompt_v1_prompts__name__render_post",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Name"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PromptRenderRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response Render Prompt V1 Prompts  Name  Render Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/prompts/evaluations/run": {
-      "post": {
-        "tags": [
-          "prompts"
-        ],
-        "summary": "Run Evaluation",
-        "operationId": "run_evaluation_v1_prompts_evaluations_run_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EvaluationRunRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "title": "Response Run Evaluation V1 Prompts Evaluations Run Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/connectors/categories": {
       "get": {
         "tags": [
@@ -3960,6 +3605,297 @@
         }
       }
     },
+    "/v1/marketplace/agents": {
+      "get": {
+        "tags": [
+          "marketplace"
+        ],
+        "summary": "List Marketplace Agents",
+        "description": "Browse all available agents in the marketplace (built-in + third-party).",
+        "operationId": "list_marketplace_agents_v1_marketplace_agents_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by category",
+              "title": "Category"
+            },
+            "description": "Filter by category"
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by source: builtin or marketplace",
+              "title": "Source"
+            },
+            "description": "Filter by source: builtin or marketplace"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search by name, description, or tags",
+              "title": "Search"
+            },
+            "description": "Search by name, description, or tags"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketplaceListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/marketplace/agents/{agent_id}": {
+      "get": {
+        "tags": [
+          "marketplace"
+        ],
+        "summary": "Get Marketplace Agent",
+        "description": "Get detailed information about a specific marketplace agent.",
+        "operationId": "get_marketplace_agent_v1_marketplace_agents__agent_id__get",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketplaceAgentDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "marketplace"
+        ],
+        "summary": "Unregister Marketplace Agent",
+        "description": "Remove a third-party agent from the marketplace.\n\nOnly marketplace (non-builtin) agents can be removed.\nRequires ``marketplace.manage`` permission.",
+        "operationId": "unregister_marketplace_agent_v1_marketplace_agents__agent_id__delete",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnregisterAgentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/marketplace/agents/register": {
+      "post": {
+        "tags": [
+          "marketplace"
+        ],
+        "summary": "Register Marketplace Agent",
+        "description": "Register a new third-party agent from a manifest.\n\nRequires ``marketplace.manage`` permission.",
+        "operationId": "register_marketplace_agent_v1_marketplace_agents_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterAgentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterAgentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/marketplace/agents/{agent_id}/test": {
+      "post": {
+        "tags": [
+          "marketplace"
+        ],
+        "summary": "Test Marketplace Agent",
+        "description": "Run a sandbox test for a marketplace agent.\n\nExecutes the agent in an isolated environment with timeout\nenforcement. Requires ``marketplace.manage`` permission.",
+        "operationId": "test_marketplace_agent_v1_marketplace_agents__agent_id__test_post",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Agent Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboxTestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboxTestResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/marketplace/categories": {
+      "get": {
+        "tags": [
+          "marketplace"
+        ],
+        "summary": "List Marketplace Categories",
+        "description": "List all available agent categories with counts.",
+        "operationId": "list_marketplace_categories_v1_marketplace_categories_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Marketplace Categories V1 Marketplace Categories Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/admin/model-registry/cache/clear": {
       "post": {
         "tags": [
@@ -5525,44 +5461,6 @@
         "title": "ConnectorListItemResponse",
         "description": "Response model for connector list items (combines definition and config)."
       },
-      "EvaluationRunRequest": {
-        "properties": {
-          "prompt_name": {
-            "type": "string",
-            "title": "Prompt Name"
-          },
-          "prompt_version": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Prompt Version"
-          },
-          "run_id": {
-            "type": "string",
-            "title": "Run Id"
-          },
-          "samples": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            "type": "array",
-            "title": "Samples"
-          }
-        },
-        "type": "object",
-        "required": [
-          "prompt_name",
-          "run_id",
-          "samples"
-        ],
-        "title": "EvaluationRunRequest"
-      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -5575,6 +5473,363 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "MarketplaceAgentDetail": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "builtin"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          },
+          "installed": {
+            "type": "boolean",
+            "title": "Installed",
+            "default": true
+          },
+          "long_description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Long Description"
+          },
+          "license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License"
+          },
+          "permissions_required": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Permissions Required"
+          },
+          "connectors_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Connectors Used"
+          },
+          "schemas_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Schemas Used"
+          },
+          "inputs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Inputs"
+          },
+          "outputs": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Outputs"
+          },
+          "parameters": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Parameters"
+          },
+          "runtime": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runtime"
+          },
+          "documentation_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Documentation Url"
+          },
+          "repository_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repository Url"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "entry_point": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Point"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "display_name"
+        ],
+        "title": "MarketplaceAgentDetail"
+      },
+      "MarketplaceAgentSummary": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "builtin"
+          },
+          "capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Capabilities"
+          },
+          "installed": {
+            "type": "boolean",
+            "title": "Installed",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "display_name"
+        ],
+        "title": "MarketplaceAgentSummary"
+      },
+      "MarketplaceListResponse": {
+        "properties": {
+          "agents": {
+            "items": {
+              "$ref": "#/components/schemas/MarketplaceAgentSummary"
+            },
+            "type": "array",
+            "title": "Agents"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "builtin_count": {
+            "type": "integer",
+            "title": "Builtin Count"
+          },
+          "marketplace_count": {
+            "type": "integer",
+            "title": "Marketplace Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agents",
+          "total",
+          "builtin_count",
+          "marketplace_count"
+        ],
+        "title": "MarketplaceListResponse"
       },
       "McpConfig": {
         "properties": {
@@ -6586,189 +6841,6 @@
         ],
         "title": "ProjectMcpConfigResponse"
       },
-      "PromptCreateRequest": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
-          },
-          "content": {
-            "type": "string",
-            "title": "Content"
-          },
-          "owner": {
-            "type": "string",
-            "title": "Owner"
-          },
-          "created_by": {
-            "type": "string",
-            "title": "Created By"
-          },
-          "status": {
-            "type": "string",
-            "title": "Status",
-            "default": "draft"
-          },
-          "experiment_tags": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Experiment Tags"
-          },
-          "defaults": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Defaults"
-          },
-          "required_variables": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Required Variables"
-          },
-          "environment_tags": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Environment Tags"
-          },
-          "version_label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Version Label"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name",
-          "content",
-          "owner",
-          "created_by"
-        ],
-        "title": "PromptCreateRequest"
-      },
-      "PromptPromotionRequest": {
-        "properties": {
-          "environment": {
-            "type": "string",
-            "title": "Environment"
-          }
-        },
-        "type": "object",
-        "required": [
-          "environment"
-        ],
-        "title": "PromptPromotionRequest"
-      },
-      "PromptRenderRequest": {
-        "properties": {
-          "variables": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Variables"
-          },
-          "version": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Version"
-          }
-        },
-        "type": "object",
-        "required": [
-          "variables"
-        ],
-        "title": "PromptRenderRequest"
-      },
-      "PromptUpdateRequest": {
-        "properties": {
-          "content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Content"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "environment_tags": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Environment Tags"
-          },
-          "owner": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Owner"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "version_label": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Version Label"
-          }
-        },
-        "type": "object",
-        "title": "PromptUpdateRequest"
-      },
       "QueryRequest": {
         "properties": {
           "query": {
@@ -6806,6 +6878,43 @@
         ],
         "title": "QueryRequest",
         "description": "Request model for agent queries."
+      },
+      "RegisterAgentRequest": {
+        "properties": {
+          "manifest": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Manifest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "manifest"
+        ],
+        "title": "RegisterAgentRequest"
+      },
+      "RegisterAgentResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "agent_id",
+          "message"
+        ],
+        "title": "RegisterAgentResponse"
       },
       "RegulatoryComplianceConfigRequest": {
         "properties": {
@@ -6936,6 +7045,82 @@
           "used_external_research"
         ],
         "title": "RiskResearchResponse"
+      },
+      "SandboxTestRequest": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "input_data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Input Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id"
+        ],
+        "title": "SandboxTestRequest"
+      },
+      "SandboxTestResponse": {
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "execution_time_seconds": {
+            "type": "number",
+            "title": "Execution Time Seconds",
+            "default": 0.0
+          },
+          "manifest_valid": {
+            "type": "boolean",
+            "title": "Manifest Valid",
+            "default": true
+          },
+          "manifest_errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Manifest Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_id",
+          "success"
+        ],
+        "title": "SandboxTestResponse"
       },
       "ScopeResearchRequest": {
         "properties": {
@@ -7276,6 +7461,29 @@
         ],
         "title": "TestConnectionResponse",
         "description": "Response model for connection test result."
+      },
+      "UnregisterAgentResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "agent_id",
+          "message"
+        ],
+        "title": "UnregisterAgentResponse"
       },
       "ValidationError": {
         "properties": {

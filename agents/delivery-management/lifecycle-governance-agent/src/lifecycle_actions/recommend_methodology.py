@@ -41,9 +41,7 @@ async def recommend_methodology(
     # Simplified rule-based logic
     if requirement_volatility == "high" and stakeholder_engagement == "high":
         methodology = "adaptive"
-        rationale = (
-            "High requirement volatility and stakeholder engagement favor Adaptive approach"
-        )
+        rationale = "High requirement volatility and stakeholder engagement favor Adaptive approach"
     elif regulatory_requirements or complexity == "high":
         methodology = "predictive"
         rationale = "Regulatory requirements and high complexity favor Predictive approach"

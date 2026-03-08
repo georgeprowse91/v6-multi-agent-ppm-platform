@@ -1,4 +1,5 @@
 """WBS tree routes."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -38,12 +39,17 @@ async def create_tree_node(project_id: str, payload: TreeNodeCreate, request: Re
         node = tree_store.create_node(tenant_id, project_id, payload)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    logger.info("tree.create", extra={"tenant_id": tenant_id, "project_id": project_id, "node_id": node.node_id})
+    logger.info(
+        "tree.create",
+        extra={"tenant_id": tenant_id, "project_id": project_id, "node_id": node.node_id},
+    )
     return node
 
 
 @router.patch("/api/tree/{project_id}/nodes/{node_id}", response_model=TreeNode)
-async def update_tree_node(project_id: str, node_id: str, payload: TreeNodeUpdate, request: Request) -> TreeNode:
+async def update_tree_node(
+    project_id: str, node_id: str, payload: TreeNodeUpdate, request: Request
+) -> TreeNode:
     session = _require_session(request)
     tenant_id = session["tenant_id"]
     try:
@@ -52,12 +58,16 @@ async def update_tree_node(project_id: str, node_id: str, payload: TreeNodeUpdat
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not node:
         raise HTTPException(status_code=404, detail="Tree node not found")
-    logger.info("tree.update", extra={"tenant_id": tenant_id, "project_id": project_id, "node_id": node_id})
+    logger.info(
+        "tree.update", extra={"tenant_id": tenant_id, "project_id": project_id, "node_id": node_id}
+    )
     return node
 
 
 @router.post("/api/tree/{project_id}/nodes/{node_id}/move", response_model=TreeNode)
-async def move_tree_node(project_id: str, node_id: str, payload: TreeMoveRequest, request: Request) -> TreeNode:
+async def move_tree_node(
+    project_id: str, node_id: str, payload: TreeMoveRequest, request: Request
+) -> TreeNode:
     session = _require_session(request)
     tenant_id = session["tenant_id"]
     try:
@@ -66,7 +76,9 @@ async def move_tree_node(project_id: str, node_id: str, payload: TreeMoveRequest
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     if not node:
         raise HTTPException(status_code=404, detail="Tree node not found")
-    logger.info("tree.move", extra={"tenant_id": tenant_id, "project_id": project_id, "node_id": node_id})
+    logger.info(
+        "tree.move", extra={"tenant_id": tenant_id, "project_id": project_id, "node_id": node_id}
+    )
     return node
 
 
@@ -75,7 +87,9 @@ async def delete_tree_node(project_id: str, node_id: str, request: Request) -> T
     session = _require_session(request)
     tenant_id = session["tenant_id"]
     deleted_count = tree_store.delete_node(tenant_id, project_id, node_id)
-    logger.info("tree.delete", extra={"tenant_id": tenant_id, "project_id": project_id, "node_id": node_id})
+    logger.info(
+        "tree.delete", extra={"tenant_id": tenant_id, "project_id": project_id, "node_id": node_id}
+    )
     return TreeDeleteResult(deleted=deleted_count > 0, deleted_count=deleted_count)
 
 
@@ -85,4 +99,9 @@ async def export_tree(project_id: str, request: Request) -> TreeExportResponse:
     tenant_id = session["tenant_id"]
     nodes = tree_store.list_nodes(tenant_id, project_id)
     logger.info("tree.export", extra={"tenant_id": tenant_id, "project_id": project_id})
-    return TreeExportResponse(tenant_id=tenant_id, project_id=project_id, exported_at=datetime.now(timezone.utc), nodes=nodes)
+    return TreeExportResponse(
+        tenant_id=tenant_id,
+        project_id=project_id,
+        exported_at=datetime.now(timezone.utc),
+        nodes=nodes,
+    )

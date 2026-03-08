@@ -153,16 +153,12 @@ async def _semantic_search(
     return results
 
 
-async def _rank_search_results(
-    results: list[dict[str, Any]], query: str
-) -> list[dict[str, Any]]:
+async def _rank_search_results(results: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
     """Rank search results by relevance."""
     return sorted(results, key=lambda x: x.get("relevance_score", 0), reverse=True)
 
 
-async def _generate_excerpts(
-    results: list[dict[str, Any]], query: str
-) -> list[dict[str, Any]]:
+async def _generate_excerpts(results: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
     """Generate highlighted excerpts."""
     results_with_excerpts = []
     excerpt_limit = 240

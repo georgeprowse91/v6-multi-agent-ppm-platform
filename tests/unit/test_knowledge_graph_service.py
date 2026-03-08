@@ -14,7 +14,6 @@ import pytest
 # Ensure helper is importable
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _route_test_helpers import load_route_module
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -131,7 +130,9 @@ def test_stats_consistency(client):
     """Stats node count should match graph node count."""
     graph = client.get("/api/knowledge/graph").json()
     stats = client.get("/api/knowledge/stats").json()
-    assert stats["total_nodes"] >= len(graph["nodes"]) or stats["total_nodes"] <= len(graph["nodes"])
+    assert stats["total_nodes"] >= len(graph["nodes"]) or stats["total_nodes"] <= len(
+        graph["nodes"]
+    )
 
 
 def test_add_multiple_nodes(client):

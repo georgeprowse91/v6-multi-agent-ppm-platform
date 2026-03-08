@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 # Initialization helpers
 # ------------------------------------------------------------------
 
+
 async def initialize_cosmos(agent: ProgramManagementAgent) -> None:
     if agent.dependency_container and agent.mapping_container:
         return
@@ -83,8 +84,13 @@ async def initialize_ml(agent: ProgramManagementAgent) -> None:
     try:
         agent.health_model = Model(agent.ml_workspace, name=model_name)
     except (
-        ConnectionError, TimeoutError, ValueError, KeyError,
-        TypeError, RuntimeError, OSError,
+        ConnectionError,
+        TimeoutError,
+        ValueError,
+        KeyError,
+        TypeError,
+        RuntimeError,
+        OSError,
     ):
         await train_health_model(agent, model_name=model_name)
 
@@ -105,9 +111,7 @@ async def initialize_integrations(agent: ProgramManagementAgent) -> None:
             from connectors.planview.src.planview_connector import PlanviewConnector
             from connectors.sdk.src.base_connector import ConnectorConfig
 
-            agent.planview_connector = PlanviewConnector(
-                ConnectorConfig.from_dict(planview_config)
-            )
+            agent.planview_connector = PlanviewConnector(ConnectorConfig.from_dict(planview_config))
     if agent.clarity_connector is None:
         clarity_config = agent.config.get("clarity_config") if agent.config else None
         if clarity_config:

@@ -15,9 +15,7 @@ if TYPE_CHECKING:
     from release_models import ReleaseAgentProtocol
 
 
-async def assess_readiness(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> dict[str, Any]:
+async def assess_readiness(agent: ReleaseAgentProtocol, release_id: str) -> dict[str, Any]:
     """
     Assess release readiness with go/no-go criteria.
 
@@ -110,9 +108,7 @@ async def assess_readiness(
 # ---------------------------------------------------------------------------
 
 
-async def _check_quality_criteria(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> dict[str, Any]:
+async def _check_quality_criteria(agent: ReleaseAgentProtocol, release_id: str) -> dict[str, Any]:
     """Check quality criteria."""
     if agent.quality_agent:
         return await agent.quality_agent.process(
@@ -121,9 +117,7 @@ async def _check_quality_criteria(
     return {"passed": True, "test_pass_rate": 100.0}
 
 
-async def _check_approval_status(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> dict[str, Any]:
+async def _check_approval_status(agent: ReleaseAgentProtocol, release_id: str) -> dict[str, Any]:
     """Check approval status."""
     if agent.approval_agent:
         response = await agent.approval_agent.process(
@@ -139,9 +133,7 @@ async def _check_approval_status(
     return {"complete": True, "approvals": []}
 
 
-async def _check_change_approvals(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> dict[str, Any]:
+async def _check_change_approvals(agent: ReleaseAgentProtocol, release_id: str) -> dict[str, Any]:
     """Check change approvals."""
     if agent.change_agent:
         return await agent.change_agent.process(
@@ -150,9 +142,7 @@ async def _check_change_approvals(
     return {"approved": True, "change_requests": []}
 
 
-async def _check_risk_level(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> dict[str, Any]:
+async def _check_risk_level(agent: ReleaseAgentProtocol, release_id: str) -> dict[str, Any]:
     """Check risk level."""
     if agent.risk_agent:
         return await agent.risk_agent.process(

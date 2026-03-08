@@ -64,9 +64,7 @@ async def research_project_risks(
             detail="Risk agent returned an invalid response",
         ) from exc
     except Exception as exc:
-        logger.error(
-            "Risk research failed for project %s: %s", project_id, exc
-        )
+        logger.error("Risk research failed for project %s: %s", project_id, exc)
         raise HTTPException(
             status_code=502,
             detail=f"Risk research failed: {exc}",

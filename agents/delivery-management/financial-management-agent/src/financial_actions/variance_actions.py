@@ -1,4 +1,5 @@
 """Action handlers for variance analysis."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -27,9 +28,7 @@ async def analyze_variance(
         raise ValueError(f"No budget found for project: {project_id}")
 
     # Get actual costs
-    actuals = (
-        agent.actuals.get(project_id) or agent.actuals_store.get(tenant_id, project_id) or {}
-    )
+    actuals = agent.actuals.get(project_id) or agent.actuals_store.get(tenant_id, project_id) or {}
     total_actual = actuals.get("total_actual", 0)
 
     # Get forecast/EAC
@@ -68,9 +67,7 @@ async def analyze_variance(
                 "severity": "high" if abs(budget_variance_pct) > 0.20 else "medium",
                 "type": "budget_variance",
                 "message": f"Budget variance of {budget_variance_pct:.1%} exceeds threshold",
-                "recommended_actions": await agent._suggest_corrective_actions(
-                    budget_variance_pct
-                ),
+                "recommended_actions": await agent._suggest_corrective_actions(budget_variance_pct),
             }
         )
 

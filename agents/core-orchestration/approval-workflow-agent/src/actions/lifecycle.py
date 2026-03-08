@@ -151,8 +151,7 @@ async def _fetch_graph_messages(
     response.raise_for_status()
     payload = response.json()
     return [
-        {"source": "graph", "type": "message", "payload": item}
-        for item in payload.get("value", [])
+        {"source": "graph", "type": "message", "payload": item} for item in payload.get("value", [])
     ]
 
 
@@ -175,14 +174,11 @@ async def _fetch_graph_tasks(
     response.raise_for_status()
     payload = response.json()
     return [
-        {"source": "graph", "type": "task", "payload": item}
-        for item in payload.get("value", [])
+        {"source": "graph", "type": "task", "payload": item} for item in payload.get("value", [])
     ]
 
 
-async def _resolve_graph_task_list_id(
-    agent: ApprovalWorkflowAgent, user_id: str
-) -> str | None:
+async def _resolve_graph_task_list_id(agent: ApprovalWorkflowAgent, user_id: str) -> str | None:
     if not agent.graph_client:
         return None
     response = await agent.graph_client.get(f"/users/{user_id}/todo/lists")

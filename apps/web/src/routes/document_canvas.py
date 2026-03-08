@@ -1,4 +1,5 @@
 """Document canvas + audit evidence routes."""
+
 from __future__ import annotations
 
 import os
@@ -22,18 +23,33 @@ router = APIRouter()
 
 
 @router.post("/api/document-canvas/documents")
-async def create_document_canvas_document(payload: DocumentCanvasRequest, request: Request) -> dict[str, Any]:
+async def create_document_canvas_document(
+    payload: DocumentCanvasRequest, request: Request
+) -> dict[str, Any]:
     session = _require_session(request)
     headers = build_forward_headers(request, session)
     client = _document_client()
     response = await client.create_document(payload.model_dump(), headers=headers)
     if response.status_code == 403:
-        logger.info("document_canvas.create", extra={"tenant_id": session.get("tenant_id"), "project_id": request.query_params.get("project_id")})
+        logger.info(
+            "document_canvas.create",
+            extra={
+                "tenant_id": session.get("tenant_id"),
+                "project_id": request.query_params.get("project_id"),
+            },
+        )
         return JSONResponse(status_code=403, content=response.json())
     if response.status_code >= 400:
         _raise_upstream_error(response)
     body = response.json()
-    logger.info("document_canvas.create", extra={"tenant_id": session.get("tenant_id"), "project_id": request.query_params.get("project_id"), "document_id": body.get("document_id")})
+    logger.info(
+        "document_canvas.create",
+        extra={
+            "tenant_id": session.get("tenant_id"),
+            "project_id": request.query_params.get("project_id"),
+            "document_id": body.get("document_id"),
+        },
+    )
     return body
 
 
@@ -46,7 +62,13 @@ async def list_document_canvas_documents(request: Request) -> list[dict[str, Any
     if response.status_code >= 400:
         _raise_upstream_error(response)
     body = response.json()
-    logger.info("document_canvas.list", extra={"tenant_id": session.get("tenant_id"), "project_id": request.query_params.get("project_id")})
+    logger.info(
+        "document_canvas.list",
+        extra={
+            "tenant_id": session.get("tenant_id"),
+            "project_id": request.query_params.get("project_id"),
+        },
+    )
     return body
 
 
@@ -59,7 +81,14 @@ async def get_document_canvas_document(document_id: str, request: Request) -> di
     if response.status_code >= 400:
         _raise_upstream_error(response)
     body = response.json()
-    logger.info("document_canvas.get", extra={"tenant_id": session.get("tenant_id"), "project_id": request.query_params.get("project_id"), "document_id": document_id})
+    logger.info(
+        "document_canvas.get",
+        extra={
+            "tenant_id": session.get("tenant_id"),
+            "project_id": request.query_params.get("project_id"),
+            "document_id": document_id,
+        },
+    )
     return body
 
 
@@ -80,4 +109,8 @@ async def export_audit_evidence(request: Request) -> Response:
     if response.status_code >= 400:
         _raise_upstream_error(response)
     filename = f"audit-evidence-{session.get('tenant_id', 'tenant')}.zip"
-    return Response(content=response.content, media_type=response.headers.get("content-type", "application/zip"), headers={"Content-Disposition": f"attachment; filename={filename}"})
+    return Response(
+        content=response.content,
+        media_type=response.headers.get("content-type", "application/zip"),
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

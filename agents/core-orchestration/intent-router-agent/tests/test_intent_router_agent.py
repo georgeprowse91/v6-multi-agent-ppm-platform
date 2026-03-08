@@ -1,23 +1,26 @@
 from __future__ import annotations
+
 import sys
 from pathlib import Path
+
 import pytest
 
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parents[3]
 SRC_DIR = TESTS_DIR.parent / "src"
-sys.path.extend([
-    str(SRC_DIR),
-    str(REPO_ROOT),
-    str(REPO_ROOT / "packages"),
-    str(REPO_ROOT / "agents" / "runtime"),
-    str(REPO_ROOT / "agents" / "runtime" / "prompts"),
-])
+sys.path.extend(
+    [
+        str(SRC_DIR),
+        str(REPO_ROOT),
+        str(REPO_ROOT / "packages"),
+        str(REPO_ROOT / "agents" / "runtime"),
+        str(REPO_ROOT / "agents" / "runtime" / "prompts"),
+    ]
+)
 
 from intent_router_agent import IntentRouterAgent
 from intent_router_models import IntentPrediction, IntentRouterRequest, RoutingDecision
 from pydantic import ValidationError
-
 
 # ---------------------------------------------------------------------------
 # Pydantic model tests
@@ -76,7 +79,10 @@ def test_routing_decision_defaults_depends_on_empty() -> None:
 def _make_agent() -> IntentRouterAgent:
     """Build an IntentRouterAgent with minimal config to avoid real I/O."""
     # Provide a minimal routing config so loading doesn't hit the filesystem.
-    import tempfile, yaml, os
+    import tempfile
+
+    import yaml
+
     routing_config = {
         "version": 1,
         "intents": [
@@ -99,16 +105,12 @@ def _make_agent() -> IntentRouterAgent:
         "fallback_intent": "general_query",
         "default_min_confidence": 0.5,
     }
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".yaml", delete=False
-    ) as routing_file:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as routing_file:
         yaml.safe_dump(routing_config, routing_file)
         routing_path = routing_file.name
 
     agent_config_yaml = {"top_k_intents": 2, "classifier_model_name": "distilbert-base-uncased"}
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".yaml", delete=False
-    ) as agent_cfg_file:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as agent_cfg_file:
         yaml.safe_dump(agent_config_yaml, agent_cfg_file)
         agent_cfg_path = agent_cfg_file.name
 
@@ -116,6 +118,7 @@ def _make_agent() -> IntentRouterAgent:
         async def complete(self, system: str, user: str) -> object:
             class _Resp:
                 content = '{"intents": [{"intent": "portfolio_query", "confidence": 0.9}]}'
+
             return _Resp()
 
     agent = IntentRouterAgent(
@@ -179,9 +182,12 @@ async def test_process_falls_back_to_keyword_classifier_on_llm_error() -> None:
         async def complete(self, system: str, user: str) -> object:
             class _Resp:
                 content = "NOT_JSON"
+
             return _Resp()
 
-    import tempfile, yaml
+    import tempfile
+
+    import yaml
 
     routing_config = {
         "version": 1,

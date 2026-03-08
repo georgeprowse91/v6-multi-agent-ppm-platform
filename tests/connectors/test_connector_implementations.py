@@ -27,8 +27,9 @@ dlp_module.redact_payload = lambda payload: payload
 secrets_module.resolve_secret = lambda value: value
 
 
-def _load_yaml_stub(path: "Path") -> object:  # type: ignore[name-defined]
+def _load_yaml_stub(path: Path) -> object:  # type: ignore[name-defined]
     import yaml
+
     return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 

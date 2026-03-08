@@ -161,9 +161,7 @@ async def _calculate_defect_density_per_fp(
     return total_defects / float(function_points) if function_points > 0 else None
 
 
-async def _get_latest_test_coverage(
-    agent: QualityManagementAgent, project_id: str
-) -> float:
+async def _get_latest_test_coverage(agent: QualityManagementAgent, project_id: str) -> float:
     executions = []
     for execution in agent.test_executions.values():
         if execution.get("project_id") != project_id:
@@ -180,12 +178,8 @@ async def _get_latest_test_coverage(
     return float(latest.get("code_coverage", 0.0))
 
 
-async def _calculate_mttr(
-    agent: QualityManagementAgent, defects: list[dict[str, Any]]
-) -> float:
-    resolved_defects = [
-        d for d in defects if d.get("status") in ["Resolved", "Closed", "Verified"]
-    ]
+async def _calculate_mttr(agent: QualityManagementAgent, defects: list[dict[str, Any]]) -> float:
+    resolved_defects = [d for d in defects if d.get("status") in ["Resolved", "Closed", "Verified"]]
     if not resolved_defects:
         return 0.0
     total_time = 0.0
@@ -195,9 +189,7 @@ async def _calculate_mttr(
     return total_time / len(resolved_defects)
 
 
-async def _calculate_pass_rate(
-    agent: QualityManagementAgent, project_id: str
-) -> float:
+async def _calculate_pass_rate(agent: QualityManagementAgent, project_id: str) -> float:
     executions = [
         execution
         for execution in agent.test_executions.values()
@@ -236,9 +228,7 @@ async def _calculate_coverage_trend(
     return {"trend": trend, "data_points": len(points), "latest": points[-1]}
 
 
-async def _get_code_size_metrics(
-    agent: QualityManagementAgent, project_id: str
-) -> dict[str, Any]:
+async def _get_code_size_metrics(agent: QualityManagementAgent, project_id: str) -> dict[str, Any]:
     repo_config = agent.integration_config.get("code_repos", {})
     size_data = repo_config.get("size_by_project", {}).get(project_id)
     if size_data:
@@ -246,9 +236,7 @@ async def _get_code_size_metrics(
     return {"kloc": 10.0, "source": "mock"}
 
 
-async def _fetch_coverage_metrics(
-    agent: QualityManagementAgent, project_id: str
-) -> dict[str, Any]:
+async def _fetch_coverage_metrics(agent: QualityManagementAgent, project_id: str) -> dict[str, Any]:
     repo_config = agent.integration_config.get("code_repos", {})
     coverage_data = repo_config.get("coverage_by_project", {}).get(project_id)
     if coverage_data:
@@ -272,9 +260,7 @@ async def _train_defect_prediction_model(
         "features": ["defect_density", "coverage_pct", "pass_rate"],
     }
     agent.defect_prediction_models[project_id] = model_info
-    await agent._store_record(
-        "quality_defect_models", f"{project_id}-{model_version}", model_info
-    )
+    await agent._store_record("quality_defect_models", f"{project_id}-{model_version}", model_info)
     return model_info
 
 

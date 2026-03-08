@@ -1,4 +1,5 @@
 """Action handlers for financial forecasting."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -68,9 +69,7 @@ async def generate_forecast(
         "variance_from_baseline": await agent._calculate_forecast_variance(
             project_id, eac, tenant_id=tenant_id
         ),
-        "confidence_interval": calculate_confidence_interval(
-            forecast.get("monthly_forecast", [])
-        ),
+        "confidence_interval": calculate_confidence_interval(forecast.get("monthly_forecast", [])),
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -84,13 +83,9 @@ async def generate_financial_variants(
 ) -> dict[str, Any]:
     """Generate scenario variants for financial outcomes."""
     agent.logger.info("Generating financial variants for project: %s", project_id)
-    baseline_metrics = await agent._get_project_financial_summary(
-        project_id, tenant_id=tenant_id
-    )
+    baseline_metrics = await agent._get_project_financial_summary(project_id, tenant_id=tenant_id)
 
-    async def _build_scenario(
-        baseline: dict[str, Any], params: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _build_scenario(baseline: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
         scenario = dict(baseline)
         budget_baseline = float(baseline.get("budget_baseline", 0) or 0)
         actual_cost = float(baseline.get("actual_cost", 0) or 0)
@@ -140,10 +135,8 @@ async def generate_financial_variants(
         return {
             "budget_variance": scenario.get("budget_baseline", 0)
             - baseline.get("budget_baseline", 0),
-            "actual_cost_variance": scenario.get("actual_cost", 0)
-            - baseline.get("actual_cost", 0),
-            "forecast_variance": scenario.get("forecast_eac", 0)
-            - baseline.get("forecast_eac", 0),
+            "actual_cost_variance": scenario.get("actual_cost", 0) - baseline.get("actual_cost", 0),
+            "forecast_variance": scenario.get("forecast_eac", 0) - baseline.get("forecast_eac", 0),
             "variance_at_completion_delta": scenario.get("variance_at_completion", 0)
             - baseline.get("variance_at_completion", 0),
             "cpi_delta": scenario.get("cost_performance_index", 1.0)
@@ -235,20 +228,14 @@ async def cascade_impact(
     total_cascaded_schedule = 0.0
 
     for linked_id in linked_project_ids:
-        linked_metrics = await agent._get_project_financial_summary(
-            linked_id, tenant_id=tenant_id
-        )
+        linked_metrics = await agent._get_project_financial_summary(linked_id, tenant_id=tenant_id)
 
         linked_budget = float(linked_metrics.get("budget_baseline", 0) or 0)
         linked_eac = float(linked_metrics.get("forecast_eac", 0) or 0)
 
         # Propagation weight based on relative budget size
         source_budget = float(source_metrics.get("budget_baseline", 0) or 0)
-        weight = (
-            min(linked_budget / source_budget, 1.0)
-            if source_budget > 0
-            else 0.5
-        )
+        weight = min(linked_budget / source_budget, 1.0) if source_budget > 0 else 0.5
 
         cascaded_budget = budget_delta * weight
         cascaded_schedule = schedule_delta_days * weight
@@ -272,9 +259,7 @@ async def cascade_impact(
                 "cascaded_budget_delta": cascaded_budget,
                 "cascaded_schedule_delta_days": cascaded_schedule,
                 "adjusted_eac": adjusted_eac,
-                "risk_indicator": (
-                    "high" if abs(cascaded_budget) > linked_budget * 0.1 else "low"
-                ),
+                "risk_indicator": ("high" if abs(cascaded_budget) > linked_budget * 0.1 else "low"),
             }
         )
 
@@ -283,9 +268,7 @@ async def cascade_impact(
         "total_linked_projects": len(linked_project_ids),
         "total_cascaded_budget_impact": round(total_cascaded_budget, 2),
         "total_cascaded_schedule_impact_days": round(total_cascaded_schedule, 1),
-        "high_risk_count": sum(
-            1 for i in impacts if i.get("risk_indicator") == "high"
-        ),
+        "high_risk_count": sum(1 for i in impacts if i.get("risk_indicator") == "high"),
     }
 
     await agent._publish_financial_event(

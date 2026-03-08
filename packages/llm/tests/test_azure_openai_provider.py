@@ -143,7 +143,9 @@ async def test_429_raises_retryable_error() -> None:
     provider = _provider()
     mock_response = MagicMock()
     mock_response.status_code = 429
-    with patch.object(httpx.AsyncClient, "post", new_callable=AsyncMock, return_value=mock_response):
+    with patch.object(
+        httpx.AsyncClient, "post", new_callable=AsyncMock, return_value=mock_response
+    ):
         with pytest.raises(LLMProviderError) as exc_info:
             await provider.complete(
                 model_id=_DEPLOYMENT,
@@ -161,7 +163,9 @@ async def test_400_raises_non_retryable_error() -> None:
     provider = _provider()
     mock_response = MagicMock()
     mock_response.status_code = 400
-    with patch.object(httpx.AsyncClient, "post", new_callable=AsyncMock, return_value=mock_response):
+    with patch.object(
+        httpx.AsyncClient, "post", new_callable=AsyncMock, return_value=mock_response
+    ):
         with pytest.raises(LLMProviderError) as exc_info:
             await provider.complete(
                 model_id=_DEPLOYMENT,

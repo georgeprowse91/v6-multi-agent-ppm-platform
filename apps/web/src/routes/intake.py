@@ -1,4 +1,5 @@
 """Intake / merge-review routes."""
+
 from __future__ import annotations
 
 import base64
@@ -52,6 +53,7 @@ router = APIRouter()
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _decode_upload_content(content_bytes: bytes) -> tuple[str, str]:
     try:
         return content_bytes.decode("utf-8"), "utf-8"
@@ -59,14 +61,21 @@ def _decode_upload_content(content_bytes: bytes) -> tuple[str, str]:
         return base64.b64encode(content_bytes).decode("ascii"), "base64"
 
 
-async def _extract_intake_fields(prompt_path, document_name: str, document_content: str) -> dict[str, Any]:
+async def _extract_intake_fields(
+    prompt_path, document_name: str, document_content: str
+) -> dict[str, Any]:
     prompt_payload = _load_prompt(prompt_path)
     system_prompt = prompt_payload.get("system", "")
     user_template = prompt_payload.get("user", "")
-    user_prompt = _render_prompt(user_template, document_name=document_name, document_content=document_content)
+    user_prompt = _render_prompt(
+        user_template, document_name=document_name, document_content=document_content
+    )
     llm = LLMGateway(config={"demo_mode": _demo_mode_enabled()})
-    response = await llm.complete(system_prompt=system_prompt, user_prompt=user_prompt, json_mode=True)
+    response = await llm.complete(
+        system_prompt=system_prompt, user_prompt=user_prompt, json_mode=True
+    )
     import json
+
     data = json.loads(response.content)
     if not isinstance(data, dict):
         raise ValueError("Extraction did not produce a dictionary")
@@ -75,6 +84,7 @@ async def _extract_intake_fields(prompt_path, document_name: str, document_conte
 
 def _normalize_demand_payload(raw: dict[str, Any], *, document_name: str) -> dict[str, Any]:
     from routes._deps import _coerce_str
+
     return {
         "title": _coerce_str(raw.get("title")) or document_name,
         "description": _coerce_str(raw.get("description")),
@@ -85,8 +95,11 @@ def _normalize_demand_payload(raw: dict[str, Any], *, document_name: str) -> dic
     }
 
 
-def _normalize_project_payload(raw: dict[str, Any], *, tenant_id: str, document_name: str, owner_fallback: str) -> dict[str, Any]:
+def _normalize_project_payload(
+    raw: dict[str, Any], *, tenant_id: str, document_name: str, owner_fallback: str
+) -> dict[str, Any]:
     from routes._deps import _coerce_str
+
     return {
         "name": _coerce_str(raw.get("name")) or document_name,
         "description": _coerce_str(raw.get("description")),
@@ -130,52 +143,91 @@ def _build_intake_assistant_response(payload: IntakeAssistantRequest) -> IntakeA
         if not _non_empty(form_state.get("businessSummary")) and _non_empty(payload.user_answer):
             proposals["businessSummary"] = payload.user_answer.strip()
         if not _non_empty(form_state.get("businessJustification")):
-            proposals["businessJustification"] = "This initiative addresses a validated business need and aligns to current portfolio priorities."
+            proposals["businessJustification"] = (
+                "This initiative addresses a validated business need and aligns to current portfolio priorities."
+            )
         if not _non_empty(form_state.get("expectedBenefits")):
-            proposals["expectedBenefits"] = "Reduce manual effort by 20% within two quarters and improve stakeholder response time by 30%."
+            proposals["expectedBenefits"] = (
+                "Reduce manual effort by 20% within two quarters and improve stakeholder response time by 30%."
+            )
         if not _non_empty(form_state.get("businessSummary")):
             questions.append("What business problem should this intake solve in one sentence?")
     if payload.step_id == "success":
         if not _non_empty(form_state.get("successMetrics")):
-            proposals["successMetrics"] = "Achieve a 25% reduction in cycle time by Q4, maintain >=95% SLA adherence, and report monthly adoption above 80%."
+            proposals["successMetrics"] = (
+                "Achieve a 25% reduction in cycle time by Q4, maintain >=95% SLA adherence, and report monthly adoption above 80%."
+            )
             questions.append("Which baseline metric should we compare against to prove value?")
         if not _non_empty(form_state.get("riskNotes")):
-            proposals["riskNotes"] = "Dependency on data quality improvements and availability of SME reviewers during pilot phase."
+            proposals["riskNotes"] = (
+                "Dependency on data quality improvements and availability of SME reviewers during pilot phase."
+            )
     if payload.step_id == "attachments":
         if not _non_empty(form_state.get("attachmentSummary")):
             questions.append("Which supporting documents should reviewers inspect first?")
-            proposals["attachmentSummary"] = "Includes current-state process notes, stakeholder feedback summary, and budget assumptions worksheet."
+            proposals["attachmentSummary"] = (
+                "Includes current-state process notes, stakeholder feedback summary, and budget assumptions worksheet."
+            )
     for field in proposals:
         if _non_empty(form_state.get(field)):
-            apply_hints.append(f"{field}: confirmation required because the field already contains a value.")
+            apply_hints.append(
+                f"{field}: confirmation required because the field already contains a value."
+            )
         else:
             apply_hints.append(f"{field}: safe to apply directly (field is empty).")
     for field_name, message in errors.items():
         questions.append(f"Validation issue on {field_name}: {message}")
-    return IntakeAssistantResponse(step_id=payload.step_id, questions=questions, proposals=proposals, apply_hints=apply_hints)
+    return IntakeAssistantResponse(
+        step_id=payload.step_id, questions=questions, proposals=proposals, apply_hints=apply_hints
+    )
 
 
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 
+
 @router.post("/api/intake/uploads")
-async def upload_intake_document(request: Request, file: UploadFile = File(...), classification: str = Form("internal"), retention_days: int = Form(90)) -> JSONResponse:
+async def upload_intake_document(
+    request: Request,
+    file: UploadFile = File(...),
+    classification: str = Form("internal"),
+    retention_days: int = Form(90),
+) -> JSONResponse:
     _require_multimodal_intake()
     session = _require_session(request)
     content_bytes = await file.read()
     content, encoding = _decode_upload_content(content_bytes)
     document_name = file.filename or "intake-document"
-    metadata = {"filename": document_name, "content_type": file.content_type, "encoding": encoding, "size_bytes": len(content_bytes), "source": "multimodal_intake"}
-    payload = {"name": document_name, "content": content, "classification": classification, "retention_days": retention_days, "metadata": metadata}
-    response = await _document_client().create_document(payload, headers=build_forward_headers(request, session))
+    metadata = {
+        "filename": document_name,
+        "content_type": file.content_type,
+        "encoding": encoding,
+        "size_bytes": len(content_bytes),
+        "source": "multimodal_intake",
+    }
+    payload = {
+        "name": document_name,
+        "content": content,
+        "classification": classification,
+        "retention_days": retention_days,
+        "metadata": metadata,
+    }
+    response = await _document_client().create_document(
+        payload, headers=build_forward_headers(request, session)
+    )
     if response.status_code >= 400:
         _raise_upstream_error(response)
     return JSONResponse(content=response.json(), status_code=response.status_code)
 
 
 @router.post("/api/intake/extract", response_model=IntakeExtractionResponse)
-async def extract_intake_document(request: Request, file: UploadFile = File(...), target: Literal["demand", "project", "both"] = Form("both"), document_id: str | None = Form(None)) -> IntakeExtractionResponse:
+async def extract_intake_document(
+    request: Request,
+    file: UploadFile = File(...),
+    target: Literal["demand", "project", "both"] = Form("both"),
+    document_id: str | None = Form(None),
+) -> IntakeExtractionResponse:
     _require_multimodal_intake()
     session = _require_session(request)
     content_bytes = await file.read()
@@ -194,24 +246,46 @@ async def extract_intake_document(request: Request, file: UploadFile = File(...)
     entities: dict[str, IntakeExtractionEntity] = {}
     try:
         if target in {"demand", "both"}:
-            raw_demand = await _extract_intake_fields(prompt_path=DEMAND_PROMPT_PATH, document_name=document_name, document_content=content)
+            raw_demand = await _extract_intake_fields(
+                prompt_path=DEMAND_PROMPT_PATH,
+                document_name=document_name,
+                document_content=content,
+            )
             demand_payload = _normalize_demand_payload(raw_demand, document_name=document_name)
             if document_id and not demand_payload.get("source"):
                 demand_payload["source"] = f"document:{document_id}"
-            demand_response = await data_client.store_entity("demand", {"tenant_id": tenant_id, "data": demand_payload}, headers=headers)
+            demand_response = await data_client.store_entity(
+                "demand", {"tenant_id": tenant_id, "data": demand_payload}, headers=headers
+            )
             if demand_response.status_code >= 400:
                 _raise_upstream_error(demand_response)
             stored = demand_response.json()
-            entities["demand"] = IntakeExtractionEntity(schema_name=stored.get("schema_name", "demand"), entity_id=stored.get("id", ""))
+            entities["demand"] = IntakeExtractionEntity(
+                schema_name=stored.get("schema_name", "demand"), entity_id=stored.get("id", "")
+            )
             response.demand = demand_payload
         if target in {"project", "both"}:
-            raw_project = await _extract_intake_fields(prompt_path=PROJECT_PROMPT_PATH, document_name=document_name, document_content=content)
-            project_payload = _normalize_project_payload(raw_project, tenant_id=tenant_id, document_name=document_name, owner_fallback=owner_fallback)
-            project_response = await data_client.store_entity("project", {"tenant_id": tenant_id, "data": project_payload}, headers=headers)
+            raw_project = await _extract_intake_fields(
+                prompt_path=PROJECT_PROMPT_PATH,
+                document_name=document_name,
+                document_content=content,
+            )
+            project_payload = _normalize_project_payload(
+                raw_project,
+                tenant_id=tenant_id,
+                document_name=document_name,
+                owner_fallback=owner_fallback,
+            )
+            project_response = await data_client.store_entity(
+                "project", {"tenant_id": tenant_id, "data": project_payload}, headers=headers
+            )
             if project_response.status_code >= 400:
                 _raise_upstream_error(project_response)
             stored_project = project_response.json()
-            entities["project"] = IntakeExtractionEntity(schema_name=stored_project.get("schema_name", "project"), entity_id=stored_project.get("id", ""))
+            entities["project"] = IntakeExtractionEntity(
+                schema_name=stored_project.get("schema_name", "project"),
+                entity_id=stored_project.get("id", ""),
+            )
             response.project = project_payload
     except (ValueError, LLMProviderError) as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
@@ -261,13 +335,32 @@ def list_merge_review_cases(status: str | None = None) -> list[MergeReviewCase]:
 
 
 @router.post("/api/merge-review/{case_id}/decision", response_model=MergeReviewCase)
-def decide_merge_review_case(request: Request, case_id: str, payload: MergeDecision) -> MergeReviewCase:
+def decide_merge_review_case(
+    request: Request, case_id: str, payload: MergeDecision
+) -> MergeReviewCase:
     _require_duplicate_resolution()
     session = _require_session(request)
     case = merge_review_store.update_decision(case_id, payload)
     if not case:
         raise HTTPException(status_code=404, detail="Merge review case not found")
     tenant_id = _tenant_id_from_request(request, session) or "default"
-    event = build_audit_event(tenant_id=tenant_id, action="duplicate_resolution.merge_decision", outcome="success" if payload.decision == "approved" else "denied", actor_id=payload.reviewer_id, actor_type="user", actor_roles=session.get("roles") or [], resource_id=case.case_id, resource_type=f"{case.entity_type}_merge_review", metadata={"decision": payload.decision, "comments": payload.comments, "primary_record_id": case.primary_record.record_id, "duplicate_record_id": case.duplicate_record.record_id}, trace_id=get_trace_id() or "unknown", correlation_id=session.get("correlation_id"))
+    event = build_audit_event(
+        tenant_id=tenant_id,
+        action="duplicate_resolution.merge_decision",
+        outcome="success" if payload.decision == "approved" else "denied",
+        actor_id=payload.reviewer_id,
+        actor_type="user",
+        actor_roles=session.get("roles") or [],
+        resource_id=case.case_id,
+        resource_type=f"{case.entity_type}_merge_review",
+        metadata={
+            "decision": payload.decision,
+            "comments": payload.comments,
+            "primary_record_id": case.primary_record.record_id,
+            "duplicate_record_id": case.duplicate_record.record_id,
+        },
+        trace_id=get_trace_id() or "unknown",
+        correlation_id=session.get("correlation_id"),
+    )
     emit_audit_event(event)
     return case

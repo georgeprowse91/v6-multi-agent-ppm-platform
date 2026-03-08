@@ -17,7 +17,6 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
-from agents.common.web_search import search_web, summarize_snippets  # noqa: E402, F401
 from analytics_insights_agent import DataLakeManager, SynapseManager  # noqa: E402
 from llm.client import LLMGateway  # noqa: E402
 
@@ -67,6 +66,7 @@ from agents.common.connector_integration import (  # noqa: E402
     GRCIntegrationService,
     MLPredictionService,
 )
+from agents.common.web_search import search_web, summarize_snippets  # noqa: E402, F401
 from agents.runtime import BaseAgent, get_event_bus  # noqa: E402
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 from agents.runtime.src.policy import evaluate_compliance_controls  # noqa: E402
@@ -87,7 +87,9 @@ class RiskManagementAgent(BaseAgent):
     - Monte Carlo simulation
     """
 
-    def __init__(self, agent_id: str = "risk-management-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "risk-management-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
         apply_config(self, config)
 
@@ -257,9 +259,7 @@ class RiskManagementAgent(BaseAgent):
                 "reasons": list(compliance_decision.reasons),
             }
 
-        input_data["personal_data"] = compliance_decision.sanitized_payload.get(
-            "personal_data", {}
-        )
+        input_data["personal_data"] = compliance_decision.sanitized_payload.get("personal_data", {})
         emit_audit_event(
             build_audit_event(
                 tenant_id=tenant_id,
@@ -455,7 +455,9 @@ class RiskManagementAgent(BaseAgent):
         financial_distribution: dict[str, Any] | None = None,
     ) -> dict[str, list[float]]:
         return await perform_monte_carlo_simulation(
-            project_id, risks, iterations,
+            project_id,
+            risks,
+            iterations,
             schedule_distribution=schedule_distribution,
             financial_distribution=financial_distribution,
         )
@@ -463,9 +465,7 @@ class RiskManagementAgent(BaseAgent):
     async def _calculate_quantitative_impact(self, risk: dict[str, Any]) -> dict[str, Any]:
         return await calculate_quantitative_impact(self, risk)
 
-    async def _run_monte_carlo(
-        self, project_id: str, iterations: int = 10000
-    ) -> dict[str, Any]:
+    async def _run_monte_carlo(self, project_id: str, iterations: int = 10000) -> dict[str, Any]:
         return await run_monte_carlo(self, project_id, iterations)
 
     async def _create_mitigation_plan(

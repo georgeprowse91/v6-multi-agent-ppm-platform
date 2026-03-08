@@ -22,6 +22,7 @@ from observability.metrics import (  # noqa: E402
     configure_metrics,
 )
 from observability.tracing import TraceMiddleware, configure_tracing  # noqa: E402
+from security.api_governance import apply_api_governance  # noqa: E402
 from security.auth import AuthTenantMiddleware  # noqa: E402
 from security.errors import register_error_handlers  # noqa: E402
 from security.headers import SecurityHeadersMiddleware  # noqa: E402
@@ -39,6 +40,7 @@ configure_tracing("connector-hub")
 configure_metrics("connector-hub")
 app.add_middleware(TraceMiddleware, service_name="connector-hub")
 app.add_middleware(RequestMetricsMiddleware, service_name="connector-hub")
+apply_api_governance(app, service_name="connector-hub")
 register_error_handlers(app)
 
 store: ConnectorStore | None = None

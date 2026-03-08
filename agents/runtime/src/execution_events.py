@@ -49,13 +49,9 @@ class ExecutionEvent(BaseModel):
     def _validate_agent_fields(self) -> ExecutionEvent:
         if self.event_type in _AGENT_EVENT_TYPES:
             if not self.task_id:
-                raise ValueError(
-                    f"task_id must be non-empty for {self.event_type} events"
-                )
+                raise ValueError(f"task_id must be non-empty for {self.event_type} events")
             if not self.agent_id:
-                raise ValueError(
-                    f"agent_id must be non-empty for {self.event_type} events"
-                )
+                raise ValueError(f"agent_id must be non-empty for {self.event_type} events")
         return self
 
 
@@ -70,7 +66,9 @@ class ExecutionEventEmitter:
         self._queue: asyncio.Queue[ExecutionEvent | None] = asyncio.Queue(
             maxsize=max_queue_size,
         )
-        logger.info("Created emitter for correlation %s (max_queue_size=%d)", correlation_id, max_queue_size)
+        logger.info(
+            "Created emitter for correlation %s (max_queue_size=%d)", correlation_id, max_queue_size
+        )
 
     async def emit(self, event: ExecutionEvent) -> None:
         event.correlation_id = self.correlation_id

@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 # Internal helpers that mirror the original private methods
 # ---------------------------------------------------------------------------
 
+
 async def _generate_scope_overview(charter_data: dict[str, Any]) -> dict[str, Any]:
     """Generate scope overview (thin wrapper kept for consistency)."""
     return {
@@ -47,6 +48,7 @@ async def _generate_wbs_structure_for_research(
 # Public action handler
 # ---------------------------------------------------------------------------
 
+
 async def handle_generate_scope_research(
     agent: ProjectDefinitionAgent,
     project_id: str,
@@ -66,9 +68,7 @@ async def handle_generate_scope_research(
     baseline_scope = await _generate_scope_overview(
         {"in_scope": [objective], "out_of_scope": [], "deliverables": []}
     )
-    baseline_requirements = await _extract_high_level_requirements(
-        {"high_level_requirements": []}
-    )
+    baseline_requirements = await _extract_high_level_requirements({"high_level_requirements": []})
     baseline_wbs = await _generate_wbs_structure_for_research(agent, baseline_scope)
     baseline_wbs_items = [
         f"{code} {node.get('name', '')}".strip()

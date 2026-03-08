@@ -2,6 +2,7 @@
 
 Extracted from legacy_main.py to avoid circular imports.
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -14,6 +15,7 @@ from routes._deps import CanvasTab, TemplateMapping
 # Health
 # ---------------------------------------------------------------------------
 
+
 class HealthResponse(BaseModel):
     status: str = "ok"
     service: str = "web-ui"
@@ -23,6 +25,7 @@ class HealthResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Config / Session
 # ---------------------------------------------------------------------------
+
 
 class UIConfig(BaseModel):
     api_gateway_url: str
@@ -44,6 +47,7 @@ class SessionInfo(BaseModel):
 # ---------------------------------------------------------------------------
 # Intake
 # ---------------------------------------------------------------------------
+
 
 class IntakeExtractionEntity(BaseModel):
     schema_name: str
@@ -75,6 +79,7 @@ class IntakeAssistantResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # WBS / Schedule / Dependency / Roadmap
 # ---------------------------------------------------------------------------
+
 
 class WbsItem(BaseModel):
     id: str
@@ -169,6 +174,7 @@ class ProgramRoadmapResponse(BaseModel):
 # Workflow
 # ---------------------------------------------------------------------------
 
+
 class WorkflowStartRequest(BaseModel):
     workflow_id: str
 
@@ -185,6 +191,7 @@ class WorkflowStartResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Methodology / Workspace
 # ---------------------------------------------------------------------------
+
 
 class ActivityAccessSummary(BaseModel):
     allowed: bool
@@ -365,6 +372,7 @@ class SorPublishResponse(BaseModel):
 # Agent gallery
 # ---------------------------------------------------------------------------
 
+
 class AgentProfileTemplateMapping(BaseModel):
     template_id: str
     template_name: str
@@ -407,6 +415,7 @@ class AgentPreviewRunResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Template / Project
 # ---------------------------------------------------------------------------
+
 
 class TemplateAgentConfig(BaseModel):
     enabled: list[str] = Field(default_factory=list)
@@ -467,14 +476,14 @@ class TemplateSummary(BaseModel):
 class ProjectRecord(BaseModel):
     id: str
     name: str
-    template_id: str
+    template_id: str = ""
     template_version: str = "1.0"
     created_at: str
     methodology: dict[str, Any]
     agent_config: TemplateAgentConfig
     connector_config: TemplateConnectorConfig
-    initial_tabs: list[TemplateTab]
-    dashboards: list[TemplateTab]
+    initial_tabs: list[TemplateTab] = Field(default_factory=list)
+    dashboards: list[TemplateTab] = Field(default_factory=list)
 
 
 class TemplateApplyRequest(BaseModel):
@@ -493,6 +502,7 @@ class TemplateApplyResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Documents / Knowledge
 # ---------------------------------------------------------------------------
+
 
 class DocumentVersionRequest(BaseModel):
     project_id: str
@@ -566,6 +576,7 @@ class LessonRecommendationRequest(BaseModel):
 # Search
 # ---------------------------------------------------------------------------
 
+
 class SearchResult(BaseModel):
     id: str
     type: Literal["document", "project", "knowledge", "approval", "workflow"]
@@ -588,6 +599,7 @@ class SearchResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Assistant
 # ---------------------------------------------------------------------------
+
 
 class AssistantSendRequest(BaseModel):
     project_id: str
@@ -663,6 +675,7 @@ class AssistantSuggestionResponse(BaseModel):
 # LLM
 # ---------------------------------------------------------------------------
 
+
 class LLMPreferenceRequest(BaseModel):
     scope: Literal["tenant", "project", "user"]
     project_id: str | None = None
@@ -678,6 +691,7 @@ class LLMPreferenceResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Dashboard / Connectors / Document Canvas
 # ---------------------------------------------------------------------------
+
 
 class DocumentCanvasRequest(BaseModel):
     name: str

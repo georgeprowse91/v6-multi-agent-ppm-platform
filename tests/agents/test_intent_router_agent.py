@@ -74,9 +74,7 @@ async def test_intent_router_falls_back_on_malformed_llm_output():
     result = await agent.process({"query": "show portfolio status"})
 
     assert any(intent["intent"] == "portfolio_query" for intent in result["intents"])
-    assert any(
-        route["agent_id"] == "portfolio-optimisation-agent" for route in result["routing"]
-    )
+    assert any(route["agent_id"] == "portfolio-optimisation-agent" for route in result["routing"])
 
 
 @pytest.mark.asyncio

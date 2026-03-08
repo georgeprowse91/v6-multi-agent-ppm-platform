@@ -3,6 +3,7 @@
 The pre-existing v1 stub routers are kept alongside the new
 legacy_main.py route modules for backwards compatibility.
 """
+
 from __future__ import annotations
 
 from routes.agent_runs import router as agent_runs_router
@@ -15,31 +16,31 @@ from routes.assistant_api import router as assistant_api_router
 from routes.auth import router as auth_router
 from routes.briefings import router as briefings_router
 from routes.capacity import router as capacity_router
-from routes.copilot_stream import router as copilot_stream_router
 from routes.connectors import legacy_router as connectors_legacy_router
 from routes.connectors import router as connectors_stub_router
+from routes.copilot_stream import router as copilot_stream_router
 from routes.dashboards import router as dashboards_router
 
 # connectors_api.py has been consolidated into connectors.py (legacy_router)
 from routes.document_canvas import router as document_canvas_router
 from routes.documents import router as documents_stub_router
 from routes.enterprise import router as enterprise_router
-from routes.intake_intelligence import router as intake_intelligence_router
-from routes.knowledge_graph import router as knowledge_graph_router
 
 # New route modules extracted from legacy_main.py
 from routes.health import router as health_router
 from routes.intake import router as intake_router
+from routes.intake_intelligence import router as intake_intelligence_router
 from routes.knowledge import router as knowledge_router
+from routes.knowledge_graph import router as knowledge_graph_router
 from routes.legacy_pages import router as legacy_pages_router
 from routes.llm import router as llm_router
 from routes.methodology import router as methodology_router
 from routes.pipeline import router as pipeline_router
 from routes.project_setup import router as project_setup_router
-from routes.security_posture import router as security_posture_router
 from routes.roles import router as roles_router
 from routes.scenarios import router as scenarios_router
 from routes.search import router as search_router
+from routes.security_posture import router as security_posture_router
 from routes.spreadsheets import router as spreadsheets_router
 from routes.templates_api import router as templates_api_router
 from routes.timeline import router as timeline_router

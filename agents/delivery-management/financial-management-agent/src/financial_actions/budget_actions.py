@@ -1,4 +1,5 @@
 """Action handlers for budget lifecycle management."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone

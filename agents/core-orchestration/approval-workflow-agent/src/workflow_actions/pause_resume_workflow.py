@@ -61,11 +61,7 @@ async def handle_resume_workflow(
         if workflow:
             for task_id in list(instance.get("failed_tasks", [])):
                 task = next(
-                    (
-                        item
-                        for item in workflow.get("tasks", [])
-                        if item.get("task_id") == task_id
-                    ),
+                    (item for item in workflow.get("tasks", []) if item.get("task_id") == task_id),
                     None,
                 )
                 if task:

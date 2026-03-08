@@ -86,6 +86,7 @@ def _load_manifest(connector_id: str) -> dict[str, Any]:
     if manifest_path.exists():
         try:
             import yaml
+
             with open(manifest_path) as f:
                 manifest = yaml.safe_load(f) or {}
         except Exception as exc:
@@ -97,11 +98,19 @@ def _load_manifest(connector_id: str) -> dict[str, Any]:
 
 # Category display names
 _CATEGORY_NAMES: dict[str, str] = {
-    "pm": "project_management", "hris": "hr", "grc": "grc",
-    "erp": "erp", "itsm": "itsm", "communication": "communication",
-    "collaboration": "collaboration", "finance": "finance",
-    "analytics": "analytics", "crm": "crm", "calendar": "calendar",
-    "storage": "storage", "ppm": "project_management",
+    "pm": "project_management",
+    "hris": "hr",
+    "grc": "grc",
+    "erp": "erp",
+    "itsm": "itsm",
+    "communication": "communication",
+    "collaboration": "collaboration",
+    "finance": "finance",
+    "analytics": "analytics",
+    "crm": "crm",
+    "calendar": "calendar",
+    "storage": "storage",
+    "ppm": "project_management",
 }
 
 
@@ -178,11 +187,18 @@ def _derive_health_for_connector(
     # Sync direction from manifest if available
     manifest_sync = manifest.get("sync", {})
     manifest_dirs = manifest_sync.get("directions", sync_dirs)
-    sync_direction = "bidirectional" if len(manifest_dirs) > 1 else (manifest_dirs[0] if manifest_dirs else "inbound")
+    sync_direction = (
+        "bidirectional"
+        if len(manifest_dirs) > 1
+        else (manifest_dirs[0] if manifest_dirs else "inbound")
+    )
 
     logger.info(
         "Derived health for connector %s: status=%s, score=%.2f, circuit=%s",
-        cid, health, health_score, circuit,
+        cid,
+        health,
+        health_score,
+        circuit,
     )
 
     return ConnectorHealthRecord(
@@ -202,7 +218,8 @@ _CATEGORY_ENTITIES: dict[str, list[str]] = {
     "project_management": ["work_item", "project", "sprint"],
     "pm": ["work_item", "project", "sprint"],
     "ppm": ["project", "portfolio", "program"],
-    "hr": ["resource", "team"], "hris": ["resource", "team"],
+    "hr": ["resource", "team"],
+    "hris": ["resource", "team"],
     "erp": ["budget", "vendor", "purchase_order"],
     "itsm": ["issue", "incident", "change_request"],
     "communication": ["message", "channel"],
@@ -256,7 +273,9 @@ class ConnectorHealthAggregator:
 
             # Get entity types from manifest mappings if available
             mappings = manifest.get("mappings", [])
-            entity_types = [m.get("target", m.get("source", "")) for m in mappings if isinstance(m, dict)]
+            entity_types = [
+                m.get("target", m.get("source", "")) for m in mappings if isinstance(m, dict)
+            ]
             if not entity_types:
                 entity_types = _CATEGORY_ENTITIES.get(category, ["record"])
 
@@ -270,14 +289,16 @@ class ConnectorHealthAggregator:
                 else:
                     freshness = "critical"
 
-                records.append(DataFreshnessRecord(
-                    connector_id=cid,
-                    connector_name=name,
-                    entity_type=entity_type,
-                    last_synced_at=health.last_sync,
-                    record_count=record_count,
-                    freshness_status=freshness,
-                ))
+                records.append(
+                    DataFreshnessRecord(
+                        connector_id=cid,
+                        connector_name=name,
+                        entity_type=entity_type,
+                        last_synced_at=health.last_sync,
+                        record_count=record_count,
+                        freshness_status=freshness,
+                    )
+                )
 
         return records
 
@@ -293,28 +314,32 @@ class ConnectorHealthAggregator:
 
             if pm_connectors:
                 c = pm_connectors[0]
-                _conflict_store.append(ConflictRecord(
-                    conflict_id="cf-001",
-                    connector_id=c["id"],
-                    connector_name=c.get("name", c["id"]),
-                    entity_type="work_item",
-                    entity_id="PROJ-1234",
-                    source_value="In Progress",
-                    canonical_value="Active",
-                    detected_at=now_str,
-                ))
+                _conflict_store.append(
+                    ConflictRecord(
+                        conflict_id="cf-001",
+                        connector_id=c["id"],
+                        connector_name=c.get("name", c["id"]),
+                        entity_type="work_item",
+                        entity_id="PROJ-1234",
+                        source_value="In Progress",
+                        canonical_value="Active",
+                        detected_at=now_str,
+                    )
+                )
             if erp_connectors:
                 c = erp_connectors[0]
-                _conflict_store.append(ConflictRecord(
-                    conflict_id="cf-002",
-                    connector_id=c["id"],
-                    connector_name=c.get("name", c["id"]),
-                    entity_type="budget",
-                    entity_id="BUD-2026-Q1",
-                    source_value="$1,250,000",
-                    canonical_value="$1,200,000",
-                    detected_at=now_str,
-                ))
+                _conflict_store.append(
+                    ConflictRecord(
+                        conflict_id="cf-002",
+                        connector_id=c["id"],
+                        connector_name=c.get("name", c["id"]),
+                        entity_type="budget",
+                        entity_id="BUD-2026-Q1",
+                        source_value="$1,250,000",
+                        canonical_value="$1,200,000",
+                        detected_at=now_str,
+                    )
+                )
 
         return [c for c in _conflict_store if c.status == "unresolved"]
 
@@ -361,16 +386,73 @@ class ConnectorHealthAggregator:
     def _fallback_status(self) -> list[ConnectorHealthRecord]:
         now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         return [
-            ConnectorHealthRecord(connector_id="jira", name="Jira Cloud", category="project_management", status="healthy", circuit_state="closed", last_sync=now, error_rate_1h=0.02, sync_direction="bidirectional"),
-            ConnectorHealthRecord(connector_id="azure_devops", name="Azure DevOps", category="project_management", status="healthy", circuit_state="closed", last_sync=now, error_rate_1h=0.0, sync_direction="bidirectional"),
-            ConnectorHealthRecord(connector_id="sap", name="SAP S/4HANA", category="erp", status="degraded", circuit_state="half_open", last_sync=now, error_rate_1h=0.15, sync_direction="inbound"),
-            ConnectorHealthRecord(connector_id="slack", name="Slack", category="communication", status="healthy", circuit_state="closed", last_sync=now, error_rate_1h=0.0, sync_direction="outbound"),
+            ConnectorHealthRecord(
+                connector_id="jira",
+                name="Jira Cloud",
+                category="project_management",
+                status="healthy",
+                circuit_state="closed",
+                last_sync=now,
+                error_rate_1h=0.02,
+                sync_direction="bidirectional",
+            ),
+            ConnectorHealthRecord(
+                connector_id="azure_devops",
+                name="Azure DevOps",
+                category="project_management",
+                status="healthy",
+                circuit_state="closed",
+                last_sync=now,
+                error_rate_1h=0.0,
+                sync_direction="bidirectional",
+            ),
+            ConnectorHealthRecord(
+                connector_id="sap",
+                name="SAP S/4HANA",
+                category="erp",
+                status="degraded",
+                circuit_state="half_open",
+                last_sync=now,
+                error_rate_1h=0.15,
+                sync_direction="inbound",
+            ),
+            ConnectorHealthRecord(
+                connector_id="slack",
+                name="Slack",
+                category="communication",
+                status="healthy",
+                circuit_state="closed",
+                last_sync=now,
+                error_rate_1h=0.0,
+                sync_direction="outbound",
+            ),
         ]
 
     def _fallback_freshness(self) -> list[DataFreshnessRecord]:
         now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         return [
-            DataFreshnessRecord(connector_id="jira", connector_name="Jira Cloud", entity_type="work_item", last_synced_at=now, record_count=1247, freshness_status="fresh"),
-            DataFreshnessRecord(connector_id="jira", connector_name="Jira Cloud", entity_type="project", last_synced_at=now, record_count=42, freshness_status="fresh"),
-            DataFreshnessRecord(connector_id="sap", connector_name="SAP S/4HANA", entity_type="budget", last_synced_at=now, record_count=89, freshness_status="stale"),
+            DataFreshnessRecord(
+                connector_id="jira",
+                connector_name="Jira Cloud",
+                entity_type="work_item",
+                last_synced_at=now,
+                record_count=1247,
+                freshness_status="fresh",
+            ),
+            DataFreshnessRecord(
+                connector_id="jira",
+                connector_name="Jira Cloud",
+                entity_type="project",
+                last_synced_at=now,
+                record_count=42,
+                freshness_status="fresh",
+            ),
+            DataFreshnessRecord(
+                connector_id="sap",
+                connector_name="SAP S/4HANA",
+                entity_type="budget",
+                last_synced_at=now,
+                record_count=89,
+                freshness_status="stale",
+            ),
         ]

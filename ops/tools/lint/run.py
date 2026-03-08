@@ -64,6 +64,7 @@ def main() -> None:
             r"|audit|workflow|workspace|web_search|router|main)\.py"
             r"|services/agent-config/src/__init__\.py"
             r"|packages/ui-kit/src/__init__\.py"
+            r"|packages/methodology-engine/src/__init__\.py"
         )
         subprocess.run(
             [

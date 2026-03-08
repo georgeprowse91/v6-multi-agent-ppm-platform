@@ -55,7 +55,9 @@ def test_health_predictor():
 def test_health_predictor_declining():
     predictor = HealthPredictor()
     result = predictor.predict_health(
-        "proj-2", "Declining", {"risk": 0.8, "schedule": 0.3, "budget": 0.3, "resource": 0.2, "trend_decay": 0.05}
+        "proj-2",
+        "Declining",
+        {"risk": 0.8, "schedule": 0.3, "budget": 0.3, "resource": 0.2, "trend_decay": 0.05},
     )
     assert result.trend == "declining"
     assert result.predicted_health_90d <= result.current_health_score
@@ -141,7 +143,8 @@ def test_health_predictor_all_healthy():
     """Project with strong signals should have high health score."""
     predictor = HealthPredictor()
     result = predictor.predict_health(
-        "healthy-proj", "Healthy",
+        "healthy-proj",
+        "Healthy",
         {"risk": 0.1, "schedule": 0.9, "budget": 0.9, "resource": 0.9, "trend_decay": -0.01},
     )
     assert result.current_health_score > 0.5
@@ -153,7 +156,8 @@ def test_health_predictor_predicted_90d_bounded():
     predictor = HealthPredictor()
     for decay in [-0.05, 0.0, 0.05, 0.1]:
         result = predictor.predict_health(
-            "bound-test", "Test",
+            "bound-test",
+            "Test",
             {"risk": 0.5, "schedule": 0.5, "budget": 0.5, "resource": 0.5, "trend_decay": decay},
         )
         assert 0.0 <= result.predicted_health_90d <= 1.0

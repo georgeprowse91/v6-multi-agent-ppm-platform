@@ -210,8 +210,14 @@ async def test_response_orchestration_detects_dependency_cycle():
         await agent.process(
             {
                 "routing": [
-                    {"agent_id": "financial-management-agent", "depends_on": ["risk-management-agent"]},
-                    {"agent_id": "risk-management-agent", "depends_on": ["financial-management-agent"]},
+                    {
+                        "agent_id": "financial-management-agent",
+                        "depends_on": ["risk-management-agent"],
+                    },
+                    {
+                        "agent_id": "risk-management-agent",
+                        "depends_on": ["financial-management-agent"],
+                    },
                 ],
                 "parameters": {},
                 "query": "test",

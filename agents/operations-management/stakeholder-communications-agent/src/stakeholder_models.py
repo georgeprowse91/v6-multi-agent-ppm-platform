@@ -127,7 +127,11 @@ class ServiceBusPublisher:
         self.connection_string = connection_string
         self.topic_name = topic_name
         self.queue_name = queue_name
-        self.enabled = bool(connection_string) and ServiceBusClient is not None and ServiceBusMessage is not None
+        self.enabled = (
+            bool(connection_string)
+            and ServiceBusClient is not None
+            and ServiceBusMessage is not None
+        )
 
     def publish(self, event_type: str, payload: dict[str, Any]) -> dict[str, Any]:
         if not self.enabled or (not self.topic_name and not self.queue_name):

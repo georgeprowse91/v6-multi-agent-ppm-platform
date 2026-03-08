@@ -55,9 +55,9 @@ INJECTION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     # Attackers sometimes embed injections inside JSON, YAML, or XML blobs
     # passed as context.  These patterns catch the most common forms.
     re.compile(r"<\s*injection\s*>", re.IGNORECASE),
-    re.compile(r"\[INST\]", re.IGNORECASE),          # Llama chat template abuse
-    re.compile(r"<\|im_start\|>", re.IGNORECASE),    # ChatML template abuse
-    re.compile(r"<\|system\|>", re.IGNORECASE),      # Phi/ChatML system tag abuse
+    re.compile(r"\[INST\]", re.IGNORECASE),  # Llama chat template abuse
+    re.compile(r"<\|im_start\|>", re.IGNORECASE),  # ChatML template abuse
+    re.compile(r"<\|system\|>", re.IGNORECASE),  # Phi/ChatML system tag abuse
 )
 
 ATTACK_PHRASES: Final[tuple[str, ...]] = (

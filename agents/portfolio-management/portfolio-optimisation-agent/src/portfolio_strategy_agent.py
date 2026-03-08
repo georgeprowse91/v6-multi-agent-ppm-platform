@@ -668,9 +668,7 @@ class PortfolioStrategyAgent(BaseAgent):
         if compliance_spend < min_compliance_spend:
             return compliance_selected
 
-        remaining_selected = knapsack_select(
-            other_projects, int(remaining_budget // scale), scale
-        )
+        remaining_selected = knapsack_select(other_projects, int(remaining_budget // scale), scale)
 
         selected = compliance_selected + remaining_selected
         return apply_resource_capacity(selected, resource_capacity)

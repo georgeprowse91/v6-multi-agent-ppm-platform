@@ -1,4 +1,5 @@
 """Role and role-assignment management routes."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request, Response
@@ -34,7 +35,13 @@ async def create_role(payload: RoleDefinition) -> RoleDefinition:
         roles.append(payload)
     else:
         roles[existing_index] = payload
-    _write_json(ROLES_PATH, {"roles": [role.model_dump() for role in roles], "assignments": roles_payload.get("assignments", [])})
+    _write_json(
+        ROLES_PATH,
+        {
+            "roles": [role.model_dump() for role in roles],
+            "assignments": roles_payload.get("assignments", []),
+        },
+    )
     return payload
 
 
@@ -49,7 +56,13 @@ async def update_role(role_id: str, payload: RoleDefinition) -> RoleDefinition:
     if existing_index is None:
         raise HTTPException(status_code=404, detail="Role not found")
     roles[existing_index] = payload
-    _write_json(ROLES_PATH, {"roles": [role.model_dump() for role in roles], "assignments": roles_payload.get("assignments", [])})
+    _write_json(
+        ROLES_PATH,
+        {
+            "roles": [role.model_dump() for role in roles],
+            "assignments": roles_payload.get("assignments", []),
+        },
+    )
     return payload
 
 
@@ -61,10 +74,18 @@ async def delete_role(role_id: str) -> Response:
     updated_roles = [role for role in roles if role.id != role_id]
     if len(updated_roles) == len(roles):
         raise HTTPException(status_code=404, detail="Role not found")
-    assignments = [RoleAssignment.model_validate(item) for item in roles_payload.get("assignments", [])]
+    assignments = [
+        RoleAssignment.model_validate(item) for item in roles_payload.get("assignments", [])
+    ]
     for assignment in assignments:
         assignment.role_ids = [rid for rid in assignment.role_ids if rid != role_id]
-    _write_json(ROLES_PATH, {"roles": [role.model_dump() for role in updated_roles], "assignments": [a.model_dump() for a in assignments]})
+    _write_json(
+        ROLES_PATH,
+        {
+            "roles": [role.model_dump() for role in updated_roles],
+            "assignments": [a.model_dump() for a in assignments],
+        },
+    )
     return Response(status_code=204)
 
 
@@ -80,8 +101,12 @@ async def list_role_assignments(request: Request) -> list[RoleAssignment]:
 async def upsert_role_assignment(payload: RoleAssignment) -> RoleAssignment:
     roles_payload = _load_roles_payload()
     roles = roles_payload.get("roles", [])
-    assignments = [RoleAssignment.model_validate(item) for item in roles_payload.get("assignments", [])]
-    existing_index = next((idx for idx, a in enumerate(assignments) if a.user_id == payload.user_id), None)
+    assignments = [
+        RoleAssignment.model_validate(item) for item in roles_payload.get("assignments", [])
+    ]
+    existing_index = next(
+        (idx for idx, a in enumerate(assignments) if a.user_id == payload.user_id), None
+    )
     if existing_index is None:
         assignments.append(payload)
     else:

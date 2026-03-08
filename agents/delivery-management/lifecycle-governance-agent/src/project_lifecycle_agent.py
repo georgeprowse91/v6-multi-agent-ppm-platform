@@ -253,19 +253,19 @@ class ProjectLifecycleAgent(BaseAgent):
         elif action == "evaluate_gate":
             return await evaluate_gate(
                 self,
-                input_data.get("project_id"), input_data.get("gate_name"), tenant_id=tenant_id  # type: ignore
+                input_data.get("project_id"),
+                input_data.get("gate_name"),
+                tenant_id=tenant_id,  # type: ignore
             )
 
         elif action == "monitor_health":
             return await monitor_health(
-                self,
-                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+                self, input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
             )
 
         elif action == "generate_health_report":
             return await generate_health_report(
-                self,
-                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+                self, input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
             )
 
         elif action == "recommend_methodology":
@@ -281,26 +281,22 @@ class ProjectLifecycleAgent(BaseAgent):
 
         elif action == "train_readiness_model":
             return await train_readiness_model(
-                self,
-                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+                self, input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
             )
 
         elif action == "score_readiness":
             return await score_readiness(
-                self,
-                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+                self, input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
             )
 
         elif action == "get_project_status":
             return await get_project_status(
-                self,
-                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+                self, input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
             )
 
         elif action == "get_health_dashboard":
             return await get_health_dashboard(
-                self,
-                input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
+                self, input_data.get("project_id"), tenant_id=tenant_id  # type: ignore
             )
 
         elif action == "override_gate":
@@ -316,14 +312,12 @@ class ProjectLifecycleAgent(BaseAgent):
 
         elif action == "get_gate_history":
             return await get_gate_history(
-                self,
-                input_data.get("project_id"), input_data.get("gate_name"), tenant_id=tenant_id
+                self, input_data.get("project_id"), input_data.get("gate_name"), tenant_id=tenant_id
             )
 
         elif action == "get_readiness_scores":
             return await get_readiness_scores(
-                self,
-                input_data.get("project_id"), tenant_id=tenant_id
+                self, input_data.get("project_id"), tenant_id=tenant_id
             )
 
         elif action == "get_health_history":
@@ -437,9 +431,7 @@ class ProjectLifecycleAgent(BaseAgent):
     ) -> dict[str, Any]:
         return await load_methodology_map(self, methodology, tenant_id=tenant_id)
 
-    async def _train_readiness_model(
-        self, project_id: str, *, tenant_id: str
-    ) -> dict[str, Any]:
+    async def _train_readiness_model(self, project_id: str, *, tenant_id: str) -> dict[str, Any]:
         return await train_readiness_model(self, project_id, tenant_id=tenant_id)
 
     # ------------------------------------------------------------------

@@ -298,9 +298,7 @@ async def handle_run_sync(
             agent, source_system, entity_type, last_synced_at, cursor, filters
         )
     else:
-        records, new_cursor = await _fetch_full_records(
-            agent, source_system, entity_type, filters
-        )
+        records, new_cursor = await _fetch_full_records(agent, source_system, entity_type, filters)
 
     results = []
     for record in records:

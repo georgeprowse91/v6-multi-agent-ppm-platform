@@ -92,7 +92,7 @@ class HealthResponse(BaseModel):
 
 app = FastAPI(title="Audit Log Service", version=API_VERSION, openapi_prefix="/v1")
 api_router = APIRouter(prefix="/v1")
-app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
 configure_tracing("audit-log")
 configure_metrics("audit-log")
 app.add_middleware(TraceMiddleware, service_name="audit-log")

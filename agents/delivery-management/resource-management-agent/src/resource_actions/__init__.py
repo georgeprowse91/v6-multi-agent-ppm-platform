@@ -11,14 +11,14 @@ from resource_actions.allocation import (
     handle_delete_resource,
     handle_update_resource,
 )
-from resource_actions.demand_management import (
-    handle_approve_request,
-    handle_request_resource,
-)
 from resource_actions.analytics import (
     handle_get_availability,
     handle_get_utilization,
     handle_identify_conflicts,
+)
+from resource_actions.demand_management import (
+    handle_approve_request,
+    handle_request_resource,
 )
 from resource_actions.helpers import (
     adjust_capacity_forecast,

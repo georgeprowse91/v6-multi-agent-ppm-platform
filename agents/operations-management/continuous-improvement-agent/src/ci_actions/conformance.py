@@ -181,6 +181,7 @@ async def detect_deviations(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 async def _analyze_waiting_times(
     agent: MiningAgentProtocol, process_id: str
 ) -> dict[str, dict[str, Any]]:
@@ -226,9 +227,7 @@ async def _analyze_throughput(agent: MiningAgentProtocol, process_id: str) -> fl
     if not events:
         return 0.0
     traces = await build_traces(events)
-    timestamps = [
-        safe_parse_timestamp(e.get("timestamp")) for e in events if e.get("timestamp")
-    ]
+    timestamps = [safe_parse_timestamp(e.get("timestamp")) for e in events if e.get("timestamp")]
     timestamps = [ts for ts in timestamps if ts]
     if len(timestamps) < 2:
         return float(len(traces))
@@ -283,9 +282,7 @@ async def _compare_process_models(
 
     extra = actual_activities - designed_activities
     for activity in extra:
-        deviations.append(
-            {"category": "extra_activities", "activity": activity, "severity": "low"}
-        )
+        deviations.append({"category": "extra_activities", "activity": activity, "severity": "low"})
 
     return deviations
 

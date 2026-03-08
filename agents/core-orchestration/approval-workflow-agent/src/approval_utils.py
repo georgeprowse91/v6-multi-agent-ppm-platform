@@ -359,9 +359,7 @@ def load_approval_policies(
     fallback_path = Path("ops/config/approval_policies.json")
     if not config_path.exists():
         if not fallback_path.exists():
-            logger.warning(
-                "Approval policies file not found at %s; using defaults.", config_path
-            )
+            logger.warning("Approval policies file not found at %s; using defaults.", config_path)
             return default_policies
         config_path = fallback_path
     try:

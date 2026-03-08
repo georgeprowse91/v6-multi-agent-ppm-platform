@@ -46,9 +46,7 @@ async def handle_generate_periodic_report(
             ),
             "risk_occurrences_total": sum(risk_occurrences),
             "avg_budget_variance_pct": (
-                round(sum(budget_variances) / len(budget_variances), 4)
-                if budget_variances
-                else 0
+                round(sum(budget_variances) / len(budget_variances), 4) if budget_variances else 0
             ),
         },
         "trends": patterns,

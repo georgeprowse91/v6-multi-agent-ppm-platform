@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import jwt
 from fastapi.testclient import TestClient
 
-
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -63,7 +62,7 @@ def _gateway_client():
 
 
 def _workflow_client():
-    path = _REPO_ROOT / "apps" / "workflow-service" / "src" / "main.py"
+    path = _REPO_ROOT / "services" / "workflow-service" / "src" / "main.py"
     return TestClient(_load_app(path, "workflow_service_main"))
 
 

@@ -1,4 +1,5 @@
 """Authentication / OIDC routes: login, callback, logout, config, session."""
+
 from __future__ import annotations
 
 import json
@@ -44,7 +45,10 @@ def _resolve_post_login_redirect(state_payload: dict[str, Any]) -> str:
         landing = return_to
         if counter:
             counter.add(1, {"flow": "return_to", "landing_route": landing})
-        logger.info("auth.post_login_landing", extra={"flow": "return_to", "requested_return_to": return_to, "landing_route": landing})
+        logger.info(
+            "auth.post_login_landing",
+            extra={"flow": "return_to", "requested_return_to": return_to, "landing_route": landing},
+        )
         return landing
 
     project_id = state_payload.get("project_id")
@@ -52,7 +56,10 @@ def _resolve_post_login_redirect(state_payload: dict[str, Any]) -> str:
         landing = f"/app/projects/{project_id}"
         if counter:
             counter.add(1, {"flow": "project_id", "landing_route": landing})
-        logger.info("auth.post_login_landing", extra={"flow": "project_id", "project_id": project_id, "landing_route": landing})
+        logger.info(
+            "auth.post_login_landing",
+            extra={"flow": "project_id", "project_id": project_id, "landing_route": landing},
+        )
         return landing
 
     landing = "/app"
@@ -123,13 +130,27 @@ def _ui_feature_flags() -> dict[str, bool]:
     environment = os.getenv("ENVIRONMENT", "dev")
     return {
         "agent_run_ui": is_feature_enabled("agent_run_ui", environment=environment, default=False),
-        "multimodal_intake": is_feature_enabled("multimodal_intake", environment=environment, default=False),
-        "duplicate_resolution": is_feature_enabled("duplicate_resolution", environment=environment, default=False),
-        "predictive_alerts": is_feature_enabled("predictive_alerts", environment=environment, default=False),
-        "resource_optimization": is_feature_enabled("resource_optimization", environment=environment, default=False),
-        "multi_agent_collab": is_feature_enabled("multi_agent_collab", environment=environment, default=False),
-        "autonomous_deliverables": is_feature_enabled("autonomous_deliverables", environment=environment, default=False),
-        "unified_dashboards": is_feature_enabled("unified_dashboards", environment=environment, default=False),
+        "multimodal_intake": is_feature_enabled(
+            "multimodal_intake", environment=environment, default=False
+        ),
+        "duplicate_resolution": is_feature_enabled(
+            "duplicate_resolution", environment=environment, default=False
+        ),
+        "predictive_alerts": is_feature_enabled(
+            "predictive_alerts", environment=environment, default=False
+        ),
+        "resource_optimization": is_feature_enabled(
+            "resource_optimization", environment=environment, default=False
+        ),
+        "multi_agent_collab": is_feature_enabled(
+            "multi_agent_collab", environment=environment, default=False
+        ),
+        "autonomous_deliverables": is_feature_enabled(
+            "autonomous_deliverables", environment=environment, default=False
+        ),
+        "unified_dashboards": is_feature_enabled(
+            "unified_dashboards", environment=environment, default=False
+        ),
     }
 
 
@@ -186,8 +207,18 @@ async def login(request: Request) -> RedirectResponse:
             response = RedirectResponse(url=f"{auth_url}?{urlencode(params)}")
             response.set_cookie(
                 STATE_COOKIE,
-                _encode_cookie({"state": state, "nonce": nonce, "project_id": project_id, "return_to": return_to}, 600),
-                httponly=True, secure=_cookie_secure(), samesite="lax",
+                _encode_cookie(
+                    {
+                        "state": state,
+                        "nonce": nonce,
+                        "project_id": project_id,
+                        "return_to": return_to,
+                    },
+                    600,
+                ),
+                httponly=True,
+                secure=_cookie_secure(),
+                samesite="lax",
             )
             return response
         auth_dev_mode = os.getenv("AUTH_DEV_MODE", "false").lower() in {"1", "true", "yes"}
@@ -215,8 +246,12 @@ async def login(request: Request) -> RedirectResponse:
     response = RedirectResponse(url=f"{discovery.authorization_endpoint}?{urlencode(params)}")
     response.set_cookie(
         STATE_COOKIE,
-        _encode_cookie({"state": state, "nonce": nonce, "project_id": project_id, "return_to": return_to}, 600),
-        httponly=True, secure=_cookie_secure(), samesite="lax",
+        _encode_cookie(
+            {"state": state, "nonce": nonce, "project_id": project_id, "return_to": return_to}, 600
+        ),
+        httponly=True,
+        secure=_cookie_secure(),
+        samesite="lax",
     )
     return response
 
@@ -267,7 +302,9 @@ async def oidc_callback(request: Request) -> RedirectResponse:
     response.set_cookie(
         SESSION_COOKIE,
         _encode_cookie(session_payload, 8 * 60 * 60),
-        httponly=True, secure=_cookie_secure(), samesite="lax",
+        httponly=True,
+        secure=_cookie_secure(),
+        samesite="lax",
     )
     response.delete_cookie(STATE_COOKIE)
     return response
@@ -305,7 +342,10 @@ async def api_status(request: Request) -> dict[str, Any]:
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(
             f"{api_gateway_url}/v1/status",
-            headers={"Authorization": f"Bearer {session['access_token']}", "X-Tenant-ID": session["tenant_id"]},
+            headers={
+                "Authorization": f"Bearer {session['access_token']}",
+                "X-Tenant-ID": session["tenant_id"],
+            },
         )
         response.raise_for_status()
         return response.json()

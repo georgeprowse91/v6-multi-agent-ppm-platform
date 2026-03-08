@@ -10,7 +10,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Keyword / text helpers
 # ---------------------------------------------------------------------------
@@ -52,9 +51,7 @@ def apply_alignment_constraint(
     if min_alignment_score <= 0:
         return projects
     return [
-        project
-        for project in projects
-        if project.get("alignment_score", 0) >= min_alignment_score
+        project for project in projects if project.get("alignment_score", 0) >= min_alignment_score
     ]
 
 
@@ -370,12 +367,8 @@ def generate_scenario_comparison(scenario_results: list[dict[str, Any]]) -> dict
             "max": max(s.get("results", {}).get("total_cost", 0) for s in scenario_results),
         },
         "projects_range": {
-            "min": min(
-                s.get("results", {}).get("total_projects", 0) for s in scenario_results
-            ),
-            "max": max(
-                s.get("results", {}).get("total_projects", 0) for s in scenario_results
-            ),
+            "min": min(s.get("results", {}).get("total_projects", 0) for s in scenario_results),
+            "max": max(s.get("results", {}).get("total_projects", 0) for s in scenario_results),
         },
     }
 
@@ -385,9 +378,7 @@ def recommend_best_scenario(scenario_results: list[dict[str, Any]]) -> dict[str,
     if not scenario_results:
         return {"scenario_id": None, "rationale": "No scenarios available"}
 
-    best_scenario = max(
-        scenario_results, key=lambda s: s.get("results", {}).get("total_value", 0)
-    )
+    best_scenario = max(scenario_results, key=lambda s: s.get("results", {}).get("total_value", 0))
     return {
         "scenario_id": best_scenario.get("scenario_id"),
         "scenario_name": best_scenario.get("scenario_name"),

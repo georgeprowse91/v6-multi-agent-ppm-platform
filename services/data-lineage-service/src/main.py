@@ -175,7 +175,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 api_router = APIRouter(prefix="/v1")
-app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+app.add_middleware(AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"})
 configure_tracing("data-lineage-service")
 configure_metrics("data-lineage-service")
 app.add_middleware(TraceMiddleware, service_name="data-lineage-service")

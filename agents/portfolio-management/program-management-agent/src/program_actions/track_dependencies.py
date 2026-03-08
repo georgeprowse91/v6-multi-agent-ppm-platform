@@ -163,9 +163,7 @@ async def _optimize_dependency_graph(
     if conflicts:
         recommendations.append("Sequence downstream work to reduce dependency contention.")
     if critical_path:
-        recommendations.append(
-            f"Focus mitigation on critical path: {' > '.join(critical_path)}."
-        )
+        recommendations.append(f"Focus mitigation on critical path: {' > '.join(critical_path)}.")
     return {
         "conflicts": conflicts,
         "critical_path": critical_path,

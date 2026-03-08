@@ -3,6 +3,7 @@
 Uses LLM to convert natural language descriptions into structured workflow
 definitions, with validation and iterative refinement.
 """
+
 from __future__ import annotations
 
 import json
@@ -366,15 +367,17 @@ class NLWorkflowParser:
         # Intake step always first
         next_id = _generate_step_id()
         intake_id = next_id
-        steps.append({
-            "id": intake_id,
-            "type": "task",
-            "name": "Intake & Classification",
-            "description": "Receive and classify the incoming request",
-            "agent_id": "demand-intake-agent",
-            "config": {},
-            "transitions": [],  # filled in below
-        })
+        steps.append(
+            {
+                "id": intake_id,
+                "type": "task",
+                "name": "Intake & Classification",
+                "description": "Receive and classify the incoming request",
+                "agent_id": "demand-intake-agent",
+                "config": {},
+                "transitions": [],  # filled in below
+            }
+        )
 
         # Detect relevant domain steps from keywords
         matched_steps: list[dict[str, Any]] = []
@@ -396,15 +399,17 @@ class NLWorkflowParser:
         # If no keywords matched, add a generic execution step
         if not matched_steps:
             exec_id = _generate_step_id()
-            matched_steps.append({
-                "id": exec_id,
-                "type": "task",
-                "name": "Execute & Deliver",
-                "description": "Execute the planned work",
-                "agent_id": "schedule-planning-agent",
-                "config": {},
-                "transitions": [],
-            })
+            matched_steps.append(
+                {
+                    "id": exec_id,
+                    "type": "task",
+                    "name": "Execute & Deliver",
+                    "description": "Execute the planned work",
+                    "agent_id": "schedule-planning-agent",
+                    "config": {},
+                    "transitions": [],
+                }
+            )
 
         # Notification step always last
         notify_id = _generate_step_id()
@@ -427,7 +432,10 @@ class NLWorkflowParser:
                 if i + 2 < len(all_steps):
                     s["transitions"] = [
                         {"target": next_step["id"], "condition": "requires_attention == true"},
-                        {"target": all_steps[i + 2]["id"], "condition": "requires_attention != true"},
+                        {
+                            "target": all_steps[i + 2]["id"],
+                            "condition": "requires_attention != true",
+                        },
                     ]
                 else:
                     s["transitions"] = [{"target": next_step["id"]}]
@@ -470,25 +478,19 @@ class NLWorkflowParser:
                         f"use canonical ID '{resolved}'"
                     )
                 else:
-                    errors.append(
-                        f"Step {step_id} references unknown agent_id '{agent_id}'"
-                    )
+                    errors.append(f"Step {step_id} references unknown agent_id '{agent_id}'")
 
             # Validate transitions reference existing steps
             for t in step.get("transitions", []):
                 target = t.get("target")
                 if target and target not in step_ids:
-                    errors.append(
-                        f"Step {step_id} references unknown target '{target}'"
-                    )
+                    errors.append(f"Step {step_id} references unknown target '{target}'")
 
             # Decision steps should have conditions on transitions
             if step_type == "decision":
                 transitions = step.get("transitions", [])
                 if len(transitions) < 2:
-                    errors.append(
-                        f"Decision step {step_id} should have at least 2 transitions"
-                    )
+                    errors.append(f"Decision step {step_id} should have at least 2 transitions")
 
         return {"valid": len(errors) == 0, "errors": errors}
 

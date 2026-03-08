@@ -70,9 +70,7 @@ async def generate_scope_research(
             detail="Scope agent returned an invalid response",
         ) from exc
     except Exception as exc:
-        logger.error(
-            "Scope research failed for project %s: %s", project_id, exc
-        )
+        logger.error("Scope research failed for project %s: %s", project_id, exc)
         raise HTTPException(
             status_code=502,
             detail=f"Scope research failed: {exc}",

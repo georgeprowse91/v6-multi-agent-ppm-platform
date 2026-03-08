@@ -5,6 +5,7 @@ and aggregating cross-agent intelligence (Financial, Risk, Resource,
 Analytics) to produce audience-tailored narratives.  Supports scheduled
 delivery and export to PDF/PPTX via the Document Service.
 """
+
 from __future__ import annotations
 
 import json
@@ -65,7 +66,12 @@ class BriefingRequest(BaseModel):
     tone: str = "formal"
     sections: list[str] = Field(
         default_factory=lambda: [
-            "highlights", "risks", "financials", "schedule", "resources", "recommendations",
+            "highlights",
+            "risks",
+            "financials",
+            "schedule",
+            "resources",
+            "recommendations",
         ],
         min_length=1,
     )
@@ -75,27 +81,21 @@ class BriefingRequest(BaseModel):
     @classmethod
     def _validate_audience(cls, v: str) -> str:
         if v not in _VALID_AUDIENCES:
-            raise ValueError(
-                f"audience must be one of {sorted(_VALID_AUDIENCES)}, got '{v}'"
-            )
+            raise ValueError(f"audience must be one of {sorted(_VALID_AUDIENCES)}, got '{v}'")
         return v
 
     @field_validator("tone")
     @classmethod
     def _validate_tone(cls, v: str) -> str:
         if v not in _VALID_TONES:
-            raise ValueError(
-                f"tone must be one of {sorted(_VALID_TONES)}, got '{v}'"
-            )
+            raise ValueError(f"tone must be one of {sorted(_VALID_TONES)}, got '{v}'")
         return v
 
     @field_validator("format")
     @classmethod
     def _validate_format(cls, v: str) -> str:
         if v not in _VALID_FORMATS:
-            raise ValueError(
-                f"format must be one of {sorted(_VALID_FORMATS)}, got '{v}'"
-            )
+            raise ValueError(f"format must be one of {sorted(_VALID_FORMATS)}, got '{v}'")
         return v
 
 
@@ -119,7 +119,12 @@ class BriefingScheduleRequest(BaseModel):
     tone: str = "formal"
     sections: list[str] = Field(
         default_factory=lambda: [
-            "highlights", "risks", "financials", "schedule", "resources", "recommendations",
+            "highlights",
+            "risks",
+            "financials",
+            "schedule",
+            "resources",
+            "recommendations",
         ],
     )
     frequency: str = "weekly"
@@ -132,18 +137,14 @@ class BriefingScheduleRequest(BaseModel):
     @classmethod
     def _validate_audience(cls, v: str) -> str:
         if v not in _VALID_AUDIENCES:
-            raise ValueError(
-                f"audience must be one of {sorted(_VALID_AUDIENCES)}, got '{v}'"
-            )
+            raise ValueError(f"audience must be one of {sorted(_VALID_AUDIENCES)}, got '{v}'")
         return v
 
     @field_validator("frequency")
     @classmethod
     def _validate_frequency(cls, v: str) -> str:
         if v not in _VALID_FREQUENCIES:
-            raise ValueError(
-                f"frequency must be one of {sorted(_VALID_FREQUENCIES)}, got '{v}'"
-            )
+            raise ValueError(f"frequency must be one of {sorted(_VALID_FREQUENCIES)}, got '{v}'")
         return v
 
     @field_validator("channels")
@@ -151,9 +152,7 @@ class BriefingScheduleRequest(BaseModel):
     def _validate_channels(cls, v: list[str]) -> list[str]:
         for ch in v:
             if ch not in _VALID_CHANNELS:
-                raise ValueError(
-                    f"channel must be one of {sorted(_VALID_CHANNELS)}, got '{ch}'"
-                )
+                raise ValueError(f"channel must be one of {sorted(_VALID_CHANNELS)}, got '{ch}'")
         return v
 
     @field_validator("export_format")
@@ -218,7 +217,9 @@ async def _fetch_agent_data(url: str) -> dict[str, Any] | None:
 async def _aggregate_financial_data(portfolio_id: str) -> dict[str, Any]:
     """Aggregate financial signals from the Financial Management agent."""
     analytics_url = os.getenv("ANALYTICS_SERVICE_URL", "http://localhost:8080")
-    data = await _fetch_agent_data(f"{analytics_url}/v1/analytics/financial?portfolio_id={portfolio_id}")
+    data = await _fetch_agent_data(
+        f"{analytics_url}/v1/analytics/financial?portfolio_id={portfolio_id}"
+    )
     if data:
         return data
 
@@ -238,7 +239,9 @@ async def _aggregate_financial_data(portfolio_id: str) -> dict[str, Any]:
 async def _aggregate_risk_data(portfolio_id: str) -> dict[str, Any]:
     """Aggregate risk signals from the Risk Management agent."""
     analytics_url = os.getenv("ANALYTICS_SERVICE_URL", "http://localhost:8080")
-    data = await _fetch_agent_data(f"{analytics_url}/v1/analytics/risks?portfolio_id={portfolio_id}")
+    data = await _fetch_agent_data(
+        f"{analytics_url}/v1/analytics/risks?portfolio_id={portfolio_id}"
+    )
     if data:
         return data
 
@@ -319,13 +322,15 @@ def _gather_portfolio_data(portfolio_id: str) -> dict[str, Any]:
     projects = _load_projects()
     project_summaries = []
     for p in projects[:20]:
-        project_summaries.append({
-            "id": getattr(p, "id", ""),
-            "name": getattr(p, "name", ""),
-            "status": getattr(p, "status", "active"),
-            "health": getattr(p, "health", "green"),
-            "methodology": getattr(p, "methodology", ""),
-        })
+        project_summaries.append(
+            {
+                "id": getattr(p, "id", ""),
+                "name": getattr(p, "name", ""),
+                "status": getattr(p, "status", "active"),
+                "health": getattr(p, "health", "green"),
+                "methodology": getattr(p, "methodology", ""),
+            }
+        )
 
     return {
         "portfolio_id": portfolio_id,
@@ -338,6 +343,7 @@ def _gather_portfolio_data(portfolio_id: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Export helpers
 # ---------------------------------------------------------------------------
+
 
 async def _export_briefing(briefing_data: dict[str, Any], export_format: str) -> dict[str, Any]:
     """Export briefing via Document Service to PDF or PPTX."""
@@ -383,7 +389,8 @@ def _generate_local_export(briefing_data: dict[str, Any], export_format: str) ->
         }
     else:
         pptx_bytes = _render_sections_to_pptx(
-            briefing_data.get("sections", []), title,
+            briefing_data.get("sections", []),
+            title,
             briefing_data.get("generated_at", ""),
         )
         return {
@@ -494,11 +501,8 @@ def _render_sections_to_pptx(
         return _render_pptx_fallback(sections, title, generated_at)
 
 
-def _render_pptx_fallback(
-    sections: list[dict[str, str]], title: str, generated_at: str
-) -> bytes:
+def _render_pptx_fallback(sections: list[dict[str, str]], title: str, generated_at: str) -> bytes:
     """Minimal PPTX-like output when python-pptx is unavailable."""
-    import base64
 
     lines = [f"PRESENTATION: {title}", f"Date: {generated_at}", ""]
     for section in sections:
@@ -571,6 +575,7 @@ def _strip_markdown(text: str) -> str:
 # Notification delivery helper
 # ---------------------------------------------------------------------------
 
+
 async def _deliver_briefing_notification(
     briefing_data: dict[str, Any],
     recipients: list[str],
@@ -578,9 +583,7 @@ async def _deliver_briefing_notification(
     export_data: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Send briefing notification via the Notification Service."""
-    notification_url = os.getenv(
-        "NOTIFICATION_SERVICE_URL", "http://localhost:8080"
-    )
+    notification_url = os.getenv("NOTIFICATION_SERVICE_URL", "http://localhost:8080")
     endpoint = f"{notification_url}/v1/notifications/briefing-delivery"
 
     payload: dict[str, Any] = {
@@ -609,12 +612,14 @@ async def _deliver_briefing_notification(
 
     for recipient in recipients:
         for channel in channels:
-            delivery_results.append({
-                "recipient": recipient,
-                "channel": channel,
-                "status": "queued",
-                "delivery_id": f"dlv-{uuid.uuid4().hex[:8]}",
-            })
+            delivery_results.append(
+                {
+                    "recipient": recipient,
+                    "channel": channel,
+                    "status": "queued",
+                    "delivery_id": f"dlv-{uuid.uuid4().hex[:8]}",
+                }
+            )
 
     return {"deliveries": delivery_results, "status": "queued"}
 
@@ -623,12 +628,16 @@ async def _deliver_briefing_notification(
 # API endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.post("/api/briefings/generate")
 async def generate_briefing(request: BriefingRequest) -> BriefingResponse:
     """Generate an AI-powered executive briefing using cross-agent data."""
     logger.info(
         "Briefing request: audience=%s, tone=%s, format=%s, portfolio=%s",
-        request.audience, request.tone, request.format, request.portfolio_id,
+        request.audience,
+        request.tone,
+        request.format,
+        request.portfolio_id,
     )
     briefing_id = f"brief-{uuid.uuid4().hex[:8]}"
     generated_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -680,7 +689,10 @@ async def generate_briefing(request: BriefingRequest) -> BriefingResponse:
         content = f"# Portfolio Briefing — {audience_label}\n\n*Generated: {generated_at}*\n\n{llm_content}"
     else:
         content = _generate_fallback_briefing(
-            audience_label, generated_at, request.sections, portfolio_data,
+            audience_label,
+            generated_at,
+            request.sections,
+            portfolio_data,
         )
 
     sections = _parse_sections(content)
@@ -688,7 +700,10 @@ async def generate_briefing(request: BriefingRequest) -> BriefingResponse:
     # If LLM content had no parseable sections, regenerate with structured fallback
     if not sections:
         content = _generate_fallback_briefing(
-            audience_label, generated_at, request.sections, portfolio_data,
+            audience_label,
+            generated_at,
+            request.sections,
+            portfolio_data,
         )
         sections = _parse_sections(content)
 
@@ -770,7 +785,9 @@ async def create_briefing_schedule(
     _SCHEDULE_STORE.append(schedule)
     logger.info(
         "Briefing schedule created: schedule_id=%s, frequency=%s, recipients=%d",
-        schedule_id, request.frequency, len(request.recipients),
+        schedule_id,
+        request.frequency,
+        len(request.recipients),
     )
 
     return BriefingScheduleResponse(**schedule)
@@ -816,7 +833,10 @@ async def deliver_briefing(
         export_data = export_result
 
     result = await _deliver_briefing_notification(
-        briefing_data, recipients, delivery_channels, export_data,
+        briefing_data,
+        recipients,
+        delivery_channels,
+        export_data,
     )
 
     return {"briefing_id": briefing_id, "delivery": result}
@@ -825,6 +845,7 @@ async def deliver_briefing(
 # ---------------------------------------------------------------------------
 # Section parsing and fallback generation
 # ---------------------------------------------------------------------------
+
 
 def _parse_sections(content: str) -> list[dict[str, str]]:
     """Parse ## headings from generated markdown into section objects."""
@@ -883,7 +904,9 @@ def _generate_fallback_briefing(
         if analytics:
             score = analytics.get("portfolio_health_score")
             if score is not None:
-                parts.append(f"- Portfolio health score: **{score:.0%}** ({analytics.get('health_trend', 'stable')})")
+                parts.append(
+                    f"- Portfolio health score: **{score:.0%}** ({analytics.get('health_trend', 'stable')})"
+                )
             otd = analytics.get("on_time_delivery_pct")
             if otd is not None:
                 parts.append(f"- On-time delivery: **{otd:.0f}%**")

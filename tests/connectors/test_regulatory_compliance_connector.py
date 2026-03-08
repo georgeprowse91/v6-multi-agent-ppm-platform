@@ -92,7 +92,7 @@ def test_regulatory_compliance_read_audit_logs() -> None:
     transport = _build_transport(
         {
             ("GET", "/health"): (200, {"status": "ok"}),
-            ("GET", "/audit-logs"): (200, {"items": [{"id": "log-1"}]}),
+            ("GET", "/api/v1/audit-logs"): (200, {"items": [{"id": "log-1"}]}),
         }
     )
     config = ConnectorConfig(

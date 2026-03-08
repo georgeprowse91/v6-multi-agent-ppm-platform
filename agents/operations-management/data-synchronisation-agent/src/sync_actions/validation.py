@@ -96,9 +96,7 @@ async def handle_define_mapping(
     }
 
 
-async def get_validation_rules(
-    agent: DataSyncAgent, entity_type: str
-) -> list[dict[str, Any]]:
+async def get_validation_rules(agent: DataSyncAgent, entity_type: str) -> list[dict[str, Any]]:
     """Get validation rules for entity type."""
     if entity_type in agent.validation_rules:
         return agent.validation_rules[entity_type]

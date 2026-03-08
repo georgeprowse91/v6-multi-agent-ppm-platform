@@ -58,7 +58,9 @@ class QualityManagementAgent(BaseAgent):
     - Compliance and standards management
     """
 
-    def __init__(self, agent_id: str = "quality-management-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "quality-management-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
 
         # Configuration parameters
@@ -309,15 +311,19 @@ class QualityManagementAgent(BaseAgent):
 
         if action == "create_quality_plan":
             return await plan_actions.create_quality_plan(
-                self, input_data.get("plan", {}),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("plan", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "approve_quality_plan":
             return await plan_actions.approve_quality_plan(
-                self, input_data.get("plan_id"),
+                self,
+                input_data.get("plan_id"),
                 approver=input_data.get("approver", "unknown"),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "define_metrics":
@@ -327,8 +333,10 @@ class QualityManagementAgent(BaseAgent):
 
         elif action == "create_test_case":
             return await test_actions.create_test_case(
-                self, input_data.get("test_case", {}),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("test_case", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "create_test_suite":
@@ -336,14 +344,18 @@ class QualityManagementAgent(BaseAgent):
 
         elif action == "execute_tests":
             return await test_actions.execute_tests(
-                self, input_data.get("test_execution", {}),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("test_execution", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "log_defect":
             return await defect_actions.log_defect(
-                self, input_data.get("defect", {}),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("defect", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "update_defect":
@@ -356,8 +368,10 @@ class QualityManagementAgent(BaseAgent):
 
         elif action == "conduct_audit":
             return await audit_actions.conduct_audit(
-                self, input_data.get("audit", {}),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("audit", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "calculate_metrics":
@@ -367,12 +381,16 @@ class QualityManagementAgent(BaseAgent):
             return await analysis_actions.analyze_defect_trends(self, input_data.get("project_id"))  # type: ignore
 
         elif action == "perform_root_cause_analysis":
-            return await analysis_actions.perform_root_cause_analysis(self, input_data.get("defect_ids", []))
+            return await analysis_actions.perform_root_cause_analysis(
+                self, input_data.get("defect_ids", [])
+            )
 
         elif action == "link_test_case_requirements":
             return await requirement_actions.link_test_case_requirements(
-                self, input_data.get("link", {}),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("link", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "update_test_case_links":
@@ -387,8 +405,10 @@ class QualityManagementAgent(BaseAgent):
 
         elif action == "sync_defect_tickets":
             return await defect_actions.sync_defect_tickets(
-                self, input_data.get("defect_ids", []),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("defect_ids", []),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
 
         elif action == "get_quality_dashboard":
@@ -403,7 +423,9 @@ class QualityManagementAgent(BaseAgent):
 
         elif action == "query_quality_artifacts":
             return await reporting_actions.query_quality_artifacts(
-                self, input_data.get("filters", {}), tenant_id=tenant_id,
+                self,
+                input_data.get("filters", {}),
+                tenant_id=tenant_id,
             )
 
         else:

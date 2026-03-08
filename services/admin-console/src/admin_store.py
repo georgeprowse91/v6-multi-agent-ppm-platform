@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
@@ -93,8 +92,7 @@ class AdminStore:
 
     def _ensure_schema(self) -> None:
         with self._connect() as conn:
-            conn.executescript(
-                """
+            conn.executescript("""
                 CREATE TABLE IF NOT EXISTS tenants (
                     tenant_id TEXT PRIMARY KEY,
                     display_name TEXT NOT NULL,
@@ -147,8 +145,7 @@ class AdminStore:
                     ON system_events(tenant_id, event_type);
                 CREATE INDEX IF NOT EXISTS idx_system_events_created
                     ON system_events(created_at);
-                """
-            )
+                """)
 
     # -----------------------------------------------------------------------
     # Tenant configuration
@@ -183,16 +180,12 @@ class AdminStore:
 
     def get_tenant(self, tenant_id: str) -> TenantConfig | None:
         with self._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM tenants WHERE tenant_id = ?", (tenant_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM tenants WHERE tenant_id = ?", (tenant_id,)).fetchone()
         return self._deserialize_tenant(row) if row else None
 
     def list_tenants(self) -> list[TenantConfig]:
         with self._connect() as conn:
-            rows = conn.execute(
-                "SELECT * FROM tenants ORDER BY display_name"
-            ).fetchall()
+            rows = conn.execute("SELECT * FROM tenants ORDER BY display_name").fetchall()
         return [self._deserialize_tenant(row) for row in rows]
 
     def update_tenant(
@@ -222,9 +215,7 @@ class AdminStore:
 
     def delete_tenant(self, tenant_id: str) -> bool:
         with self._connect() as conn:
-            cursor = conn.execute(
-                "DELETE FROM tenants WHERE tenant_id = ?", (tenant_id,)
-            )
+            cursor = conn.execute("DELETE FROM tenants WHERE tenant_id = ?", (tenant_id,))
         return cursor.rowcount > 0
 
     def _deserialize_tenant(self, row: sqlite3.Row) -> TenantConfig:
@@ -286,9 +277,7 @@ class AdminStore:
             updated_at=datetime.fromisoformat(now),
         )
 
-    def list_connector_instances(
-        self, tenant_id: str
-    ) -> list[ConnectorInstance]:
+    def list_connector_instances(self, tenant_id: str) -> list[ConnectorInstance]:
         with self._connect() as conn:
             rows = conn.execute(
                 "SELECT * FROM connector_instances WHERE tenant_id = ? ORDER BY name",
@@ -296,9 +285,7 @@ class AdminStore:
             ).fetchall()
         return [self._deserialize_connector(row) for row in rows]
 
-    def get_connector_instance(
-        self, tenant_id: str, instance_id: str
-    ) -> ConnectorInstance | None:
+    def get_connector_instance(self, tenant_id: str, instance_id: str) -> ConnectorInstance | None:
         with self._connect() as conn:
             row = conn.execute(
                 """
@@ -327,8 +314,9 @@ class AdminStore:
         new_config = config if config is not None else existing.config
         new_health = health_status if health_status is not None else existing.health_status
         last_synced = (
-            now if health_status is not None else
-            (existing.last_synced.isoformat() if existing.last_synced else None)
+            now
+            if health_status is not None
+            else (existing.last_synced.isoformat() if existing.last_synced else None)
         )
         with self._connect() as conn:
             conn.execute(
@@ -427,9 +415,7 @@ class AdminStore:
             ).fetchall()
         return [self._deserialize_agent_setting(row) for row in rows]
 
-    def get_agent_setting(
-        self, tenant_id: str, agent_id: str
-    ) -> AgentSetting | None:
+    def get_agent_setting(self, tenant_id: str, agent_id: str) -> AgentSetting | None:
         with self._connect() as conn:
             row = conn.execute(
                 "SELECT * FROM agent_settings WHERE tenant_id = ? AND agent_id = ?",

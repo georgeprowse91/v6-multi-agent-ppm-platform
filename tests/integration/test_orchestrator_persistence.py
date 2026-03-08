@@ -28,8 +28,9 @@ def _ensure_real_sqlalchemy():
     if removed:
         sys.path.remove(vendor_dir)
     try:
-        import sqlalchemy  # noqa: F401
         import alembic  # noqa: F401
+        import sqlalchemy  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -69,7 +70,7 @@ async def test_orchestrator_state_persists_across_restart(monkeypatch, tmp_path)
     monkeypatch.setenv("ORCHESTRATION_STATE_BACKEND", "db")
     monkeypatch.setenv("ORCHESTRATION_DATABASE_URL", async_url)
 
-    _orch_path = _REPO_ROOT / "apps" / "orchestration-service" / "src" / "orchestrator.py"
+    _orch_path = _REPO_ROOT / "services" / "orchestration-service" / "src" / "orchestrator.py"
     _spec = importlib.util.spec_from_file_location("_orch_persistence_mod", _orch_path)
     _orch_mod = importlib.util.module_from_spec(_spec)
     _spec.loader.exec_module(_orch_mod)

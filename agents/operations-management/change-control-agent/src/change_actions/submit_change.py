@@ -200,8 +200,7 @@ async def requires_approval(
 ) -> bool:
     priority = change_data.get("priority", "medium")
     return (
-        change_type in agent.approval_change_types
-        or priority in agent.approval_priority_thresholds
+        change_type in agent.approval_change_types or priority in agent.approval_priority_thresholds
     )
 
 

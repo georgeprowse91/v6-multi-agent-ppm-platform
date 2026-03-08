@@ -34,8 +34,7 @@ class ConnectorStore:
 
     def _ensure_schema(self) -> None:
         with self._connect() as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS connectors (
                     connector_id TEXT PRIMARY KEY,
                     tenant_id TEXT NOT NULL,
@@ -46,8 +45,7 @@ class ConnectorStore:
                     last_checked TEXT,
                     metadata TEXT NOT NULL
                 )
-                """
-            )
+                """)
 
     def ping(self) -> None:
         with self._connect() as conn:

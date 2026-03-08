@@ -234,13 +234,18 @@ class Orchestrator:
                 "message": f"Project health is critical at {composite:.0%}",
             }
             alerts.append(alert)
-            await self._event_bus.publish("project.health.alert", {
-                "tenant_id": tenant_id,
-                **alert,
-            })
+            await self._event_bus.publish(
+                "project.health.alert",
+                {
+                    "tenant_id": tenant_id,
+                    **alert,
+                },
+            )
             logger.warning(
                 "Project %s health critical: %.3f (threshold %.3f)",
-                project_id, composite, critical,
+                project_id,
+                composite,
+                critical,
             )
         elif status == "at_risk":
             alert = {
@@ -252,10 +257,13 @@ class Orchestrator:
                 "message": f"Project health at risk at {composite:.0%}",
             }
             alerts.append(alert)
-            await self._event_bus.publish("project.health.alert", {
-                "tenant_id": tenant_id,
-                **alert,
-            })
+            await self._event_bus.publish(
+                "project.health.alert",
+                {
+                    "tenant_id": tenant_id,
+                    **alert,
+                },
+            )
 
         return {
             "project_id": project_id,
@@ -312,9 +320,19 @@ class Orchestrator:
                 continue
             metadata = result.get("metadata", {})
             if isinstance(metadata, dict):
-                for key in ("risk_score", "schedule_variance", "cost_variance", "resource_utilization"):
+                for key in (
+                    "risk_score",
+                    "schedule_variance",
+                    "cost_variance",
+                    "resource_utilization",
+                ):
                     if key in metadata:
-                        dimension = key.replace("_score", "").replace("_variance", "").replace("cost", "budget").replace("_utilization", "")
+                        dimension = (
+                            key.replace("_score", "")
+                            .replace("_variance", "")
+                            .replace("cost", "budget")
+                            .replace("_utilization", "")
+                        )
                         if dimension not in signals:
                             signals[dimension] = float(metadata[key])
 

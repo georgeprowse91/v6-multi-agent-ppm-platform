@@ -22,9 +22,7 @@ CONNECTORS_ROOT = REPO_ROOT / "connectors"
 def _load_router(connector_id: str):  # noqa: ANN001
     integrations_pkg = sys.modules.setdefault("integrations", types.ModuleType("integrations"))
     integrations_pkg.__path__ = [str(REPO_ROOT / "integrations")]
-    connectors_pkg = sys.modules.setdefault(
-        "connectors", types.ModuleType("connectors")
-    )
+    connectors_pkg = sys.modules.setdefault("connectors", types.ModuleType("connectors"))
     connectors_pkg.__path__ = [str(CONNECTORS_ROOT)]
     connector_pkg_name = f"connectors.{connector_id}"
     connector_pkg = sys.modules.setdefault(connector_pkg_name, types.ModuleType(connector_pkg_name))

@@ -61,7 +61,10 @@ async def handle_get_insights(
 # Shared insight helpers (also used by periodic_report)
 # ---------------------------------------------------------------------------
 
-async def collect_insights_data(agent: AnalyticsInsightsAgent, filters: dict[str, Any]) -> dict[str, Any]:
+
+async def collect_insights_data(
+    agent: AnalyticsInsightsAgent, filters: dict[str, Any]
+) -> dict[str, Any]:
     """Collect data for insights generation."""
     tenant_id = filters.get("tenant_id", "default")
     health_summary = await summarize_health_portfolio(agent, tenant_id)

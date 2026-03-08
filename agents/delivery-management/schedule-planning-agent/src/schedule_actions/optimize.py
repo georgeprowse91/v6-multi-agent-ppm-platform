@@ -15,9 +15,8 @@ logger = logging.getLogger(__name__)
 # optimize_schedule — analyse and return recommendations
 # ---------------------------------------------------------------------------
 
-async def optimize_schedule(
-    agent: SchedulePlanningAgent, schedule_id: str
-) -> dict[str, Any]:
+
+async def optimize_schedule(agent: SchedulePlanningAgent, schedule_id: str) -> dict[str, Any]:
     """
     Optimise schedule to minimise duration.
 
@@ -46,6 +45,7 @@ async def optimize_schedule(
 # ---------------------------------------------------------------------------
 # apply_optimization — accept a single recommendation and mutate schedule
 # ---------------------------------------------------------------------------
+
 
 async def apply_optimization(
     agent: SchedulePlanningAgent,
@@ -96,7 +96,11 @@ async def apply_optimization(
         end_dates = [d for d in end_dates if d]
         if end_dates:
             schedule["project_duration_days"] = _date_span_days(
-                min(t.get("start_date", t.get("startDate", "")) for t in tasks if t.get("start_date") or t.get("startDate")),
+                min(
+                    t.get("start_date", t.get("startDate", ""))
+                    for t in tasks
+                    if t.get("start_date") or t.get("startDate")
+                ),
                 max(end_dates),
             )
 
@@ -117,6 +121,7 @@ async def apply_optimization(
 # Optimisation strategies
 # ---------------------------------------------------------------------------
 
+
 def _apply_parallel_tasks(
     tasks: list[dict[str, Any]],
     task_map: dict[str, dict[str, Any]],
@@ -132,8 +137,11 @@ def _apply_parallel_tasks(
             continue
         # Independent task — start as early as possible
         earliest = min(
-            (tk.get("start_date", tk.get("startDate", "9999"))
-             for tk in tasks if tk.get("start_date") or tk.get("startDate")),
+            (
+                tk.get("start_date", tk.get("startDate", "9999"))
+                for tk in tasks
+                if tk.get("start_date") or tk.get("startDate")
+            ),
             default=t.get("start_date", t.get("startDate", "")),
         )
         duration = _task_duration_days(t)
@@ -223,6 +231,7 @@ def _apply_resource_leveling(
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _task_duration_days(task: dict[str, Any]) -> int:
     start = task.get("start_date", task.get("startDate", ""))
     end = task.get("end_date", task.get("endDate", ""))
@@ -241,7 +250,8 @@ def _date_span_days(start: str, end: str) -> int:
 
 
 def _add_days(iso: str, n: int) -> str:
-    from datetime import date as _date, timedelta
+    from datetime import date as _date
+    from datetime import timedelta
 
     try:
         d = _date.fromisoformat(iso[:10]) + timedelta(days=n)
@@ -263,36 +273,43 @@ async def identify_optimization_opportunities(
         dep_ids.update(t.get("dependencies", []))
     independent = [t for t in tasks if t["id"] not in dep_ids and not t.get("dependencies")]
     if len(independent) > 1:
-        opportunities.append({
-            "type": "parallel_tasks",
-            "description": f"Parallelise {len(independent)} independent tasks to reduce total duration",
-            "affected_task_ids": [t["id"] for t in independent],
-            "projected_saving_days": max(
-                sum(_task_duration_days(t) for t in independent) - max(_task_duration_days(t) for t in independent),
-                1,
-            ),
-        })
+        opportunities.append(
+            {
+                "type": "parallel_tasks",
+                "description": f"Parallelise {len(independent)} independent tasks to reduce total duration",
+                "affected_task_ids": [t["id"] for t in independent],
+                "projected_saving_days": max(
+                    sum(_task_duration_days(t) for t in independent)
+                    - max(_task_duration_days(t) for t in independent),
+                    1,
+                ),
+            }
+        )
 
     # Detect sequential chains that could be fast-tracked
     chains = [t for t in tasks if t.get("dependencies")]
     if chains:
         saving = sum(max(int(_task_duration_days(t) * 0.3), 1) for t in chains[:3])
-        opportunities.append({
-            "type": "fast_track",
-            "description": f"Fast-track {len(chains)} dependent tasks with 30% overlap",
-            "affected_task_ids": [t["id"] for t in chains],
-            "projected_saving_days": saving,
-        })
+        opportunities.append(
+            {
+                "type": "fast_track",
+                "description": f"Fast-track {len(chains)} dependent tasks with 30% overlap",
+                "affected_task_ids": [t["id"] for t in chains],
+                "projected_saving_days": saving,
+            }
+        )
 
     # Crash opportunity if project is long
     total_dur = schedule.get("project_duration_days", 0)
     if total_dur > 10:
-        opportunities.append({
-            "type": "crash",
-            "description": "Crash critical path by adding resources to reduce task durations by 20%",
-            "affected_task_ids": [t["id"] for t in tasks],
-            "projected_saving_days": max(int(total_dur * 0.2), 1),
-        })
+        opportunities.append(
+            {
+                "type": "crash",
+                "description": "Crash critical path by adding resources to reduce task durations by 20%",
+                "affected_task_ids": [t["id"] for t in tasks],
+                "projected_saving_days": max(int(total_dur * 0.2), 1),
+            }
+        )
 
     # Resource levelling
     resource_usage: dict[str, int] = {}
@@ -302,15 +319,18 @@ async def identify_optimization_opportunities(
             resource_usage[res] = resource_usage.get(res, 0) + 1
     overloaded = {k: v for k, v in resource_usage.items() if v > 2}
     if overloaded:
-        opportunities.append({
-            "type": "resource_level",
-            "description": f"Level {len(overloaded)} over-allocated resources to avoid burnout",
-            "affected_task_ids": [
-                t["id"] for t in tasks
-                if t.get("resource_id", t.get("resourceId", "")) in overloaded
-            ],
-            "projected_saving_days": 0,
-        })
+        opportunities.append(
+            {
+                "type": "resource_level",
+                "description": f"Level {len(overloaded)} over-allocated resources to avoid burnout",
+                "affected_task_ids": [
+                    t["id"]
+                    for t in tasks
+                    if t.get("resource_id", t.get("resourceId", "")) in overloaded
+                ],
+                "projected_saving_days": 0,
+            }
+        )
 
     return opportunities
 

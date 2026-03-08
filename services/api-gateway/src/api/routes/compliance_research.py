@@ -1,7 +1,6 @@
 """Compliance research endpoints."""
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -64,9 +63,7 @@ async def research_compliance(
             detail="Compliance agent returned an invalid response",
         ) from exc
     except Exception as exc:
-        logger.error(
-            "Compliance research failed for project %s: %s", project_id, exc
-        )
+        logger.error("Compliance research failed for project %s: %s", project_id, exc)
         raise HTTPException(
             status_code=502,
             detail=f"Compliance research failed: {exc}",

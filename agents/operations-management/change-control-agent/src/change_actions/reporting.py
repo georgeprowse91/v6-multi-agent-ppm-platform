@@ -13,9 +13,7 @@ if TYPE_CHECKING:
     from change_configuration_agent import ChangeConfigurationAgent
 
 
-async def audit_changes(
-    agent: ChangeConfigurationAgent, filters: dict[str, Any]
-) -> dict[str, Any]:
+async def audit_changes(agent: ChangeConfigurationAgent, filters: dict[str, Any]) -> dict[str, Any]:
     """Audit change history."""
     agent.logger.info("Auditing changes")
 
@@ -116,9 +114,7 @@ async def get_change_metrics(
     agent: ChangeConfigurationAgent, filters: dict[str, Any]
 ) -> dict[str, Any]:
     """Calculate trending metrics for change management."""
-    changes = [
-        c for c in agent.change_requests.values() if await matches_filters(c, filters)
-    ]
+    changes = [c for c in agent.change_requests.values() if await matches_filters(c, filters)]
     type_counts: dict[str, int] = {}
     category_counts: dict[str, int] = {}
     monthly_trends: dict[str, int] = {}
@@ -140,9 +136,7 @@ async def get_change_metrics(
             approval_times.append((approved_dt - created_dt).total_seconds() / 3600)
         if change.get("status") == "Implemented":
             success_count += 1
-    average_approval_hours = (
-        sum(approval_times) / len(approval_times) if approval_times else 0.0
-    )
+    average_approval_hours = sum(approval_times) / len(approval_times) if approval_times else 0.0
     success_rate = (success_count / len(changes)) if changes else 0.0
     metrics = {
         "total_changes": len(changes),
@@ -204,9 +198,7 @@ async def analyze_change_patterns(changes: list[dict[str, Any]]) -> dict[str, An
     }
 
 
-async def build_dependency_graph(
-    agent: ChangeConfigurationAgent, ci_id: str
-) -> dict[str, Any]:
+async def build_dependency_graph(agent: ChangeConfigurationAgent, ci_id: str) -> dict[str, Any]:
     """Build dependency graph for CI."""
     visited: set[str] = set()
     nodes: list[dict[str, Any]] = []
@@ -258,9 +250,7 @@ async def calculate_change_statistics(
     agent: ChangeConfigurationAgent, filters: dict[str, Any]
 ) -> dict[str, Any]:
     """Calculate change statistics."""
-    changes = [
-        c for c in agent.change_requests.values() if await matches_filters(c, filters)
-    ]
+    changes = [c for c in agent.change_requests.values() if await matches_filters(c, filters)]
     total = len(changes)
     approved = len([c for c in changes if c.get("approval_status") == "Approved"])
     lead_times: list[float] = []
@@ -303,9 +293,7 @@ async def generate_summary_report(filters: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-async def publish_change_metrics(
-    agent: ChangeConfigurationAgent, metrics: dict[str, Any]
-) -> None:
+async def publish_change_metrics(agent: ChangeConfigurationAgent, metrics: dict[str, Any]) -> None:
     await publish_event(
         agent,
         "change.metrics",

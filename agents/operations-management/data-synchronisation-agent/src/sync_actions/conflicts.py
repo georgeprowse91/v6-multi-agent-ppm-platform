@@ -13,9 +13,7 @@ if TYPE_CHECKING:
     from data_sync_agent import DataSyncAgent
 
 
-async def handle_detect_conflicts(
-    agent: DataSyncAgent, master_id: str
-) -> dict[str, Any]:
+async def handle_detect_conflicts(agent: DataSyncAgent, master_id: str) -> dict[str, Any]:
     """
     Detect data conflicts for master record.
 

@@ -11,7 +11,6 @@ import random
 import statistics
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Currency helpers
 # ---------------------------------------------------------------------------
@@ -61,9 +60,7 @@ def build_cash_flow(
     return [annual_benefit - annual_cost for _ in range(horizon_years)]
 
 
-def inflate_adjust_cash_flows(
-    cash_flows: list[float], inflation_rate: float
-) -> list[float]:
+def inflate_adjust_cash_flows(cash_flows: list[float], inflation_rate: float) -> list[float]:
     """Apply inflation adjustment to a sequence of cash flows."""
     if inflation_rate == 0:
         return cash_flows
@@ -101,9 +98,7 @@ def npv_from_cash_flows(
     return npv
 
 
-def irr_from_cash_flows(
-    cash_flows: list[float], inflation_rate: float = 0.0
-) -> float:
+def irr_from_cash_flows(cash_flows: list[float], inflation_rate: float = 0.0) -> float:
     """
     Estimate the Internal Rate of Return via bisection search.
 
@@ -206,12 +201,8 @@ def run_monte_carlo_simulation(
     """
     npv_results: list[float] = []
     for _ in range(iterations):
-        simulated_flows = [
-            random.gauss(flow, abs(flow) * 0.1 or 1.0) for flow in cash_flows
-        ]
-        npv_results.append(
-            npv_from_cash_flows(simulated_flows, discount_rate, inflation_rate)
-        )
+        simulated_flows = [random.gauss(flow, abs(flow) * 0.1 or 1.0) for flow in cash_flows]
+        npv_results.append(npv_from_cash_flows(simulated_flows, discount_rate, inflation_rate))
     if not npv_results:
         return {
             "mean_npv": 0.0,
@@ -253,9 +244,7 @@ def run_sensitivity_analysis(
                 "variation": variation,
                 "cost_multiplier": 1 + variation,
                 "benefit_multiplier": 1.0,
-                "npv": npv_from_cash_flows(
-                    cost_case_cash_flows, discount_rate, inflation_rate
-                ),
+                "npv": npv_from_cash_flows(cost_case_cash_flows, discount_rate, inflation_rate),
                 "irr": irr_from_cash_flows(cost_case_cash_flows, inflation_rate),
             }
         )
@@ -268,9 +257,7 @@ def run_sensitivity_analysis(
                 "variation": variation,
                 "cost_multiplier": 1.0,
                 "benefit_multiplier": 1 + variation,
-                "npv": npv_from_cash_flows(
-                    benefit_case_cash_flows, discount_rate, inflation_rate
-                ),
+                "npv": npv_from_cash_flows(benefit_case_cash_flows, discount_rate, inflation_rate),
                 "irr": irr_from_cash_flows(benefit_case_cash_flows, inflation_rate),
             }
         )

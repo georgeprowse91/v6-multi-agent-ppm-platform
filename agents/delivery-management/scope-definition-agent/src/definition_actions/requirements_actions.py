@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 # Requirements helpers (previously private methods on the agent)
 # ---------------------------------------------------------------------------
 
+
 async def _extract_requirements_from_sources(
     agent: ProjectDefinitionAgent,
     project_id: str,
@@ -256,6 +257,7 @@ async def _sync_with_requirements_tool(
 # ---------------------------------------------------------------------------
 # Public action handlers
 # ---------------------------------------------------------------------------
+
 
 async def handle_manage_requirements(
     agent: ProjectDefinitionAgent,

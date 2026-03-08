@@ -209,7 +209,7 @@ def find_potential_duplicates(
     duplicates: list[set[str]] = []
     for index, (left_id, left_record) in enumerate(records):
         left_text = build_similarity_text(left_record)
-        for right_id, right_record in records[index + 1:]:
+        for right_id, right_record in records[index + 1 :]:
             right_text = build_similarity_text(right_record)
             similarity = calculate_similarity(left_text, right_text)
             if similarity >= duplicate_confidence_threshold:
@@ -372,4 +372,6 @@ def get_required_fields(
 
 
 def quality_record_key(record: dict[str, Any]) -> str:
-    return f"{record['tenant_id']}-{record['entity_type']}-{record['validated_at'].replace(':', '-')}"
+    return (
+        f"{record['tenant_id']}-{record['entity_type']}-{record['validated_at'].replace(':', '-')}"
+    )

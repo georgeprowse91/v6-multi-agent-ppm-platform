@@ -6,7 +6,6 @@ optional PBKDF2/HKDF support from the ``cryptography`` package when available.
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import importlib.util
 import secrets
@@ -72,8 +71,8 @@ def derive_key(
     _use_cryptography = False
     if _HAS_CRYPTOGRAPHY:
         try:
-            from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
             from cryptography.hazmat.primitives import hashes
+            from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
             _use_cryptography = True
         except BaseException:
@@ -82,14 +81,14 @@ def derive_key(
 
     if _use_cryptography:
         _algo_map = {
-            "sha256": hashes.SHA256(),  # type: ignore[possibly-undefined]
+            "sha256": hashes.SHA256(),
             "sha384": hashes.SHA384(),
             "sha512": hashes.SHA512(),
         }
         hash_algo = _algo_map.get(algorithm)
         if hash_algo is None:
             raise ValueError(f"Unsupported algorithm for cryptography PBKDF2: {algorithm}")
-        kdf = PBKDF2HMAC(  # type: ignore[possibly-undefined]
+        kdf = PBKDF2HMAC(
             algorithm=hash_algo,
             length=key_length,
             salt=salt,

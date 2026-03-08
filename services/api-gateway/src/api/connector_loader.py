@@ -15,9 +15,15 @@ from connectors.sdk.src.project_connector_store import ProjectConnectorConfig
 
 logger = logging.getLogger(__name__)
 
-_PASCAL = {"iot": "IoT", "sharepoint": "SharePoint", "servicenow": "ServiceNow",
-           "netsuite": "NetSuite", "logicgate": "LogicGate", "devops": "DevOps",
-           "successfactors": "SuccessFactors"}
+_PASCAL = {
+    "iot": "IoT",
+    "sharepoint": "SharePoint",
+    "servicenow": "ServiceNow",
+    "netsuite": "NetSuite",
+    "logicgate": "LogicGate",
+    "devops": "DevOps",
+    "successfactors": "SuccessFactors",
+}
 
 
 def _build_class_map() -> dict[str, tuple[str, str]]:

@@ -1,4 +1,5 @@
 """Workflow definition CRUD + start routes (from legacy_main.py)."""
+
 from __future__ import annotations
 
 import logging
@@ -30,15 +31,22 @@ def _validate_workflow_payload(payload: WorkflowDefinitionPayload) -> None:
         raise HTTPException(status_code=422, detail="definition is required")
 
 
-async def _sync_workflow_definition(request: Request, workflow_id: str, definition: dict[str, Any]) -> None:
+async def _sync_workflow_definition(
+    request: Request, workflow_id: str, definition: dict[str, Any]
+) -> None:
     workflow_url = os.getenv("WORKFLOW_SERVICE_URL")
     if not workflow_url:
         return
     session = _require_session(request)
-    headers = {"Authorization": f"Bearer {session['access_token']}", "X-Tenant-ID": session["tenant_id"]}
+    headers = {
+        "Authorization": f"Bearer {session['access_token']}",
+        "X-Tenant-ID": session["tenant_id"],
+    }
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            await client.put(f"{workflow_url}/v1/workflows/{workflow_id}", headers=headers, json=definition)
+            await client.put(
+                f"{workflow_url}/v1/workflows/{workflow_id}", headers=headers, json=definition
+            )
     except httpx.RequestError as exc:
         logger.warning("Failed to sync workflow %s to workflow service: %s", workflow_id, exc)
 
@@ -48,7 +56,10 @@ async def _delete_workflow_definition(request: Request, workflow_id: str) -> Non
     if not workflow_url:
         return
     session = _require_session(request)
-    headers = {"Authorization": f"Bearer {session['access_token']}", "X-Tenant-ID": session["tenant_id"]}
+    headers = {
+        "Authorization": f"Bearer {session['access_token']}",
+        "X-Tenant-ID": session["tenant_id"],
+    }
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             await client.delete(f"{workflow_url}/v1/workflows/{workflow_id}", headers=headers)
@@ -75,7 +86,9 @@ def get_workflow_definition(workflow_id: str, request: Request) -> WorkflowDefin
 
 @router.post("/api/workflows", response_model=WorkflowDefinitionRecord)
 @permission_required("config.manage")
-async def create_workflow_definition(request: Request, payload: WorkflowDefinitionPayload) -> WorkflowDefinitionRecord:
+async def create_workflow_definition(
+    request: Request, payload: WorkflowDefinitionPayload
+) -> WorkflowDefinitionRecord:
     _validate_workflow_payload(payload)
     record = workflow_definition_store.upsert(payload)
     await _sync_workflow_definition(request, payload.workflow_id, payload.definition)
@@ -84,7 +97,9 @@ async def create_workflow_definition(request: Request, payload: WorkflowDefiniti
 
 @router.put("/api/workflows/{workflow_id}", response_model=WorkflowDefinitionRecord)
 @permission_required("config.manage")
-async def update_workflow_definition(workflow_id: str, request: Request, payload: WorkflowDefinitionPayload) -> WorkflowDefinitionRecord:
+async def update_workflow_definition(
+    workflow_id: str, request: Request, payload: WorkflowDefinitionPayload
+) -> WorkflowDefinitionRecord:
     if payload.workflow_id != workflow_id:
         raise HTTPException(status_code=422, detail="workflow_id mismatch")
     _validate_workflow_payload(payload)
@@ -112,8 +127,21 @@ async def api_start_workflow(request: Request, payload: WorkflowStartRequest) ->
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.post(
             f"{workflow_url}/v1/workflows/start",
-            headers={"Authorization": f"Bearer {session['access_token']}", "X-Tenant-ID": session["tenant_id"]},
-            json={"workflow_id": payload.workflow_id, "tenant_id": session["tenant_id"], "classification": "internal", "payload": {"request": "run"}, "actor": {"id": session.get("subject") or "ui-user", "type": "user", "roles": session.get("roles") or ["PMO_ADMIN"]}},
+            headers={
+                "Authorization": f"Bearer {session['access_token']}",
+                "X-Tenant-ID": session["tenant_id"],
+            },
+            json={
+                "workflow_id": payload.workflow_id,
+                "tenant_id": session["tenant_id"],
+                "classification": "internal",
+                "payload": {"request": "run"},
+                "actor": {
+                    "id": session.get("subject") or "ui-user",
+                    "type": "user",
+                    "roles": session.get("roles") or ["PMO_ADMIN"],
+                },
+            },
         )
         response.raise_for_status()
         return response.json()

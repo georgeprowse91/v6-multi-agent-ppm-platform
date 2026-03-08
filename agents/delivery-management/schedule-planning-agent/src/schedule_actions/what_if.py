@@ -85,9 +85,7 @@ async def generate_schedule_variants(
     scenario_results = [
         await _run_variant(variant, index) for index, variant in enumerate(scenarios)
     ]
-    durations = [
-        result["metrics"].get("project_duration_days", 0) for result in scenario_results
-    ]
+    durations = [result["metrics"].get("project_duration_days", 0) for result in scenario_results]
     duration_summary = {
         "baseline_duration": baseline_metrics.get("project_duration_days", 0),
         "best_case": min(durations) if durations else 0,
@@ -107,9 +105,8 @@ async def generate_schedule_variants(
 # Scenario helpers
 # ---------------------------------------------------------------------------
 
-async def create_scenario(
-    schedule: dict[str, Any], params: dict[str, Any]
-) -> dict[str, Any]:
+
+async def create_scenario(schedule: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:
     """Create scenario schedule with modified parameters."""
     scenario = dict(schedule)
     tasks = [dict(task) for task in schedule.get("tasks", [])]
@@ -144,9 +141,7 @@ async def recalculate_schedule(schedule: dict[str, Any]) -> dict[str, Any]:
     return schedule
 
 
-async def compare_schedules(
-    baseline: dict[str, Any], scenario: dict[str, Any]
-) -> dict[str, Any]:
+async def compare_schedules(baseline: dict[str, Any], scenario: dict[str, Any]) -> dict[str, Any]:
     """Compare two schedules."""
     return {
         "duration_difference": scenario.get("project_duration_days", 0)

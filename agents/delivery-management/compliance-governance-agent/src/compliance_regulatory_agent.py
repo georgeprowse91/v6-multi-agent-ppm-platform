@@ -21,8 +21,6 @@ from tools.runtime_paths import bootstrap_runtime_paths
 
 bootstrap_runtime_paths()
 
-from agents.common.web_search import search_web, summarize_snippets  # noqa: E402, F401
-
 from compliance_actions import (  # noqa: E402
     handle_add_regulation,
     handle_assess_compliance,
@@ -69,6 +67,7 @@ from agents.common.connector_integration import (  # noqa: E402
     GRCIntegrationService,
     NotificationService,
 )
+from agents.common.web_search import search_web, summarize_snippets  # noqa: E402, F401
 from agents.runtime import BaseAgent, ServiceBusEventBus, get_event_bus  # noqa: E402
 from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
 from agents.runtime.src.policy import (  # noqa: E402
@@ -127,10 +126,20 @@ class ComplianceRegulatoryAgent(BaseAgent):
         self.control_test_frequencies = (
             config.get(
                 "control_test_frequencies",
-                {"critical": "monthly", "high": "quarterly", "medium": "semi-annually", "low": "annually"},
+                {
+                    "critical": "monthly",
+                    "high": "quarterly",
+                    "medium": "semi-annually",
+                    "low": "annually",
+                },
             )
             if config
-            else {"critical": "monthly", "high": "quarterly", "medium": "semi-annually", "low": "annually"}
+            else {
+                "critical": "monthly",
+                "high": "quarterly",
+                "medium": "semi-annually",
+                "low": "annually",
+            }
         )
 
         evidence_store_path = (
@@ -201,9 +210,14 @@ class ComplianceRegulatoryAgent(BaseAgent):
 
         if self.event_bus and hasattr(self.event_bus, "subscribe"):
             for topic in [
-                "release.deployed", "deployment.completed", "config.changed",
-                "quality.test.completed", "risk.updated", "security.alert",
-                "incident.created", "change.requested",
+                "release.deployed",
+                "deployment.completed",
+                "config.changed",
+                "quality.test.completed",
+                "risk.updated",
+                "security.alert",
+                "incident.created",
+                "change.requested",
             ]:
                 self.event_bus.subscribe(topic, self._handle_compliance_event)  # type: ignore[arg-type]
 
@@ -217,12 +231,23 @@ class ComplianceRegulatoryAgent(BaseAgent):
             return False
 
         valid_actions = [
-            "add_regulation", "define_control", "map_controls_to_project",
-            "assess_compliance", "test_control", "manage_policy",
-            "prepare_audit", "conduct_audit", "upload_evidence",
-            "monitor_regulatory_changes", "get_compliance_dashboard",
-            "generate_compliance_report", "verify_release_compliance",
-            "list_evidence", "get_evidence", "list_reports", "get_report",
+            "add_regulation",
+            "define_control",
+            "map_controls_to_project",
+            "assess_compliance",
+            "test_control",
+            "manage_policy",
+            "prepare_audit",
+            "conduct_audit",
+            "upload_evidence",
+            "monitor_regulatory_changes",
+            "get_compliance_dashboard",
+            "generate_compliance_report",
+            "verify_release_compliance",
+            "list_evidence",
+            "get_evidence",
+            "list_reports",
+            "get_report",
         ]
         if action not in valid_actions:
             self.logger.warning("Invalid action: %s", action)
@@ -253,20 +278,30 @@ class ComplianceRegulatoryAgent(BaseAgent):
         )
 
         # -- compliance controls gate -----------------------------------
-        compliance_decision = evaluate_compliance_controls({
-            "personal_data": input_data.get("personal_data", {}),
-            "consent": input_data.get("consent", {}),
-        })
+        compliance_decision = evaluate_compliance_controls(
+            {
+                "personal_data": input_data.get("personal_data", {}),
+                "consent": input_data.get("consent", {}),
+            }
+        )
         if compliance_decision.decision == "deny":
-            emit_audit_event(build_audit_event(
-                tenant_id=tenant_id, action="compliance.data_processing.denied",
-                outcome="denied", actor_id=self.agent_id, actor_type="service",
-                actor_roles=[], resource_id=input_data.get("project_id") or "unknown",
-                resource_type="compliance_processing",
-                metadata={"reasons": list(compliance_decision.reasons)},
-                legal_basis="consent", retention_period="P3Y",
-                trace_id=get_trace_id(), correlation_id=correlation_id,
-            ))
+            emit_audit_event(
+                build_audit_event(
+                    tenant_id=tenant_id,
+                    action="compliance.data_processing.denied",
+                    outcome="denied",
+                    actor_id=self.agent_id,
+                    actor_type="service",
+                    actor_roles=[],
+                    resource_id=input_data.get("project_id") or "unknown",
+                    resource_type="compliance_processing",
+                    metadata={"reasons": list(compliance_decision.reasons)},
+                    legal_basis="consent",
+                    retention_period="P3Y",
+                    trace_id=get_trace_id(),
+                    correlation_id=correlation_id,
+                )
+            )
             return {
                 "status": "error",
                 "error": "Consent is required before processing personal data.",
@@ -274,18 +309,26 @@ class ComplianceRegulatoryAgent(BaseAgent):
             }
 
         input_data["personal_data"] = compliance_decision.sanitized_payload.get("personal_data", {})
-        emit_audit_event(build_audit_event(
-            tenant_id=tenant_id, action="compliance.data_processing.allowed",
-            outcome="success", actor_id=self.agent_id, actor_type="service",
-            actor_roles=[], resource_id=input_data.get("project_id") or "unknown",
-            resource_type="compliance_processing",
-            metadata={
-                "masked_fields": list(compliance_decision.masked_fields),
-                "reasons": list(compliance_decision.reasons),
-            },
-            legal_basis="consent", retention_period="P3Y",
-            trace_id=get_trace_id(), correlation_id=correlation_id,
-        ))
+        emit_audit_event(
+            build_audit_event(
+                tenant_id=tenant_id,
+                action="compliance.data_processing.allowed",
+                outcome="success",
+                actor_id=self.agent_id,
+                actor_type="service",
+                actor_roles=[],
+                resource_id=input_data.get("project_id") or "unknown",
+                resource_type="compliance_processing",
+                metadata={
+                    "masked_fields": list(compliance_decision.masked_fields),
+                    "reasons": list(compliance_decision.reasons),
+                },
+                legal_basis="consent",
+                retention_period="P3Y",
+                trace_id=get_trace_id(),
+                correlation_id=correlation_id,
+            )
+        )
 
         # -- action dispatch --------------------------------------------
         if action == "add_regulation":
@@ -294,17 +337,25 @@ class ComplianceRegulatoryAgent(BaseAgent):
             return await handle_define_control(self, input_data.get("control", {}))
         elif action == "map_controls_to_project":
             return await handle_map_controls_to_project(
-                self, input_data.get("project_id"), input_data.get("mapping", {}),  # type: ignore
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("project_id"),
+                input_data.get("mapping", {}),  # type: ignore
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
         elif action == "assess_compliance":
             return await handle_assess_compliance(
-                self, input_data.get("project_id"), input_data.get("assessment", {}),  # type: ignore
+                self,
+                input_data.get("project_id"),
+                input_data.get("assessment", {}),  # type: ignore
             )
         elif action == "test_control":
             from compliance_actions.test_control import handle_test_control
+
             return await handle_test_control(
-                self, input_data.get("control_id"), input_data.get("test", {}),  # type: ignore
+                self,
+                input_data.get("control_id"),
+                input_data.get("test", {}),  # type: ignore
             )
         elif action == "manage_policy":
             return await handle_manage_policy(self, input_data.get("policy", {}))
@@ -314,26 +365,39 @@ class ComplianceRegulatoryAgent(BaseAgent):
             return await handle_conduct_audit(self, input_data.get("audit_id"))  # type: ignore
         elif action == "upload_evidence":
             return await handle_upload_evidence(
-                self, input_data.get("control_id"), input_data.get("evidence", {}),  # type: ignore
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                input_data.get("control_id"),
+                input_data.get("evidence", {}),  # type: ignore
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
         elif action == "monitor_regulatory_changes":
             return await handle_monitor_regulatory_changes(
-                self, domain=input_data.get("domain"), region=input_data.get("region"),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                self,
+                domain=input_data.get("domain"),
+                region=input_data.get("region"),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             )
         elif action == "get_compliance_dashboard":
             return await handle_get_compliance_dashboard(
-                self, input_data.get("project_id"), input_data.get("portfolio_id"),
-                domain=input_data.get("domain"), region=input_data.get("region"),
+                self,
+                input_data.get("project_id"),
+                input_data.get("portfolio_id"),
+                domain=input_data.get("domain"),
+                region=input_data.get("region"),
             )
         elif action == "generate_compliance_report":
             return await handle_generate_compliance_report(
-                self, input_data.get("report_type", "summary"), input_data.get("filters", {}),
+                self,
+                input_data.get("report_type", "summary"),
+                input_data.get("filters", {}),
             )
         elif action == "verify_release_compliance":
             return await handle_verify_release_compliance(
-                self, input_data.get("release_id"), input_data.get("release", {}),
+                self,
+                input_data.get("release_id"),
+                input_data.get("release", {}),
             )
         elif action == "list_evidence":
             return await handle_list_evidence(self, input_data.get("filters", {}))
@@ -351,31 +415,51 @@ class ComplianceRegulatoryAgent(BaseAgent):
     # ------------------------------------------------------------------
 
     async def monitor_regulations(
-        self, domain: str, region: str | None, *,
-        llm_client: LLMGateway | None = None, result_limit: int | None = None,
+        self,
+        domain: str,
+        region: str | None,
+        *,
+        llm_client: LLMGateway | None = None,
+        result_limit: int | None = None,
     ) -> dict[str, Any]:
         """Monitor external sources for new or changing regulations."""
         return await handle_monitor_regulations(
-            self, domain, region, llm_client=llm_client, result_limit=result_limit,
+            self,
+            domain,
+            region,
+            llm_client=llm_client,
+            result_limit=result_limit,
         )
 
     async def _map_controls_to_project(
-        self, project_id: str, mapping_data: dict[str, Any], *,
-        tenant_id: str, correlation_id: str,
+        self,
+        project_id: str,
+        mapping_data: dict[str, Any],
+        *,
+        tenant_id: str,
+        correlation_id: str,
     ) -> dict[str, Any]:
         """Thin wrapper so action modules can call ``agent._map_controls_to_project``."""
         return await handle_map_controls_to_project(
-            self, project_id, mapping_data, tenant_id=tenant_id, correlation_id=correlation_id,
+            self,
+            project_id,
+            mapping_data,
+            tenant_id=tenant_id,
+            correlation_id=correlation_id,
         )
 
     async def _assess_compliance(
-        self, project_id: str, assessment_data: dict[str, Any],
+        self,
+        project_id: str,
+        assessment_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Thin wrapper preserving the original internal API."""
         return await handle_assess_compliance(self, project_id, assessment_data)
 
     async def _generate_compliance_report(
-        self, report_type: str, filters: dict[str, Any],
+        self,
+        report_type: str,
+        filters: dict[str, Any],
     ) -> dict[str, Any]:
         """Thin wrapper preserving the original internal API."""
         return await handle_generate_compliance_report(self, report_type, filters)
@@ -399,13 +483,18 @@ class ComplianceRegulatoryAgent(BaseAgent):
         results = []
         for recipient in recipients:
             result = await self.notification_service.send_email(
-                to=recipient, subject=subject, body=message, metadata={"category": "compliance"},
+                to=recipient,
+                subject=subject,
+                body=message,
+                metadata={"category": "compliance"},
             )
             results.append(result)
         return results
 
     async def _create_stakeholder_tasks(
-        self, updates: list[dict[str, Any]], tenant_id: str,
+        self,
+        updates: list[dict[str, Any]],
+        tenant_id: str,
     ) -> list[dict[str, Any]]:
         stakeholders = self.config.get("stakeholders", []) if self.config else []
         recipients = [
@@ -417,12 +506,14 @@ class ComplianceRegulatoryAgent(BaseAgent):
         for update in updates:
             task_id = f"TASK-{uuid.uuid4().hex[:8]}"
             task = {
-                "task_id": task_id, "tenant_id": tenant_id,
+                "task_id": task_id,
+                "tenant_id": tenant_id,
                 "title": f"Review regulatory update: {update.get('regulation', 'Update')}",
                 "description": update.get("description"),
                 "regulation": update.get("regulation"),
                 "effective_date": update.get("effective_date"),
-                "assigned_to": recipients, "status": "open",
+                "assigned_to": recipients,
+                "status": "open",
                 "created_at": datetime.now(timezone.utc).isoformat(),
                 "source_url": update.get("source_url"),
             }
@@ -432,8 +523,12 @@ class ComplianceRegulatoryAgent(BaseAgent):
         return tasks
 
     async def _evaluate_control_mapping_policy(
-        self, *, project_id: str, mapping: dict[str, Any],
-        tenant_id: str, correlation_id: str,
+        self,
+        *,
+        project_id: str,
+        mapping: dict[str, Any],
+        tenant_id: str,
+        correlation_id: str,
     ) -> dict[str, Any]:
         policy_bundle = {
             "metadata": {
@@ -447,17 +542,26 @@ class ComplianceRegulatoryAgent(BaseAgent):
         }
         decision = evaluate_policy_bundle(policy_bundle, load_default_policy_bundle())
         outcome = "denied" if decision.decision == "deny" else "success"
-        emit_audit_event(build_audit_event(
-            tenant_id=tenant_id, action="compliance.control_mapping.policy.checked",
-            outcome=outcome, actor_id=self.agent_id, actor_type="service",
-            actor_roles=[], resource_id=project_id, resource_type="compliance_mapping",
-            metadata={"decision": decision.decision, "reasons": decision.reasons},
-            trace_id=get_trace_id(), correlation_id=correlation_id,
-        ))
+        emit_audit_event(
+            build_audit_event(
+                tenant_id=tenant_id,
+                action="compliance.control_mapping.policy.checked",
+                outcome=outcome,
+                actor_id=self.agent_id,
+                actor_type="service",
+                actor_roles=[],
+                resource_id=project_id,
+                resource_type="compliance_mapping",
+                metadata={"decision": decision.decision, "reasons": decision.reasons},
+                trace_id=get_trace_id(),
+                correlation_id=correlation_id,
+            )
+        )
         return {"decision": decision.decision, "reasons": decision.reasons}
 
     async def _extract_regulation_metadata(
-        self, regulation_data: dict[str, Any],
+        self,
+        regulation_data: dict[str, Any],
     ) -> dict[str, Any]:
         """Delegate to compliance_seed module."""
         return await extract_regulation_metadata(self, regulation_data)
@@ -488,11 +592,15 @@ class ComplianceRegulatoryAgent(BaseAgent):
         project_id = event.get("project_id")
         if not project_id:
             return
-        assessment = await handle_assess_compliance(self, project_id, {
-            "tenant_id": event.get("tenant_id", "unknown"),
-            "correlation_id": event.get("correlation_id", str(uuid.uuid4())),
-            "mapping": event.get("mapping", {}),
-        })
+        assessment = await handle_assess_compliance(
+            self,
+            project_id,
+            {
+                "tenant_id": event.get("tenant_id", "unknown"),
+                "correlation_id": event.get("correlation_id", str(uuid.uuid4())),
+                "mapping": event.get("mapping", {}),
+            },
+        )
         if assessment.get("gaps"):
             recommendations = [
                 {"control_id": g.get("control_id"), "recommendation": g.get("remediation")}
@@ -523,13 +631,24 @@ class ComplianceRegulatoryAgent(BaseAgent):
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
         return [
-            "regulation_management", "regulation_parsing",
-            "control_definition", "control_library_management",
-            "compliance_mapping", "compliance_assessment", "gap_analysis",
-            "control_testing", "policy_management", "policy_versioning",
-            "audit_preparation", "audit_management", "evidence_management",
-            "regulatory_change_monitoring", "compliance_dashboards",
-            "compliance_reporting", "automated_control_testing",
-            "external_regulatory_monitoring", "compliance_alerting",
+            "regulation_management",
+            "regulation_parsing",
+            "control_definition",
+            "control_library_management",
+            "compliance_mapping",
+            "compliance_assessment",
+            "gap_analysis",
+            "control_testing",
+            "policy_management",
+            "policy_versioning",
+            "audit_preparation",
+            "audit_management",
+            "evidence_management",
+            "regulatory_change_monitoring",
+            "compliance_dashboards",
+            "compliance_reporting",
+            "automated_control_testing",
+            "external_regulatory_monitoring",
+            "compliance_alerting",
             "compliance_release_verification",
         ]

@@ -22,4 +22,4 @@ def test_safe_join_rejects_escape() -> None:
 def test_apps_dir_exists() -> None:
     apps = runtime_paths.apps_dir()
     assert apps.is_dir()
-    assert (apps / "api-gateway").exists()
+    assert (apps / "web").exists()

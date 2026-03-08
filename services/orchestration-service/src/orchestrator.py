@@ -511,6 +511,7 @@ class AgentOrchestrator:
         from process_mining_agent import ProcessMiningAgent
         from release_deployment_agent import ReleaseDeploymentAgent
         from system_health_agent import SystemHealthAgent
+
         release_agent = ReleaseDeploymentAgent()
         await self._initialize_and_register_agent(release_agent)
 
@@ -760,19 +761,21 @@ class AgentOrchestrator:
         # Include dynamically registered marketplace agents not yet loaded
         for dynamic_entry in list_dynamic_entries():
             if dynamic_entry.agent_id not in self.agents:
-                result.append({
-                    "agent_id": dynamic_entry.agent_id,
-                    "catalog_id": dynamic_entry.catalog_id,
-                    "capabilities": dynamic_entry.capabilities,
-                    "source": dynamic_entry.source,
-                    "version": dynamic_entry.version,
-                    "description": dynamic_entry.description,
-                    "category": dynamic_entry.category,
-                    "display_name": dynamic_entry.display_name,
-                    "tags": dynamic_entry.tags,
-                    "icon": dynamic_entry.icon,
-                    "installed": False,
-                })
+                result.append(
+                    {
+                        "agent_id": dynamic_entry.agent_id,
+                        "catalog_id": dynamic_entry.catalog_id,
+                        "capabilities": dynamic_entry.capabilities,
+                        "source": dynamic_entry.source,
+                        "version": dynamic_entry.version,
+                        "description": dynamic_entry.description,
+                        "category": dynamic_entry.category,
+                        "display_name": dynamic_entry.display_name,
+                        "tags": dynamic_entry.tags,
+                        "icon": dynamic_entry.icon,
+                        "installed": False,
+                    }
+                )
 
         return result
 

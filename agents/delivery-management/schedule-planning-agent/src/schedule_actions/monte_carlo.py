@@ -168,6 +168,7 @@ async def run_monte_carlo(
 # Simulation helpers
 # ---------------------------------------------------------------------------
 
+
 async def sample_task_durations(
     tasks: list[dict[str, Any]],
     simulation_seed: int,

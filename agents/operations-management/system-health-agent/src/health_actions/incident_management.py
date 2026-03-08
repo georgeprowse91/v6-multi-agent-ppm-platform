@@ -119,6 +119,7 @@ async def resolve_incident(
 # Root-cause analysis stubs (placeholders from original)
 # ---------------------------------------------------------------------------
 
+
 async def _collect_incident_metrics(affected_services: list[str]) -> dict[str, Any]:
     """Collect metrics related to incident."""
     return {}

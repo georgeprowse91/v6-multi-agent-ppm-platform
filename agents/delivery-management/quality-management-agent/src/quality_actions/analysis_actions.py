@@ -154,9 +154,7 @@ async def _detect_defect_anomalies(
     return anomalies
 
 
-async def _predict_defect_density(
-    agent: QualityManagementAgent, project_id: str
-) -> dict[str, Any]:
+async def _predict_defect_density(agent: QualityManagementAgent, project_id: str) -> dict[str, Any]:
     history = agent.defect_density_history.get(project_id, [])
     if not history:
         return {"predicted_defect_density": 0.0, "trend": "unknown", "data_points": 0}

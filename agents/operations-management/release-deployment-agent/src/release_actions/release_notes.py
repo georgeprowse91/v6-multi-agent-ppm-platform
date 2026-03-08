@@ -11,9 +11,7 @@ if TYPE_CHECKING:
     from release_models import ReleaseAgentProtocol
 
 
-async def generate_release_notes(
-    agent: ReleaseAgentProtocol, release_id: str
-) -> dict[str, Any]:
+async def generate_release_notes(agent: ReleaseAgentProtocol, release_id: str) -> dict[str, Any]:
     """
     Generate release notes using NLG.
 

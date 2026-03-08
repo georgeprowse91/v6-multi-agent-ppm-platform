@@ -1,4 +1,5 @@
 """Action handlers for Earned Value Management calculations."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -22,9 +23,7 @@ async def calculate_evm(
 
     # Get budget and actuals
     budget = await agent._get_budget_for_project(project_id, tenant_id=tenant_id)
-    actuals = (
-        agent.actuals.get(project_id) or agent.actuals_store.get(tenant_id, project_id) or {}
-    )
+    actuals = agent.actuals.get(project_id) or agent.actuals_store.get(tenant_id, project_id) or {}
 
     # Get schedule progress from Schedule Agent
     schedule_progress = await agent._get_schedule_progress(project_id)

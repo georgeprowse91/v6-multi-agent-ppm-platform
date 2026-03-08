@@ -29,9 +29,7 @@ async def run_monte_carlo(
     agent.logger.info("Running Monte Carlo simulation for project: %s", project_id)
 
     # Get project risks
-    project_risks = [
-        r for r in agent.risk_register.values() if r.get("project_id") == project_id
-    ]
+    project_risks = [r for r in agent.risk_register.values() if r.get("project_id") == project_id]
 
     schedule_distribution = await fetch_schedule_baseline(agent, project_id)
     financial_distribution = await fetch_financial_distribution(agent, project_id)
@@ -82,9 +80,7 @@ async def run_monte_carlo(
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
     if agent.db_service:
-        record_id = (
-            f"{project_id}-simulation-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
-        )
+        record_id = f"{project_id}-simulation-{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
         await agent.db_service.store("risk_simulations", record_id, simulation_record)
     await publish_risk_event(
         agent,

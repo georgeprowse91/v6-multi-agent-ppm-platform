@@ -1,4 +1,5 @@
 """Tests for briefing document renderer (PDF / PPTX export)."""
+
 from __future__ import annotations
 
 import base64
@@ -8,7 +9,7 @@ from pathlib import Path
 import pytest
 
 # Ensure document-service src is on path
-_doc_service_src = Path(__file__).resolve().parents[2] / "apps" / "document-service" / "src"
+_doc_service_src = Path(__file__).resolve().parents[2] / "services" / "document-service" / "src"
 sys.path.insert(0, str(_doc_service_src))
 
 from briefing_renderer import (
@@ -18,7 +19,6 @@ from briefing_renderer import (
     render_briefing_pdf,
     render_briefing_pptx,
 )
-
 
 # ---------------------------------------------------------------------------
 # Markdown helpers

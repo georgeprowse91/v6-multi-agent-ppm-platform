@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 # Baseline / scope-creep helpers
 # ---------------------------------------------------------------------------
 
+
 async def _compare_scope(
     agent: ProjectDefinitionAgent,
     baseline_scope: dict[str, Any],
@@ -46,7 +47,9 @@ async def _calculate_scope_variance(changes: list[dict[str, Any]]) -> float:
     return 0.05  # 5% variance
 
 
-def _semantic_similarity(agent: ProjectDefinitionAgent, baseline_text: str, current_text: str) -> float:
+def _semantic_similarity(
+    agent: ProjectDefinitionAgent, baseline_text: str, current_text: str
+) -> float:
     embeddings = agent.embedding_service.embed([baseline_text, current_text])
     baseline_vector, current_vector = embeddings
     numerator = sum(a * b for a, b in zip(baseline_vector, current_vector))
@@ -61,6 +64,7 @@ def _semantic_similarity(agent: ProjectDefinitionAgent, baseline_text: str, curr
 # ---------------------------------------------------------------------------
 # Public action handlers
 # ---------------------------------------------------------------------------
+
 
 async def handle_manage_scope_baseline(
     agent: ProjectDefinitionAgent,

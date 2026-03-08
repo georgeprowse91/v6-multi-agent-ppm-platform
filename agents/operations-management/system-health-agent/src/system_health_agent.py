@@ -124,41 +124,92 @@ class SystemHealthAgent(BaseAgent):
         self.alert_threshold_error_rate = c.get("alert_threshold_error_rate", 0.05)
         self.alert_threshold_response_time_ms = c.get("alert_threshold_response_time_ms", 1000)
         self.metrics_retention_days = c.get("metrics_retention_days", 90)
-        self.monitor_workspace_id = c.get("monitor_workspace_id") or os.getenv("MONITOR_WORKSPACE_ID")
-        self.app_insights_instrumentation_key = c.get("appinsights_instrumentation_key") or os.getenv("APPINSIGHTS_INSTRUMENTATION_KEY")
-        self.app_insights_resource_id = c.get("appinsights_resource_id") or os.getenv("APPINSIGHTS_RESOURCE_ID")
-        self.azure_monitor_connection_string = c.get("azure_monitor_connection_string") or os.getenv("AZURE_MONITOR_CONNECTION_STRING")
+        self.monitor_workspace_id = c.get("monitor_workspace_id") or os.getenv(
+            "MONITOR_WORKSPACE_ID"
+        )
+        self.app_insights_instrumentation_key = c.get(
+            "appinsights_instrumentation_key"
+        ) or os.getenv("APPINSIGHTS_INSTRUMENTATION_KEY")
+        self.app_insights_resource_id = c.get("appinsights_resource_id") or os.getenv(
+            "APPINSIGHTS_RESOURCE_ID"
+        )
+        self.azure_monitor_connection_string = c.get(
+            "azure_monitor_connection_string"
+        ) or os.getenv("AZURE_MONITOR_CONNECTION_STRING")
         if not self.azure_monitor_connection_string and self.app_insights_instrumentation_key:
-            self.azure_monitor_connection_string = f"InstrumentationKey={self.app_insights_instrumentation_key}"
-        self.event_hub_connection_string = c.get("event_hub_connection_string") or os.getenv("EVENT_HUB_CONNECTION_STRING")
+            self.azure_monitor_connection_string = (
+                f"InstrumentationKey={self.app_insights_instrumentation_key}"
+            )
+        self.event_hub_connection_string = c.get("event_hub_connection_string") or os.getenv(
+            "EVENT_HUB_CONNECTION_STRING"
+        )
         self.event_hub_name = c.get("event_hub_name") or os.getenv("EVENT_HUB_NAME")
-        self.event_hub_partitions = int(c.get("event_hub_partitions", os.getenv("EVENT_HUB_PARTITIONS", "4")))
-        self.event_hub_throughput_units = int(c.get("event_hub_throughput_units", os.getenv("EVENT_HUB_THROUGHPUT_UNITS", "1")))
-        self.pagerduty_webhook_url = c.get("pagerduty_webhook_url") or os.getenv("PAGERDUTY_WEBHOOK_URL")
-        self.opsgenie_webhook_url = c.get("opsgenie_webhook_url") or os.getenv("OPSGENIE_WEBHOOK_URL")
+        self.event_hub_partitions = int(
+            c.get("event_hub_partitions", os.getenv("EVENT_HUB_PARTITIONS", "4"))
+        )
+        self.event_hub_throughput_units = int(
+            c.get("event_hub_throughput_units", os.getenv("EVENT_HUB_THROUGHPUT_UNITS", "1"))
+        )
+        self.pagerduty_webhook_url = c.get("pagerduty_webhook_url") or os.getenv(
+            "PAGERDUTY_WEBHOOK_URL"
+        )
+        self.opsgenie_webhook_url = c.get("opsgenie_webhook_url") or os.getenv(
+            "OPSGENIE_WEBHOOK_URL"
+        )
         self.scaling_webhook_url = c.get("scaling_webhook_url") or os.getenv("SCALING_WEBHOOK_URL")
-        self.automation_webhook_url = c.get("automation_webhook_url") or os.getenv("AUTOMATION_WEBHOOK_URL")
-        self.automation_subscription_id = c.get("automation_subscription_id") or os.getenv("AUTOMATION_SUBSCRIPTION_ID")
-        self.automation_resource_group = c.get("automation_resource_group") or os.getenv("AUTOMATION_RESOURCE_GROUP")
-        self.automation_account_name = c.get("automation_account_name") or os.getenv("AUTOMATION_ACCOUNT_NAME")
-        self.automation_runbook_name = c.get("automation_runbook_name") or os.getenv("AUTOMATION_RUNBOOK_NAME")
+        self.automation_webhook_url = c.get("automation_webhook_url") or os.getenv(
+            "AUTOMATION_WEBHOOK_URL"
+        )
+        self.automation_subscription_id = c.get("automation_subscription_id") or os.getenv(
+            "AUTOMATION_SUBSCRIPTION_ID"
+        )
+        self.automation_resource_group = c.get("automation_resource_group") or os.getenv(
+            "AUTOMATION_RESOURCE_GROUP"
+        )
+        self.automation_account_name = c.get("automation_account_name") or os.getenv(
+            "AUTOMATION_ACCOUNT_NAME"
+        )
+        self.automation_runbook_name = c.get("automation_runbook_name") or os.getenv(
+            "AUTOMATION_RUNBOOK_NAME"
+        )
         self.scaling_thresholds = {
             "cpu": float(c.get("scaling_threshold_cpu", os.getenv("SCALING_THRESHOLD_CPU", "0.8"))),
-            "memory": float(c.get("scaling_threshold_memory", os.getenv("SCALING_THRESHOLD_MEMORY", "0.8"))),
-            "queue_depth": float(c.get("scaling_threshold_queue_depth", os.getenv("SCALING_THRESHOLD_QUEUE_DEPTH", "1000"))),
+            "memory": float(
+                c.get("scaling_threshold_memory", os.getenv("SCALING_THRESHOLD_MEMORY", "0.8"))
+            ),
+            "queue_depth": float(
+                c.get(
+                    "scaling_threshold_queue_depth",
+                    os.getenv("SCALING_THRESHOLD_QUEUE_DEPTH", "1000"),
+                )
+            ),
         }
-        self.servicenow_instance_url = c.get("servicenow_instance_url") or os.getenv("SERVICENOW_INSTANCE_URL")
+        self.servicenow_instance_url = c.get("servicenow_instance_url") or os.getenv(
+            "SERVICENOW_INSTANCE_URL"
+        )
         self.servicenow_username = c.get("servicenow_username") or os.getenv("SERVICENOW_USERNAME")
         self.servicenow_password = c.get("servicenow_password") or os.getenv("SERVICENOW_PASSWORD")
         self.servicenow_token = c.get("servicenow_token") or os.getenv("SERVICENOW_TOKEN")
-        self.anomaly_detector_endpoint = c.get("anomaly_detector_endpoint") or os.getenv("ANOMALY_DETECTOR_ENDPOINT")
-        self.anomaly_detector_key = c.get("anomaly_detector_key") or os.getenv("ANOMALY_DETECTOR_KEY")
+        self.anomaly_detector_endpoint = c.get("anomaly_detector_endpoint") or os.getenv(
+            "ANOMALY_DETECTOR_ENDPOINT"
+        )
+        self.anomaly_detector_key = c.get("anomaly_detector_key") or os.getenv(
+            "ANOMALY_DETECTOR_KEY"
+        )
         self.health_endpoints = c.get("health_endpoints") or load_health_endpoints(self.logger)
-        self.health_probe_interval_seconds = int(c.get("health_probe_interval_seconds", os.getenv("HEALTH_PROBE_INTERVAL_SECONDS", "60")))
+        self.health_probe_interval_seconds = int(
+            c.get("health_probe_interval_seconds", os.getenv("HEALTH_PROBE_INTERVAL_SECONDS", "60"))
+        )
         self.metrics_port = int(c.get("metrics_port", os.getenv("PROMETHEUS_METRICS_PORT", "0")))
-        self.prometheus_scrape_targets = c.get("prometheus_scrape_targets") or load_prometheus_scrape_targets(self.logger)
-        self.monitor_resource_ids = c.get("monitor_resource_ids") or load_monitor_resource_ids(self.logger)
-        self.grafana_datasource = c.get("grafana_datasource", os.getenv("GRAFANA_DATASOURCE", "Prometheus"))
+        self.prometheus_scrape_targets = c.get(
+            "prometheus_scrape_targets"
+        ) or load_prometheus_scrape_targets(self.logger)
+        self.monitor_resource_ids = c.get("monitor_resource_ids") or load_monitor_resource_ids(
+            self.logger
+        )
+        self.grafana_datasource = c.get(
+            "grafana_datasource", os.getenv("GRAFANA_DATASOURCE", "Prometheus")
+        )
         self.grafana_folder = c.get("grafana_folder", os.getenv("GRAFANA_FOLDER", "System Health"))
 
     def _init_stores(self, config: dict[str, Any] | None) -> None:
@@ -233,13 +284,27 @@ class SystemHealthAgent(BaseAgent):
             self.logger.warning("No action specified")
             return False
         valid_actions = [
-            "collect_metrics", "collect_platform_metrics", "collect_application_metrics",
-            "check_health", "create_alert", "detect_anomalies", "create_incident",
-            "analyze_root_cause", "get_system_status", "get_metrics", "get_alerts",
-            "get_capacity_recommendations", "get_health_endpoints",
-            "query_historical_metrics", "forecast_capacity", "acknowledge_alert",
-            "resolve_incident", "get_health_dashboard", "get_postmortem_report",
-            "get_environment_health", "get_grafana_dashboard",
+            "collect_metrics",
+            "collect_platform_metrics",
+            "collect_application_metrics",
+            "check_health",
+            "create_alert",
+            "detect_anomalies",
+            "create_incident",
+            "analyze_root_cause",
+            "get_system_status",
+            "get_metrics",
+            "get_alerts",
+            "get_capacity_recommendations",
+            "get_health_endpoints",
+            "query_historical_metrics",
+            "forecast_capacity",
+            "acknowledge_alert",
+            "resolve_incident",
+            "get_health_dashboard",
+            "get_postmortem_report",
+            "get_environment_health",
+            "get_grafana_dashboard",
         ]
         if action not in valid_actions:
             self.logger.warning("Invalid action: %s", action)
@@ -264,7 +329,9 @@ class SystemHealthAgent(BaseAgent):
         elif action == "collect_platform_metrics":
             return await collect_platform_metrics(self, tenant_id, input_data.get("targets"))
         elif action == "collect_application_metrics":
-            return await collect_application_metrics(self, tenant_id, input_data.get("time_range", {}))
+            return await collect_application_metrics(
+                self, tenant_id, input_data.get("time_range", {})
+            )
         elif action == "check_health":
             return await check_health(self, input_data.get("service_name"))
         elif action == "create_alert":
@@ -300,7 +367,9 @@ class SystemHealthAgent(BaseAgent):
         elif action == "get_postmortem_report":
             return await get_postmortem_report(self, tenant_id, input_data.get("time_range", {}))
         elif action == "get_environment_health":
-            return await get_environment_health(self, input_data.get("environment") or input_data.get("service_name"))
+            return await get_environment_health(
+                self, input_data.get("environment") or input_data.get("service_name")
+            )
         elif action == "get_grafana_dashboard":
             return await get_grafana_dashboard(self)
         else:
@@ -310,13 +379,19 @@ class SystemHealthAgent(BaseAgent):
     # Thin wrappers (backward compat for tests and action modules)
     # ------------------------------------------------------------------
 
-    async def _check_metric_thresholds(self, tenant_id: str, service_name: str, metrics_data: dict[str, Any]) -> list[str]:
+    async def _check_metric_thresholds(
+        self, tenant_id: str, service_name: str, metrics_data: dict[str, Any]
+    ) -> list[str]:
         return await check_metric_thresholds(self, tenant_id, service_name, metrics_data)
 
-    async def _get_service_metrics(self, service_name: str, time_range: dict[str, Any]) -> list[dict[str, Any]]:
+    async def _get_service_metrics(
+        self, service_name: str, time_range: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         return await get_service_metrics(self, service_name, time_range)
 
-    async def _query_metrics(self, service_name: str, metric_name: str, time_range: dict[str, Any]) -> list[dict[str, Any]]:
+    async def _query_metrics(
+        self, service_name: str, metric_name: str, time_range: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         return await query_metrics(self, service_name, metric_name, time_range)
 
     async def _query_azure_resource_metrics(self, resource_id: str) -> dict[str, Any]:
@@ -325,19 +400,27 @@ class SystemHealthAgent(BaseAgent):
     def _parse_prometheus_metrics(self, payload: str) -> dict[str, Any]:
         return parse_prometheus_metrics(payload)
 
-    async def _apply_anomaly_detection(self, metrics_list: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    async def _apply_anomaly_detection(
+        self, metrics_list: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         return await apply_anomaly_detection(self, metrics_list)
 
-    async def _collect_metrics(self, tenant_id: str, service_name: str, metrics_data: dict[str, Any]) -> dict[str, Any]:
+    async def _collect_metrics(
+        self, tenant_id: str, service_name: str, metrics_data: dict[str, Any]
+    ) -> dict[str, Any]:
         return await collect_metrics(self, tenant_id, service_name, metrics_data)
 
-    async def _collect_application_metrics(self, tenant_id: str, time_range: dict[str, Any]) -> dict[str, Any]:
+    async def _collect_application_metrics(
+        self, tenant_id: str, time_range: dict[str, Any]
+    ) -> dict[str, Any]:
         return await collect_application_metrics(self, tenant_id, time_range)
 
     async def _create_alert(self, tenant_id: str, alert_config: dict[str, Any]) -> dict[str, Any]:
         return await create_alert(self, tenant_id, alert_config)
 
-    async def _create_incident(self, tenant_id: str, incident_data: dict[str, Any]) -> dict[str, Any]:
+    async def _create_incident(
+        self, tenant_id: str, incident_data: dict[str, Any]
+    ) -> dict[str, Any]:
         return await create_incident(self, tenant_id, incident_data)
 
     async def _get_system_status(self) -> dict[str, Any]:
@@ -354,10 +437,12 @@ class SystemHealthAgent(BaseAgent):
 
     async def _emit_event_hub_event(self, payload: dict[str, Any]) -> None:
         from health_integrations import emit_event_hub_event
+
         await emit_event_hub_event(self, payload)
 
     async def _create_servicenow_incident(self, incident: dict[str, Any]) -> None:
         from health_integrations import create_servicenow_incident
+
         await create_servicenow_incident(self, incident)
 
     def _sanitize_text(self, value: str) -> str:
@@ -365,15 +450,20 @@ class SystemHealthAgent(BaseAgent):
 
     async def _publish_health_status(self, services: dict[str, dict[str, Any]]) -> None:
         from health_actions.check_health import publish_health_status
+
         await publish_health_status(self, services)
 
     async def _get_grafana_dashboard(self) -> dict[str, Any]:
         return await get_grafana_dashboard(self)
 
-    async def _get_health_dashboard(self, tenant_id: str, time_range: dict[str, Any]) -> dict[str, Any]:
+    async def _get_health_dashboard(
+        self, tenant_id: str, time_range: dict[str, Any]
+    ) -> dict[str, Any]:
         return await get_health_dashboard(self, tenant_id, time_range)
 
-    async def _get_postmortem_report(self, tenant_id: str, time_range: dict[str, Any]) -> dict[str, Any]:
+    async def _get_postmortem_report(
+        self, tenant_id: str, time_range: dict[str, Any]
+    ) -> dict[str, Any]:
         return await get_postmortem_report(self, tenant_id, time_range)
 
     # ------------------------------------------------------------------
@@ -409,10 +499,21 @@ class SystemHealthAgent(BaseAgent):
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
         return [
-            "resource_monitoring", "application_monitoring", "log_collection",
-            "trace_collection", "alerting", "incident_management",
-            "anomaly_detection", "predictive_maintenance", "root_cause_analysis",
-            "capacity_planning", "health_checks", "performance_monitoring",
-            "dashboard_creation", "postmortem_reporting", "deployment_health_gate",
-            "grafana_dashboard", "environment_health_query",
+            "resource_monitoring",
+            "application_monitoring",
+            "log_collection",
+            "trace_collection",
+            "alerting",
+            "incident_management",
+            "anomaly_detection",
+            "predictive_maintenance",
+            "root_cause_analysis",
+            "capacity_planning",
+            "health_checks",
+            "performance_monitoring",
+            "dashboard_creation",
+            "postmortem_reporting",
+            "deployment_health_gate",
+            "grafana_dashboard",
+            "environment_health_query",
         ]

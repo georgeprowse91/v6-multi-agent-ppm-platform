@@ -113,9 +113,7 @@ async def determine_next_tasks(
     dependencies = workflow.get("dependencies", {})
 
     candidates = [
-        transition
-        for transition in transitions
-        if transition.get("source") == completed_task_id
+        transition for transition in transitions if transition.get("source") == completed_task_id
     ]
     next_task_ids: list[str] = []
     for transition in candidates:
@@ -124,9 +122,7 @@ async def determine_next_tasks(
             continue
         target = transition.get("target")
         if target:
-            next_task_ids.extend(
-                resolve_virtual_targets(target, task_map, transitions, instance)
-            )
+            next_task_ids.extend(resolve_virtual_targets(target, task_map, transitions, instance))
 
     if not next_task_ids:
         sequence = workflow.get("task_sequence", [])

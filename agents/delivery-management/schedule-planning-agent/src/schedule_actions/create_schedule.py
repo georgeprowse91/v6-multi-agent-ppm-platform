@@ -142,6 +142,7 @@ async def create_schedule(
 # Helpers used by create_schedule
 # ---------------------------------------------------------------------------
 
+
 async def wbs_to_tasks(wbs: dict[str, Any]) -> list[dict[str, Any]]:
     """Convert WBS to flat task list."""
     tasks = []

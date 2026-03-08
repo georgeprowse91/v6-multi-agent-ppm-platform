@@ -12,9 +12,8 @@ from starlette.requests import Request
 
 pytest.importorskip("cryptography")
 
-from security.auth import AuthConfig
-
 from security import auth
+from security.auth import AuthConfig
 
 FIXED_NOW = 1_700_000_000
 HS256_SECRET = "unit-test-secret"

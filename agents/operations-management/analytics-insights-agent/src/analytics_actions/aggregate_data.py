@@ -43,14 +43,10 @@ async def handle_aggregate_data(
             agent.data_lake_manager.store_dataset(
                 source=source,
                 domain="analytics",
-                payload=[
-                    record for record in harmonized_data if record.get("source") == source
-                ],
+                payload=[record for record in harmonized_data if record.get("source") == source],
             )
         )
-    synapse_details = agent.synapse_manager.ingest_dataset(
-        "analytics_aggregated", harmonized_data
-    )
+    synapse_details = agent.synapse_manager.ingest_dataset("analytics_aggregated", harmonized_data)
 
     return {
         "record_count": len(harmonized_data),

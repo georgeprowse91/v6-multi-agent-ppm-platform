@@ -1,5 +1,7 @@
 """Response Orchestration Agent - Pure utility functions."""
+
 from __future__ import annotations
+
 import time
 from typing import Any
 
@@ -52,7 +54,4 @@ def aggregate_responses(results: list[dict[str, Any]]) -> str | dict[str, Any]:
     successful_results = [r for r in results if r.get("success")]
     if not successful_results:
         return "Unable to process request - all agents failed"
-    return {
-        r.get("agent_id", "unknown"): r.get("data") or {}
-        for r in successful_results
-    }
+    return {r.get("agent_id", "unknown"): r.get("data") or {} for r in successful_results}

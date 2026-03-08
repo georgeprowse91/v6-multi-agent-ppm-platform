@@ -150,7 +150,10 @@ async def readiness(request: Request) -> dict[str, bool | dict[str, bool]]:
     leader_elector = getattr(request.app.state, "leader_elector", None)
     leader_ready = leader_elector.is_leader if leader_elector else True
     orchestrator = getattr(request.app.state, "orchestrator", None)
-    checks = {"orchestrator": bool(orchestrator and orchestrator.initialized), "leader": leader_ready}
+    checks = {
+        "orchestrator": bool(orchestrator and orchestrator.initialized),
+        "leader": leader_ready,
+    }
     ready = all(checks.values())
     if not ready:
         raise HTTPException(status_code=503, detail={"ready": ready, "checks": checks})

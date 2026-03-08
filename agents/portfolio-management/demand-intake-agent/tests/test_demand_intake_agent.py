@@ -1,16 +1,26 @@
 from __future__ import annotations
+
 import sys
 from pathlib import Path
+
 import pytest
 
 TESTS_DIR = Path(__file__).resolve().parent
-REPO_ROOT = TESTS_DIR.parents[3]  # agents/portfolio-management/demand-intake-agent/tests/ -> up 3 = repo root
+REPO_ROOT = TESTS_DIR.parents[
+    3
+]  # agents/portfolio-management/demand-intake-agent/tests/ -> up 3 = repo root
 SRC_DIR = TESTS_DIR.parent / "src"
-sys.path.extend([str(SRC_DIR), str(REPO_ROOT), str(REPO_ROOT / "packages"), str(REPO_ROOT / "agents" / "runtime")])
+sys.path.extend(
+    [
+        str(SRC_DIR),
+        str(REPO_ROOT),
+        str(REPO_ROOT / "packages"),
+        str(REPO_ROOT / "agents" / "runtime"),
+    ]
+)
 
 from demand_intake_agent import DemandIntakeAgent
 from demand_intake_utils import combine_demand_text, cosine_similarity, generate_demand_id, tokenize
-
 
 # ---------------------------------------------------------------------------
 # Utility function tests
@@ -227,8 +237,10 @@ async def test_validate_input_rejects_missing_mandatory_fields() -> None:
     # Patch schema/rule validation to pass — we test only mandatory_fields check
     import unittest.mock as mock
 
-    with mock.patch("demand_intake_agent.validate_against_schema", return_value=[]), \
-         mock.patch("demand_intake_agent.apply_rule_set") as mock_rule:
+    with (
+        mock.patch("demand_intake_agent.validate_against_schema", return_value=[]),
+        mock.patch("demand_intake_agent.apply_rule_set") as mock_rule,
+    ):
         mock_rule_result = mock.MagicMock()
         mock_rule_result.is_valid = True
         mock_rule.return_value = mock_rule_result
@@ -251,8 +263,10 @@ async def test_validate_input_accepts_valid_request() -> None:
     agent = _build_agent()
     import unittest.mock as mock
 
-    with mock.patch("demand_intake_agent.validate_against_schema", return_value=[]), \
-         mock.patch("demand_intake_agent.apply_rule_set") as mock_rule:
+    with (
+        mock.patch("demand_intake_agent.validate_against_schema", return_value=[]),
+        mock.patch("demand_intake_agent.apply_rule_set") as mock_rule,
+    ):
         mock_rule_result = mock.MagicMock()
         mock_rule_result.is_valid = True
         mock_rule.return_value = mock_rule_result

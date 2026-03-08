@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 # Cache key helpers
 # ---------------------------------------------------------------------------
 
+
 def schedule_cache_key(tenant_id: str, schedule_id: str) -> str:
     return f"schedule:{tenant_id}:{schedule_id}"
 
@@ -60,6 +61,7 @@ def parse_datetime(value: Any) -> datetime | None:
 # ID generation
 # ---------------------------------------------------------------------------
 
+
 async def generate_schedule_id(project_id: str) -> str:
     """Generate unique schedule ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -75,6 +77,7 @@ async def generate_baseline_id(schedule_id: str) -> str:
 # ---------------------------------------------------------------------------
 # Event publishing helpers
 # ---------------------------------------------------------------------------
+
 
 async def publish_baseline_locked(
     agent: SchedulePlanningAgent,
@@ -269,6 +272,7 @@ async def publish_schedule_simulated(
 # Change request submission
 # ---------------------------------------------------------------------------
 
+
 async def submit_change_request(
     agent: SchedulePlanningAgent,
     schedule: dict[str, Any],
@@ -304,6 +308,7 @@ async def submit_change_request(
 # ---------------------------------------------------------------------------
 # Persistence helpers
 # ---------------------------------------------------------------------------
+
 
 async def persist_schedule(agent: SchedulePlanningAgent, schedule: dict[str, Any]) -> None:
     if not agent._sql_engine:
@@ -402,7 +407,9 @@ async def persist_earned_value(
         )
 
 
-async def load_schedule_from_db(agent: SchedulePlanningAgent, schedule_id: str) -> dict[str, Any] | None:
+async def load_schedule_from_db(
+    agent: SchedulePlanningAgent, schedule_id: str
+) -> dict[str, Any] | None:
     if not agent._sql_engine:
         return None
     with Session(agent._sql_engine) as session:
@@ -459,6 +466,7 @@ async def load_schedule_from_db(agent: SchedulePlanningAgent, schedule_id: str) 
 # External sync helpers
 # ---------------------------------------------------------------------------
 
+
 async def sync_external_tools(agent: SchedulePlanningAgent, schedule: dict[str, Any]) -> None:
     if not agent.external_sync_client:
         return
@@ -488,9 +496,7 @@ async def pull_external_updates(agent: SchedulePlanningAgent, schedule: dict[str
     conflicts: list[dict[str, Any]] = []
     for update in updates:
         payload = update.payload
-        conflicts.extend(
-            apply_external_update(schedule, payload, update.timestamp.isoformat())
-        )
+        conflicts.extend(apply_external_update(schedule, payload, update.timestamp.isoformat()))
 
     schedule.setdefault("external_sync", {})
     schedule["external_sync"]["last_synced_at"] = datetime.now(timezone.utc).isoformat()
@@ -542,6 +548,7 @@ def apply_external_update(
 # Risk adjustment helpers
 # ---------------------------------------------------------------------------
 
+
 def resolve_risk_data(
     risk_data: dict[str, Any] | None,
     dependency_results: dict[str, Any] | None,
@@ -591,6 +598,7 @@ def apply_risk_adjustments_to_tasks(
 # ---------------------------------------------------------------------------
 # Resource normalization helpers
 # ---------------------------------------------------------------------------
+
 
 def normalize_resource_availability(resources: dict[str, Any]) -> dict[str, Any]:
     normalized: dict[str, Any] = {}
@@ -702,6 +710,7 @@ def merge_external_resource_availability(
 # Schedule state helpers
 # ---------------------------------------------------------------------------
 
+
 async def get_schedule_state(
     agent: SchedulePlanningAgent, tenant_id: str, schedule_id: str
 ) -> dict[str, Any] | None:
@@ -739,6 +748,7 @@ async def get_schedule_state(
 # ---------------------------------------------------------------------------
 # Financial helpers
 # ---------------------------------------------------------------------------
+
 
 async def fetch_financial_actuals(
     agent: SchedulePlanningAgent, project_id: str, *, tenant_id: str

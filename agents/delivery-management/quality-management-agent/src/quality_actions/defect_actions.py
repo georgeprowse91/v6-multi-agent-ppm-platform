@@ -219,9 +219,7 @@ def _get_defect_classifier(agent: QualityManagementAgent):
     return agent.defect_classifier
 
 
-async def _assign_defect_owner(
-    agent: QualityManagementAgent, defect: dict[str, Any]
-) -> str:
+async def _assign_defect_owner(agent: QualityManagementAgent, defect: dict[str, Any]) -> str:
     resource_client = (agent.config or {}).get("resource_capacity_client")
     required_skills = derive_required_skills(defect)
     if resource_client:
@@ -258,9 +256,7 @@ async def _sync_defect_ticket(
     jira_enabled = agent.integration_config.get("jira", {}).get("enabled", True)
     azure_enabled = agent.integration_config.get("azure_devops", {}).get("enabled", True)
     jira_key = defect.get("external", {}).get("jira_key") if defect.get("external") else None
-    azure_id = (
-        defect.get("external", {}).get("azure_work_item") if defect.get("external") else None
-    )
+    azure_id = defect.get("external", {}).get("azure_work_item") if defect.get("external") else None
     if action == "create":
         jira_key = jira_key or f"JIRA-{defect.get('defect_id')}"
         azure_id = azure_id or f"ADO-{defect.get('defect_id')}"
@@ -330,9 +326,7 @@ async def _train_defect_classification_model(
         "severity_tokens": severity_tokens,
         "trained_at": datetime.now(timezone.utc).isoformat(),
     }
-    await agent._store_record(
-        "quality_defect_models", f"classifier-{uuid.uuid4().hex[:6]}", model
-    )
+    await agent._store_record("quality_defect_models", f"classifier-{uuid.uuid4().hex[:6]}", model)
     return model
 
 

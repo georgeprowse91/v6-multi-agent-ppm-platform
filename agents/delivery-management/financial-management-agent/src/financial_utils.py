@@ -1,4 +1,5 @@
 """Financial Management Agent - Pure utility functions."""
+
 import uuid
 from datetime import datetime, timezone
 

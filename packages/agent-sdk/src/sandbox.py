@@ -7,7 +7,6 @@ import logging
 import time
 from typing import Any
 
-from agent_sdk.src.context import AgentContext
 from agent_sdk.src.custom_agent import CustomAgent
 from agent_sdk.src.manifest import AgentManifest, validate_manifest
 
@@ -156,7 +155,7 @@ class SandboxRunner:
                 output=result,
                 execution_time_seconds=round(elapsed, 3),
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             elapsed = time.monotonic() - start
             return SandboxResult(
                 success=False,

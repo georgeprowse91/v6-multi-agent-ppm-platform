@@ -67,9 +67,7 @@ async def handle_list_vendor_profiles(
     tenant_id: str,
 ) -> dict[str, Any]:
     vendors = [
-        vendor
-        for vendor in agent.vendors.values()
-        if await matches_criteria(vendor, criteria)
+        vendor for vendor in agent.vendors.values() if await matches_criteria(vendor, criteria)
     ]
     return {
         "total_results": len(vendors),

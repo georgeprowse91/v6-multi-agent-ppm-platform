@@ -16,9 +16,7 @@ if TYPE_CHECKING:
     from data_sync_agent import DataSyncAgent
 
 
-async def handle_detect_duplicates(
-    agent: DataSyncAgent, entity_type: str
-) -> dict[str, Any]:
+async def handle_detect_duplicates(agent: DataSyncAgent, entity_type: str) -> dict[str, Any]:
     """
     Detect duplicate master records.
 

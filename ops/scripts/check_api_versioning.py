@@ -9,7 +9,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 API_DIRS = [
-    REPO_ROOT / "apps" / "api-gateway" / "src",
+    REPO_ROOT / "services" / "api-gateway" / "src",
     REPO_ROOT / "apps" / "web" / "src",
 ]
 

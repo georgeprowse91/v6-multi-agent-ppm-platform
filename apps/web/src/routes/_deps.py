@@ -9,6 +9,7 @@ and Pydantic models so individual route modules can do::
 
 Nothing in this module should import from any route module.
 """
+
 from __future__ import annotations
 
 import base64
@@ -92,11 +93,14 @@ OIDC_HTTP_TRANSPORT: httpx.BaseTransport | None = None
 # ---------------------------------------------------------------------------
 # Store instances  (created once, shared by all route modules)
 # ---------------------------------------------------------------------------
-from agent_registry import load_agent_registry  # noqa: E402
-from agent_settings_models import AgentConfigUpdate, AgentProjectEntry  # noqa: E402
+from agent_registry import load_agent_registry  # noqa: E402, F401
+from agent_settings_models import AgentConfigUpdate, AgentProjectEntry  # noqa: E402, F401
 from agent_settings_store import AgentSettingsStore  # noqa: E402
 from analytics_proxy import AnalyticsServiceClient  # noqa: E402
-from canonical_template_registry import get_catalog_template, list_catalog_templates  # noqa: E402, F401
+from canonical_template_registry import (  # noqa: E402, F401
+    get_catalog_template,
+    list_catalog_templates,
+)
 from connector_hub_proxy import ConnectorHubClient  # noqa: E402
 from data_service_proxy import DataServiceClient  # noqa: E402
 from demo_integrations import (  # noqa: E402
@@ -109,41 +113,69 @@ from demo_integrations import (  # noqa: E402
 from demo_seed import DEMO_TENANT_ID  # noqa: E402
 from document_proxy import DocumentServiceClient, build_forward_headers  # noqa: E402, F401
 from feature_flags import is_feature_enabled  # noqa: E402
-from gating import evaluate_activity_access, next_required_activity, stage_progress  # noqa: E402, F401
+from gating import (  # noqa: E402, F401
+    evaluate_activity_access,
+    next_required_activity,
+    stage_progress,
+)
 from intake_models import IntakeDecision, IntakeRequest, IntakeRequestCreate  # noqa: E402, F401
 from intake_store import IntakeStore  # noqa: E402
 from knowledge_store import KnowledgeStore  # noqa: E402
 from lineage_proxy import LineageServiceClient  # noqa: E402
+
 try:
     from llm.client import LLMGateway  # noqa: E402, F401
     from llm.types import LLMProviderError  # noqa: E402, F401
 except ImportError:
     LLMGateway = None  # type: ignore[assignment,misc]
     LLMProviderError = Exception  # type: ignore[assignment,misc]
+from audit import build_audit_event, emit_audit_event  # noqa: E402, F401
 from llm_preferences_store import LLMPreferencesStore  # noqa: E402
 from merge_review_models import MergeDecision, MergeReviewCase  # noqa: E402, F401
 from merge_review_store import MergeReviewStore  # noqa: E402
-from methodologies import available_methodologies, get_default_methodology_map, get_methodology_map  # noqa: E402
-from methodology_node_runtime import list_runtime_actions_for_node, load_methodology_node_runtime_registry, resolve_runtime  # noqa: E402
+from methodologies import (  # noqa: E402, F401
+    available_methodologies,
+    get_default_methodology_map,
+    get_methodology_map,
+)
+from methodology_node_runtime import (  # noqa: E402, F401
+    list_runtime_actions_for_node,
+    load_methodology_node_runtime_registry,
+    resolve_runtime,
+)
 from model_registry import get_enabled_models  # noqa: E402
 from observability.tracing import get_trace_id  # noqa: E402, F401
 from oidc_client import OIDCClient  # noqa: E402
 from orchestrator import Orchestrator  # noqa: E402, F401
-from pipeline_models import PipelineBoard, PipelineItem, PipelineItemUpdate  # noqa: E402, F401
 from orchestrator_proxy import OrchestratorProxyClient  # noqa: E402
+from pipeline_models import PipelineBoard, PipelineItem, PipelineItemUpdate  # noqa: E402, F401
 from pipeline_store import PipelineStore  # noqa: E402
 from runtime_flags import demo_mode_enabled  # noqa: E402
 from runtime_lifecycle_store import RuntimeLifecycleStore  # noqa: E402
 from search_service import SearchService, _match_score  # noqa: E402, F401
 from security.api_governance import version_response_payload  # noqa: E402, F401
-from audit import build_audit_event, emit_audit_event  # noqa: E402, F401
 from security.audit_log import build_event, get_audit_log_store  # noqa: E402, F401
 from security.config import load_yaml as load_yaml_config  # noqa: E402
 from security.prompt_safety import evaluate_prompt  # noqa: E402, F401
 from security.secrets import resolve_secret  # noqa: E402
-from spreadsheet_models import ColumnCreate, DeleteResult, ImportResult, Row, RowCreate, RowUpdate, Sheet, SheetCreate, SheetDetail  # noqa: E402, F401
+from spreadsheet_models import (  # noqa: E402, F401
+    ColumnCreate,
+    DeleteResult,
+    ImportResult,
+    Row,
+    RowCreate,
+    RowUpdate,
+    Sheet,
+    SheetCreate,
+    SheetDetail,
+)
 from spreadsheet_store import SpreadsheetStore  # noqa: E402
-from template_mappings import TemplateMapping, get_template_mapping, list_templates_for_methodology_node, load_template_mappings  # noqa: E402, F401
+from template_mappings import (  # noqa: E402, F401
+    TemplateMapping,
+    get_template_mapping,
+    list_templates_for_methodology_node,
+    load_template_mappings,
+)
 from template_models import (  # noqa: E402, F401
     CanonicalTemplateDefinition,
     CanonicalTemplateSummary,
@@ -153,19 +185,44 @@ from template_models import (  # noqa: E402, F401
     build_placeholder_context,
     render_template_value_with_unresolved,
 )
-from timeline_models import Milestone, MilestoneCreate, MilestoneUpdate, TimelineExportResponse, TimelineResponse  # noqa: E402, F401
+from timeline_models import (  # noqa: E402, F401
+    Milestone,
+    MilestoneCreate,
+    MilestoneUpdate,
+    TimelineExportResponse,
+    TimelineResponse,
+)
 from timeline_store import TimelineStore  # noqa: E402
-from tree_models import TreeDeleteResult, TreeExportResponse, TreeListResponse, TreeMoveRequest, TreeNode, TreeNodeCreate, TreeNodeUpdate  # noqa: E402, F401
+from tree_models import (  # noqa: E402, F401
+    TreeDeleteResult,
+    TreeExportResponse,
+    TreeListResponse,
+    TreeMoveRequest,
+    TreeNode,
+    TreeNodeCreate,
+    TreeNodeUpdate,
+)
 from tree_store import TreeStore  # noqa: E402
-from workflow_models import WorkflowDefinitionPayload, WorkflowDefinitionRecord, WorkflowDefinitionSummary  # noqa: E402, F401
+from workflow_models import (  # noqa: E402, F401
+    WorkflowDefinitionPayload,
+    WorkflowDefinitionRecord,
+    WorkflowDefinitionSummary,
+)
 from workflow_store import WorkflowDefinitionStore  # noqa: E402
-from workspace_state import ActivityCompletionUpdate, CanvasTab, OpenRef, WorkspaceSelectionUpdate, WorkspaceState  # noqa: E402, F401
+from workspace_state import (  # noqa: E402, F401
+    ActivityCompletionUpdate,
+    CanvasTab,
+    OpenRef,
+    WorkspaceSelectionUpdate,
+    WorkspaceState,
+)
 from workspace_state_store import WorkspaceStateStore  # noqa: E402
 
 
 def get_deliverable_template(template_id: str) -> Any:  # noqa: E302
     """Look up a deliverable template by ID from the catalog registry."""
     return get_catalog_template(template_id)
+
 
 # ---------------------------------------------------------------------------
 # Singleton stores
@@ -189,6 +246,7 @@ logger = logging.getLogger("web-ui")
 # ---------------------------------------------------------------------------
 # Common helpers
 # ---------------------------------------------------------------------------
+
 
 def _demo_mode_enabled() -> bool:
     return demo_mode_enabled()
@@ -438,6 +496,7 @@ def _random_token_hex(length_bytes: int) -> str:
 # Session / auth helpers
 # ---------------------------------------------------------------------------
 
+
 def _cookie_secure() -> bool:
     override = os.getenv("SESSION_COOKIE_SECURE")
     if override is not None:
@@ -641,6 +700,7 @@ def _resolve_llm_selection(
 # Roles helpers  (shared by auth + roles routes)
 # ---------------------------------------------------------------------------
 
+
 class RoleDefinition(BaseModel):
     id: str
     name: str
@@ -675,6 +735,7 @@ def _list_role_assignments() -> list[RoleAssignment]:
 # ---------------------------------------------------------------------------
 # OIDC helpers
 # ---------------------------------------------------------------------------
+
 
 def _oidc_required(name: str) -> str:
     value = os.getenv(name)
@@ -739,6 +800,7 @@ def _validate_project_id(value: str | None) -> str | None:
 # Enterprise store helper
 # ---------------------------------------------------------------------------
 
+
 def _load_store(path: Path, default: dict[str, Any]) -> dict[str, Any]:
     payload = _load_json(path, default) if path.exists() else default
     if not isinstance(payload, dict):
@@ -779,6 +841,7 @@ def _ensure_notifications(payload: dict[str, Any], tenant_id: str) -> list[dict[
 # ---------------------------------------------------------------------------
 # Approval payload  (used by search, assistant, legacy_pages, enterprise)
 # ---------------------------------------------------------------------------
+
 
 def _approval_payload() -> dict[str, Any]:
     if _demo_mode_enabled():
@@ -844,6 +907,7 @@ def _approval_payload() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Project loading helper  (used by search, assistant, templates_api)
 # ---------------------------------------------------------------------------
+
 
 def _load_projects() -> list:
     """Load all projects from the projects store file.

@@ -14,9 +14,7 @@ if TYPE_CHECKING:
     from approval_workflow_agent import ApprovalWorkflowAgent
 
 
-def assess_risk_and_criticality(
-    *, request_type: str, details: dict[str, Any]
-) -> tuple[str, str]:
+def assess_risk_and_criticality(*, request_type: str, details: dict[str, Any]) -> tuple[str, str]:
     amount = float(details.get("amount") or 0)
     urgency = str(details.get("urgency", "medium")).lower()
     strategic_importance = str(details.get("strategic_importance", "medium")).lower()

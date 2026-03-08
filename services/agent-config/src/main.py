@@ -23,6 +23,7 @@ ensure_monorepo_paths(REPO_ROOT)
 try:
     from observability.metrics import RequestMetricsMiddleware, configure_metrics
     from observability.tracing import TraceMiddleware, configure_tracing
+
     _has_observability = True
 except ImportError:
     _has_observability = False
@@ -30,6 +31,7 @@ except ImportError:
 try:
     from security.api_governance import apply_api_governance, version_response_payload
     from security.auth import AuthTenantMiddleware
+
     _has_security = True
 except ImportError:
     _has_security = False
@@ -105,7 +107,9 @@ def create_app() -> FastAPI:
 
     if _has_security:
         try:
-            app.add_middleware(AuthTenantMiddleware, exempt_paths={"/healthz", "/version"})
+            app.add_middleware(
+                AuthTenantMiddleware, exempt_paths={"/health", "/healthz", "/version"}
+            )
         except Exception as exc:
             logger.warning("Failed to configure auth middleware: %s", exc)
 

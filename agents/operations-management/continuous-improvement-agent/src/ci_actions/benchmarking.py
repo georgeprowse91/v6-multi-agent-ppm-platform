@@ -78,6 +78,7 @@ async def share_best_practices(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 async def _get_current_process_metrics(
     agent: MiningAgentProtocol, process_id: str
 ) -> dict[str, Any]:
@@ -98,9 +99,7 @@ async def _get_benchmark_data(
     return {"median_cycle_time": 20.0, "throughput": 30.0, "avg_waiting_time": 1.8}
 
 
-async def _compare_metrics(
-    current: dict[str, Any], benchmark: dict[str, Any]
-) -> dict[str, Any]:
+async def _compare_metrics(current: dict[str, Any], benchmark: dict[str, Any]) -> dict[str, Any]:
     """Compare current metrics to benchmark."""
     comparison: dict[str, Any] = {}
     for key in benchmark.keys():

@@ -113,7 +113,9 @@ class SchedulePlanningAgent(BaseAgent):
     - Baseline management and variance tracking
     """
 
-    def __init__(self, agent_id: str = "schedule-planning-agent", config: dict[str, Any] | None = None):
+    def __init__(
+        self, agent_id: str = "schedule-planning-agent", config: dict[str, Any] | None = None
+    ):
         super().__init__(agent_id, config)
 
         # Configuration parameters
@@ -146,17 +148,22 @@ class SchedulePlanningAgent(BaseAgent):
             Path(config.get("risk_adjustments_path"))
             if config and config.get("risk_adjustments_path")
             else Path(__file__).resolve().parents[4]
-            / "ops" / "config" / "agents" / "risk_adjustments.yaml"
+            / "ops"
+            / "config"
+            / "agents"
+            / "risk_adjustments.yaml"
         )
         self.risk_adjustments = self._load_risk_adjustments_config()
 
         schedule_store_path = (
             Path(config.get("schedule_store_path", "data/project_schedules.json"))
-            if config else Path("data/project_schedules.json")
+            if config
+            else Path("data/project_schedules.json")
         )
         baseline_store_path = (
             Path(config.get("schedule_baseline_store_path", "data/schedule_baselines.json"))
-            if config else Path("data/schedule_baselines.json")
+            if config
+            else Path("data/schedule_baselines.json")
         )
         self.schedule_store = TenantStateStore(schedule_store_path)
         self.baseline_store = TenantStateStore(baseline_store_path)
@@ -182,26 +189,33 @@ class SchedulePlanningAgent(BaseAgent):
                     default_ttl_seconds=self.cache_ttl_seconds,
                 )
             )
-            if self.enable_cache else None
+            if self.enable_cache
+            else None
         )
         self.azure_ml_client = AzureMLClient() if self.enable_azure_ml else None
         self.ai_model_service = AIModelService() if self.enable_ai_model_service else None
         self.databricks_client = (
             DatabricksMonteCarloClient(seed=self.simulation_seed)
-            if self.enable_databricks else None
+            if self.enable_databricks
+            else None
         )
         self.external_sync_client = (
             ExternalSyncClient(
                 ExternalSyncSettings(
                     enable_ms_project=config.get("enable_ms_project", False) if config else False,
                     enable_jira=config.get("enable_jira", False) if config else False,
-                    enable_azure_devops=config.get("enable_azure_devops", False) if config else False,
+                    enable_azure_devops=(
+                        config.get("enable_azure_devops", False) if config else False
+                    ),
                     enable_smartsheet=config.get("enable_smartsheet", False) if config else False,
                     enable_outlook=config.get("enable_outlook", False) if config else False,
-                    enable_google_calendar=config.get("enable_google_calendar", False) if config else False,
+                    enable_google_calendar=(
+                        config.get("enable_google_calendar", False) if config else False
+                    ),
                 )
             )
-            if self.enable_external_sync or self.enable_calendar_sync else None
+            if self.enable_external_sync or self.enable_calendar_sync
+            else None
         )
         self.duration_model_id: str | None = None
         self.ai_duration_model_id: str | None = None
@@ -242,12 +256,21 @@ class SchedulePlanningAgent(BaseAgent):
             return False
 
         valid_actions = [
-            "create_schedule", "estimate_duration", "map_dependencies",
-            "calculate_critical_path", "resource_constrained_schedule",
-            "run_monte_carlo", "track_milestones", "optimize_schedule",
-            "what_if_analysis", "generate_schedule_variants",
-            "manage_baseline", "track_variance", "sprint_planning",
-            "update_schedule", "get_schedule",
+            "create_schedule",
+            "estimate_duration",
+            "map_dependencies",
+            "calculate_critical_path",
+            "resource_constrained_schedule",
+            "run_monte_carlo",
+            "track_milestones",
+            "optimize_schedule",
+            "what_if_analysis",
+            "generate_schedule_variants",
+            "manage_baseline",
+            "track_variance",
+            "sprint_planning",
+            "update_schedule",
+            "get_schedule",
         ]
         if action not in valid_actions:
             self.logger.warning("Invalid action: %s", action)
@@ -292,17 +315,21 @@ class SchedulePlanningAgent(BaseAgent):
 
         dispatch = {
             "create_schedule": lambda: self._create_schedule(
-                input_data.get("project_id"), input_data.get("wbs", {}),
+                input_data.get("project_id"),
+                input_data.get("wbs", {}),
                 input_data.get("methodology", "predictive"),
                 risk_data=input_data.get("risk_data"),
                 dependency_results=input_data.get("dependency_results", {}),
-                context=context, tenant_id=tenant_id,
+                context=context,
+                tenant_id=tenant_id,
             ),
             "estimate_duration": lambda: self._estimate_duration(
-                input_data.get("tasks", []), input_data.get("project_context", {}),
+                input_data.get("tasks", []),
+                input_data.get("project_context", {}),
             ),
             "map_dependencies": lambda: self._map_dependencies(
-                input_data.get("schedule_id"), input_data.get("dependencies", []),
+                input_data.get("schedule_id"),
+                input_data.get("dependencies", []),
             ),
             "calculate_critical_path": lambda: self._calculate_critical_path(
                 input_data.get("schedule_id"),
@@ -311,37 +338,48 @@ class SchedulePlanningAgent(BaseAgent):
                 context=context,
             ),
             "resource_constrained_schedule": lambda: self._resource_constrained_schedule(
-                input_data.get("schedule_id"), input_data.get("resources", {}),
-                tenant_id=tenant_id, context=context,
+                input_data.get("schedule_id"),
+                input_data.get("resources", {}),
+                tenant_id=tenant_id,
+                context=context,
             ),
             "run_monte_carlo": lambda: self._run_monte_carlo(
-                input_data.get("schedule_id"), input_data.get("iterations", 1000),
+                input_data.get("schedule_id"),
+                input_data.get("iterations", 1000),
             ),
             "track_milestones": lambda: self._track_milestones(input_data.get("schedule_id")),
             "optimize_schedule": lambda: self._optimize_schedule(input_data.get("schedule_id")),
             "what_if_analysis": lambda: self._what_if_analysis(
-                input_data.get("schedule_id"), input_data.get("what_if_params", {}),
+                input_data.get("schedule_id"),
+                input_data.get("what_if_params", {}),
             ),
             "generate_schedule_variants": lambda: self._generate_schedule_variants(
-                input_data.get("schedule_id"), input_data.get("scenarios", []),
+                input_data.get("schedule_id"),
+                input_data.get("scenarios", []),
             ),
             "manage_baseline": lambda: self._manage_baseline(
                 input_data.get("schedule_id"),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             ),
             "track_variance": lambda: self._track_variance(
                 input_data.get("schedule_id"),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             ),
             "sprint_planning": lambda: self._sprint_planning(
-                input_data.get("project_id"), input_data.get("sprint_data", {}),
+                input_data.get("project_id"),
+                input_data.get("sprint_data", {}),
             ),
             "update_schedule": lambda: self._update_schedule(
-                input_data.get("schedule_id"), input_data.get("updates", {}),
-                tenant_id=tenant_id, correlation_id=correlation_id,
+                input_data.get("schedule_id"),
+                input_data.get("updates", {}),
+                tenant_id=tenant_id,
+                correlation_id=correlation_id,
             ),
             "get_schedule": lambda: self._get_schedule(
-                input_data.get("schedule_id"), tenant_id=tenant_id,
+                input_data.get("schedule_id"),
+                tenant_id=tenant_id,
             ),
         }
 
@@ -357,24 +395,48 @@ class SchedulePlanningAgent(BaseAgent):
     def get_capabilities(self) -> list[str]:
         """Return list of agent capabilities."""
         return [
-            "schedule_creation", "wbs_conversion", "duration_estimation",
-            "dependency_mapping", "critical_path_analysis",
-            "resource_constrained_scheduling", "monte_carlo_simulation",
-            "schedule_risk_analysis", "milestone_tracking",
-            "schedule_optimization", "what_if_analysis",
-            "baseline_management", "variance_tracking",
-            "sprint_planning", "burndown_forecasting",
+            "schedule_creation",
+            "wbs_conversion",
+            "duration_estimation",
+            "dependency_mapping",
+            "critical_path_analysis",
+            "resource_constrained_scheduling",
+            "monte_carlo_simulation",
+            "schedule_risk_analysis",
+            "milestone_tracking",
+            "schedule_optimization",
+            "what_if_analysis",
+            "baseline_management",
+            "variance_tracking",
+            "sprint_planning",
+            "burndown_forecasting",
         ]
 
     # ------------------------------------------------------------------
     # Delegation wrappers -- preserve original method signatures
     # ------------------------------------------------------------------
 
-    async def _create_schedule(self, project_id, wbs, methodology="predictive",
-                               risk_data=None, dependency_results=None, context=None, *, tenant_id):
-        return await _act_create_schedule(self, project_id, wbs, methodology,
-            risk_data=risk_data, dependency_results=dependency_results,
-            context=context, tenant_id=tenant_id)
+    async def _create_schedule(
+        self,
+        project_id,
+        wbs,
+        methodology="predictive",
+        risk_data=None,
+        dependency_results=None,
+        context=None,
+        *,
+        tenant_id,
+    ):
+        return await _act_create_schedule(
+            self,
+            project_id,
+            wbs,
+            methodology,
+            risk_data=risk_data,
+            dependency_results=dependency_results,
+            context=context,
+            tenant_id=tenant_id,
+        )
 
     async def _estimate_duration(self, tasks, project_context):
         return await _act_estimate_duration(self, tasks, project_context)
@@ -382,15 +444,23 @@ class SchedulePlanningAgent(BaseAgent):
     async def _map_dependencies(self, schedule_id, dependencies):
         return await _act_map_deps(self, schedule_id, dependencies)
 
-    async def _calculate_critical_path(self, schedule_id, risk_data=None,
-                                       dependency_results=None, context=None):
-        return await _act_critical_path(self, schedule_id, risk_data=risk_data,
-            dependency_results=dependency_results, context=context)
+    async def _calculate_critical_path(
+        self, schedule_id, risk_data=None, dependency_results=None, context=None
+    ):
+        return await _act_critical_path(
+            self,
+            schedule_id,
+            risk_data=risk_data,
+            dependency_results=dependency_results,
+            context=context,
+        )
 
-    async def _resource_constrained_schedule(self, schedule_id, resources, *,
-                                             tenant_id="unknown", context=None):
-        return await _act_resource_sched(self, schedule_id, resources,
-            tenant_id=tenant_id, context=context)
+    async def _resource_constrained_schedule(
+        self, schedule_id, resources, *, tenant_id="unknown", context=None
+    ):
+        return await _act_resource_sched(
+            self, schedule_id, resources, tenant_id=tenant_id, context=context
+        )
 
     async def _run_monte_carlo(self, schedule_id, iterations=1000):
         return await _act_monte_carlo(self, schedule_id, iterations)
@@ -408,19 +478,22 @@ class SchedulePlanningAgent(BaseAgent):
         return await _act_gen_variants(self, schedule_id, scenarios)
 
     async def _manage_baseline(self, schedule_id, *, tenant_id, correlation_id):
-        return await _act_manage_baseline(self, schedule_id,
-            tenant_id=tenant_id, correlation_id=correlation_id)
+        return await _act_manage_baseline(
+            self, schedule_id, tenant_id=tenant_id, correlation_id=correlation_id
+        )
 
     async def _track_variance(self, schedule_id, *, tenant_id, correlation_id):
-        return await _act_variance(self, schedule_id,
-            tenant_id=tenant_id, correlation_id=correlation_id)
+        return await _act_variance(
+            self, schedule_id, tenant_id=tenant_id, correlation_id=correlation_id
+        )
 
     async def _sprint_planning(self, project_id, sprint_data):
         return await _act_sprint(self, project_id, sprint_data)
 
     async def _update_schedule(self, schedule_id, updates, *, tenant_id, correlation_id):
-        return await _act_update(self, schedule_id, updates,
-            tenant_id=tenant_id, correlation_id=correlation_id)
+        return await _act_update(
+            self, schedule_id, updates, tenant_id=tenant_id, correlation_id=correlation_id
+        )
 
     async def _get_schedule(self, schedule_id, *, tenant_id):
         return await _act_get_schedule(self, schedule_id, tenant_id=tenant_id)
@@ -428,15 +501,18 @@ class SchedulePlanningAgent(BaseAgent):
     # CPM pass wrappers used by tests
     async def _forward_pass(self, tasks, dependencies):
         from schedule_actions.critical_path import forward_pass
+
         return await forward_pass(tasks, dependencies)
 
     async def _backward_pass(self, tasks, dependencies):
         from schedule_actions.critical_path import backward_pass
+
         return await backward_pass(tasks, dependencies)
 
     # Risk adjustment wrapper used by tests
     def _apply_risk_adjustments_to_tasks(self, tasks, risk_data):
         from schedule_utils import apply_risk_adjustments_to_tasks
+
         return apply_risk_adjustments_to_tasks(self, tasks, risk_data)
 
     # Utility wrappers used by tests

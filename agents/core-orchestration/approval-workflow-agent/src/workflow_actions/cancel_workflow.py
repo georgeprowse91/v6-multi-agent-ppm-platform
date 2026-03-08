@@ -29,9 +29,7 @@ async def handle_cancel_workflow(
     instance["status"] = "cancelled"
     instance["cancelled_at"] = datetime.now(timezone.utc).isoformat()
     await agent.state_store.save_instance(tenant_id, instance_id, instance.copy())
-    await agent._emit_workflow_event(
-        tenant_id, "workflow.cancelled", {"instance_id": instance_id}
-    )
+    await agent._emit_workflow_event(tenant_id, "workflow.cancelled", {"instance_id": instance_id})
     await agent._send_notification(tenant_id, "workflow.cancelled", {"instance_id": instance_id})
 
     # Cancel pending tasks

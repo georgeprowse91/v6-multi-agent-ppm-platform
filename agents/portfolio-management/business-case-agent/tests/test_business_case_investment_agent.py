@@ -19,15 +19,16 @@ import pytest
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parents[3]
 SRC_DIR = TESTS_DIR.parent / "src"
-sys.path.extend([
-    str(SRC_DIR),
-    str(REPO_ROOT),
-    str(REPO_ROOT / "packages"),
-    str(REPO_ROOT / "agents" / "runtime"),
-])
+sys.path.extend(
+    [
+        str(SRC_DIR),
+        str(REPO_ROOT),
+        str(REPO_ROOT / "packages"),
+        str(REPO_ROOT / "agents" / "runtime"),
+    ]
+)
 
 from business_case_investment_agent import BusinessCaseInvestmentAgent
-
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers

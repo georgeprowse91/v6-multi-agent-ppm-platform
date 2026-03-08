@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-WORKFLOW_SRC = Path(__file__).resolve().parents[2] / "apps" / "workflow-service" / "src"
+WORKFLOW_SRC = Path(__file__).resolve().parents[2] / "services" / "workflow-service" / "src"
 sys.path.insert(0, str(WORKFLOW_SRC))
 
 from workflow_storage import WorkflowStore  # noqa: E402

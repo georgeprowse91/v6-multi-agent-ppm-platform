@@ -105,9 +105,7 @@ async def _evaluate_gate_criteria(
             }
         )
     readiness_score = (
-        sum(1 for c in criteria_status if c["met"]) / len(criteria_status)
-        if criteria_status
-        else 0
+        sum(1 for c in criteria_status if c["met"]) / len(criteria_status) if criteria_status else 0
     )
     missing_criteria = [c for c in criteria_status if not c["met"]]
     criteria_met = readiness_score >= 0.90
@@ -141,9 +139,7 @@ async def _score_gate_readiness(
     ai_score = agent.readiness_model.predict_with_ai_service(
         agent.ai_model_service, readiness_features
     )
-    evaluation["readiness_score"] = max(
-        evaluation["readiness_score"], ml_score, ai_score or 0.0
-    )
+    evaluation["readiness_score"] = max(evaluation["readiness_score"], ml_score, ai_score or 0.0)
     evaluation["health_snapshot"] = health_snapshot or {}
     evaluation["readiness_model"] = {
         "score": ml_score,

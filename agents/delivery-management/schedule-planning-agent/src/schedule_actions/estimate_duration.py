@@ -92,6 +92,7 @@ async def estimate_duration(
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 async def _get_historical_durations(task_name: str, complexity: str) -> list[float]:
     """Query historical task durations."""
     return [5.0, 7.0, 6.0]  # Baseline

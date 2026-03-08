@@ -11,7 +11,6 @@ Specification: agents/core-orchestration/intent-router-agent/README.md
 import json
 import os
 import re
-import uuid
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -21,29 +20,21 @@ from common.bootstrap import ensure_monorepo_paths  # noqa: E402
 ensure_monorepo_paths()
 
 import yaml  # noqa: E402
-from llm import LLMGateway  # noqa: E402
-from observability.tracing import get_trace_id  # noqa: E402
-from prompt_registry import PromptRegistry, enforce_redaction  # noqa: E402
-from pydantic import ValidationError  # noqa: E402
-
-from agents.runtime import BaseAgent  # noqa: E402
-from agents.runtime.src.audit import build_audit_event, emit_audit_event  # noqa: E402
-
+from intent_router_actions import process_query as _act_process_query  # noqa: E402
 from intent_router_models import (  # noqa: E402
     ExtractedParameters,
-    IntentDefinition,
     IntentPrediction,
-    IntentRouteConfig,
-    IntentRouterContext,
     IntentRouterLLMResponse,
     IntentRouterRequest,
-    IntentRouterResponse,
     IntentRoutingConfig,
-    RoutingDecision,
     ValidationErrorPayload,
 )
 from intent_router_utils import build_entity_patterns  # noqa: E402
-from intent_router_actions import process_query as _act_process_query  # noqa: E402
+from llm import LLMGateway  # noqa: E402
+from prompt_registry import PromptRegistry  # noqa: E402
+from pydantic import ValidationError  # noqa: E402
+
+from agents.runtime import BaseAgent  # noqa: E402
 
 
 class IntentRouterAgent(BaseAgent):
@@ -186,7 +177,13 @@ class IntentRouterAgent(BaseAgent):
         config_path = Path(
             self.config.get("routing_config_path")
             or os.getenv("INTENT_ROUTING_CONFIG_PATH")
-            or (Path(__file__).resolve().parents[4] / "ops" / "config" / "agents" / "intent-routing.yaml")
+            or (
+                Path(__file__).resolve().parents[4]
+                / "ops"
+                / "config"
+                / "agents"
+                / "intent-routing.yaml"
+            )
         )
         try:
             payload = yaml.safe_load(config_path.read_text())
@@ -335,13 +332,77 @@ class IntentRouterAgent(BaseAgent):
 
     # Keyword patterns for intent detection when no NLP model is available.
     _INTENT_KEYWORDS: dict[str, list[str]] = {
-        "portfolio_query": ["portfolio", "programme", "program", "roadmap", "overview", "status", "health"],
-        "financial_query": ["budget", "financial", "finance", "cost", "spend", "variance", "roi", "profit", "expenditure", "forecast revenue"],
-        "schedule_query": ["schedule", "timeline", "milestone", "deadline", "gantt", "critical path", "delay", "due date"],
-        "risk_query": ["risk", "issue", "threat", "vulnerability", "mitigation", "register", "hazard"],
-        "resource_query": ["resource", "capacity", "utilization", "allocation", "headcount", "team", "staffing"],
-        "compliance_query": ["compliance", "regulatory", "regulation", "hipaa", "audit", "gdpr", "policy", "governance"],
-        "what_if": ["what if", "what-if", "scenario", "simulate", "simulation", "hypothetical", "impact analysis", "cascade", "trade-off", "tradeoff"],
+        "portfolio_query": [
+            "portfolio",
+            "programme",
+            "program",
+            "roadmap",
+            "overview",
+            "status",
+            "health",
+        ],
+        "financial_query": [
+            "budget",
+            "financial",
+            "finance",
+            "cost",
+            "spend",
+            "variance",
+            "roi",
+            "profit",
+            "expenditure",
+            "forecast revenue",
+        ],
+        "schedule_query": [
+            "schedule",
+            "timeline",
+            "milestone",
+            "deadline",
+            "gantt",
+            "critical path",
+            "delay",
+            "due date",
+        ],
+        "risk_query": [
+            "risk",
+            "issue",
+            "threat",
+            "vulnerability",
+            "mitigation",
+            "register",
+            "hazard",
+        ],
+        "resource_query": [
+            "resource",
+            "capacity",
+            "utilization",
+            "allocation",
+            "headcount",
+            "team",
+            "staffing",
+        ],
+        "compliance_query": [
+            "compliance",
+            "regulatory",
+            "regulation",
+            "hipaa",
+            "audit",
+            "gdpr",
+            "policy",
+            "governance",
+        ],
+        "what_if": [
+            "what if",
+            "what-if",
+            "scenario",
+            "simulate",
+            "simulation",
+            "hypothetical",
+            "impact analysis",
+            "cascade",
+            "trade-off",
+            "tradeoff",
+        ],
     }
 
     def _keyword_classify_intent(self, query: str) -> list[dict[str, Any]]:

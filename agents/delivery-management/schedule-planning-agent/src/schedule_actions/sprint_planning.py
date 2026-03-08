@@ -24,9 +24,7 @@ async def sprint_planning(
     backlog_items = sprint_data.get("backlog_items", [])
 
     # Recommend sprint backlog based on capacity
-    recommended_items = await recommend_sprint_backlog(
-        backlog_items, team_velocity, team_capacity
-    )
+    recommended_items = await recommend_sprint_backlog(backlog_items, team_velocity, team_capacity)
 
     # Calculate story points for sprint
     total_story_points = sum(item.get("story_points", 0) for item in recommended_items)
@@ -50,6 +48,7 @@ async def sprint_planning(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 async def recommend_sprint_backlog(
     backlog_items: list[dict[str, Any]], team_velocity: float, team_capacity: float
@@ -75,9 +74,7 @@ async def generate_burndown_forecast(
 ) -> list[dict[str, Any]]:
     """Generate burndown forecast."""
     burndown = []
-    daily_velocity = (
-        total_story_points / sprint_duration_days if sprint_duration_days > 0 else 0
-    )
+    daily_velocity = total_story_points / sprint_duration_days if sprint_duration_days > 0 else 0
 
     for day in range(sprint_duration_days + 1):
         remaining = max(0, total_story_points - (daily_velocity * day))

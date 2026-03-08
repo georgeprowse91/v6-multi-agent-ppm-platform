@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 # Conditional / optional imports
 # ---------------------------------------------------------------------------
 
+
 def _safe_find_spec(module_name: str) -> bool:
     try:
         return importlib.util.find_spec(module_name) is not None
@@ -70,6 +71,7 @@ else:
 # ID generators
 # ---------------------------------------------------------------------------
 
+
 async def generate_stakeholder_id() -> str:
     """Generate unique stakeholder ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -104,6 +106,7 @@ async def generate_event_id() -> str:
 # Token / secret resolution
 # ---------------------------------------------------------------------------
 
+
 def resolve_token(
     keyvault_url: str | None,
     env_name: str,
@@ -124,19 +127,24 @@ def resolve_token(
 # Communication history, events and workflows
 # ---------------------------------------------------------------------------
 
-def record_communication_history(agent: StakeholderCommunicationsAgent, record: dict[str, Any]) -> None:
-    record["record_id"] = (
-        record.get("record_id") or f"COM-{datetime.now(timezone.utc).isoformat()}"
-    )
+
+def record_communication_history(
+    agent: StakeholderCommunicationsAgent, record: dict[str, Any]
+) -> None:
+    record["record_id"] = record.get("record_id") or f"COM-{datetime.now(timezone.utc).isoformat()}"
     record["created_at"] = record.get("created_at") or datetime.now(timezone.utc).isoformat()
     agent.history_store.add_record(record)
 
 
-def publish_event(agent: StakeholderCommunicationsAgent, event_type: str, payload: dict[str, Any]) -> None:
+def publish_event(
+    agent: StakeholderCommunicationsAgent, event_type: str, payload: dict[str, Any]
+) -> None:
     agent.service_bus_publisher.publish(event_type, payload)
 
 
-def trigger_workflow(agent: StakeholderCommunicationsAgent, event_type: str, payload: dict[str, Any]) -> None:
+def trigger_workflow(
+    agent: StakeholderCommunicationsAgent, event_type: str, payload: dict[str, Any]
+) -> None:
     if not agent.logic_apps_trigger_url:
         return
     requests.post(
@@ -166,6 +174,7 @@ def publish_metrics_event(
 # Stakeholder load / lookup
 # ---------------------------------------------------------------------------
 
+
 def load_stakeholder(
     agent: StakeholderCommunicationsAgent, tenant_id: str, stakeholder_id: str
 ) -> dict[str, Any] | None:
@@ -181,6 +190,7 @@ def load_stakeholder(
 # ---------------------------------------------------------------------------
 # Content helpers
 # ---------------------------------------------------------------------------
+
 
 async def personalize_content(content: str, stakeholder: dict[str, Any]) -> str:
     """Personalize content for stakeholder."""
@@ -209,6 +219,7 @@ def get_template(
 # ---------------------------------------------------------------------------
 # Graph API helper
 # ---------------------------------------------------------------------------
+
 
 async def graph_request(
     agent: StakeholderCommunicationsAgent,
@@ -241,6 +252,7 @@ async def graph_request(
 # Text analytics
 # ---------------------------------------------------------------------------
 
+
 def build_text_analytics_client(agent: StakeholderCommunicationsAgent):
     if not agent.text_analytics_endpoint or not agent.text_analytics_key:
         return None
@@ -252,7 +264,9 @@ def build_text_analytics_client(agent: StakeholderCommunicationsAgent):
     )
 
 
-async def analyze_text_sentiment(agent: StakeholderCommunicationsAgent, text: str) -> dict[str, Any]:
+async def analyze_text_sentiment(
+    agent: StakeholderCommunicationsAgent, text: str
+) -> dict[str, Any]:
     """Analyze sentiment of text."""
     client = build_text_analytics_client(agent)
     if client:
@@ -292,6 +306,7 @@ async def analyze_text_sentiment(agent: StakeholderCommunicationsAgent, text: st
 # Classification helpers
 # ---------------------------------------------------------------------------
 
+
 async def suggest_classification(stakeholder_data: dict[str, Any]) -> dict[str, Any]:
     """Suggest stakeholder classification."""
     role = stakeholder_data.get("role", "").lower()
@@ -330,6 +345,7 @@ async def determine_engagement_strategy(influence: str, interest: str) -> dict[s
 # ---------------------------------------------------------------------------
 # CRM integration
 # ---------------------------------------------------------------------------
+
 
 async def enrich_stakeholder_profile(
     agent: StakeholderCommunicationsAgent, stakeholder_data: dict[str, Any]
@@ -484,6 +500,7 @@ async def upsert_crm_profile(
 # Consent check
 # ---------------------------------------------------------------------------
 
+
 async def has_consent(stakeholder: dict[str, Any], channel: str) -> bool:
     """Check consent and opt-out flags for stakeholder."""
     if stakeholder.get("opt_out"):
@@ -500,15 +517,12 @@ async def has_consent(stakeholder: dict[str, Any], channel: str) -> bool:
 # Delivery channel resolution
 # ---------------------------------------------------------------------------
 
-def resolve_delivery_channels(
-    message: dict[str, Any], stakeholder: dict[str, Any]
-) -> list[str]:
+
+def resolve_delivery_channels(message: dict[str, Any], stakeholder: dict[str, Any]) -> list[str]:
     channel_config = message.get("channels") or message.get("channel", "email")
     preferences = stakeholder.get("communication_preferences", {})
     preferred = (
-        preferences.get("preferred_channels")
-        or stakeholder.get("preferred_channels")
-        or ["email"]
+        preferences.get("preferred_channels") or stakeholder.get("preferred_channels") or ["email"]
     )
     fallback = preferences.get("fallback_channels", [])
     if isinstance(channel_config, list):
@@ -526,6 +540,7 @@ def resolve_delivery_channels(
 # ---------------------------------------------------------------------------
 # Optimal send-time calculation
 # ---------------------------------------------------------------------------
+
 
 async def calculate_optimal_send_time(
     stakeholder: dict[str, Any], scheduled_send: str | None
@@ -549,6 +564,7 @@ async def calculate_optimal_send_time(
 # ---------------------------------------------------------------------------
 # Delivery schedule builder
 # ---------------------------------------------------------------------------
+
 
 def build_delivery_schedule(
     agent: StakeholderCommunicationsAgent,
@@ -596,6 +612,7 @@ def build_delivery_schedule(
 # ---------------------------------------------------------------------------
 # Message content generation
 # ---------------------------------------------------------------------------
+
 
 async def generate_message_content(
     agent: StakeholderCommunicationsAgent,
@@ -718,6 +735,7 @@ async def generate_action_items(
 # Engagement scoring
 # ---------------------------------------------------------------------------
 
+
 async def score_engagement_with_ml(
     agent: StakeholderCommunicationsAgent, metrics: dict[str, Any], baseline_score: float
 ) -> float | None:
@@ -809,6 +827,7 @@ async def calculate_overall_engagement(agent: StakeholderCommunicationsAgent) ->
 # Sentiment helpers
 # ---------------------------------------------------------------------------
 
+
 async def calculate_sentiment_trend(feedback_list: list[dict[str, Any]]) -> dict[str, Any]:
     """Calculate sentiment trend."""
     if not feedback_list:
@@ -867,6 +886,7 @@ async def trigger_sentiment_alert(
 # ---------------------------------------------------------------------------
 # Channel senders
 # ---------------------------------------------------------------------------
+
 
 async def send_via_channel(
     agent: StakeholderCommunicationsAgent,
@@ -1106,6 +1126,7 @@ async def send_push(
 # Meeting time suggestions (Graph API)
 # ---------------------------------------------------------------------------
 
+
 async def suggest_meeting_times(
     agent: StakeholderCommunicationsAgent,
     stakeholder_ids: list[str],
@@ -1143,9 +1164,7 @@ async def suggest_meeting_times(
     response = await graph_request(
         agent, agent.exchange_token, "POST", "/me/findMeetingTimes", payload
     )
-    suggestions = (
-        response.get("meetingTimeSuggestions", []) if isinstance(response, dict) else []
-    )
+    suggestions = response.get("meetingTimeSuggestions", []) if isinstance(response, dict) else []
     return [
         suggestion.get("meetingTimeSlot", {}).get("start", {}).get("dateTime")
         for suggestion in suggestions
@@ -1234,6 +1253,7 @@ async def propose_optimal_time(stakeholder_ids: list[str], duration: int) -> str
 # ---------------------------------------------------------------------------
 # Default templates
 # ---------------------------------------------------------------------------
+
 
 def load_default_templates() -> dict[str, dict[str, dict[str, str]]]:
     return {

@@ -13,10 +13,7 @@ from template_mappings import CANVAS_TYPES, get_template_mapping
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 RUNTIME_REGISTRY_PATH = DATA_DIR / "methodology_node_runtime.json"
 CONNECTOR_REGISTRY_PATH = (
-    Path(__file__).resolve().parents[3]
-    / "connectors"
-    / "registry"
-    / "connectors.json"
+    Path(__file__).resolve().parents[3] / "connectors" / "registry" / "connectors.json"
 )
 LIFECYCLE_EVENTS = ("view", "generate", "update", "review", "approve", "publish")
 

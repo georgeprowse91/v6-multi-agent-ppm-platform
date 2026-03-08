@@ -26,7 +26,6 @@ from agents.runtime.src.agent_catalog import (  # noqa: E402
     get_catalog_entry,
     get_dynamic_entry,
     list_all_entries,
-    list_dynamic_entries,
     register_from_manifest,
     unregister_agent,
 )
@@ -186,12 +185,14 @@ async def list_marketplace_agents(
             continue
         if search:
             search_lower = search.lower()
-            haystack = " ".join([
-                entry.display_name,
-                getattr(entry, "description", "") or "",
-                " ".join(getattr(entry, "tags", [])),
-                entry.agent_id,
-            ]).lower()
+            haystack = " ".join(
+                [
+                    entry.display_name,
+                    getattr(entry, "description", "") or "",
+                    " ".join(getattr(entry, "tags", [])),
+                    entry.agent_id,
+                ]
+            ).lower()
             if search_lower not in haystack:
                 continue
 

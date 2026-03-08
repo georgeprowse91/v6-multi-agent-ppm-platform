@@ -38,6 +38,7 @@ def sanitize_text(value: str) -> str:
 # ID generators
 # ---------------------------------------------------------------------------
 
+
 async def generate_metric_id() -> str:
     """Generate unique metric ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -67,6 +68,7 @@ async def generate_anomaly_id() -> str:
 # Time helpers
 # ---------------------------------------------------------------------------
 
+
 def parse_time_range(time_range: dict[str, Any]) -> tuple[datetime, datetime]:
     """Parse a time-range dict into (start, end) UTC datetimes."""
     end = datetime.now(timezone.utc)
@@ -89,6 +91,7 @@ def parse_time_range(time_range: dict[str, Any]) -> tuple[datetime, datetime]:
 # Trend / forecast helpers
 # ---------------------------------------------------------------------------
 
+
 def summarize_trend(values: list[dict[str, Any]]) -> dict[str, Any]:
     series = [
         {"timestamp": v.get("timestamp"), "value": float(v.get("value", 0))}
@@ -108,9 +111,7 @@ def summarize_trend(values: list[dict[str, Any]]) -> dict[str, Any]:
     return {"direction": direction, "series": series}
 
 
-def linear_regression_forecast(
-    series: list[dict[str, Any]], horizon_days: int
-) -> float | None:
+def linear_regression_forecast(series: list[dict[str, Any]], horizon_days: int) -> float | None:
     if len(series) < 2:
         return None
     x_values = list(range(len(series)))
@@ -129,7 +130,10 @@ def linear_regression_forecast(
 # Metric extraction / summarization helpers
 # ---------------------------------------------------------------------------
 
-def extract_service_names(deployment_plan: dict[str, Any], health_endpoints: list[dict[str, Any]]) -> list[str]:
+
+def extract_service_names(
+    deployment_plan: dict[str, Any], health_endpoints: list[dict[str, Any]]
+) -> list[str]:
     service_names = deployment_plan.get("services") or deployment_plan.get("service_names")
     if isinstance(service_names, list) and service_names:
         return [str(name) for name in service_names]
@@ -142,9 +146,7 @@ def extract_service_names(deployment_plan: dict[str, Any], health_endpoints: lis
     ] or ["platform"]
 
 
-def extract_metric_series(
-    records: list[dict[str, Any]], metric_name: str
-) -> list[float]:
+def extract_metric_series(records: list[dict[str, Any]], metric_name: str) -> list[float]:
     values: list[float] = []
     for record in records:
         if isinstance(record.get("metrics"), dict):
@@ -312,6 +314,7 @@ def parse_prometheus_metrics(payload: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Environment-variable loaders
 # ---------------------------------------------------------------------------
+
 
 def load_health_endpoints(logger: Any = None) -> list[dict[str, Any]]:
     raw = os.getenv("HEALTH_ENDPOINTS")

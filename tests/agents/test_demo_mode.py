@@ -66,13 +66,17 @@ async def test_agents_fall_back_to_normal_execution_when_demo_mode_disabled(
     original_build_specs = AgentRuntime._build_agent_specs
 
     def _intent_router_only(self: AgentRuntime):
-        return [spec for spec in original_build_specs(self) if spec.agent_id == "intent-router-agent"]
+        return [
+            spec for spec in original_build_specs(self) if spec.agent_id == "intent-router-agent"
+        ]
 
     monkeypatch.setattr(AgentRuntime, "_build_agent_specs", _intent_router_only)
 
     runtime = AgentRuntime(event_bus=InMemoryEventBus())
 
-    response = await runtime.execute_agent("intent-router-agent", {"query": "Need demand intake support"})
+    response = await runtime.execute_agent(
+        "intent-router-agent", {"query": "Need demand intake support"}
+    )
 
     assert response["success"] is True
     assert "routing" in response["data"]

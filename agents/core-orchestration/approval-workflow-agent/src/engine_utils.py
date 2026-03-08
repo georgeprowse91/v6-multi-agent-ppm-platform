@@ -196,9 +196,7 @@ def _parse_bpmn_with_bpmn_python(bpmn_xml: str) -> dict[str, Any] | None:
                     "initial": False,
                 }
             )
-    transitions = [
-        {"source": edge[0], "target": edge[1]} for edge in diagram.diagram_graph.edges
-    ]
+    transitions = [{"source": edge[0], "target": edge[1]} for edge in diagram.diagram_graph.edges]
     incoming: dict[str, set[str]] = {}
     for transition in transitions:
         source = transition.get("source")
@@ -312,9 +310,7 @@ def resolve_reference(value: Any, variables: dict[str, Any]) -> Any:
 # ---------------------------------------------------------------------------
 
 
-async def event_matches_criteria(
-    event_data: dict[str, Any], criteria: dict[str, Any]
-) -> bool:
+async def event_matches_criteria(event_data: dict[str, Any], criteria: dict[str, Any]) -> bool:
     """Check if event matches subscription criteria."""
     if not criteria:
         return True
@@ -353,14 +349,10 @@ def extract_field_path(payload: dict[str, Any], field_path: str) -> tuple[bool, 
     return True, current
 
 
-def evaluate_criterion(
-    field_path: str, exists: bool, actual_value: Any, condition: Any
-) -> bool:
+def evaluate_criterion(field_path: str, exists: bool, actual_value: Any, condition: Any) -> bool:
     if isinstance(condition, dict):
         for operator, expected_value in condition.items():
-            if not evaluate_operator(
-                field_path, operator, expected_value, exists, actual_value
-            ):
+            if not evaluate_operator(field_path, operator, expected_value, exists, actual_value):
                 return False
         return True
 
@@ -497,9 +489,7 @@ def parse_datetime(value: Any) -> datetime | None:
 # ---------------------------------------------------------------------------
 
 
-async def matches_instance_filters(
-    instance: dict[str, Any], filters: dict[str, Any]
-) -> bool:
+async def matches_instance_filters(instance: dict[str, Any], filters: dict[str, Any]) -> bool:
     """Check if instance matches filters."""
     if "status" in filters and instance.get("status") != filters["status"]:
         return False

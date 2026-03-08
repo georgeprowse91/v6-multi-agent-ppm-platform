@@ -17,6 +17,7 @@ from typing import Any
 # ID generation
 # ---------------------------------------------------------------------------
 
+
 async def generate_document_id() -> str:
     """Generate unique document ID."""
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
@@ -38,6 +39,7 @@ async def generate_ingestion_id() -> str:
 # ---------------------------------------------------------------------------
 # Text / keyword helpers
 # ---------------------------------------------------------------------------
+
 
 def extract_keywords(content: str, *, limit: int = 10) -> list[str]:
     """Extract simple keyword list from content."""
@@ -120,6 +122,7 @@ def extract_decisions(content: str) -> list[str]:
 # Graph ID helpers
 # ---------------------------------------------------------------------------
 
+
 def graph_document_id(document_id: str) -> str:
     return f"document:{document_id}"
 
@@ -140,6 +143,7 @@ def graph_decision_id(decision: str) -> str:
 # Excerpt / search helpers
 # ---------------------------------------------------------------------------
 
+
 def extract_query_terms(query: str) -> list[str]:
     return [token for token in re.findall(r"\w+", query, flags=re.UNICODE) if len(token) > 1]
 
@@ -149,9 +153,7 @@ def normalize_excerpt_text(content: str) -> str:
     return re.sub(r"\s+", " ", without_markup, flags=re.UNICODE).strip()
 
 
-def normalize_offset_spans(
-    offsets: list[Any] | None, content_length: int
-) -> list[tuple[int, int]]:
+def normalize_offset_spans(offsets: list[Any] | None, content_length: int) -> list[tuple[int, int]]:
     spans: list[tuple[int, int]] = []
     if not offsets:
         return spans
@@ -256,6 +258,7 @@ def build_excerpt(
 # Graph infrastructure helpers
 # ---------------------------------------------------------------------------
 
+
 def register_graph_node(
     graph_nodes: dict[str, dict[str, Any]],
     node_id: str,
@@ -317,7 +320,9 @@ def update_graph_for_document(
         return
     doc_node = graph_document_id(document_id)
     register_graph_node(
-        graph_nodes, doc_node, "document",
+        graph_nodes,
+        doc_node,
+        "document",
         {"title": document.get("title"), "doc_type": document.get("type")},
     )
 
@@ -370,6 +375,7 @@ def map_doc_type_for_schema(doc_type: str | None) -> str:
 # ---------------------------------------------------------------------------
 # Access control helpers
 # ---------------------------------------------------------------------------
+
 
 def is_access_allowed(document: dict[str, Any], access_context: dict[str, Any]) -> bool:
     """Evaluate RBAC/ABAC rules for document access (pure function)."""

@@ -31,9 +31,7 @@ async def map_dependencies(
         raise ValueError(f"Schedule not found: {schedule_id}")
 
     # Validate dependencies
-    validated_dependencies = await validate_dependencies(
-        dependencies, schedule.get("tasks", [])
-    )
+    validated_dependencies = await validate_dependencies(dependencies, schedule.get("tasks", []))
 
     # Detect circular dependencies
     circular_deps = await detect_circular_dependencies(validated_dependencies)
@@ -70,6 +68,7 @@ async def map_dependencies(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 async def validate_dependencies(
     dependencies: list[dict[str, Any]], tasks: list[dict[str, Any]]

@@ -79,7 +79,7 @@ def _bootstrap_paths() -> None:
 
     agents_path = root / "agents"
     if agents_path.exists():
-        src_paths.extend(path for path in agents_path.glob("**/src") if path.is_dir())
+        src_paths.extend(path for path in sorted(agents_path.glob("**/src")) if path.is_dir())
 
     runtime_src = agents_path / "runtime" / "src"
     if runtime_src.exists():
@@ -202,17 +202,13 @@ def pytest_ignore_collect(collection_path: Path, config):
         "ENABLE_WEB_E2E_TESTS"
     ):
         return True
-    if path_str.endswith("tests/e2e/test_web_login.py") and not os.getenv(
-        "ENABLE_WEB_E2E_TESTS"
-    ):
+    if path_str.endswith("tests/e2e/test_web_login.py") and not os.getenv("ENABLE_WEB_E2E_TESTS"):
         return True
     if path_str.endswith("tests/e2e/test_connector_webhooks.py") and not os.getenv(
         "ENABLE_WEB_E2E_TESTS"
     ):
         return True
-    if path_str.endswith(
-        "tests/integration/test_data_service_clients.py"
-    ):
+    if path_str.endswith("tests/integration/test_data_service_clients.py"):
         # This test does heavy sys.path/sys.modules manipulation at module
         # level that conflicts with the vendor stubs; skip during collection
         # when run outside dedicated integration mode.
