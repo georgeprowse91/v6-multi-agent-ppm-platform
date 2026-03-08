@@ -149,9 +149,10 @@ addopts = "-v -ra --durations=10 --import-mode=importlib"
 # Note: packages/contracts/src is intentionally omitted here because it contains
 # an 'api' sub-package that would shadow services/api-gateway/src/api; conftest.py
 # handles the correct prioritisation via _bootstrap_paths().
+# Note: vendor/stubs and vendor are intentionally omitted here — they must appear
+# AFTER site-packages so real installations take priority over stubs.  conftest.py
+# _bootstrap_paths() appends them to the end of sys.path for correct fallback.
 pythonpath = [
-    "vendor/stubs",
-    "vendor",
     ".",
     "packages/common/src",
     "packages/observability/src",
