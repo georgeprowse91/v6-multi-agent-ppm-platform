@@ -18,6 +18,11 @@ env:
   MAX_AGENT_CONCURRENCY: "5"
   AGENT_CALL_TIMEOUT: "30.0"
   WEB_CONCURRENCY: "4"
+  # SQLAlchemy connection pool tuning for production workloads.
+  DB_POOL_SIZE: "20"
+  DB_MAX_OVERFLOW: "10"
+  DB_POOL_TIMEOUT: "30"
+  DB_POOL_RECYCLE: "1800"
 
 leaderElection:
   enabled: true

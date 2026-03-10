@@ -586,6 +586,23 @@ resource "azurerm_application_gateway" "main" {
     request_timeout       = 30
   }
 
+  # End-to-end TLS: backend settings for HTTPS when TLS is configured
+  dynamic "backend_http_settings" {
+    for_each = var.app_gateway_ssl_key_vault_secret_id != "" ? [1] : []
+    content {
+      name                  = "https-backend-settings"
+      cookie_based_affinity = "Disabled"
+      port                  = 443
+      protocol              = "Https"
+      request_timeout       = 30
+    }
+  }
+
+  ssl_policy {
+    policy_type = "Predefined"
+    policy_name = "AppGwSslPolicy20220101"
+  }
+
   dynamic "ssl_certificate" {
     for_each = var.app_gateway_ssl_key_vault_secret_id != "" ? [1] : []
     content {
@@ -657,7 +674,7 @@ resource "azurerm_application_gateway" "main" {
       rule_type                  = "Basic"
       http_listener_name         = "https-listener"
       backend_address_pool_name  = "aks-ingress"
-      backend_http_settings_name = "http-settings"
+      backend_http_settings_name = "https-backend-settings"
       priority                   = 100
     }
   }
@@ -666,6 +683,13 @@ resource "azurerm_application_gateway" "main" {
 
   tags = {
     Environment = var.environment
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.environment == "dev" || var.environment == "development" || var.app_gateway_ssl_key_vault_secret_id != ""
+      error_message = "TLS certificate (app_gateway_ssl_key_vault_secret_id) is required for staging and production environments."
+    }
   }
 }
 
