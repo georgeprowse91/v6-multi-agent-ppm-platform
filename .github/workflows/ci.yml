@@ -77,6 +77,9 @@ jobs:
       - name: Enforce docs migration guard
         run: python ops/scripts/check-docs-migration-guard.py
 
+      - name: Verify AUTH_DEV_MODE not enabled in deployment configs
+        run: python ops/scripts/check_auth_dev_mode.py
+
       - name: Run Ruff
         run: ruff check agents/ apps/ packages/ tests/ --output-format=github
 

@@ -15,6 +15,14 @@ env:
   OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
   OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: "http://otel-collector:4318/v1/metrics"
   WEB_CONCURRENCY: "4"
+  # SQLAlchemy connection pool tuning for production workloads.
+  # pool_size=20 supports ~10 concurrent queries per worker (4 workers).
+  # max_overflow=10 provides burst headroom.
+  # pool_recycle=1800s aligns with Azure PostgreSQL idle connection timeout.
+  DB_POOL_SIZE: "20"
+  DB_MAX_OVERFLOW: "10"
+  DB_POOL_TIMEOUT: "30"
+  DB_POOL_RECYCLE: "1800"
 
 resources:
   requests:
