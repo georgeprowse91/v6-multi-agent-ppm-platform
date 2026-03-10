@@ -33,7 +33,6 @@ import pytest
 CI_OPTIONAL_TEST_DEPENDENCIES = {
     "api_security": ["slowapi"],
     "workflow_execution": ["celery"],
-    "web_governance": ["email_validator"],
 }
 
 _MISSING_DEPENDENCY_SKIP_PATTERNS = (
