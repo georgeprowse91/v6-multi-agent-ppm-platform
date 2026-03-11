@@ -7,13 +7,12 @@ try:
 
     _has_pytest_asyncio = True
 except ModuleNotFoundError:
+    pytest_asyncio = None  # type: ignore[assignment]
     _has_pytest_asyncio = False
 
 from response_orchestration_agent import ResponseOrchestrationAgent
 
-pytestmark = pytest.mark.skipif(
-    not _has_pytest_asyncio, reason="pytest-asyncio is not installed"
-)
+pytestmark = pytest.mark.skipif(not _has_pytest_asyncio, reason="pytest-asyncio is not installed")
 
 
 class EventCollector:
@@ -45,7 +44,7 @@ class MockAgent:
         return {**self.output, **connector_data}
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def orchestration_agent() -> ResponseOrchestrationAgent:
     orchestrator = ResponseOrchestrationAgent(config={"event_bus": EventCollector()})
     await orchestrator.initialize()

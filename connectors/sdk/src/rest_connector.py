@@ -8,7 +8,7 @@ for connectors that integrate with REST APIs.
 from __future__ import annotations
 
 import base64
-import importlib as _importlib
+import importlib.util
 import os
 import pathlib as _pathlib
 import sys as _sys
@@ -21,8 +21,8 @@ def _load_sdk_auth():
     _mod_name = "connectors_sdk_auth"
     if _mod_name in _sys.modules:
         return _sys.modules[_mod_name]
-    _spec = _importlib.util.spec_from_file_location(_mod_name, _sdk_src / "auth.py")
-    _mod = _importlib.util.module_from_spec(_spec)
+    _spec = importlib.util.spec_from_file_location(_mod_name, _sdk_src / "auth.py")
+    _mod = importlib.util.module_from_spec(_spec)
     _sys.modules[_mod_name] = _mod
     _spec.loader.exec_module(_mod)
     return _mod

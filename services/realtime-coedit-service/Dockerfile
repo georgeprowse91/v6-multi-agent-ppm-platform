@@ -52,11 +52,11 @@ ENV PYTHONUNBUFFERED=1 \
     PATH="/home/appuser/.local/bin:${PATH}"
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8000/healthz || exit 1
 
 # Run the application
-CMD ["sh", "-c", "uvicorn main:app --app-dir services/realtime-coedit-service/src --host 0.0.0.0 --port 8000 --workers ${WEB_CONCURRENCY:-2}"]
+CMD ["sh", "-c", "uvicorn main:app --app-dir services/realtime-coedit-service/src --host 0.0.0.0 --port 8080 --workers ${WEB_CONCURRENCY:-2}"]

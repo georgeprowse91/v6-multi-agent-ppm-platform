@@ -6,10 +6,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from security.config import resolve_config
-
 from data_quality.rules import DataQualityIssue
 from data_quality.schema_validation import SchemaValidationError, validate_instance
+from security.config import resolve_config
 
 
 @dataclass(frozen=True)
@@ -24,7 +23,7 @@ class RuleSetResult:
 def validate_against_schema(
     schema_path: str | Path, payload: dict[str, Any]
 ) -> list[SchemaValidationError]:
-    return validate_instance(payload, Path(schema_path))
+    return list(validate_instance(payload, Path(schema_path)))
 
 
 def _get_value(payload: dict[str, Any], field_path: str) -> Any:

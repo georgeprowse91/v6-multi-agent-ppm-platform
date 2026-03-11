@@ -34,13 +34,12 @@ except ModuleNotFoundError:  # pragma: no cover - optional dependency
         return _NoopPromMetric()
 
 
+from observability.telemetry import REQUIRED_BUSINESS_METRICS, REQUIRED_HTTP_METRICS
+from observability.tracing import get_trace_id
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.types import ASGIApp
-
-from observability.telemetry import REQUIRED_BUSINESS_METRICS, REQUIRED_HTTP_METRICS
-from observability.tracing import get_trace_id
 
 logger = logging.getLogger("observability.metrics")
 

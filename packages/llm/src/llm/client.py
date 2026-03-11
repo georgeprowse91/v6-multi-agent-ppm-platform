@@ -14,7 +14,6 @@ from typing import Any
 
 import httpx
 from common.resilience import ResilienceMiddleware, dependency_config_from_env
-
 from llm.router import LLMRouter, LLMRouteRequest
 from llm.types import LLMProviderError, LLMResponse, LLMStreamChunk
 

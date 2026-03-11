@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, cast
 
 import yaml
-
 from security.config import resolve_config
 
 

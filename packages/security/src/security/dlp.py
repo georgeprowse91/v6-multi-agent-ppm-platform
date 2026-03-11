@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 from security.config import resolve_config
 
 logger = logging.getLogger("security-dlp")

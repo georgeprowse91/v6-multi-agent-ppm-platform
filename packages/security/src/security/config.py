@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-
 from security.secrets import resolve_secret
 
 

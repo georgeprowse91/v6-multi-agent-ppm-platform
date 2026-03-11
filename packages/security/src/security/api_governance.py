@@ -6,11 +6,11 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
 from fastapi import FastAPI, Request, Response
+from security.errors import register_error_handlers
+from security.headers import SecurityHeadersMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from packages.version import API_VERSION
-from security.errors import register_error_handlers
-from security.headers import SecurityHeadersMiddleware
 
 API_PREFIX = "/v1"
 AUTHORIZATION_HEADER = "Authorization"
