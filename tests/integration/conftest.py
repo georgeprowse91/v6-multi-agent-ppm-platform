@@ -5,10 +5,15 @@ from __future__ import annotations
 import json
 from typing import Any
 
-import httpx
 import pytest
 
-from connectors.mcp_client import client as async_mcp_module
+try:
+    import httpx
+
+    from connectors.mcp_client import client as async_mcp_module
+except ImportError:  # httpx not installed — fixtures will be unavailable
+    httpx = None  # type: ignore[assignment]
+    async_mcp_module = None  # type: ignore[assignment]
 
 
 class MockMcpServer:

@@ -78,6 +78,18 @@ def stub_routes_package() -> None:
             stub.DATA_DIR = _web_src.parent / "data"
             stub.STORAGE_DIR = _web_src.parent / "storage"
             stub.PROJECTS_PATH = stub.DATA_DIR / "projects.json"
+            # Stub helpers used by route modules
+            stub._get_knowledge_store = lambda: None
+            stub._data_service_client = lambda: None
+            stub._document_client = lambda: None
+            stub._analytics_client = lambda: None
+            stub._lineage_client = lambda: None
+            stub._orchestrator_client = lambda: None
+            stub._connector_hub_client = lambda: None
+            stub._require_session = lambda request: {"subject": "stub", "tenant_id": "stub"}
+            stub._tenant_id_from_request = lambda request, session: "stub"
+            stub._demo_mode_enabled = lambda: False
+            stub._get_search_service = lambda: None
             sys.modules["routes._deps"] = stub
 
         # Restore conflicting modules

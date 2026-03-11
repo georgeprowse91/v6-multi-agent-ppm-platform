@@ -3,10 +3,11 @@ from __future__ import annotations
 import pytest
 
 try:
-    import pytest_asyncio  # noqa: F401
+    import pytest_asyncio
 
     _has_pytest_asyncio = True
 except ModuleNotFoundError:
+    pytest_asyncio = None  # type: ignore[assignment]
     _has_pytest_asyncio = False
 
 from response_orchestration_agent import ResponseOrchestrationAgent
@@ -43,7 +44,7 @@ class MockAgent:
         return {**self.output, **connector_data}
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def orchestration_agent() -> ResponseOrchestrationAgent:
     orchestrator = ResponseOrchestrationAgent(config={"event_bus": EventCollector()})
     await orchestrator.initialize()
