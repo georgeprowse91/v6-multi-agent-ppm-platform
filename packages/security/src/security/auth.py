@@ -23,12 +23,11 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for constrained local
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from jwt import InvalidTokenError
+from security.errors import error_payload
+from security.iam import map_groups_to_roles
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from starlette.types import ASGIApp
-
-from security.errors import error_payload
-from security.iam import map_groups_to_roles
 
 logger = logging.getLogger("security-auth")
 

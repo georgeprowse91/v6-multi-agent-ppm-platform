@@ -6,10 +6,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from security.config import resolve_config
-
 from data_quality.rules import DataQualityIssue
 from data_quality.schema_validation import SchemaValidationError, validate_instance
+from security.config import resolve_config
 
 
 @dataclass(frozen=True)
