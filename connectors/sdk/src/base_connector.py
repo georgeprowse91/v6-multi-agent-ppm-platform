@@ -19,8 +19,14 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, TypeVar
 
-import yaml
-from common.resilience import (
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+from common.bootstrap import ensure_monorepo_paths  # noqa: E402
+
+ensure_monorepo_paths(REPO_ROOT)
+
+import yaml  # noqa: E402
+from common.resilience import (  # noqa: E402
     CircuitBreakerPolicy,
     CircuitOpenError,
     DependencyResilienceConfig,
@@ -28,7 +34,7 @@ from common.resilience import (
     RetryPolicy,
     TimeoutPolicy,
 )
-from jsonschema import ValidationError as JsonSchemaValidationError
+from jsonschema import ValidationError as JsonSchemaValidationError  # noqa: E402
 
 try:
     from telemetry import get_connector_telemetry
