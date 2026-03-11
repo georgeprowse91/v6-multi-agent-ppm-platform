@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -148,7 +149,7 @@ def _detect_uvicorn(root: Path) -> list[str] | None:
             "--host",
             "0.0.0.0",
             "--port",
-            "8501",
+            os.environ.get("PORT", "8080"),
             "--app-dir",
             str(src_dir),
         ]
