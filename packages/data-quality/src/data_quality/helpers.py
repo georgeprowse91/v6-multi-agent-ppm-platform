@@ -23,7 +23,7 @@ class RuleSetResult:
 def validate_against_schema(
     schema_path: str | Path, payload: dict[str, Any]
 ) -> list[SchemaValidationError]:
-    return validate_instance(payload, Path(schema_path))
+    return list(validate_instance(payload, Path(schema_path)))
 
 
 def _get_value(payload: dict[str, Any], field_path: str) -> Any:
