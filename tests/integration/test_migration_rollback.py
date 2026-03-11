@@ -7,8 +7,6 @@ static AST check in ops/scripts/test_migration_rollback.py.
 
 from __future__ import annotations
 
-import os
-import tempfile
 from pathlib import Path
 
 import pytest

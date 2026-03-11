@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 try:
-    import pytest_asyncio
+    import pytest_asyncio  # noqa: F401
 
     _has_pytest_asyncio = True
 except ModuleNotFoundError:
