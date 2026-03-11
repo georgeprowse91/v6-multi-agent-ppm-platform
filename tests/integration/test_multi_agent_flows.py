@@ -11,9 +11,7 @@ except ModuleNotFoundError:
 
 from response_orchestration_agent import ResponseOrchestrationAgent
 
-pytestmark = pytest.mark.skipif(
-    not _has_pytest_asyncio, reason="pytest-asyncio is not installed"
-)
+pytestmark = pytest.mark.skipif(not _has_pytest_asyncio, reason="pytest-asyncio is not installed")
 
 
 class EventCollector:
